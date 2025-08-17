@@ -1,162 +1,289 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { withProtection } from '@/lib/middleware/auth';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
+// Payment creation schema
+const createPaymentSchema = z.object({
+  orderId: z.string().min(1, 'Order ID is required'),
+  amount: z.number().positive('Amount must be positive'),
+  currency: z.string().min(3, 'Currency must be 3 characters').max(3, 'Currency must be 3 characters'),
+  method: z.enum(['STRIPE', 'PAYPAL', 'CASH', 'BANK_TRANSFER', 'CRYPTO']),
+  gateway: z.string().min(1, 'Gateway is required'),
+  metadata: z.record(z.any()).optional(),
+  notes: z.string().optional()
+});
+
+// GET /api/payments - List payments with pagination and filters
+async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
     const method = searchParams.get('method');
-    const search = searchParams.get('search');
+    const gateway = searchParams.get('gateway');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const orderId = searchParams.get('orderId');
 
+    // Build where clause
     const where: any = {
-      organizationId: session.user.organizationId,
+      organizationId: request.user!.organizationId
     };
-
-    if (status) {
-      where.status = status;
+    
+    if (status) where.status = status;
+    if (method) where.method = method;
+    if (gateway) where.gateway = gateway;
+    if (orderId) where.orderId = orderId;
+    
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
     }
 
-    if (method) {
-      where.method = method;
-    }
-
-    if (search) {
-      where.OR = [
-        { order: { orderNumber: { contains: search, mode: 'insensitive' } } },
-        { order: { customer: { name: { contains: search, mode: 'insensitive' } } } },
-        { order: { customer: { phone: { contains: search, mode: 'insensitive' } } } },
-        { transactionId: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
+    // Get total count for pagination
+    const total = await prisma.payment.count({ where });
+    
+    // Get payments with pagination
     const payments = await prisma.payment.findMany({
       where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
       include: {
         order: {
-          include: {
+          select: {
+            id: true,
+            orderNumber: true,
             customer: {
-              select: {
-                name: true,
-                phone: true,
-                email: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
+              select: { id: true, name: true, email: true }
+            }
+          }
+        }
+      }
     });
 
-    // Transform the data to match the frontend interface
-    const transformedPayments = payments.map(payment => ({
-      id: payment.id,
-      orderId: payment.orderId,
-      orderNumber: payment.order?.orderNumber,
-      customer: payment.order?.customer,
-      amount: payment.amount,
-      method: payment.method,
-      status: payment.status,
-      gateway: payment.gateway,
-      createdAt: payment.createdAt,
-      updatedAt: payment.updatedAt,
-    }));
+    return NextResponse.json({
+      success: true,
+      data: {
+        payments,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
 
-    return NextResponse.json({ payments: transformedPayments });
   } catch (error) {
     console.error('Error fetching payments:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch payments' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST /api/payments - Create new payment
+async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const {
-      orderId,
-      amount,
-      method,
-      status,
-      transactionId,
-      gateway,
-    } = body;
-
-    // Validation
-    if (!orderId || !amount || !method) {
-      return NextResponse.json({ message: 'Order ID, amount, and method are required' }, { status: 400 });
+    
+    // Validate input
+    const validationResult = createPaymentSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Validation failed', 
+          errors: validationResult.error.errors 
+        }, 
+        { status: 400 }
+      );
     }
 
-    // Check if order exists and belongs to organization
+    const paymentData = validationResult.data;
+
+    // Verify order exists and belongs to organization
     const order = await prisma.order.findFirst({
       where: {
-        id: orderId,
-        organizationId: session.user.organizationId,
-      },
+        id: paymentData.orderId,
+        organizationId: request.user!.organizationId
+      }
     });
 
     if (!order) {
-      return NextResponse.json({ message: 'Order not found' }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: 'Order not found or access denied' },
+        { status: 404 }
+      );
     }
 
     // Check if payment already exists for this order
     const existingPayment = await prisma.payment.findFirst({
       where: {
-        orderId,
-        organizationId: session.user.organizationId,
-      },
+        orderId: paymentData.orderId,
+        status: { in: ['COMPLETED', 'PROCESSING'] }
+      }
     });
 
     if (existingPayment) {
-      return NextResponse.json({ message: 'Payment already exists for this order' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: 'Payment already exists for this order' },
+        { status: 409 }
+      );
+    }
+
+    // Validate payment amount matches order total
+    if (Math.abs(paymentData.amount - order.totalAmount) > 0.01) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: `Payment amount (${paymentData.amount}) does not match order total (${order.totalAmount})` 
+        },
+        { status: 400 }
+      );
     }
 
     // Create payment
     const payment = await prisma.payment.create({
       data: {
-        orderId,
-        amount,
-        method,
-        status: status || 'PENDING',
-        gateway: gateway || method,
-        organizationId: session.user.organizationId,
+        ...paymentData,
+        organizationId: request.user!.organizationId,
+        status: 'PENDING'
       },
       include: {
         order: {
-          include: {
+          select: {
+            id: true,
+            orderNumber: true,
             customer: {
-              select: {
-                name: true,
-                phone: true,
-                email: true,
-              },
-            },
-          },
-        },
-      },
+              select: { id: true, name: true, email: true }
+            }
+          }
+        }
+      }
     });
 
     // Update order payment status
     await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: status === 'PAID' ? 'PAID' : 'PENDING',
-      },
+      where: { id: paymentData.orderId },
+      data: { paymentStatus: 'PROCESSING' }
     });
 
-    return NextResponse.json({ payment }, { status: 201 });
+    // Create activity log
+    await prisma.activity.create({
+      data: {
+        type: 'PAYMENT_CREATED',
+        description: `Payment of ${paymentData.amount} ${paymentData.currency} created for order ${order.orderNumber}`,
+        userId: request.user!.userId,
+        metadata: {
+          paymentId: payment.id,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          amount: paymentData.amount,
+          method: paymentData.method
+        }
+      }
+    });
+
+    // Process payment based on method (mock implementation)
+    let paymentResult;
+    try {
+      switch (paymentData.method) {
+        case 'STRIPE':
+          paymentResult = await processStripePayment(payment);
+          break;
+        case 'PAYPAL':
+          paymentResult = await processPayPalPayment(payment);
+          break;
+        case 'CASH':
+          paymentResult = await processCashPayment(payment);
+          break;
+        default:
+          paymentResult = { success: true, status: 'COMPLETED' };
+      }
+
+      // Update payment status
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: { 
+          status: paymentResult.success ? 'COMPLETED' : 'FAILED',
+          metadata: {
+            ...payment.metadata,
+            processingResult: paymentResult
+          }
+        }
+      });
+
+      // Update order payment status
+      await prisma.order.update({
+        where: { id: paymentData.orderId },
+        data: { 
+          paymentStatus: paymentResult.success ? 'COMPLETED' : 'FAILED'
+        }
+      });
+
+    } catch (processingError) {
+      console.error('Payment processing error:', processingError);
+      
+      // Update payment status to failed
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: { 
+          status: 'FAILED',
+          metadata: {
+            ...payment.metadata,
+            error: processingError.message
+          }
+        }
+      });
+
+      await prisma.order.update({
+        where: { id: paymentData.orderId },
+        data: { paymentStatus: 'FAILED' }
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { payment },
+      message: 'Payment created successfully'
+    }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating payment:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to create payment' },
+      { status: 500 }
+    );
   }
-} 
+}
+
+// Mock payment processing functions
+async function processStripePayment(payment: any) {
+  // Mock Stripe processing
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, status: 'COMPLETED', transactionId: `stripe_${Date.now()}` };
+}
+
+async function processPayPalPayment(payment: any) {
+  // Mock PayPal processing
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, status: 'COMPLETED', transactionId: `paypal_${Date.now()}` };
+}
+
+async function processCashPayment(payment: any) {
+  // Mock cash payment processing
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return { success: true, status: 'COMPLETED', transactionId: `cash_${Date.now()}` };
+}
+
+// Export handlers
+export const GET = withProtection()(GET);
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(POST); 

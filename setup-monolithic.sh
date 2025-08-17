@@ -1,6 +1,11 @@
 #!/bin/bash
 
-echo "🚀 Setting up SmartStore AI Monolithic Architecture..."
+# SmartStore SaaS Monolithic Setup Script
+# This script sets up the complete monolithic environment
+
+set -e
+
+echo "🚀 Starting SmartStore SaaS Monolithic Setup..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,6 +33,7 @@ print_error() {
 
 # Check if Docker is installed
 check_docker() {
+    print_status "Checking Docker installation..."
     if ! command -v docker &> /dev/null; then
         print_error "Docker is not installed. Please install Docker first."
         exit 1
@@ -41,15 +47,19 @@ check_docker() {
     print_success "Docker and Docker Compose are installed"
 }
 
-# Check if Node.js is installed
-check_node() {
-    if ! command -v node &> /dev/null; then
-        print_warning "Node.js is not installed. This is required for local development."
-        print_warning "You can still run the application using Docker."
-    else
-        NODE_VERSION=$(node --version)
-        print_success "Node.js $NODE_VERSION is installed"
-    fi
+# Check if required ports are available
+check_ports() {
+    print_status "Checking port availability..."
+    
+    local ports=("80" "443" "3000" "27017" "6379" "11434" "8081" "8082")
+    
+    for port in "${ports[@]}"; do
+        if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+            print_warning "Port $port is already in use. Please free it up or change the configuration."
+        else
+            print_success "Port $port is available"
+        fi
+    done
 }
 
 # Create necessary directories
@@ -58,79 +68,51 @@ create_directories() {
     
     mkdir -p uploads
     mkdir -p logs
+    mkdir -p ssl
     mkdir -p backups
     
     print_success "Directories created successfully"
 }
 
-# Setup environment file
-setup_environment() {
-    print_status "Setting up environment configuration..."
+# Generate self-signed SSL certificate for development
+generate_ssl_cert() {
+    print_status "Generating self-signed SSL certificate..."
     
-    if [ ! -f .env.local ]; then
-        cp env.monolithic .env.local
-        print_success "Environment file created from template"
-        print_warning "Please edit .env.local with your actual configuration values"
+    if [ ! -f "ssl/cert.pem" ] || [ ! -f "ssl/key.pem" ]; then
+        mkdir -p ssl
+        openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=US/ST=State/L=City/O=SmartStore/CN=localhost"
+        print_success "SSL certificate generated successfully"
     else
-        print_warning "Environment file already exists. Skipping..."
+        print_status "SSL certificate already exists"
     fi
 }
 
-# Install dependencies (if Node.js is available)
-install_dependencies() {
-    if command -v npm &> /dev/null; then
-        print_status "Installing Node.js dependencies..."
-        npm install
-        print_success "Dependencies installed successfully"
-    else
-        print_warning "npm not available. Dependencies will be installed in Docker container."
-    fi
-}
-
-# Setup database
-setup_database() {
-    print_status "Setting up database..."
+# Create environment file
+create_env_file() {
+    print_status "Creating environment file..."
     
-    if command -v npx &> /dev/null; then
-        print_status "Generating Prisma client..."
-        npx prisma generate
-        
-        print_status "Pushing database schema..."
-        npx prisma db push
-        
-        print_success "Database setup completed"
+    if [ ! -f ".env" ]; then
+        cp env.example .env
+        print_warning "Environment file created from template. Please update it with your actual values."
+        print_status "You can edit .env file to configure your environment variables."
     else
-        print_warning "npx not available. Database setup will be done in Docker container."
+        print_status "Environment file already exists"
     fi
 }
 
 # Build and start services
 start_services() {
-    print_status "Building and starting monolithic application..."
+    print_status "Building and starting services..."
     
-    # Stop any existing containers
-    docker-compose down 2>/dev/null
-    docker-compose -f docker-compose.microservices.yml down 2>/dev/null
+    # Build the application
+    print_status "Building Docker images..."
+    docker-compose build --no-cache
     
-    # Build and start monolithic application
-    docker-compose -f docker-compose.monolithic.yml build --no-cache
+    # Start services
+    print_status "Starting services..."
+    docker-compose up -d
     
-    if [ $? -eq 0 ]; then
-        print_success "Application built successfully"
-        
-        print_status "Starting services..."
-        docker-compose -f docker-compose.monolithic.yml up -d
-        
-        if [ $? -eq 0 ]; then
-            print_success "Services started successfully"
-        else
-            print_error "Failed to start services"
-            exit 1
-        fi
-    else
-        print_error "Failed to build application"
-        exit 1
-    fi
+    print_success "Services started successfully"
 }
 
 # Wait for services to be ready
@@ -139,95 +121,85 @@ wait_for_services() {
     
     # Wait for MongoDB
     print_status "Waiting for MongoDB..."
-    until docker exec smartstore-mongodb mongosh --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
+    until docker-compose exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
         sleep 2
     done
     print_success "MongoDB is ready"
     
     # Wait for Redis
     print_status "Waiting for Redis..."
-    until docker exec smartstore-redis redis-cli ping >/dev/null 2>&1; do
+    until docker-compose exec -T redis redis-cli ping > /dev/null 2>&1; do
         sleep 2
     done
     print_success "Redis is ready"
     
-    # Wait for main application
-    print_status "Waiting for main application..."
-    until curl -f http://localhost:3000/api/health >/dev/null 2>&1; do
+    # Wait for Ollama
+    print_status "Waiting for Ollama..."
+    until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do
+        sleep 2
+    done
+    print_success "Ollama is ready"
+    
+    # Wait for the main application
+    print_status "Waiting for the main application..."
+    until curl -s http://localhost:3000/api/health > /dev/null 2>&1; do
         sleep 5
     done
     print_success "Main application is ready"
 }
 
-# Check service health
-check_health() {
-    print_status "Checking service health..."
+# Show service status
+show_status() {
+    print_status "Service Status:"
+    docker-compose ps
     
-    # Check main app
-    if curl -f http://localhost:3000/api/health >/dev/null 2>&1; then
-        print_success "Main application is healthy"
-    else
-        print_error "Main application health check failed"
-    fi
+    echo ""
+    print_status "Access URLs:"
+    echo -e "  ${GREEN}Main Application:${NC} http://localhost:3000"
+    echo -e "  ${GREEN}Nginx (HTTP):${NC} http://localhost"
+    echo -e "  ${GREEN}Nginx (HTTPS):${NC} https://localhost"
+    echo -e "  ${GREEN}MongoDB Express:${NC} http://localhost:8081"
+    echo -e "  ${GREEN}Redis Commander:${NC} http://localhost:8082"
+    echo -e "  ${GREEN}Ollama API:${NC} http://localhost:11434"
     
-    # Check MongoDB
-    if docker exec smartstore-mongodb mongosh --eval "db.adminCommand('ping')" >/dev/null 2>&1; then
-        print_success "MongoDB is healthy"
-    else
-        print_error "MongoDB health check failed"
-    fi
+    echo ""
+    print_status "Default Admin Credentials:"
+    echo -e "  ${GREEN}Email:${NC} admin@smartstore.com"
+    echo -e "  ${GREEN}Password:${NC} admin123"
     
-    # Check Redis
-    if docker exec smartstore-redis redis-cli ping >/dev/null 2>&1; then
-        print_success "Redis is healthy"
-    else
-        print_error "Redis health check failed"
-    fi
+    echo ""
+    print_warning "Remember to change the default admin password in production!"
 }
 
-# Display final information
-display_info() {
-    echo ""
-    echo "🎉 SmartStore AI Monolithic Setup Complete!"
-    echo ""
-    echo "📋 Service Information:"
-    echo "   • Main Application: http://localhost:3000"
-    echo "   • MongoDB: localhost:27017"
-    echo "   • Redis: localhost:6379"
-    echo "   • MongoDB Express: http://localhost:8081"
-    echo "   • MQTT Broker: localhost:1883"
-    echo ""
-    echo "🔧 Management Commands:"
-    echo "   • View logs: docker-compose -f docker-compose.monolithic.yml logs -f"
-    echo "   • Stop services: docker-compose -f docker-compose.monolithic.yml down"
-    echo "   • Restart services: docker-compose -f docker-compose.monolithic.yml restart"
-    echo "   • View containers: docker ps"
-    echo ""
-    echo "📚 Next Steps:"
-    echo "   1. Open http://localhost:3000 in your browser"
-    echo "   2. Complete the initial setup wizard"
-    echo "   3. Configure your environment variables in .env.local"
-    echo "   4. Set up your payment gateways and external services"
-    echo ""
-    echo "🚀 Your monolithic SmartStore AI is ready to use!"
-}
-
-# Main execution
+# Main setup function
 main() {
-    echo "🏗️  SmartStore AI Monolithic Migration"
-    echo "======================================"
+    echo "=========================================="
+    echo "  SmartStore SaaS Monolithic Setup"
+    echo "=========================================="
     echo ""
     
     check_docker
-    check_node
+    check_ports
     create_directories
-    setup_environment
-    install_dependencies
-    setup_database
+    generate_ssl_cert
+    create_env_file
     start_services
     wait_for_services
-    check_health
-    display_info
+    show_status
+    
+    echo ""
+    echo "=========================================="
+    print_success "Setup completed successfully!"
+    echo "=========================================="
+    echo ""
+    print_status "Useful commands:"
+    echo "  docker-compose up -d          # Start services"
+    echo "  docker-compose down           # Stop services"
+    echo "  docker-compose logs -f        # View logs"
+    echo "  docker-compose restart        # Restart services"
+    echo "  docker-compose ps             # Check status"
+    echo ""
+    print_status "For more information, check the README.md file."
 }
 
 # Run main function

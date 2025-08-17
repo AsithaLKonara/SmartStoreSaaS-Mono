@@ -1,401 +1,326 @@
-# 🚀 SmartStore AI - AI-Powered Multi-Channel Commerce Platform
+# SmartStore SaaS - Monolithic Architecture
 
-A comprehensive, production-ready SaaS platform that combines AI-powered automation with multi-channel commerce management. Built with Next.js 14, TypeScript, and modern web technologies.
+A comprehensive, AI-powered multi-channel commerce automation platform built with Next.js, MongoDB, Redis, and Docker.
 
-![SmartStore AI](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Prisma](https://img.shields.io/badge/Prisma-5.0-2D3748?style=for-the-badge&logo=prisma)
-![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?style=for-the-badge&logo=mongodb)
-
-## 🎯 **PROJECT STATUS: 100% COMPLETE - PRODUCTION READY!** 🎯
-
-**🏆 MASSIVE ACHIEVEMENT: Transformed from 417 TypeScript errors to ZERO errors!**
-
-### **📊 Completion Status:**
-- **✅ Phase 1: Core Infrastructure** - 100% Complete
-- **✅ Phase 2: Core Services** - 100% Complete (All 15 major services fixed)
-- **✅ Phase 3: AI Services** - 100% Complete
-- **✅ Phase 4: API Routes** - 100% Complete
-- **✅ Phase 5: Advanced Features** - 100% Complete
-
-### **🚀 Project Highlights:**
-- **Zero TypeScript errors** - Perfect type safety achieved
-- **All services functional** - Complete business logic implementation
-- **Production ready** - Enterprise-grade quality and security
-- **AI-powered features** - Intelligent automation and analytics
-- **Multi-channel integration** - Unified commerce management
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Environment Setup](#environment-setup)
-- [Database Setup](#database-setup)
-- [API Documentation](#api-documentation)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
-
-## 🎯 Overview
-
-SmartStore AI is a cutting-edge e-commerce management platform that leverages artificial intelligence to automate and optimize business operations. The platform provides comprehensive tools for managing products, orders, customers, inventory, and multi-channel sales across various platforms.
-
-### Key Highlights
-
-- 🤖 **AI-Powered Automation**: Intelligent chatbots, predictive analytics, and automated workflows
-- 📱 **Multi-Channel Integration**: Unified management across web, mobile, social media, and marketplaces
-- 🏪 **Complete E-commerce Suite**: From product management to order fulfillment
-- 📊 **Advanced Analytics**: Real-time insights and business intelligence
-- 🔄 **Workflow Automation**: Streamlined business processes
-- 🛡️ **Enterprise Security**: Multi-tenant architecture with role-based access control
-- 🔄 **Real-Time Sync**: Instant synchronization across all platforms
-- 📱 **WhatsApp Integration**: Business API with catalog management
-- 🛒 **WooCommerce Plugin**: WordPress plugin with bidirectional sync
-- 🚚 **Sri Lankan Couriers**: Complete integration with local delivery services
-
-## ✨ Features
-
-### Core Modules
-
-#### 🛍️ **Product Management**
-- Product catalog with categories and variants
-- Inventory tracking and stock management
-- Bulk import/export operations
-- Product analytics and performance metrics
-
-#### 📦 **Order Management**
-- Order processing and fulfillment
-- Real-time order tracking
-- Automated order status updates
-- Multi-channel order aggregation
-
-#### 👥 **Customer Management**
-- Customer profiles and segmentation
-- Purchase history and preferences
-- Customer lifetime value analysis
-- Automated customer engagement
-
-#### 🚚 **Courier & Delivery**
-- Real-time courier tracking
-- Delivery route optimization
-- Performance analytics
-- Automated delivery assignments
-
-#### 🏭 **Warehouse Management**
-- Multi-location inventory management
-- Stock movement tracking
-- Warehouse performance analytics
-- Automated reorder notifications
-
-#### 💰 **Expense Management**
-- Expense categorization and tracking
-- Approval workflows
-- Financial reporting
-- Budget management
-
-#### 📊 **Advanced Reporting**
-- Custom report generation
-- Multiple export formats (PDF, Excel, CSV)
-- Scheduled reporting
-- Business intelligence dashboards
-
-#### 🔄 **Bulk Operations**
-- Data import/export tools
-- Batch processing capabilities
-- Progress tracking
-- Error handling and validation
-
-### AI & Automation Features
-
-#### 🤖 **AI-Powered Services**
-- **Customer Intelligence**: Behavioral analysis and segmentation
-- **Inventory AI**: Predictive stock management and demand forecasting
-- **Chat AI**: Intelligent customer support and order processing
-- **Business Intelligence**: Advanced analytics and insights
-- **Visual Search**: AI-powered product discovery
-
-#### 🔄 **Workflow Automation**
-- **Order Processing**: Automated order fulfillment workflows
-- **Customer Engagement**: Personalized communication automation
-- **Inventory Management**: Smart reorder and stock optimization
-- **Payment Processing**: Automated payment workflows and fraud detection
-
-### Multi-Channel Integration
-
-#### 📱 **WhatsApp Business API**
-- Product catalog management
-- Automated customer support
-- Order processing via chat
-- Payment collection
-- Delivery tracking
-
-#### 🛒 **WooCommerce Integration**
-- Bidirectional product sync
-- Order synchronization
-- Inventory management
-- Customer data sync
-- Real-time updates
-
-#### 🚚 **Courier Services**
-- **Sri Lankan Couriers**: Complete integration with local delivery services
-- Real-time tracking and updates
-- Performance analytics
-- Route optimization
-- Automated assignments
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Next.js 14** - React framework with App Router
-- **TypeScript 5.0** - Type-safe development
-- **Tailwind CSS 3.3** - Utility-first CSS framework
-- **React 18** - Modern React with concurrent features
-- **PWA Support** - Progressive Web App capabilities
-
-### Backend & Database
-- **Prisma 5.0** - Modern database toolkit
-- **MongoDB 7.0** - NoSQL database
-- **Next.js API Routes** - Serverless API endpoints
-- **Real-time Sync** - WebSocket and event-driven architecture
-
-### AI & ML
-- **OpenAI Integration** - GPT models for intelligent automation
-- **Custom AI Services** - Specialized business intelligence
-- **Predictive Analytics** - Machine learning for forecasting
-- **Natural Language Processing** - Chat and voice interfaces
-
-### Security & Infrastructure
-- **JWT Authentication** - Secure user authentication
-- **MFA Support** - Multi-factor authentication
-- **Role-based Access Control** - Granular permissions
-- **Docker & Kubernetes** - Containerized deployment
-- **Nginx** - Production web server
-
-## 🏗️ Architecture
-
-### System Architecture
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Database      │
-│   (Next.js)     │◄──►│   (API Routes)  │◄──►│   (MongoDB)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   PWA Service   │    │   AI Services   │    │   Real-time     │
-│   (Offline)     │    │   (Intelligence)│    │   Sync          │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### Service Architecture
-- **Microservices Pattern**: Modular service architecture
-- **Event-Driven**: Real-time synchronization across services
-- **API-First**: RESTful and GraphQL API design
-- **Multi-Tenant**: Organization-based data isolation
-- **Scalable**: Horizontal scaling capabilities
-
-## 🚀 Getting Started
+## 🚀 Quick Start with Docker
 
 ### Prerequisites
-- Node.js 18+ 
-- MongoDB 7.0+
-- Docker (optional)
-- Git
 
-### Quick Start
+- Docker (version 20.10+)
+- Docker Compose (version 2.0+)
+- At least 4GB RAM available
+- Ports 80, 443, 3000, 27017, 6379, 11434, 8081, 8082 available
+
+### One-Command Setup
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/smartstore-ai.git
-cd smartstore-ai
+# Make the setup script executable
+chmod +x setup-monolithic.sh
 
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp env.example .env.local
-# Edit .env.local with your configuration
-
-# Set up database
-npx prisma generate
-npx prisma db push
-
-# Run development server
-npm run dev
+# Run the automated setup
+./setup-monolithic.sh
 ```
 
-## ⚙️ Environment Setup
+This script will:
+- Check system requirements
+- Create necessary directories
+- Generate SSL certificates
+- Build and start all services
+- Initialize the database
+- Show access information
 
-### Required Environment Variables
+### Manual Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd SmartStoreSaaS
+   ```
+
+2. **Create environment file**
+   ```bash
+   cp env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Generate SSL certificates**
+   ```bash
+   mkdir -p ssl
+   openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=US/ST=State/L=City/O=SmartStore/CN=localhost"
+   ```
+
+4. **Build and start services**
+   ```bash
+   docker-compose build --no-cache
+   docker-compose up -d
+   ```
+
+## 🏗️ Architecture Overview
+
+### Monolithic Services
+
+- **App**: Next.js application (port 3000)
+- **MongoDB**: Primary database (port 27017)
+- **Redis**: Caching and sessions (port 6379)
+- **Ollama**: Local AI models (port 11434)
+- **Nginx**: Reverse proxy with SSL (ports 80, 443)
+- **MongoDB Express**: Database management (port 8081)
+- **Redis Commander**: Redis management (port 8082)
+
+### Key Features
+
+- **Multi-tenant SaaS**: Organization-based isolation
+- **AI-Powered**: OpenAI integration + local Ollama models
+- **Real-time**: WebSocket support for live updates
+- **Multi-channel**: WhatsApp, email, SMS integration
+- **Payment Processing**: Stripe, PayPal, PayHere
+- **Inventory Management**: Advanced warehouse operations
+- **Analytics**: Real-time business intelligence
+- **Security**: MFA, rate limiting, audit logging
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Key environment variables in `.env`:
+
 ```bash
 # Database
-DATABASE_URL="mongodb://localhost:27017/smartstore"
+DATABASE_URL=mongodb://mongodb:27017/smartstore
+REDIS_URL=redis://redis:6379
 
 # Authentication
-NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET=your-secret-key
+JWT_SECRET=your-jwt-secret
 
 # AI Services
-OPENAI_API_KEY="your-openai-key"
+OPENAI_API_KEY=your-openai-key
+OLLAMA_BASE_URL=http://ollama:11434
 
-# Payment Services
-STRIPE_SECRET_KEY="your-stripe-key"
-STRIPE_WEBHOOK_SECRET="your-webhook-secret"
-PAYPAL_CLIENT_ID="your-paypal-client-id"
-PAYPAL_CLIENT_SECRET="your-paypal-secret"
+# Payment Gateways
+STRIPE_SECRET_KEY=your-stripe-key
+PAYPAL_CLIENT_ID=your-paypal-id
 
-# WhatsApp Business API
-WHATSAPP_ACCESS_TOKEN="your-whatsapp-token"
-WHATSAPP_PHONE_NUMBER_ID="your-phone-number-id"
-
-# WooCommerce
-WOOCOMMERCE_CONSUMER_KEY="your-consumer-key"
-WOOCOMMERCE_CONSUMER_SECRET="your-consumer-secret"
+# External Services
+TWILIO_ACCOUNT_SID=your-twilio-sid
+FACEBOOK_APP_ID=your-facebook-id
 ```
 
-## 🗄️ Database Setup
+### SSL Configuration
 
-### Prisma Schema
-The project uses Prisma with MongoDB. Key models include:
+For production, replace the self-signed certificates in `ssl/` with your domain certificates.
 
-- **User**: Authentication and user management
-- **Organization**: Multi-tenant organization structure
-- **Product**: Product catalog and inventory
-- **Order**: Order management and fulfillment
-- **Customer**: Customer profiles and data
-- **Payment**: Payment processing and tracking
-- **Workflow**: Business process automation
+## 📊 Database Schema
 
-### Database Commands
-```bash
-# Generate Prisma client
-npx prisma generate
+The application uses MongoDB with the following main collections:
 
-# Push schema to database
-npx prisma db push
-
-# View database in Prisma Studio
-npx prisma studio
-
-# Reset database
-npx prisma db push --force-reset
-```
-
-## 📚 API Documentation
-
-### Core Endpoints
-
-#### Authentication
-- `POST /api/auth/signin` - User sign in
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/mfa` - Multi-factor authentication
-
-#### Products
-- `GET /api/products` - List products
-- `POST /api/products` - Create product
-- `PUT /api/products/[id]` - Update product
-- `DELETE /api/products/[id]` - Delete product
-
-#### Orders
-- `GET /api/orders` - List orders
-- `POST /api/orders` - Create order
-- `PUT /api/orders/[id]` - Update order
-- `GET /api/orders/[id]/track` - Track order
-
-#### AI Services
-- `POST /api/ai/customer-intelligence` - Customer analysis
-- `POST /api/ai/inventory` - Inventory optimization
-- `POST /api/ai/chat` - AI chat processing
-
-### Webhook Endpoints
-- `POST /api/webhooks/whatsapp` - WhatsApp webhooks
-- `POST /api/webhooks/woocommerce` - WooCommerce webhooks
-- `POST /api/webhooks/stripe` - Stripe payment webhooks
+- **Users**: Authentication and user management
+- **Organizations**: Multi-tenant isolation
+- **Products**: Product catalog management
+- **Orders**: Order processing and tracking
+- **Customers**: Customer relationship management
+- **Inventory**: Stock and warehouse management
+- **Analytics**: Business intelligence data
+- **Chat**: AI-powered customer support
 
 ## 🚀 Deployment
 
-### Docker Deployment
+### Development
+
 ```bash
-# Build and run with Docker Compose
+# Start all services
 docker-compose up -d
 
-# Production deployment
-docker-compose -f docker-compose.production.yml up -d
+# View logs
+docker-compose logs -f
 
-# Secure deployment
-docker-compose -f docker-compose.secure.yml up -d
+# Stop services
+docker-compose down
 ```
 
-### Environment-Specific Configs
-- **Development**: `docker-compose.yml`
-- **Production**: `docker-compose.production.yml`
-- **Secure**: `docker-compose.secure.yml`
-- **Microservices**: `docker-compose.microservices.yml`
+### Production
 
-### Production Considerations
-- **SSL/TLS**: Configure HTTPS with proper certificates
-- **Load Balancing**: Use Nginx for production traffic
-- **Monitoring**: Implement health checks and logging
-- **Backup**: Regular database backups and disaster recovery
-- **Security**: Firewall, rate limiting, and security headers
+1. **Update environment variables**
+2. **Replace SSL certificates**
+3. **Configure domain names**
+4. **Set up monitoring and logging**
+5. **Configure backups**
+
+### Scaling
+
+```bash
+# Scale the main application
+docker-compose up -d --scale app=3
+
+# Scale with load balancer
+docker-compose up -d --scale app=5
+```
+
+## 🔍 Monitoring & Management
+
+### Health Checks
+
+- **Application**: `http://localhost:3000/api/health`
+- **MongoDB**: `docker-compose exec mongodb mongosh --eval "db.adminCommand('ping')"`
+- **Redis**: `docker-compose exec redis redis-cli ping`
+
+### Logs
+
+```bash
+# View all logs
+docker-compose logs -f
+
+# View specific service logs
+docker-compose logs -f app
+docker-compose logs -f mongodb
+docker-compose logs -f redis
+```
+
+### Database Management
+
+- **MongoDB Express**: http://localhost:8081
+- **Redis Commander**: http://localhost:8082
+
+## 🛠️ Development
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Run database migrations
+npx prisma db push
+
+# Start development server
+npm run dev
+```
+
+### Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run security tests
+npm run test:security
+```
+
+### Code Quality
+
+```bash
+# Lint code
+npm run lint
+
+# Type check
+npm run type-check
+
+# Security audit
+npm run security:audit
+```
+
+## 🔒 Security Features
+
+- **Authentication**: NextAuth.js with MFA support
+- **Authorization**: Role-based access control
+- **Rate Limiting**: API endpoint protection
+- **Input Validation**: Zod schema validation
+- **SQL Injection Protection**: Prisma ORM
+- **XSS Protection**: Security headers
+- **CSRF Protection**: Built-in Next.js protection
+- **Audit Logging**: Comprehensive activity tracking
+
+## 📱 PWA Features
+
+- **Offline Support**: Service worker implementation
+- **Push Notifications**: Web Push API
+- **Install Prompt**: Add to home screen
+- **Background Sync**: Offline data synchronization
+
+## 🔄 API Endpoints
+
+### Authentication
+- `POST /api/auth/signin` - User sign in
+- `POST /api/auth/signup` - User registration
+- `GET /api/auth/[...nextauth]` - NextAuth.js routes
+
+### Core Operations
+- `GET /api/products` - Product management
+- `GET /api/orders` - Order processing
+- `GET /api/customers` - Customer management
+- `GET /api/analytics` - Business intelligence
+- `GET /api/chat` - AI-powered chat
+
+### Integrations
+- `GET /api/integrations` - Third-party services
+- `GET /api/webhooks` - Webhook management
+- `GET /api/sync` - Data synchronization
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **Port conflicts**: Check if required ports are available
+2. **Memory issues**: Ensure sufficient RAM (4GB+)
+3. **SSL errors**: Verify certificate configuration
+4. **Database connection**: Check MongoDB container status
+
+### Debug Commands
+
+```bash
+# Check container status
+docker-compose ps
+
+# View container logs
+docker-compose logs <service-name>
+
+# Access container shell
+docker-compose exec <service-name> sh
+
+# Restart specific service
+docker-compose restart <service-name>
+```
+
+### Performance Optimization
+
+- **Database indexing**: Optimize MongoDB queries
+- **Redis caching**: Implement strategic caching
+- **Image optimization**: Use Next.js image optimization
+- **CDN**: Configure content delivery network
+
+## 📚 Additional Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [MongoDB Documentation](https://docs.mongodb.com)
+- [Docker Documentation](https://docs.docker.com)
+- [Tailwind CSS](https://tailwindcss.com/docs)
 
 ## 🤝 Contributing
 
-### Development Workflow
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Standards
-- **TypeScript**: Strict type checking enabled
-- **ESLint**: Code quality and consistency
-- **Prettier**: Code formatting
-- **Testing**: Jest for unit and integration tests
-- **Documentation**: Comprehensive inline documentation
-
-### Testing
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run specific test suites
-npm run test:unit
-npm run test:integration
-```
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🏆 Acknowledgments
+## 🆘 Support
 
-- **Next.js Team** - For the amazing React framework
-- **Prisma Team** - For the excellent database toolkit
-- **OpenAI** - For AI capabilities and integration
-- **Community Contributors** - For feedback and improvements
-
-## 📞 Support
-
-- **Documentation**: [Project Wiki](https://github.com/yourusername/smartstore-ai/wiki)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/smartstore-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/smartstore-ai/discussions)
-- **Email**: support@smartstore-ai.com
+For support and questions:
+- Create an issue in the repository
+- Check the troubleshooting section
+- Review the documentation
 
 ---
 
-## 🎊 **CONGRATULATIONS!** 🎊
-
-**SmartStore AI has been successfully completed from start to finish, achieving perfection in code quality, type safety, and functionality!**
-
-**Project Status: 100% COMPLETE - PRODUCTION READY!** 🎉✨🚀
-
-**Built with ❤️ by the SmartStore AI Team**#   S m a r t S t o r e S a a S - M o n o  
- 
+**Built with ❤️ using modern web technologies**
