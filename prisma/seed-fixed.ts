@@ -180,48 +180,6 @@ async function main() {
         organizationId: techOrg.id,
         createdById: managerUser.id
       }
-    }),
-    prisma.product.create({
-      data: {
-        name: 'UltraBook Laptop',
-        slug: 'ultrabook-laptop',
-        sku: 'UB-001',
-        description: 'Lightweight laptop with 13-inch display, 16GB RAM, and 512GB SSD. Perfect for professionals.',
-        price: 1299.99,
-        stockQuantity: 30,
-        images: ['/images/products/laptop-1.jpg', '/images/products/laptop-2.jpg'],
-        isActive: true,
-        organizationId: techOrg.id,
-        createdById: managerUser.id
-      }
-    }),
-    prisma.product.create({
-      data: {
-        name: 'Elegant Evening Dress',
-        slug: 'elegant-evening-dress',
-        sku: 'ED-001',
-        description: 'Beautiful evening dress perfect for special occasions. Available in multiple colors and sizes.',
-        price: 199.99,
-        stockQuantity: 20,
-        images: ['/images/products/dress-1.jpg', '/images/products/dress-2.jpg', '/images/products/dress-3.jpg'],
-        isActive: true,
-        organizationId: fashionOrg.id,
-        createdById: staffUser.id
-      }
-    }),
-    prisma.product.create({
-      data: {
-        name: 'Comfort Sneakers',
-        slug: 'comfort-sneakers',
-        sku: 'CS-001',
-        description: 'Comfortable sneakers with memory foam insole. Perfect for daily wear and casual outings.',
-        price: 79.99,
-        stockQuantity: 40,
-        images: ['/images/products/sneakers-1.jpg', '/images/products/sneakers-2.jpg'],
-        isActive: true,
-        organizationId: fashionOrg.id,
-        createdById: staffUser.id
-      }
     })
   ]);
 
@@ -239,28 +197,10 @@ async function main() {
     }),
     prisma.customer.create({
       data: {
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        phone: '+1-555-0124',
-        organizationId: demoOrg.id,
-        totalSpent: 0
-      }
-    }),
-    prisma.customer.create({
-      data: {
         name: 'Mike Wilson',
         email: 'mike.wilson@example.com',
         phone: '+44-20-7946-0958',
         organizationId: techOrg.id,
-        totalSpent: 0
-      }
-    }),
-    prisma.customer.create({
-      data: {
-        name: 'Sarah Jones',
-        email: 'sarah.jones@example.com',
-        phone: '+44-20-7946-0959',
-        organizationId: fashionOrg.id,
         totalSpent: 0
       }
     })
@@ -361,59 +301,13 @@ async function main() {
     ]
   });
 
-  // 8. Create Chat Conversations
-  console.log('💬 Creating chat conversations...');
-  const conversation1 = await prisma.customerConversation.create({
-    data: {
-      customerId: customers[0].id,
-      organizationId: demoOrg.id,
-      status: 'active',
-      channel: 'website',
-      priority: 'medium',
-      tags: ['support', 'product-question'],
-      assignedAgentId: adminUser.id
-    }
-  });
-
-  // 9. Create Chat Messages
-  console.log('💭 Creating chat messages...');
-  await prisma.chatMessage.createMany({
-    data: [
-      {
-        content: 'Hi, I have a question about the wood watch. Is it waterproof?',
-        type: 'TEXT',
-        direction: 'INBOUND',
-        status: 'READ',
-        organizationId: demoOrg.id,
-        customerId: customers[0].id,
-        assignedToId: adminUser.id
-      },
-      {
-        content: 'Hello! The wood watch is water-resistant but not fully waterproof. It can handle light splashes but should not be submerged in water.',
-        type: 'TEXT',
-        direction: 'OUTBOUND',
-        status: 'SENT',
-        organizationId: demoOrg.id,
-        customerId: customers[0].id,
-        assignedToId: adminUser.id
-      }
-    ]
-  });
-
   console.log('✅ Database seeding completed successfully!');
-  console.log('\n📊 Seeded Data Summary:');
-  console.log(`   - Organizations: 3`);
-  console.log(`   - Users: 3`);
-  console.log(`   - Products: 6`);
-  console.log(`   - Customers: 4`);
-  console.log(`   - Orders: 2`);
-  console.log(`   - Payments: 2`);
-  console.log(`   - Chat Conversations: 1`);
-  console.log(`   - Chat Messages: 2`);
-  console.log('\n🔑 Default Login Credentials:');
-  console.log(`   - Demo Store: admin@demo.com / password123`);
-  console.log(`   - Tech Gadgets: manager@tech.com / password123`);
-  console.log(`   - Fashion Boutique: staff@fashion.com / password123`);
+  console.log(`🏢 Created ${3} organizations`);
+  console.log(`👥 Created ${3} users`);
+  console.log(`📦 Created ${3} products`);
+  console.log(`👤 Created ${2} customers`);
+  console.log(`🛒 Created ${2} orders`);
+  console.log(`💳 Created ${2} payments`);
 }
 
 main()
@@ -423,4 +317,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });

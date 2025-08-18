@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
+import { withProtection, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { z } from 'zod';
 
 // Customer update schema
@@ -22,8 +22,8 @@ const updateCustomerSchema = z.object({
 });
 
 // GET /api/customers/[id] - Get customer by ID
-async function GET(
-  request: NextRequest,
+async function getCustomer(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -97,8 +97,8 @@ async function GET(
 }
 
 // PUT /api/customers/[id] - Update customer (Admin/Manager/Staff only)
-async function PUT(
-  request: NextRequest,
+async function updateCustomer(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -189,8 +189,8 @@ async function PUT(
 }
 
 // DELETE /api/customers/[id] - Delete customer (Admin only)
-async function DELETE(
-  request: NextRequest,
+async function deleteCustomer(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -260,6 +260,17 @@ async function DELETE(
 }
 
 // Export handlers
-export const GET = withProtection()(GET);
-export const PUT = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(PUT);
-export const DELETE = withProtection(['ADMIN'])(DELETE);
+export const GET = withProtection()(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return getCustomer(request, { params });
+});
+
+export const PUT = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return updateCustomer(request, { params });
+});
+
+export const DELETE = withProtection(['ADMIN'])(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return deleteCustomer(request, { params });
+});

@@ -46,6 +46,7 @@ model User {
   createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
   assignedChatConversations ChatConversation[] @relation("ChatConversationAssignedTo")
   mfaMethods        UserMFA[]
+  createdReports    Report[] @relation("ReportCreatedBy")
 
   @@map("users")
 }
@@ -165,6 +166,10 @@ model Organization {
   emailTemplates EmailTemplate[]
   emailSubscriptions EmailSubscription[]
   emailCampaigns EmailCampaign[]
+  reports Report[]
+  reportTemplates ReportTemplate[]
+  campaignTemplates CampaignTemplate[]
+  bulkOperationTemplates BulkOperationTemplate[]
 
   @@map("organizations")
 }
@@ -176,7 +181,7 @@ model Customer {
   email       String?
   name        String?
   avatar      String?
-  address     String?  // Customer address for shipping/billing
+  address     Json?    // Customer address for shipping/billing {street, city, state, zip, country}
   tags        String[]
   source      String?
   isActive    Boolean  @default(true)
@@ -464,7 +469,7 @@ model Shipment {
 model Warehouse {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  address     String?
+  address     Json?    // {street, city, state, zip, country}
   isActive    Boolean  @default(true)
   settings    Json?
   createdAt   DateTime @default(now())
@@ -696,7 +701,9 @@ model ChannelMessage {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   channel        String   // 'whatsapp', 'facebook', 'instagram', 'website', 'email', 'sms'
   message        String
+  content        String   // Message content (alias for message field)
   timestamp      DateTime @default(now())
+  createdAt      DateTime @default(now()) // Alias for timestamp
   isIncoming     Boolean  @default(true)
   status         String   // 'sent', 'delivered', 'read', 'failed'
   metadata       Json?
@@ -710,7 +717,10 @@ model ChannelMessage {
 
 model ChannelIntegration {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   // Integration name
   channel     String   // 'whatsapp', 'facebook', 'instagram', 'email', 'sms'
+  provider    String   // Integration provider
+  type        String   // Integration type
   isActive    Boolean  @default(true)
   config      Json?    // Integration configuration
   lastSync    DateTime @default(now())
@@ -720,9 +730,25 @@ model ChannelIntegration {
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id])
   organizationId String     @db.ObjectId
+  logs         IntegrationLog[]
 
   @@unique([organizationId, channel])
   @@map("channel_integrations")
+}
+
+// Integration Logs
+model IntegrationLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  level       String   // 'info', 'warning', 'error'
+  message     String
+  metadata    Json?
+  timestamp   DateTime @default(now())
+
+  // Relations
+  integration ChannelIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integrationId String           @db.ObjectId
+
+  @@map("integration_logs")
 }
 
 // Advanced Payment Processing
@@ -1185,7 +1211,7 @@ model Supplier {
   code        String
   email       String?
   phone       String?
-  address     String?
+  address     Json?    // {street, city, state, zip, country}
   contactPerson String?
   rating      Float?   // 1-5 rating
   isActive    Boolean  @default(true)
@@ -1345,6 +1371,7 @@ model CustomerOfferCustomer {
 model ChatConversation {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String?
+  subject     String?  // Subject/topic of the conversation
   status      String   @default("active") // 'active', 'resolved', 'archived'
   priority    String   @default("medium") // 'low', 'medium', 'high', 'urgent'
   assignedTo  String?  @db.ObjectId
@@ -1634,4 +1661,84 @@ model EmailCampaign {
   template     EmailTemplate @relation(fields: [templateId], references: [id])
 
   @@map("email_campaigns")
+}
+
+// Report System
+model Report {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        String   // 'sales', 'inventory', 'customer', 'custom'
+  description String?
+  config      Json?    // Report configuration and parameters
+  schedule    String?  // Cron expression for scheduled reports
+  lastRun     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  organizationId String     @db.ObjectId
+  createdBy     User?      @relation("ReportCreatedBy", fields: [createdById], references: [id])
+  createdById   String?    @db.ObjectId
+
+  @@map("reports")
+}
+
+model ReportTemplate {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        String   // 'sales', 'inventory', 'customer', 'custom'
+  description String?
+  config      Json?    // Template configuration
+  isPublic    Boolean  @default(false)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  organizationId String     @db.ObjectId
+
+  @@map("report_templates")
+}
+
+// Campaign Templates
+model CampaignTemplate {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        String   // 'email', 'sms', 'whatsapp', 'push'
+  content     String
+  variables   String[] // Template variables
+  isActive    Boolean  @default(true)
+  isPublic    Boolean  @default(false)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  organizationId String     @db.ObjectId
+
+  @@map("campaign_templates")
+}
+
+// Bulk Operation Templates
+model BulkOperationTemplate {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        String   // 'import', 'export'
+  entity      String   // 'products', 'customers', 'orders', 'inventory'
+  config      Json?    // Template configuration
+  isActive    Boolean  @default(true)
+  isPublic    Boolean  @default(false)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  organizationId String     @db.ObjectId
+
+  @@map("bulk_operation_templates")
 }

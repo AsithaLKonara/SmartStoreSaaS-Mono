@@ -1,86 +1,167 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { withProtection } from '@/lib/middleware/auth';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
+// Campaign template schema
+const createTemplateSchema = z.object({
+  name: z.string().min(2, 'Template name must be at least 2 characters'),
+  type: z.enum(['EMAIL', 'SMS', 'WHATSAPP', 'PUSH_NOTIFICATION', 'SOCIAL_MEDIA']),
+  content: z.string().min(10, 'Template content must be at least 10 characters'),
+  variables: z.array(z.string()).optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional()
+});
+
+// GET /api/campaigns/templates - List campaign templates from database
+async function getCampaignTemplates(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+    const type = searchParams.get('type');
+    const category = searchParams.get('category');
+    const isActive = searchParams.get('isActive');
+
+    // Build where clause
+    const where: any = {
+      organizationId: (request as any).user!.organizationId
+    };
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
     }
 
-    // For now, return mock templates since we don't have a templates table
-    // In a real implementation, this would come from a campaign_templates table
-    const mockTemplates = [
-      {
-        id: 'template_1',
-        name: 'Welcome Email',
-        type: 'EMAIL',
-        content: 'Welcome to SmartStore AI! We\'re excited to have you as a customer. Use code WELCOME10 for 10% off your first order.',
-        variables: ['customer_name', 'discount_code'],
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'template_2',
-        name: 'Order Confirmation SMS',
-        type: 'SMS',
-        content: 'Your order #{order_number} has been confirmed! Total: ${total_amount}. Track your order at {tracking_url}',
-        variables: ['order_number', 'total_amount', 'tracking_url'],
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'template_3',
-        name: 'WhatsApp Promotion',
-        type: 'WHATSAPP',
-        content: '🎉 Special offer just for you! Get 20% off on all products today. Use code FLASH20. Limited time only!',
-        variables: ['discount_code', 'expiry_date'],
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'template_4',
-        name: 'Push Notification',
-        type: 'PUSH_NOTIFICATION',
-        content: 'New products available! Check out our latest arrivals and get exclusive discounts.',
-        variables: ['product_count', 'discount_percentage'],
-        createdAt: new Date().toISOString(),
-      },
-    ];
+    if (type) where.type = type;
+    if (category) where.category = category;
+    if (isActive !== null) where.isActive = isActive === 'true';
 
-    return NextResponse.json(mockTemplates);
+    // Get total count for pagination
+    const total = await prisma.campaignTemplate.count({ where });
+    
+    // Get templates with pagination
+    const templates = await prisma.campaignTemplate.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+
+    });
+
+    // Calculate template usage statistics
+    const templatesWithStats = templates.map(template => {
+      return {
+        ...template,
+        usage: {
+          totalCampaigns: template.usageCount || 0,
+          activeCampaigns: 0,
+          lastUsed: null
+        }
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        templates: templatesWithStats,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
+
   } catch (error) {
-    console.error('Error fetching templates:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    console.error('Error fetching campaign templates:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch campaign templates' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST /api/campaigns/templates - Create new campaign template
+async function createCampaignTemplate(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { name, type, content, variables } = body;
-
-    if (!name || !type || !content) {
-      return NextResponse.json({ message: 'Name, type, and content are required' }, { status: 400 });
+    
+    // Validate input
+    const validationResult = createTemplateSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Validation failed', 
+          errors: validationResult.error.errors 
+        }, 
+        { status: 400 }
+      );
     }
 
-    // In a real implementation, this would save to a campaign_templates table
-    const template = {
-      id: `template_${Date.now()}`,
-      name,
-      type: type as any,
-      content,
-      variables: variables || [],
-      createdAt: new Date().toISOString(),
-    };
+    const templateData = validationResult.data;
 
-    return NextResponse.json(template, { status: 201 });
+    // Check if template with same name already exists in the organization
+    const existingTemplate = await prisma.campaignTemplate.findFirst({
+      where: {
+        name: templateData.name,
+        organizationId: (request as any).user!.organizationId
+      }
+    });
+
+    if (existingTemplate) {
+      return NextResponse.json(
+        { success: false, message: 'Template with this name already exists in this organization' },
+        { status: 409 }
+      );
+    }
+
+    // Create template
+    const template = await prisma.campaignTemplate.create({
+      data: {
+        ...templateData,
+        organizationId: (request as any).user!.organizationId
+      }
+    });
+
+    // Create activity log
+    await prisma.activity.create({
+      data: {
+        type: 'CAMPAIGN_TEMPLATE_CREATED',
+        description: `Campaign template "${template.name}" created`,
+        userId: (request as any).user!.userId,
+        metadata: {
+          templateId: template.id,
+          templateName: template.name,
+          templateType: template.type
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: { template },
+      message: 'Campaign template created successfully'
+    }, { status: 201 });
+
   } catch (error) {
-    console.error('Error creating template:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    console.error('Error creating campaign template:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create campaign template' },
+      { status: 500 }
+    );
   }
-} 
+}
+
+// Export handlers
+export const GET = withProtection()(getCampaignTemplates);
+export const POST = withProtection(['ADMIN', 'MANAGER'])(createCampaignTemplate); 

@@ -70,7 +70,7 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
         userId: user.id,
         email: user.email,
         role: user.role,
-        organizationId: user.organizationId,
+        organizationId: user.organizationId || '',
       };
 
       // Call the original handler

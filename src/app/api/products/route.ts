@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
 import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
@@ -15,21 +16,23 @@ const createProductSchema = z.object({
   isActive: z.boolean().optional().default(true),
 });
 
-// GET /api/products - List products with pagination, search, and filters
-async function GET(request: NextRequest) {
+// GET /api/products - Get all products for the organization
+async function getProducts(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
     const minStock = searchParams.get('minStock');
-    const maxStock = searchParams.get('maxStock');
+    const maxStock = searchParams.get('minStock');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const isActive = searchParams.get('isActive');
 
-    // Build where clause
-    const where: any = {};
+    // Build where clause with organization filter
+    const where: any = {
+      organizationId: request.user!.organizationId
+    };
     
     if (search) {
       where.OR = [
@@ -53,12 +56,7 @@ async function GET(request: NextRequest) {
       where,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true }
-        }
-      }
+      orderBy: { createdAt: 'desc' }
     });
 
     return NextResponse.json({
@@ -86,7 +84,7 @@ async function GET(request: NextRequest) {
 }
 
 // POST /api/products - Create new product (Admin/Manager only)
-async function POST(request: NextRequest) {
+async function createProduct(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     
@@ -141,11 +139,6 @@ async function POST(request: NextRequest) {
         ...productData,
         organizationId: request.user!.organizationId,
         createdById: request.user!.userId
-      },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true }
-        }
       }
     });
 
@@ -154,11 +147,13 @@ async function POST(request: NextRequest) {
       data: {
         type: 'PRODUCT_CREATED',
         description: `Product "${product.name}" created`,
-        userId: request.user!.userId,
+        user: {
+          connect: { id: request.user!.userId }
+        },
         metadata: {
           productId: product.id,
           productName: product.name,
-          sku: product.sku
+          sku: product.sku || null
         }
       }
     });
@@ -179,5 +174,5 @@ async function POST(request: NextRequest) {
 }
 
 // Export protected handlers
-export const GET = GET;
-export const POST = withProtection(['ADMIN', 'MANAGER'])(POST); 
+export const GET = withProtection()(getProducts);
+export const POST = withProtection(['ADMIN', 'MANAGER'])(createProduct); 

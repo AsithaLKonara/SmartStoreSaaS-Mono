@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
+import { withProtection, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { z } from 'zod';
 
 // Order update schema
@@ -27,8 +27,8 @@ const updateOrderSchema = z.object({
 });
 
 // GET /api/orders/[id] - Get order by ID
-async function GET(
-  request: NextRequest,
+async function getOrder(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -81,8 +81,8 @@ async function GET(
 }
 
 // PUT /api/orders/[id] - Update order (Admin/Manager/Staff only)
-async function PUT(
-  request: NextRequest,
+async function updateOrder(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -180,8 +180,8 @@ async function PUT(
 }
 
 // PATCH /api/orders/[id]/status - Update order status specifically
-async function PATCH(
-  request: NextRequest,
+async function updateOrderStatus(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -253,6 +253,17 @@ async function PATCH(
 }
 
 // Export handlers
-export const GET = withProtection()(GET);
-export const PUT = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(PUT);
-export const PATCH = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(PATCH);
+export const GET = withProtection()(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return getOrder(request, { params });
+});
+
+export const PUT = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return updateOrder(request, { params });
+});
+
+export const PATCH = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return updateOrderStatus(request, { params });
+});

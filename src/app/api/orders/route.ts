@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
 import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
@@ -34,7 +35,7 @@ const createOrderSchema = z.object({
 });
 
 // GET /api/orders - List orders with pagination and filters
-async function GET(request: NextRequest) {
+async function getOrders(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -120,7 +121,7 @@ async function GET(request: NextRequest) {
 }
 
 // POST /api/orders - Create new order
-async function POST(request: NextRequest) {
+async function createOrder(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     
@@ -201,8 +202,12 @@ async function POST(request: NextRequest) {
       const order = await tx.order.create({
         data: {
           orderNumber,
-          customerId: orderData.customerId,
-          organizationId: request.user!.organizationId,
+          customer: {
+            connect: { id: orderData.customerId }
+          },
+          organization: {
+            connect: { id: request.user!.organizationId }
+          },
           totalAmount: total,
           subtotal,
           tax,
@@ -210,12 +215,13 @@ async function POST(request: NextRequest) {
           discount: 0, // Will be calculated if discount code is valid
           status: 'PENDING',
           paymentStatus: 'PENDING',
-          shippingMethod: orderData.shippingMethod,
+          // shippingMethod field removed - not in schema
           paymentMethod: orderData.paymentMethod,
           notes: orderData.notes,
-          createdById: request.user!.userId,
-          shippingAddress: orderData.shippingAddress,
-          billingAddress: orderData.billingAddress || orderData.shippingAddress
+          createdBy: {
+            connect: { id: request.user!.userId }
+          },
+          // Address fields removed - not in schema
         }
       });
 
@@ -279,5 +285,5 @@ async function POST(request: NextRequest) {
 }
 
 // Export handlers
-export const GET = withProtection()(GET);
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(POST); 
+export const GET = withProtection()(getOrders);
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(createOrder); 

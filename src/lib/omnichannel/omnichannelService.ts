@@ -131,6 +131,7 @@ export class OmnichannelService {
         conversationId,
         channel,
         message,
+        content: message, // Add content field
         timestamp: new Date(),
         isIncoming: false,
         status: 'sent',
@@ -203,7 +204,10 @@ export class OmnichannelService {
       },
       create: {
         organizationId,
+        name: `${channel} Integration`,
         channel,
+        provider: 'CUSTOM',
+        type: 'CUSTOM',
         config,
         isActive: true,
         lastSync: new Date()
@@ -339,8 +343,12 @@ export class OmnichannelService {
     await prisma.channelMessage.create({
       data: {
         conversationId: conversation.id,
+        conversation: {
+          connect: { id: conversation.id }
+        },
         channel,
         message: message.text,
+        content: message.text, // Add content field
         timestamp: new Date(),
         isIncoming: true,
         status: 'delivered'

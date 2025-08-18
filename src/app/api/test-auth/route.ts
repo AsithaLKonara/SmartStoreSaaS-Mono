@@ -1,23 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
-// Mock user data for testing
-const mockUsers = [
-  {
-    id: '1',
-    email: 'admin@smartstore.ai',
-    password: 'admin123',
-    name: 'Admin User',
-    role: 'ADMIN',
-  },
-  {
-    id: '2',
-    email: 'user@smartstore.ai',
-    password: 'user123',
-    name: 'Test User',
-    role: 'USER',
-  },
-];
-
+// Test authentication endpoint - uses real database
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -32,8 +17,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user
-    const user = mockUsers.find(u => u.email === email);
+    // Find user in database
+    const user = await prisma.user.findFirst({
+      where: { email: email.toLowerCase() },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            plan: true
+          }
+        }
+      }
+    });
+
     console.log('👤 User found:', !!user);
 
     if (!user) {
@@ -43,8 +41,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user is active
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: 'Account is deactivated' },
+        { status: 401 }
+      );
+    }
+
     // Check password
-    if (password !== user.password) {
+    const isPasswordValid = await bcrypt.compare(password, user.password || '');
+    
+    if (!isPasswordValid) {
       console.log('❌ Invalid password for:', email);
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -54,6 +62,20 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Authentication successful for:', email);
     
+    // Create activity log
+    await prisma.activity.create({
+      data: {
+        type: 'TEST_AUTH_SUCCESS',
+        description: `Test authentication successful for ${email}`,
+        userId: user.id,
+        metadata: {
+          email: email,
+          userRole: user.role,
+          organizationId: user.organizationId
+        }
+      }
+    });
+    
     return NextResponse.json({
       success: true,
       user: {
@@ -61,6 +83,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
+        organization: user.organization
       },
       message: 'Authentication successful',
     });

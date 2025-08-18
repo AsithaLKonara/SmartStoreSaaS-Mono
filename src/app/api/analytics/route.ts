@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
 import { withProtection } from '@/lib/middleware/auth';
 
 // GET /api/analytics - Get comprehensive analytics data
-async function GET(request: NextRequest) {
+async function getAnalytics(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || '30d'; // 7d, 30d, 90d, 1y
@@ -254,4 +255,4 @@ async function GET(request: NextRequest) {
 }
 
 // Export handlers
-export const GET = withProtection()(GET); 
+export const GET = withProtection()(getAnalytics); 

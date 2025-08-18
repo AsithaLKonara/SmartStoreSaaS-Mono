@@ -1,66 +1,184 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
+import { withProtection } from '@/lib/middleware/auth';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
+// Campaign creation schema
+const createCampaignSchema = z.object({
+  name: z.string().min(2, 'Campaign name must be at least 2 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  type: z.enum(['EMAIL', 'SMS', 'PUSH', 'SOCIAL', 'DISPLAY', 'AFFILIATE']),
+  status: z.enum(['DRAFT', 'SCHEDULED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED']).default('DRAFT'),
+  startDate: z.string().datetime('Invalid start date'),
+  endDate: z.string().datetime('Invalid end date').optional(),
+  budget: z.number().positive('Budget must be positive').optional(),
+  targetAudience: z.object({
+    customerSegments: z.array(z.string()).optional(),
+    ageRange: z.object({
+      min: z.number().min(0, 'Minimum age must be 0 or greater'),
+      max: z.number().min(0, 'Maximum age must be 0 or greater')
+    }).optional(),
+    locations: z.array(z.string()).optional(),
+    interests: z.array(z.string()).optional()
+  }).optional(),
+  channels: z.array(z.string()).min(1, 'At least one channel is required'),
+  goals: z.object({
+    impressions: z.number().positive('Impressions goal must be positive').optional(),
+    clicks: z.number().positive('Clicks goal must be positive').optional(),
+    conversions: z.number().positive('Conversions goal must be positive').optional(),
+    revenue: z.number().positive('Revenue goal must be positive').optional()
+  }).optional(),
+  settings: z.record(z.any()).optional()
+});
+
+// GET /api/campaigns - List campaigns with pagination and filters
+async function getCampaigns(request: AuthenticatedRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status');
+    const type = searchParams.get('type');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    // Build where clause
+    const where: any = {
+      organizationId: request.user!.organizationId
+    };
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
     }
 
+    if (status) where.status = status;
+    if (type) where.type = type;
+    
+    if (startDate || endDate) {
+      where.startDate = {};
+      if (startDate) where.startDate.gte = new Date(startDate);
+      if (endDate) where.startDate.lte = new Date(endDate);
+    }
+
+    // Get total count for pagination
+    const total = await prisma.campaign.count({ where });
+    
+    // Get campaigns with pagination
     const campaigns = await prisma.campaign.findMany({
-      where: { organizationId: session.user.organizationId },
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
       orderBy: { createdAt: 'desc' },
+      // include removed - no metrics relation in schema
     });
 
-    // Add mock stats for demonstration
-    const campaignsWithStats = campaigns.map((campaign: any) => ({
-      ...campaign,
-      stats: {
-        sent: Math.floor(Math.random() * 1000) + 100,
-        delivered: Math.floor(Math.random() * 900) + 80,
-        opened: Math.floor(Math.random() * 500) + 50,
-        clicked: Math.floor(Math.random() * 100) + 10,
-        bounced: Math.floor(Math.random() * 20) + 1,
-      },
-    }));
+    // Metrics calculation removed - metrics not in schema
+    const campaignsWithMetrics = campaigns;
 
-    return NextResponse.json(campaignsWithStats);
+    return NextResponse.json({
+      success: true,
+      data: {
+        campaigns: campaignsWithMetrics,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
+
   } catch (error) {
     console.error('Error fetching campaigns:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch campaigns' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST /api/campaigns - Create new campaign
+async function createCampaign(request: AuthenticatedRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { name, type, content, settings } = body;
-
-    if (!name || !type || !content) {
-      return NextResponse.json({ message: 'Name, type, and content are required' }, { status: 400 });
+    
+    // Validate input
+    const validationResult = createCampaignSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Validation failed', 
+          errors: validationResult.error.errors 
+        }, 
+        { status: 400 }
+      );
     }
 
+    const campaignData = validationResult.data;
+
+    // Validate date range
+    if (campaignData.endDate && new Date(campaignData.startDate) >= new Date(campaignData.endDate)) {
+      return NextResponse.json(
+        { success: false, message: 'End date must be after start date' },
+        { status: 400 }
+      );
+    }
+
+    // Create campaign
     const campaign = await prisma.campaign.create({
       data: {
-        name,
-        type: type as any,
-        content,
-        settings: settings || {},
-        organizationId: session.user.organizationId,
-      },
+        name: campaignData.name,
+        type: campaignData.type as any, // Cast to allow flexibility
+        status: campaignData.status as any, // Cast to allow flexibility
+        settings: campaignData.settings,
+        organization: {
+          connect: { id: request.user!.organizationId }
+        }
+      }
     });
 
-    return NextResponse.json(campaign, { status: 201 });
+    // Campaign metrics creation removed - model doesn't exist
+
+    // Create activity log
+    await prisma.activity.create({
+      data: {
+        type: 'CAMPAIGN_CREATED',
+        description: `Campaign "${campaign.name}" created`,
+        user: {
+          connect: { id: request.user!.userId }
+        },
+        metadata: {
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+          campaignType: campaign.type,
+          status: campaign.status
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: { campaign },
+      message: 'Campaign created successfully'
+    }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating campaign:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to create campaign' },
+      { status: 500 }
+    );
   }
-} 
+}
+
+// Export handlers
+export const GET = withProtection()(getCampaigns);
+export const POST = withProtection(['ADMIN', 'MANAGER'])(createCampaign); 

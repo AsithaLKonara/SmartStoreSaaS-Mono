@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
+import { withProtection, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { z } from 'zod';
 
 // Product update schema
@@ -16,8 +16,8 @@ const updateProductSchema = z.object({
 });
 
 // GET /api/products/[id] - Get product by ID
-async function GET(
-  request: NextRequest,
+async function getProduct(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -26,13 +26,16 @@ async function GET(
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: {
-        createdBy: {
-          select: { id: true, name: true, email: true }
-        },
         organization: {
           select: { id: true, name: true, slug: true }
         }
       }
+      // Temporarily removed createdBy include to debug 500 error
+      // include: {
+      //   createdBy: {
+      //     select: { id: true, name: true, email: true }
+      //   }
+      // }
     });
 
     if (!product) {
@@ -57,8 +60,8 @@ async function GET(
 }
 
 // PUT /api/products/[id] - Update product (Admin/Manager only)
-async function PUT(
-  request: NextRequest,
+async function updateProduct(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -84,7 +87,9 @@ async function PUT(
     const existingProduct = await prisma.product.findFirst({
       where: {
         id: productId,
-        organizationId: request.user!.organizationId
+        organization: {
+          id: request.user!.organizationId
+        }
       }
     });
 
@@ -100,7 +105,9 @@ async function PUT(
       const skuConflict = await prisma.product.findFirst({
         where: {
           sku: updateData.sku,
-          organizationId: request.user!.organizationId,
+          organization: {
+            id: request.user!.organizationId
+          },
           id: { not: productId }
         }
       });
@@ -118,7 +125,9 @@ async function PUT(
       const slugConflict = await prisma.product.findFirst({
         where: {
           slug: updateData.slug,
-          organizationId: request.user!.organizationId,
+          organization: {
+            id: request.user!.organizationId
+          },
           id: { not: productId }
         }
       });
@@ -134,12 +143,13 @@ async function PUT(
     // Update product
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
-      data: updateData,
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true }
-        }
-      }
+      data: updateData
+      // Temporarily removed createdBy include to debug 500 error
+      // include: {
+      //   createdBy: {
+      //     select: { id: true, name: true, email: true }
+      //   }
+      // }
     });
 
     // Create activity log
@@ -172,8 +182,8 @@ async function PUT(
 }
 
 // DELETE /api/products/[id] - Delete product (Admin only)
-async function DELETE(
-  request: NextRequest,
+async function deleteProduct(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -183,7 +193,9 @@ async function DELETE(
     const existingProduct = await prisma.product.findFirst({
       where: {
         id: productId,
-        organizationId: request.user!.organizationId
+        organization: {
+          id: request.user!.organizationId
+        }
       }
     });
 
@@ -243,6 +255,12 @@ async function DELETE(
 }
 
 // Export handlers
-export const GET = GET;
-export const PUT = withProtection(['ADMIN', 'MANAGER'])(PUT);
-export const DELETE = withProtection(['ADMIN'])(DELETE);
+export const GET = getProduct;
+export const PUT = withProtection(['ADMIN', 'MANAGER'])(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return updateProduct(request, { params });
+});
+export const DELETE = withProtection(['ADMIN'])(async (request: AuthenticatedRequest) => {
+  const params = { id: request.nextUrl.pathname.split('/').pop()! };
+  return deleteProduct(request, { params });
+});

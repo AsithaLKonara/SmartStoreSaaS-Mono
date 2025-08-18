@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
 import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
@@ -22,7 +23,7 @@ const createCustomerSchema = z.object({
 });
 
 // GET /api/customers - List customers with pagination and filters
-async function GET(request: NextRequest) {
+async function getCustomers(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -101,7 +102,7 @@ async function GET(request: NextRequest) {
 }
 
 // POST /api/customers - Create new customer
-async function POST(request: NextRequest) {
+async function createCustomer(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     
@@ -139,7 +140,9 @@ async function POST(request: NextRequest) {
     const customer = await prisma.customer.create({
       data: {
         ...customerData,
-        organizationId: request.user!.organizationId
+        organization: {
+          connect: { id: request.user!.organizationId }
+        }
       }
     });
 
@@ -173,5 +176,5 @@ async function POST(request: NextRequest) {
 }
 
 // Export handlers
-export const GET = withProtection()(GET);
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(POST); 
+export const GET = withProtection()(getCustomers);
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(createCustomer); 

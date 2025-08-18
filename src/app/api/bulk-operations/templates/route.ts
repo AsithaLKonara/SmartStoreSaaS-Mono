@@ -1,108 +1,173 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { withProtection } from '@/lib/middleware/auth';
+import { z } from 'zod';
 
-export async function GET(request: NextRequest) {
+// Bulk operation template schema
+const createTemplateSchema = z.object({
+  name: z.string().min(2, 'Template name must be at least 2 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  type: z.enum(['IMPORT', 'EXPORT', 'UPDATE', 'DELETE', 'CUSTOM']),
+  entity: z.string().min(1, 'Entity is required'),
+  fields: z.array(z.string()).min(1, 'At least one field is required'),
+  sampleFile: z.string().optional(),
+  validationRules: z.record(z.any()).optional(),
+  transformationRules: z.record(z.any()).optional(),
+  isActive: z.boolean().default(true),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional()
+});
+
+// GET /api/bulk-operations/templates - List bulk operation templates from database
+async function getBulkOperationTemplates(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+    const type = searchParams.get('type');
+    const entity = searchParams.get('entity');
+    const isActive = searchParams.get('isActive');
+
+    // Build where clause
+    const where: any = {
+      organizationId: (request as any).user!.organizationId
+    };
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
     }
 
-    // Return mock bulk operation templates
-    const mockTemplates = [
-      {
-        id: 'products-import',
-        name: 'Product Import Template',
-        description: 'Import products with categories, pricing, and inventory information',
-        type: 'IMPORT',
-        entity: 'PRODUCTS',
-        fields: ['name', 'sku', 'description', 'price', 'category', 'stock_quantity', 'images'],
-        sampleFile: '/templates/products-import-sample.csv',
-      },
-      {
-        id: 'customers-export',
-        name: 'Customer Export Template',
-        description: 'Export customer data with contact information and purchase history',
-        type: 'EXPORT',
-        entity: 'CUSTOMERS',
-        fields: ['name', 'email', 'phone', 'address', 'total_orders', 'total_spent', 'last_order_date'],
-        sampleFile: '/templates/customers-export-sample.csv',
-      },
-      {
-        id: 'inventory-update',
-        name: 'Inventory Update Template',
-        description: 'Update inventory levels and stock information across warehouses',
-        type: 'UPDATE',
-        entity: 'INVENTORY',
-        fields: ['product_id', 'warehouse_id', 'quantity', 'reserved_quantity', 'location'],
-        sampleFile: '/templates/inventory-update-sample.csv',
-      },
-      {
-        id: 'orders-export',
-        name: 'Order Export Template',
-        description: 'Export order data with customer details and product information',
-        type: 'EXPORT',
-        entity: 'ORDERS',
-        fields: ['order_id', 'customer_id', 'order_date', 'status', 'total_amount', 'payment_method'],
-        sampleFile: '/templates/orders-export-sample.csv',
-      },
-      {
-        id: 'expenses-import',
-        name: 'Expense Import Template',
-        description: 'Import expense records with categories and payment information',
-        type: 'IMPORT',
-        entity: 'EXPENSES',
-        fields: ['title', 'description', 'amount', 'category', 'payment_method', 'date', 'vendor'],
-        sampleFile: '/templates/expenses-import-sample.csv',
-      },
-      {
-        id: 'custom-template',
-        name: 'Custom Template Builder',
-        description: 'Create custom templates for any data entity with flexible field mapping',
-        type: 'CUSTOM',
-        entity: 'CUSTOM',
-        fields: ['field_mapping', 'validation_rules', 'transformation_rules'],
-        sampleFile: '/templates/custom-template-sample.csv',
-      },
-    ];
+    if (type) where.type = type;
+    if (entity) where.entity = entity;
+    if (isActive !== null) where.isActive = isActive === 'true';
 
-    return NextResponse.json(mockTemplates);
+    // Get total count for pagination
+    const total = await prisma.bulkOperationTemplate.count({ where });
+    
+    // Get templates with pagination
+    const templates = await prisma.bulkOperationTemplate.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+
+    });
+
+    // Calculate template usage statistics
+    const templatesWithStats = templates.map(template => {
+      return {
+        ...template,
+        usage: {
+          totalOperations: template.usageCount || 0,
+          successfulOperations: 0,
+          failedOperations: 0,
+          successRate: 0,
+          lastUsed: null
+        }
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        templates: templatesWithStats,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
+
   } catch (error) {
     console.error('Error fetching bulk operation templates:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch bulk operation templates' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST /api/bulk-operations/templates - Create new bulk operation template
+async function createBulkOperationTemplate(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { name, description, type, entity, fields } = body;
-
-    if (!name || !description || !type || !entity) {
-      return NextResponse.json({ message: 'Required fields are missing' }, { status: 400 });
+    
+    // Validate input
+    const validationResult = createTemplateSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Validation failed', 
+          errors: validationResult.error.errors 
+        }, 
+        { status: 400 }
+      );
     }
 
-    // In a real implementation, this would save to a bulk_operation_templates table
-    const template = {
-      id: `template_${Date.now()}`,
-      name,
-      description,
-      type: type as any,
-      entity: entity as any,
-      fields: fields || [],
-      sampleFile: `/templates/${entity.toLowerCase()}-${type.toLowerCase()}-sample.csv`,
-    };
+    const templateData = validationResult.data;
 
-    return NextResponse.json(template, { status: 201 });
+    // Check if template with same name already exists in the organization
+    const existingTemplate = await prisma.bulkOperationTemplate.findFirst({
+      where: {
+        name: templateData.name,
+        organizationId: (request as any).user!.organizationId
+      }
+    });
+
+    if (existingTemplate) {
+      return NextResponse.json(
+        { success: false, message: 'Template with this name already exists in this organization' },
+        { status: 409 }
+      );
+    }
+
+    // Create template
+    const template = await prisma.bulkOperationTemplate.create({
+      data: {
+        ...templateData,
+        organizationId: (request as any).user!.organizationId
+      }
+    });
+
+    // Create activity log
+    await prisma.activity.create({
+      data: {
+        type: 'BULK_OPERATION_TEMPLATE_CREATED',
+        description: `Bulk operation template "${template.name}" created`,
+        userId: (request as any).user!.userId,
+        metadata: {
+          templateId: template.id,
+          templateName: template.name,
+          templateType: template.type,
+          entity: template.entity
+        }
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: { template },
+      message: 'Bulk operation template created successfully'
+    }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating bulk operation template:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to create bulk operation template' },
+      { status: 500 }
+    );
   }
-} 
+}
+
+// Export handlers
+export const GET = withProtection()(getBulkOperationTemplates);
+export const POST = withProtection(['ADMIN', 'MANAGER'])(createBulkOperationTemplate); 

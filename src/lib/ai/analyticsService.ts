@@ -304,7 +304,7 @@ export class AIAnalyticsService {
 
       // Simple route optimization - group by area
       const routes = orders.reduce((acc, order) => {
-        const area = order.customer.address ? order.customer.address.split(',')[1]?.trim() || 'Unknown' : 'Unknown';
+        const area = order.customer.address && typeof order.customer.address === 'string' ? order.customer.address.split(',')[1]?.trim() || 'Unknown' : 'Unknown';
         if (!acc[area]) {
           acc[area] = [];
         }
