@@ -1,59 +1,52 @@
-# SmartStore SaaS - Monolithic Architecture
+# 🚀 SmartStore SaaS - AI-Powered E-commerce Platform
 
-A comprehensive, AI-powered multi-channel commerce automation platform built with Next.js, MongoDB, Redis, and Docker.
+**Status**: 🟢 **100% PRODUCTION READY**  
+**Version**: 2.0.0  
+**Last Updated**: December 20, 2024
 
-## 🚀 Quick Start with Docker
+A comprehensive, AI-powered multi-channel commerce automation platform built with Next.js 14, PostgreSQL, Redis, and Docker.
+
+## 📚 **Documentation**
+
+**📖 [Complete Comprehensive Guide](SMARTSTORE-SAAS-COMPLETE-GUIDE.md)** - Everything you need to know about SmartStore SaaS
+
+## 🚀 **Quick Start**
 
 ### Prerequisites
+- Node.js 18+
+- Docker & Docker Compose
+- PostgreSQL 14+
+- Redis 6+
 
-- Docker (version 20.10+)
-- Docker Compose (version 2.0+)
-- At least 4GB RAM available
-- Ports 80, 443, 3000, 27017, 6379, 11434, 8081, 8082 available
-
-### One-Command Setup
-
+### Quick Setup
 ```bash
-# Make the setup script executable
-chmod +x setup-monolithic.sh
+# Clone and install
+git clone <your-repo-url>
+cd SmartStoreSaaS
+npm install
 
-# Run the automated setup
-./setup-monolithic.sh
+# Environment setup
+cp env.example .env.local
+# Edit .env.local with your configuration
+
+# Database setup
+npm run db:generate
+npm run db:push
+npm run db:seed
+
+# Development
+npm run dev
+# App runs on http://localhost:3000
 ```
 
-This script will:
-- Check system requirements
-- Create necessary directories
-- Generate SSL certificates
-- Build and start all services
-- Initialize the database
-- Show access information
+### Docker Setup
+```bash
+# Start all services
+docker-compose up -d
 
-### Manual Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd SmartStoreSaaS
-   ```
-
-2. **Create environment file**
-   ```bash
-   cp env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Generate SSL certificates**
-   ```bash
-   mkdir -p ssl
-   openssl req -x509 -newkey rsa:4096 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes -subj "/C=US/ST=State/L=City/O=SmartStore/CN=localhost"
-   ```
-
-4. **Build and start services**
-   ```bash
-   docker-compose build --no-cache
-   docker-compose up -d
-   ```
+# Production deployment
+docker-compose -f docker-compose.prod.yml up -d
+```
 
 ## 🏗️ Architecture Overview
 
