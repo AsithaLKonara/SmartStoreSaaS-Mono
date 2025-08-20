@@ -152,4 +152,32 @@ out/
 .parcel-cache/
 
 # Local development
-.local/ 
+.local/
+
+# Temporary cleanup and fix scripts
+fix-*.js
+fix-*.sh
+cleanup-*.js
+*-cleanup.js
+simple-*.js
+*-fix.js
+test-*.js
+*-test.js
+
+# Old report files
+*-REPORT.md
+*-COMPLETION*.md
+COMPLETION*.md
+PROJECT-*.md
+MOCK-*.md
+
+# Migration scripts
+migrate-*.ps1
+mongo-init*.js
+
+# Test result files
+test-results-*.json
+test-results-*.txt
+
+# Backup directories
+backups/ 
