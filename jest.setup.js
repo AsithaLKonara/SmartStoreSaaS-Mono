@@ -12,7 +12,7 @@ jest.mock('next/router', () => ({
       pop: jest.fn(),
       reload: jest.fn(),
       back: jest.fn(),
-      prefetch: jest.fn(),
+      prefetch: jest.fn().mockResolvedValue(undefined),
       beforePopState: jest.fn(),
       events: {
         on: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock('next/router', () => ({
   },
 }))
 
-// Mock Next.js Image component
+// Mock Next.js image component
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props) => {
@@ -37,7 +37,8 @@ jest.mock('next/image', () => ({
 process.env.NEXTAUTH_SECRET = 'test-secret'
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
-process.env.REDIS_URL = 'redis://localhost:6379'
+process.env.UPSTASH_REDIS_REST_URL = 'http://localhost:6379'
+process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
 
 // Global test utilities
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -46,37 +47,58 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }))
 
-global.matchMedia = jest.fn().mockImplementation((query) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  dispatchEvent: jest.fn(),
-}))
-
 // Mock fetch globally
 global.fetch = jest.fn()
 
-// Mock IntersectionObserver
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}))
+// Mock Request and Response globals for Node.js environment
+global.Request = class MockRequest {
+  constructor(url, options = {}) {
+    this.url = url
+    this.method = options.method || 'GET'
+    this._headers = new Map(Object.entries(options.headers || {}))
+  }
+  
+  get headers() {
+    return {
+      get: (name) => this._headers.get(name)
+    }
+  }
+}
 
-// Mock WebSocket
-global.WebSocket = jest.fn().mockImplementation(() => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  send: jest.fn(),
-  close: jest.fn(),
-  readyState: 1,
-  CONNECTING: 0,
-  OPEN: 1,
-  CLOSING: 2,
-  CLOSED: 3,
-}))
+global.Response = class MockResponse {
+  constructor(body, options = {}) {
+    this.body = body
+    this.status = options.status || 200
+    this._headers = new Map(Object.entries(options.headers || {}))
+  }
+  
+  get headers() {
+    return {
+      get: (name) => this._headers.get(name),
+      set: (name, value) => this._headers.set(name, value)
+    }
+  }
+  
+  json() {
+    return Promise.resolve(this.body)
+  }
+}
+
+// Console error suppression for tests
+const originalError = console.error
+beforeAll(() => {
+  console.error = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('Warning: ReactDOM.render is no longer supported')
+    ) {
+      return
+    }
+    originalError.call(console, ...args)
+  }
+})
+
+afterAll(() => {
+  console.error = originalError
+})
 
