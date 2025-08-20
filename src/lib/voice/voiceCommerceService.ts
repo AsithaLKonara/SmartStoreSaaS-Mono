@@ -1,11 +1,11 @@
 import { prisma } from '../prisma';
 import { realTimeSyncService } from '../sync/realTimeSyncService';
 
-// SpeechRecognition type definitions - using any to avoid conflicts
+// SpeechRecognition type definitions - using unknown to avoid conflicts
 declare global {
   interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+    SpeechRecognition: unknown;
+    webkitSpeechRecognition: unknown;
   }
 }
 
@@ -15,7 +15,7 @@ export interface VoiceCommand {
   action: string;
   userId: string | null; // Make nullable to match Prisma model
   intent: string | null; // Make nullable to match Prisma model
-  entities: Record<string, any> | null; // Make nullable to match Prisma model
+  entities: Record<string, unknown> | null; // Make nullable to match Prisma model
   confidence: number | null; // Make nullable to match Prisma model
   response: string | null; // Make nullable to match Prisma model
   timestamp: Date;
@@ -46,13 +46,13 @@ export interface VoiceResponse {
   ssml?: string;
   actions?: Array<{
     type: string;
-    data: any;
+    data: unknown;
   }>;
   suggestions?: string[];
 }
 
 export class VoiceCommerceService {
-  private recognition: any | null = null;
+  private recognition: unknown | null = null;
   private synthesis: SpeechSynthesis | null = null;
   private isListening = false;
   private intents: VoiceIntent[] = [];
@@ -70,7 +70,7 @@ export class VoiceCommerceService {
    */
   private initializeSpeechRecognition(): void {
     try {
-      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = window.SpeechRecognition || (window as unknown).webkitSpeechRecognition;
       
       if (!SpeechRecognition) {
         console.warn('Speech recognition not supported');
@@ -92,12 +92,12 @@ export class VoiceCommerceService {
         this.isListening = false;
       };
 
-      this.recognition.onerror = (event: any) => {
+      this.recognition.onerror = (event: unknown) => {
         console.error('Speech recognition error:', event.error);
         this.isListening = false;
       };
 
-      this.recognition.onresult = (event: any) => {
+      this.recognition.onresult = (event: unknown) => {
         this.handleSpeechResult(event);
       };
 
@@ -373,7 +373,7 @@ export class VoiceCommerceService {
   /**
    * Handle speech recognition results
    */
-  private handleSpeechResult(event: any): void {
+  private handleSpeechResult(event: unknown): void {
     let finalTranscript = '';
     let interimTranscript = '';
 
@@ -415,7 +415,7 @@ export class VoiceCommerceService {
    */
   private async extractIntent(transcript: string): Promise<{
     intent: string;
-    entities: Record<string, any>;
+    entities: Record<string, unknown>;
     confidence: number;
   }> {
     let bestMatch = {
@@ -475,8 +475,8 @@ export class VoiceCommerceService {
     transcript: string,
     pattern: string,
     entityTypes: string[]
-  ): Record<string, any> {
-    const entities: Record<string, any> = {};
+  ): Record<string, unknown> {
+    const entities: Record<string, unknown> = {};
     
     const regexPattern = pattern.replace(/\*/g, '(.*?)');
     const regex = new RegExp(`^${regexPattern}$`, 'i');
@@ -500,7 +500,7 @@ export class VoiceCommerceService {
   /**
    * Parse entity value based on type
    */
-  private parseEntityValue(entityType: string, value: string): any {
+  private parseEntityValue(entityType: string, value: string): unknown {
     switch (entityType) {
       case 'quantity':
         // Extract numbers from text
@@ -526,7 +526,7 @@ export class VoiceCommerceService {
    */
   private async handleIntent(
     intent: string,
-    entities: Record<string, any>,
+    entities: Record<string, unknown>,
     userId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
@@ -563,7 +563,7 @@ export class VoiceCommerceService {
   /**
    * Intent handlers
    */
-  private async handleProductSearch(entities: Record<string, any>, organizationId: string): Promise<VoiceResponse> {
+  private async handleProductSearch(entities: Record<string, unknown>, organizationId: string): Promise<VoiceResponse> {
     const searchTerm = entities.product_name || entities.category;
     
     if (!searchTerm) {
@@ -589,22 +589,22 @@ export class VoiceCommerceService {
 
       if (products.length === 0) {
         return {
-          text: `I couldn't find any products matching "${searchTerm}". Try a different search term.`,
+          text: `I couldn't find unknown products matching "${searchTerm}". Try a different search term.`,
           suggestions: ['search for electronics', 'find clothing', 'show all products'],
         };
       }
 
-      const productNames = products.map((p: any) => p.name).join(', ');
+      const productNames = products.map((p: unknown) => p.name).join(', ');
       
       return {
-        text: `I found ${products.length} products for "${searchTerm}": ${productNames}. Would you like to add any to your cart?`,
+        text: `I found ${products.length} products for "${searchTerm}": ${productNames}. Would you like to add unknown to your cart?`,
         actions: [
           {
             type: 'show_products',
             data: { products },
           },
         ],
-        suggestions: products.slice(0, 3).map((p: any) => `add ${p.name} to cart`),
+        suggestions: products.slice(0, 3).map((p: unknown) => `add ${p.name} to cart`),
       };
     } catch (error) {
       console.error('Error searching products:', error);
@@ -615,7 +615,7 @@ export class VoiceCommerceService {
   }
 
   private async handleAddToCart(
-    entities: Record<string, any>,
+    entities: Record<string, unknown>,
     userId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
@@ -664,7 +664,7 @@ export class VoiceCommerceService {
     }
   }
 
-  private async handleOrderStatus(entities: Record<string, any>, userId: string): Promise<VoiceResponse> {
+  private async handleOrderStatus(entities: Record<string, unknown>, userId: string): Promise<VoiceResponse> {
     const orderId = entities.order_id;
 
     try {
@@ -681,7 +681,7 @@ export class VoiceCommerceService {
         return {
           text: orderId 
             ? `I couldn't find order ${orderId}. Please check the order number.`
-            : 'You don\'t have any recent orders.',
+            : 'You don\'t have unknown recent orders.',
         };
       }
 
@@ -697,7 +697,7 @@ export class VoiceCommerceService {
           ],
         };
       } else {
-        const statusText = orders.map((order: any) => 
+        const statusText = orders.map((order: unknown) => 
           `Order ${order.id} is ${order.status.toLowerCase()}`
         ).join(', ');
         
@@ -747,7 +747,7 @@ export class VoiceCommerceService {
   }
 
   private async handleRecommendations(
-    entities: Record<string, any>,
+    entities: Record<string, unknown>,
     userId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
@@ -769,22 +769,22 @@ export class VoiceCommerceService {
 
       if (products.length === 0) {
         return {
-          text: 'I don\'t have any recommendations matching your criteria right now.',
+          text: 'I don\'t have unknown recommendations matching your criteria right now.',
           suggestions: ['show popular products', 'search for electronics'],
         };
       }
 
-      const recommendations = products.map((p: any) => `${p.name} for $${p.price}`).join(', ');
+      const recommendations = products.map((p: unknown) => `${p.name} for $${p.price}`).join(', ');
       
       return {
-        text: `I recommend: ${recommendations}. Would you like to add any to your cart?`,
+        text: `I recommend: ${recommendations}. Would you like to add unknown to your cart?`,
         actions: [
           {
             type: 'show_recommendations',
             data: { products },
           },
         ],
-        suggestions: products.map((p: any) => `add ${p.name} to cart`),
+        suggestions: products.map((p: unknown) => `add ${p.name} to cart`),
       };
     } catch (error) {
       console.error('Error getting recommendations:', error);
@@ -833,7 +833,7 @@ export class VoiceCommerceService {
       userId: voiceCommand.userId, // Can be null
       command: voiceCommand.command,
       intent: voiceCommand.intent, // Can be null
-      entities: voiceCommand.entities as Record<string, any> | null, // Can be null
+      entities: voiceCommand.entities as Record<string, unknown> | null, // Can be null
       confidence: voiceCommand.confidence, // Can be null
       response: voiceCommand.response, // Can be null
       timestamp: voiceCommand.timestamp,
@@ -863,12 +863,12 @@ export class VoiceCommerceService {
       take: limit,
     });
 
-    return commands.map((cmd: any) => ({
+    return commands.map((cmd: unknown) => ({
       id: cmd.id,
       userId: cmd.userId, // Can be null
       command: cmd.command,
       intent: cmd.intent, // Can be null
-      entities: cmd.entities as Record<string, any> | null, // Can be null
+      entities: cmd.entities as Record<string, unknown> | null, // Can be null
       confidence: cmd.confidence, // Can be null
       response: cmd.response, // Can be null
       timestamp: cmd.timestamp,

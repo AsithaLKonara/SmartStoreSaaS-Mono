@@ -12,7 +12,7 @@ export interface SecurityAudit {
   userAgent: string;
   timestamp: Date;
   success: boolean;
-  details: any;
+  details: unknown;
 }
 
 export interface MFASetup {
@@ -39,7 +39,7 @@ export interface SecurityAlert {
   ipAddress: string;
   timestamp: Date;
   resolved: boolean;
-  details: any;
+  details: unknown;
 }
 
 export class SecurityService {
@@ -189,7 +189,7 @@ export class SecurityService {
     ipAddress: string,
     userAgent: string,
     success: boolean,
-    details?: any
+    details?: unknown
   ): Promise<void> {
     try {
       await prisma.securityAudit.create({
@@ -223,7 +223,7 @@ export class SecurityService {
     limit: number = 50
   ): Promise<SecurityAudit[]> {
     try {
-      const where: any = {};
+      const where: unknown = {};
       
       if (filters.userId) where.userId = filters.userId;
       if (filters.action) where.action = filters.action;
@@ -240,16 +240,16 @@ export class SecurityService {
         take: limit,
       });
 
-      return audits.map((audit: any) => ({
+      return audits.map((audit: unknown) => ({
         id: audit.id,
         userId: audit.userId,
         action: audit.action,
-        resource: (audit.metadata as any)?.resource || '',
+        resource: (audit.metadata as unknown)?.resource || '',
         ipAddress: audit.ipAddress || '',
         userAgent: audit.userAgent || '',
         timestamp: audit.createdAt,
-        success: (audit.metadata as any)?.success || false,
-        details: (audit.metadata as any)?.details || {}
+        success: (audit.metadata as unknown)?.success || false,
+        details: (audit.metadata as unknown)?.details || {}
       }));
     } catch (error) {
       console.error('Error getting audit logs:', error);
@@ -263,7 +263,7 @@ export class SecurityService {
     message: string,
     userId?: string,
     ipAddress?: string,
-    details?: any
+    details?: unknown
   ): Promise<SecurityAlert> {
     try {
       const alert = await prisma.securityAlert.create({
@@ -287,7 +287,7 @@ export class SecurityService {
         severity,
         message,
         userId,
-        ipAddress: (alert.metadata as any)?.ipAddress || '', // Access from metadata
+        ipAddress: (alert.metadata as unknown)?.ipAddress || '', // Access from metadata
         timestamp: alert.createdAt,
         resolved: false,
         details: details || {}
@@ -299,7 +299,7 @@ export class SecurityService {
         severity,
         message,
         userId,
-        ipAddress: (alert.metadata as any)?.ipAddress || '', // Access from metadata
+        ipAddress: (alert.metadata as unknown)?.ipAddress || '', // Access from metadata
         timestamp: alert.createdAt,
         resolved: false,
         details: details || {}
@@ -422,7 +422,7 @@ export class SecurityService {
     }
   }
 
-  async exportUserData(userId: string): Promise<any> {
+  async exportUserData(userId: string): Promise<unknown> {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },

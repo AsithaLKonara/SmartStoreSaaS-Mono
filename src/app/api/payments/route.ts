@@ -11,7 +11,7 @@ const createPaymentSchema = z.object({
   currency: z.string().min(3, 'Currency must be 3 characters').max(3, 'Currency must be 3 characters'),
   method: z.enum(['STRIPE', 'PAYPAL', 'CASH', 'BANK_TRANSFER', 'CRYPTO']),
   gateway: z.string().min(1, 'Gateway is required'),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.unknown()).optional(),
   notes: z.string().optional()
 });
 
@@ -29,7 +29,7 @@ async function getPayments(request: AuthenticatedRequest) {
     const orderId = searchParams.get('orderId');
 
     // Build where clause
-    const where: any = {
+    const where: unknown = {
       organizationId: request.user!.organizationId
     };
     
@@ -230,7 +230,7 @@ async function createPayment(request: AuthenticatedRequest) {
         data: { 
           status: paymentResult.success ? 'COMPLETED' : 'FAILED',
           metadata: {
-            ...(payment.metadata as any || {}),
+            ...(payment.metadata as unknown || {}),
             processingResult: paymentResult
           }
         }
@@ -253,7 +253,7 @@ async function createPayment(request: AuthenticatedRequest) {
         data: { 
           status: 'FAILED',
           metadata: {
-            ...(payment.metadata as any || {}),
+            ...(payment.metadata as unknown || {}),
             error: processingError instanceof Error ? processingError.message : 'Unknown error'
           }
         }
@@ -281,7 +281,7 @@ async function createPayment(request: AuthenticatedRequest) {
 }
 
 // Real payment processing functions
-async function processStripePayment(payment: any) {
+async function processStripePayment(payment: unknown) {
   try {
     // In production, this would make real Stripe API calls
     // For now, we'll simulate the process but mark it as needing real integration
@@ -328,7 +328,7 @@ async function processStripePayment(payment: any) {
   }
 }
 
-async function processPayPalPayment(payment: any) {
+async function processPayPalPayment(payment: unknown) {
   try {
     console.log(`Processing PayPal payment for payment ID: ${payment.id}`);
     
@@ -370,7 +370,7 @@ async function processPayPalPayment(payment: any) {
   }
 }
 
-async function processCashPayment(payment: any) {
+async function processCashPayment(payment: unknown) {
   try {
     console.log(`Processing cash payment for payment ID: ${payment.id}`);
     
@@ -394,7 +394,7 @@ async function processCashPayment(payment: any) {
   }
 }
 
-async function processBankTransferPayment(payment: any) {
+async function processBankTransferPayment(payment: unknown) {
   try {
     console.log(`Processing bank transfer for payment ID: ${payment.id}`);
     

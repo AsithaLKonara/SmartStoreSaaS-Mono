@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '50');
 
-        const filters: any = {};
+        const filters: unknown = {};
         if (userId) filters.userId = userId;
         if (action) filters.action = action;
         if (startDate) filters.startDate = new Date(startDate);
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
       case 'security-alerts':
         // Security alerts not implemented yet
-        const alerts: any[] = [];
+        const alerts: unknown[] = [];
         return NextResponse.json({ alerts });
 
       case 'user-permissions':
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
         });
 
         // Security audit not implemented yet
-        const recentSecurityEvents: any[] = [];
+        const recentSecurityEvents: unknown[] = [];
 
         // Security alerts not implemented yet
         const activeAlerts = 0;

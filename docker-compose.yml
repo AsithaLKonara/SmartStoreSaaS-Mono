@@ -1,141 +1,215 @@
 version: '3.8'
 
 services:
-  # Main Next.js Application
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: smartstore-postgres
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=mongodb://mongodb:27017/smartstore
-      - REDIS_URL=redis://redis:6379
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
-      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
-      - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID}
-      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET}
-      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
-      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
-      - OLLAMA_BASE_URL=http://ollama:11434
+      POSTGRES_DB: smartstore
+      POSTGRES_USER: smartstore_user
+      POSTGRES_PASSWORD: smartstore_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartstore_user -d smartstore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartstore-network
+
+  # PgBouncer for connection pooling
+  pgbouncer:
+    image: edoburu/pgbouncer:1.18.0
+    container_name: smartstore-pgbouncer
+    environment:
+      DB_HOST: postgres
+      DB_USER: smartstore_user
+      DB_PASSWORD: smartstore_password
+      DB_NAME: smartstore
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 20
+      RESERVE_POOL_SIZE: 5
+      MAX_DB_CONNECTIONS: 50
+      MAX_USER_CONNECTIONS: 100
+      SERVER_RESET_QUERY: DISCARD ALL
+      SERVER_CHECK_QUERY: SELECT 1
+      SERVER_CHECK_DELAY: 30
+    ports:
+      - "6432:5432"
     depends_on:
-      - mongodb
-      - redis
-      - ollama
-    volumes:
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
-    restart: unless-stopped
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U smartstore_user -d smartstore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - smartstore-network
 
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_DATABASE=smartstore
-    command: mongod --replSet rs0 --bind_ip_all
-    volumes:
-      - mongodb_data:/data/db
-      - ./mongo-init-replica.js:/docker-entrypoint-initdb.d/mongo-init-replica.js:ro
-    restart: unless-stopped
-    networks:
-      - smartstore-network
-
-  # Redis for caching and sessions
+  # Redis for caching and rate limiting
   redis:
-    image: redis:7.2-alpine
+    image: redis:7-alpine
+    container_name: smartstore-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
     volumes:
       - redis_data:/data
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - smartstore-network
 
-  # Ollama for local AI models
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-    networks:
-      - smartstore-network
-
-  # Nginx Reverse Proxy
+  # Nginx reverse proxy and load balancer
   nginx:
     image: nginx:alpine
+    container_name: smartstore-nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
     depends_on:
-      - app
-    restart: unless-stopped
+      - smartstore-app
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - smartstore-network
 
-  # MongoDB Express (Optional - for database management)
-  mongo-express:
-    image: mongo-express:latest
-    ports:
-      - "8081:8081"
+  # SmartStore SaaS Application
+  smartstore-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: smartstore-app
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_ROOT_USERNAME:-admin}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_ROOT_PASSWORD:-password}
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/
-      - ME_CONFIG_BASIC_AUTH_USERNAME=${MONGO_EXPRESS_USERNAME:-admin}
-      - ME_CONFIG_BASIC_AUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-admin123}
+      NODE_ENV: production
+      DATABASE_URL: postgresql://smartstore_user:smartstore_password@pgbouncer:5432/smartstore?schema=public&pgbouncer=true&connection_limit=1&pool_timeout=30
+      REDIS_URL: redis://redis:6379
+      UPSTASH_REDIS_REST_URL: http://redis:6379
+      UPSTASH_REDIS_REST_TOKEN: local_redis_token
+      NEXTAUTH_SECRET: your-secret-key-here
+      NEXTAUTH_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
     depends_on:
-      - mongodb
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - smartstore-network
     restart: unless-stopped
+
+  # Background Worker for heavy tasks
+  smartstore-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    container_name: smartstore-worker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://smartstore_user:smartstore_password@pgbouncer:5432/smartstore?schema=public&pgbouncer=true&connection_limit=1&pool_timeout=30
+      REDIS_URL: redis://redis:6379
+      UPSTASH_REDIS_REST_URL: http://redis:6379
+      UPSTASH_REDIS_REST_TOKEN: local_redis_token
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - smartstore-network
+    restart: unless-stopped
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: smartstore-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
     networks:
       - smartstore-network
 
-  # Redis Commander (Optional - for Redis management)
-  redis-commander:
-    image: rediscommander/redis-commander:latest
+  # Grafana for metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: smartstore-grafana
     ports:
-      - "8082:8081"
+      - "3001:3000"
     environment:
-      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD:-redis123}
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
     depends_on:
-      - redis
-    restart: unless-stopped
+      - prometheus
+    networks:
+      - smartstore-network
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: smartstore-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
     networks:
       - smartstore-network
 
 volumes:
-  mongodb_data:
+  postgres_data:
     driver: local
   redis_data:
     driver: local
-  ollama_data:
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:
   smartstore-network:
-    driver: bridge 
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

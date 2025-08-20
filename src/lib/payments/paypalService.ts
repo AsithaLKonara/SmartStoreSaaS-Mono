@@ -257,11 +257,11 @@ export class PayPalService {
     amount?: number,
     currency: string = 'USD',
     note?: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     try {
       const accessToken = await this.getAccessToken();
 
-      const refundData: any = {
+      const refundData: unknown = {
         note_to_payer: note || 'Refund processed',
       };
 
@@ -296,7 +296,7 @@ export class PayPalService {
   /**
    * Get order details
    */
-  async getOrder(paypalOrderId: string): Promise<any> {
+  async getOrder(paypalOrderId: string): Promise<unknown> {
     try {
       const accessToken = await this.getAccessToken();
 
@@ -382,7 +382,7 @@ export class PayPalService {
     }
   }
 
-  private async handlePaymentCaptured(event: any): Promise<void> {
+  private async handlePaymentCaptured(event: unknown): Promise<void> {
     const paymentId = event.resource.id;
     const orderId = event.resource.supplementary_data?.related_ids?.order_id;
 
@@ -399,7 +399,7 @@ export class PayPalService {
     console.log(`PayPal payment captured: ${paymentId}`);
   }
 
-  private async handlePaymentDenied(event: any): Promise<void> {
+  private async handlePaymentDenied(event: unknown): Promise<void> {
     const orderId = event.resource.supplementary_data?.related_ids?.order_id;
 
     if (orderId) {
@@ -414,7 +414,7 @@ export class PayPalService {
     console.log(`PayPal payment denied: ${event.resource.id}`);
   }
 
-  private async handlePaymentRefunded(event: any): Promise<void> {
+  private async handlePaymentRefunded(event: unknown): Promise<void> {
     const paymentId = event.resource.id;
     
     // Update refund status in database
@@ -430,7 +430,7 @@ export class PayPalService {
     amount: number,
     currency: string = 'USD',
     interval: 'MONTH' | 'YEAR' = 'MONTH'
-  ): Promise<any> {
+  ): Promise<unknown> {
     try {
       const accessToken = await this.getAccessToken();
 

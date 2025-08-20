@@ -1,5 +1,5 @@
 // Comprehensive API type definitions for SmartStoreSaaS
-// This file replaces all 'any' types with proper interfaces
+// This file replaces all 'unknown' types with proper interfaces
 
 export interface User {
   id: string;

@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       id: activity.id,
       productId: activity.order.items[0]?.productId || '',
       productName: activity.order.items[0]?.product.name || 'Unknown Product',
-      type: activity.type === 'CREATED' ? 'out' : 'transfer' as any,
+      type: activity.type === 'CREATED' ? 'out' : 'transfer' as unknown,
       quantity: activity.order.items[0]?.quantity || 0,
       fromLocation: 'Main Warehouse',
       toLocation: activity.type === 'SHIPPED' ? 'Out for Delivery' : 'Processing',

@@ -60,7 +60,7 @@ export interface PersonalizationRecommendation {
     id: string;
     score: number;
     reason: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }>;
   algorithm: string;
   confidence: number;
@@ -72,7 +72,7 @@ export interface ABTestVariant {
   id: string;
   name: string;
   description: string;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   trafficAllocation: number; // percentage
   isActive: boolean;
   metrics: {
@@ -94,8 +94,8 @@ export interface PersonalizationExperiment {
   variants: ABTestVariant[];
   targetAudience: {
     segments?: string[];
-    demographics?: Record<string, any>;
-    behaviors?: Record<string, any>;
+    demographics?: Record<string, unknown>;
+    behaviors?: Record<string, unknown>;
   };
   startDate: Date;
   endDate?: Date;
@@ -351,7 +351,7 @@ export class PersonalizationEngine {
     context: RealTimeContext
   ): Promise<{
     layout: string;
-    content: Record<string, any>;
+    content: Record<string, unknown>;
     promotions: string[];
     messaging: string[];
   }> {
@@ -400,17 +400,17 @@ export class PersonalizationEngine {
     trigger: 'page_view' | 'product_view' | 'add_to_cart' | 'search' | 'idle'
   ): Promise<{
     recommendations: PersonalizationRecommendation[];
-    popups: any[];
+    popups: unknown[];
     messages: string[];
-    offers: any[];
+    offers: unknown[];
   }> {
     try {
       const userProfile = await this.getUserProfile(userId);
       
       let recommendations: PersonalizationRecommendation[] = [];
-      let popups: any[] = [];
+      let popups: unknown[] = [];
       let messages: string[] = [];
-      let offers: any[] = [];
+      let offers: unknown[] = [];
 
       switch (trigger) {
         case 'page_view':
@@ -499,7 +499,7 @@ export class PersonalizationEngine {
     itemId: string,
     itemType: 'product' | 'category' | 'brand' | 'content',
     context: RealTimeContext,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<void> {
     try {
       // Store interaction
@@ -573,27 +573,27 @@ export class PersonalizationEngine {
     return defaultProfile;
   }
 
-  private inferAge(user: any): number | undefined {
+  private inferAge(user: unknown): number | undefined {
     // Implement age inference logic based on behavior, purchase history, etc.
     return undefined;
   }
 
-  private inferGender(user: any): string | undefined {
+  private inferGender(user: unknown): string | undefined {
     // Implement gender inference logic
     return undefined;
   }
 
-  private inferOccupation(user: any): string | undefined {
+  private inferOccupation(user: unknown): string | undefined {
     // Implement occupation inference logic
     return undefined;
   }
 
-  private inferIncomeRange(user: any): string | undefined {
+  private inferIncomeRange(user: unknown): string | undefined {
     // Implement income range inference logic
     return undefined;
   }
 
-  private async extractPreferences(user: any): Promise<UserProfile['preferences']> {
+  private async extractPreferences(user: unknown): Promise<UserProfile['preferences']> {
     const categories: string[] = [];
     const brands: string[] = [];
     const colors: string[] = [];
@@ -614,8 +614,8 @@ export class PersonalizationEngine {
     }
 
     // Calculate price range
-    const prices = user.orders.flatMap((order: any) => 
-      order.items.map((item: any) => item.price)
+    const prices = user.orders.flatMap((order: unknown) => 
+      order.items.map((item: unknown) => item.price)
     );
 
     const priceRange = {
@@ -633,9 +633,9 @@ export class PersonalizationEngine {
     };
   }
 
-  private async analyzeBehavior(user: any): Promise<UserProfile['behavior']> {
+  private async analyzeBehavior(user: unknown): Promise<UserProfile['behavior']> {
     // Analyze browsing history
-    const browsingHistory = user.browsingHistory?.map((item: any) => ({
+    const browsingHistory = user.browsingHistory?.map((item: unknown) => ({
       productId: item.productId,
       timestamp: item.timestamp,
       duration: item.duration || 0,
@@ -643,8 +643,8 @@ export class PersonalizationEngine {
     })) || [];
 
     // Analyze purchase history
-    const purchaseHistory = user.orders?.flatMap((order: any) =>
-      order.items.map((item: any) => ({
+    const purchaseHistory = user.orders?.flatMap((order: unknown) =>
+      order.items.map((item: unknown) => ({
         productId: item.productId,
         categoryId: item.product.categoryId,
         price: item.price,
@@ -654,7 +654,7 @@ export class PersonalizationEngine {
     ) || [];
 
     // Analyze search history
-    const searchHistory = user.searchHistory?.map((search: any) => ({
+    const searchHistory = user.searchHistory?.map((search: unknown) => ({
       query: search.query,
       timestamp: search.timestamp,
       resultClicks: search.resultClicks || 0,
@@ -677,7 +677,7 @@ export class PersonalizationEngine {
   }
 
   private async segmentUser(
-    user: any,
+    user: unknown,
     preferences: UserProfile['preferences'],
     behavior: UserProfile['behavior']
   ): Promise<string[]> {
@@ -711,7 +711,7 @@ export class PersonalizationEngine {
     return segments;
   }
 
-  private calculateLifetimeValue(orders: any[]): number {
+  private calculateLifetimeValue(orders: unknown[]): number {
     return orders.reduce((sum, order) => sum + order.total, 0);
   }
 
@@ -837,7 +837,7 @@ export class PersonalizationEngine {
     userProfile: UserProfile,
     pageType: string,
     context: RealTimeContext
-  ): Promise<Record<string, any>> {
+  ): Promise<Record<string, unknown>> {
     // Personalize page content
     return {};
   }
@@ -878,7 +878,7 @@ export class PersonalizationEngine {
   private async generateCrossUpsellOffers(
     userId: string,
     context: RealTimeContext
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     // Generate cross-sell and upsell offers
     return [];
   }
@@ -894,7 +894,7 @@ export class PersonalizationEngine {
   private async generateRetentionPopups(
     userProfile: UserProfile,
     context: RealTimeContext
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     // Generate retention popups
     return [];
   }
@@ -902,7 +902,7 @@ export class PersonalizationEngine {
   private async generateExitIntentOffers(
     userProfile: UserProfile,
     context: RealTimeContext
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     // Generate exit intent offers
     return [];
   }

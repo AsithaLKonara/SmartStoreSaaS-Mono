@@ -16,8 +16,8 @@ export interface IoTDevice {
   batteryLevel?: number;
   status: 'online' | 'offline' | 'maintenance' | 'error';
   lastSeen: Date;
-  configuration: Record<string, any>;
-  metadata: Record<string, any>;
+  configuration: Record<string, unknown>;
+  metadata: Record<string, unknown>;
   isActive: boolean;
   installedAt: Date;
 }
@@ -30,7 +30,7 @@ export interface SensorReading {
   unit: string;
   timestamp: Date;
   location: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SmartShelfData {
@@ -82,7 +82,7 @@ export interface RFIDReading {
   action: 'read' | 'write' | 'inventory';
   timestamp: Date;
   signalStrength: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IoTAlert {
@@ -91,7 +91,7 @@ export interface IoTAlert {
   type: 'device_offline' | 'low_battery' | 'sensor_anomaly' | 'security_breach' | 'maintenance_required';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   isResolved: boolean;
   createdAt: Date;
   resolvedAt?: Date;
@@ -128,7 +128,7 @@ export interface EnvironmentalConditions {
 export class IoTService {
   private deviceConnections: Map<string, WebSocket> = new Map();
   private sensorDataBuffer: Map<string, SensorReading[]> = new Map();
-  private alertThresholds: Map<string, any> = new Map();
+  private alertThresholds: Map<string, unknown> = new Map();
 
   constructor() {
     this.initializeIoTService();
@@ -467,7 +467,7 @@ export class IoTService {
     setInterval(() => this.checkBatteryLevels(), 60 * 60 * 1000);
   }
 
-  private async handleDeviceMessage(deviceId: string, message: any): Promise<void> {
+  private async handleDeviceMessage(deviceId: string, message: unknown): Promise<void> {
     try {
       const data = JSON.parse(message);
       
@@ -505,7 +505,7 @@ export class IoTService {
     }
   }
 
-  private async checkSensorAlerts(deviceId: string, reading: any): Promise<void> {
+  private async checkSensorAlerts(deviceId: string, reading: unknown): Promise<void> {
     try {
       const thresholds = this.alertThresholds.get(reading.type);
       if (!thresholds) return;
@@ -682,7 +682,7 @@ export class IoTService {
     }
   }
 
-  private async sendCriticalAlertNotifications(alert: any): Promise<void> {
+  private async sendCriticalAlertNotifications(alert: unknown): Promise<void> {
     try {
       // TODO: Send notifications when notification services are available
       console.log(`Critical alert: ${alert.message}`);
@@ -707,20 +707,20 @@ export class IoTService {
     return 'bright';
   }
 
-  private calculateDeviceUptime(device: any, since: Date): number {
+  private calculateDeviceUptime(device: unknown, since: Date): number {
     // Calculate device uptime percentage
     const totalTime = Date.now() - since.getTime();
     const onlineTime = totalTime; // Simplified calculation
     return (onlineTime / totalTime) * 100;
   }
 
-  private calculatePeakHours(customers: any[]): string[] {
+  private calculatePeakHours(customers: unknown[]): string[] {
     // Calculate peak business hours based on customer data
     // Simplified implementation
     return ['10:00', '14:00', '18:00'];
   }
 
-  private mapDeviceFromDB(device: any): IoTDevice {
+  private mapDeviceFromDB(device: unknown): IoTDevice {
     // Map database device to IoTDevice interface
     return {
       id: device.id,
@@ -742,7 +742,7 @@ export class IoTService {
     };
   }
 
-  private mapSensorReadingFromDB(reading: any): SensorReading {
+  private mapSensorReadingFromDB(reading: unknown): SensorReading {
     // Map database sensor reading to SensorReading interface
     return {
       id: reading.id,
@@ -756,7 +756,7 @@ export class IoTService {
     };
   }
 
-  private mapAlertFromDB(alert: any): IoTAlert {
+  private mapAlertFromDB(alert: unknown): IoTAlert {
     // Map database alert to IoTAlert interface
     return {
       id: alert.id,

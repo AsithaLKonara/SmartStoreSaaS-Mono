@@ -22,8 +22,8 @@ export interface RealTimeMetrics {
   onlineCustomers: number;
   conversionRate: number;
   averageOrderValue: number;
-  topSellingProducts: any[];
-  revenueByHour: any[];
+  topSellingProducts: unknown[];
+  revenueByHour: unknown[];
 }
 
 export interface PerformanceKPI {
@@ -81,10 +81,10 @@ export class BusinessIntelligenceService {
    * Generate real-time business metrics
    */
   async generateRealTimeMetrics(
-    salesData: any[],
-    orderData: any[],
-    customerData: any[],
-    productData: any[]
+    salesData: unknown[],
+    orderData: unknown[],
+    customerData: unknown[],
+    productData: unknown[]
   ): Promise<RealTimeMetrics> {
     try {
       const prompt = `
@@ -155,9 +155,9 @@ export class BusinessIntelligenceService {
    * Calculate performance KPIs
    */
   async calculatePerformanceKPIs(
-    currentData: any[],
-    historicalData: any[],
-    targets: any[]
+    currentData: unknown[],
+    historicalData: unknown[],
+    targets: unknown[]
   ): Promise<PerformanceKPI[]> {
     try {
       const prompt = `
@@ -204,9 +204,9 @@ export class BusinessIntelligenceService {
    * Generate sales forecasts
    */
   async generateSalesForecasts(
-    historicalSales: any[],
-    marketData: any[],
-    seasonalData: any[]
+    historicalSales: unknown[],
+    marketData: unknown[],
+    seasonalData: unknown[]
   ): Promise<SalesForecast[]> {
     try {
       const prompt = `
@@ -248,9 +248,9 @@ export class BusinessIntelligenceService {
    * Analyze market trends
    */
   async analyzeMarketTrends(
-    marketData: any[],
-    competitorData: any[],
-    industryReports: any[]
+    marketData: unknown[],
+    competitorData: unknown[],
+    industryReports: unknown[]
   ): Promise<MarketTrend[]> {
     try {
       const prompt = `
@@ -293,9 +293,9 @@ export class BusinessIntelligenceService {
    * Perform competitive analysis
    */
   async performCompetitiveAnalysis(
-    competitorData: any[],
-    marketShareData: any[],
-    productComparison: any[]
+    competitorData: unknown[],
+    marketShareData: unknown[],
+    productComparison: unknown[]
   ): Promise<CompetitiveAnalysis[]> {
     try {
       const prompt = `
@@ -334,9 +334,9 @@ export class BusinessIntelligenceService {
    * Assess business risks
    */
   async assessBusinessRisks(
-    businessData: any[],
-    marketData: any[],
-    financialData: any[]
+    businessData: unknown[],
+    marketData: unknown[],
+    financialData: unknown[]
   ): Promise<RiskAssessment[]> {
     try {
       const prompt = `
@@ -380,8 +380,8 @@ export class BusinessIntelligenceService {
    * Generate business insights and recommendations
    */
   async generateBusinessInsights(
-    allData: any[]
-  ): Promise<any[]> {
+    allData: unknown[]
+  ): Promise<unknown[]> {
     try {
       const prompt = `
         Generate comprehensive business insights based on all available data:

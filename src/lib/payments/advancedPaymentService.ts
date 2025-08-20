@@ -19,7 +19,7 @@ export interface PaymentMethod {
   expiryYear?: number | null; // Changed to allow null to match Prisma model
   isDefault: boolean;
   stripePaymentMethodId?: string | null; // Changed to allow null to match Prisma model
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
   updatedAt: Date;
   customerId: string;
@@ -33,7 +33,7 @@ export interface PaymentIntent {
   paymentMethodId?: string; // Made optional to match Prisma model
   customerId: string;
   orderId?: string;
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
   updatedAt: Date;
   stripePaymentIntentId?: string; // Added to match Prisma model
@@ -47,13 +47,13 @@ export interface Subscription {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export interface PaymentGateway {
   name: string;
   isActive: boolean;
-  config: any;
+  config: unknown;
   supportedCurrencies: string[];
   supportedMethods: string[];
 }
@@ -82,7 +82,7 @@ export class AdvancedPaymentService {
     customerId: string;
     orderId?: string;
     paymentMethodId?: string;
-    metadata?: any;
+    metadata?: unknown;
   }): Promise<PaymentIntent> {
     const paymentIntent = await prisma.paymentIntent.create({
       data: {
@@ -164,7 +164,7 @@ export class AdvancedPaymentService {
     return mappedPaymentIntent;
   }
 
-  async createCustomer(email: string, name?: string, metadata?: any): Promise<string> {
+  async createCustomer(email: string, name?: string, metadata?: unknown): Promise<string> {
     const customer = await this.stripe.customers.create({
       email,
       name,
@@ -185,7 +185,7 @@ export class AdvancedPaymentService {
     return customer.id;
   }
 
-  async findCustomerByEmail(email: string): Promise<any> {
+  async findCustomerByEmail(email: string): Promise<unknown> {
     const customer = await prisma.customer.findFirst({
       where: { email }
     });
@@ -210,7 +210,7 @@ export class AdvancedPaymentService {
     // });
   }
 
-  async findCustomerByStripeId(stripeCustomerId: string): Promise<any> {
+  async findCustomerByStripeId(stripeCustomerId: string): Promise<unknown> {
     // Note: Customer model doesn't have metadata field
     // Consider implementing this functionality when the field is available
     // For now, return null since we can't query by Stripe ID
@@ -236,7 +236,7 @@ export class AdvancedPaymentService {
     const savedPaymentMethod = await prisma.paymentMethod.create({
       data: {
         customerId,
-        type: paymentMethod.type as any,
+        type: paymentMethod.type as unknown,
         last4: paymentMethod.card?.last4,
         brand: paymentMethod.card?.brand,
         expiryMonth: paymentMethod.card?.exp_month,
@@ -244,7 +244,7 @@ export class AdvancedPaymentService {
         isDefault,
         metadata: {
           stripePaymentMethodId: paymentMethodId,
-          stripePaymentMethod: paymentMethod as any
+          stripePaymentMethod: paymentMethod as unknown
         }
       }
     });
@@ -268,7 +268,7 @@ export class AdvancedPaymentService {
     return mappedPaymentMethod;
   }
 
-  async createSubscription(customerId: string, priceId: string, metadata?: any): Promise<Subscription> {
+  async createSubscription(customerId: string, priceId: string, metadata?: unknown): Promise<Subscription> {
     const subscription = await this.stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
@@ -283,7 +283,7 @@ export class AdvancedPaymentService {
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        metadata: subscription as any // Convert Stripe Response to JSON
+        metadata: subscription as unknown // Convert Stripe Response to JSON
       }
     });
 
@@ -318,7 +318,7 @@ export class AdvancedPaymentService {
     return savedSubscription;
   }
 
-  async processRefund(paymentIntentId: string, amount?: number, reason?: string): Promise<any> {
+  async processRefund(paymentIntentId: string, amount?: number, reason?: string): Promise<unknown> {
     const paymentIntent = await prisma.paymentIntent.findUnique({
       where: { id: paymentIntentId }
     });
@@ -330,7 +330,7 @@ export class AdvancedPaymentService {
     const refund = await this.stripe.refunds.create({
       payment_intent: paymentIntentId,
       amount: amount ? Math.round(amount * 100) : undefined,
-      reason: reason as any
+      reason: reason as unknown
     });
 
     await prisma.refund.create({
@@ -358,20 +358,20 @@ export class AdvancedPaymentService {
       include: { paymentMethod: true }
     });
 
-    const successfulPayments = payments.filter((p: any) => p.status === 'succeeded');
-    const failedPayments = payments.filter((p: any) => p.status === 'failed');
+    const successfulPayments = payments.filter((p: unknown) => p.status === 'succeeded');
+    const failedPayments = payments.filter((p: unknown) => p.status === 'failed');
 
-    const totalRevenue = successfulPayments.reduce((sum: number, p: any) => sum + p.amount, 0);
+    const totalRevenue = successfulPayments.reduce((sum: number, p: unknown) => sum + p.amount, 0);
     const averageOrderValue = successfulPayments.length > 0 ? totalRevenue / successfulPayments.length : 0;
 
     const paymentMethodDistribution: Record<string, number> = {};
-    successfulPayments.forEach((payment: any) => {
+    successfulPayments.forEach((payment: unknown) => {
       const method = payment.paymentMethod?.type || 'unknown';
       paymentMethodDistribution[method] = (paymentMethodDistribution[method] || 0) + 1;
     });
 
     const revenueByPeriod: Record<string, number> = {};
-    successfulPayments.forEach((payment: any) => {
+    successfulPayments.forEach((payment: unknown) => {
       const date = payment.createdAt.toISOString().split('T')[0];
       revenueByPeriod[date] = (revenueByPeriod[date] || 0) + payment.amount;
     });
@@ -455,7 +455,7 @@ export class AdvancedPaymentService {
     }
   }
 
-  async createPaymentLink(amount: number, currency: string, description: string, metadata?: any): Promise<string> {
+  async createPaymentLink(amount: number, currency: string, description: string, metadata?: unknown): Promise<string> {
     const paymentLink = await this.stripe.paymentLinks.create({
       line_items: [{
         price_data: {
@@ -466,14 +466,14 @@ export class AdvancedPaymentService {
           unit_amount: Math.round(amount * 100)
         },
         quantity: 1
-      } as any],
+      } as unknown],
       metadata
     });
 
     return paymentLink.url;
   }
 
-  async handleWebhook(event: any): Promise<void> {
+  async handleWebhook(event: unknown): Promise<void> {
     switch (event.type) {
       case 'payment_intent.succeeded':
         await this.handlePaymentSuccess(event.data.object);
@@ -496,7 +496,7 @@ export class AdvancedPaymentService {
     }
   }
 
-  private async handlePaymentSuccess(paymentIntent: any): Promise<void> {
+  private async handlePaymentSuccess(paymentIntent: unknown): Promise<void> {
     await prisma.paymentIntent.update({
       where: { stripePaymentIntentId: paymentIntent.id },
       data: { status: paymentIntent.status }
@@ -511,7 +511,7 @@ export class AdvancedPaymentService {
     }
   }
 
-  private async handlePaymentFailure(paymentIntent: any): Promise<void> {
+  private async handlePaymentFailure(paymentIntent: unknown): Promise<void> {
     await prisma.paymentIntent.update({
       where: { stripePaymentIntentId: paymentIntent.id },
       data: { status: paymentIntent.status }
@@ -526,7 +526,7 @@ export class AdvancedPaymentService {
     }
   }
 
-  private async handleInvoicePaymentSuccess(invoice: any): Promise<void> {
+  private async handleInvoicePaymentSuccess(invoice: unknown): Promise<void> {
     // Handle successful subscription payment
     await prisma.invoice.create({
       data: {
@@ -540,7 +540,7 @@ export class AdvancedPaymentService {
     });
   }
 
-  private async handleInvoicePaymentFailure(invoice: any): Promise<void> {
+  private async handleInvoicePaymentFailure(invoice: unknown): Promise<void> {
     // Handle failed subscription payment
     await prisma.invoice.create({
       data: {
@@ -554,7 +554,7 @@ export class AdvancedPaymentService {
     });
   }
 
-  private async handleSubscriptionUpdate(subscription: any): Promise<void> {
+  private async handleSubscriptionUpdate(subscription: unknown): Promise<void> {
     await prisma.subscription.update({
       where: { stripeSubscriptionId: subscription.id },
       data: {
@@ -566,7 +566,7 @@ export class AdvancedPaymentService {
     });
   }
 
-  private async handleSubscriptionCancellation(subscription: any): Promise<void> {
+  private async handleSubscriptionCancellation(subscription: unknown): Promise<void> {
     await prisma.subscription.update({
       where: { stripeSubscriptionId: subscription.id },
       data: {

@@ -11,11 +11,11 @@ const createIntegrationSchema = z.object({
   provider: z.string().min(2, 'Provider name is required'),
   channel: z.string().min(2, 'Channel is required'),
   status: z.enum(['ACTIVE', 'INACTIVE', 'TESTING', 'ERROR']).default('INACTIVE'),
-  credentials: z.record(z.any()).optional(),
-  settings: z.record(z.any()).optional(),
+  credentials: z.record(z.unknown()).optional(),
+  settings: z.record(z.unknown()).optional(),
   webhookUrl: z.string().url('Invalid webhook URL').optional(),
   isActive: z.boolean().default(true),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.unknown()).optional()
 });
 
 // GET /api/integrations - List integrations with pagination and filters
@@ -30,7 +30,7 @@ async function getIntegrations(request: AuthenticatedRequest) {
     const isActive = searchParams.get('isActive');
 
     // Build where clause
-    const where: any = {
+    const where: unknown = {
       organizationId: request.user!.organizationId
     };
     
@@ -70,8 +70,8 @@ async function getIntegrations(request: AuthenticatedRequest) {
 
     // Calculate integration health status
     const integrationsWithHealth = integrations.map(integration => {
-      const recentLogs: any[] = [];
-      const errorLogs: any[] = [];
+      const recentLogs: unknown[] = [];
+      const errorLogs: unknown[] = [];
       const healthStatus = 'HEALTHY';
       
       return {
@@ -209,7 +209,7 @@ async function createIntegration(request: AuthenticatedRequest) {
 }
 
 // Validate integration credentials
-async function validateIntegrationCredentials(integration: any) {
+async function validateIntegrationCredentials(integration: unknown) {
   try {
     switch (integration.type) {
       case 'PAYMENT':
@@ -264,7 +264,7 @@ async function validateIntegrationCredentials(integration: any) {
 }
 
 // Test integration connection
-async function testIntegrationConnection(integration: any) {
+async function testIntegrationConnection(integration: unknown) {
   try {
     switch (integration.type) {
       case 'PAYMENT':
@@ -308,7 +308,7 @@ async function testIntegrationConnection(integration: any) {
 }
 
 // Test specific integration connections with real API validation
-async function testStripeConnection(credentials: any) {
+async function testStripeConnection(credentials: unknown) {
   try {
     // TODO: Replace with real Stripe API test
     // const stripe = require('stripe')(credentials.secretKey);
@@ -336,7 +336,7 @@ async function testStripeConnection(credentials: any) {
   }
 }
 
-async function testPayPalConnection(credentials: any) {
+async function testPayPalConnection(credentials: unknown) {
   try {
     // TODO: Replace with real PayPal API test
     // const paypal = require('@paypal/checkout-server-sdk');
@@ -363,7 +363,7 @@ async function testPayPalConnection(credentials: any) {
   }
 }
 
-async function testShippoConnection(credentials: any) {
+async function testShippoConnection(credentials: unknown) {
   try {
     // TODO: Replace with real Shippo API test
     // const shippo = require('shippo')(credentials.apiKey);
@@ -388,7 +388,7 @@ async function testShippoConnection(credentials: any) {
   }
 }
 
-async function testWooCommerceConnection(credentials: any) {
+async function testWooCommerceConnection(credentials: unknown) {
   try {
     // TODO: Replace with real WooCommerce API test
     // const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api');
@@ -419,7 +419,7 @@ async function testWooCommerceConnection(credentials: any) {
   }
 }
 
-async function testGoogleAnalyticsConnection(credentials: any) {
+async function testGoogleAnalyticsConnection(credentials: unknown) {
   try {
     // TODO: Replace with real Google Analytics API test
     // const { google } = require('googleapis');
@@ -451,7 +451,7 @@ async function testGoogleAnalyticsConnection(credentials: any) {
   }
 }
 
-async function testTwilioConnection(credentials: any) {
+async function testTwilioConnection(credentials: unknown) {
   try {
     // TODO: Replace with real Twilio API test
     // const twilio = require('twilio')(credentials.accountSid, credentials.authToken);

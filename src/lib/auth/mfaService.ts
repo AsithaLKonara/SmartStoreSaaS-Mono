@@ -446,7 +446,7 @@ export class MFAService {
         orderBy: { createdAt: 'desc' },
       });
 
-      return mfaRecords.map((record: any) => ({
+      return mfaRecords.map((record: unknown) => ({
         id: record.id,
         type: record.method as 'totp' | 'sms' | 'email' | 'backup_codes',
         isEnabled: true, // All stored MFA methods are considered enabled
@@ -506,7 +506,7 @@ export class MFAService {
   /**
    * Get MFA authentication logs (not implemented in current schema)
    */
-  async getMFALogs(userId: string, limit = 50): Promise<any[]> {
+  async getMFALogs(userId: string, limit = 50): Promise<unknown[]> {
     // MFA logging not implemented in current schema
     // This would require an MfaLog model
     console.warn('MFA logging not implemented in current schema');
@@ -562,7 +562,7 @@ export class MFAService {
     userId: string,
     action: string,
     result: 'success' | 'failure' | 'error',
-    details?: any
+    details?: unknown
   ): Promise<void> {
     // MFA logging not implemented in current schema
     // This would require an MfaLog model

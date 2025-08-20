@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function createPaymentIntent(data: any, userId: string) {
+async function createPaymentIntent(data: unknown, userId: string) {
   const { amount, currency, orderId, metadata } = data;
   
   // Get or create Stripe customer
@@ -92,7 +92,7 @@ async function createPaymentIntent(data: any, userId: string) {
   return NextResponse.json(paymentIntent);
 }
 
-async function createCustomer(data: any, userId: string) {
+async function createCustomer(data: unknown, userId: string) {
   const { email, name } = data;
   
   const customerId = await stripeService.createCustomer(email, name, { userId });
@@ -105,7 +105,7 @@ async function createCustomer(data: any, userId: string) {
   return NextResponse.json({ customerId });
 }
 
-async function getPaymentMethods(data: any, userId: string) {
+async function getPaymentMethods(data: unknown, userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { stripeCustomerId: true },
@@ -119,7 +119,7 @@ async function getPaymentMethods(data: any, userId: string) {
   return NextResponse.json({ paymentMethods });
 }
 
-async function createSubscription(data: any, userId: string) {
+async function createSubscription(data: unknown, userId: string) {
   const { priceId, metadata } = data;
   
   const user = await prisma.user.findUnique({
@@ -140,7 +140,7 @@ async function createSubscription(data: any, userId: string) {
   return NextResponse.json(subscription);
 }
 
-async function cancelSubscription(data: any, userId: string) {
+async function cancelSubscription(data: unknown, userId: string) {
   const { subscriptionId } = data;
   
   // Verify user owns this subscription
@@ -159,7 +159,7 @@ async function cancelSubscription(data: any, userId: string) {
   return NextResponse.json(canceledSubscription);
 }
 
-async function createRefund(data: any, userId: string) {
+async function createRefund(data: unknown, userId: string) {
   const { paymentIntentId, amount, reason } = data;
   
   // Verify user owns this payment
@@ -183,7 +183,7 @@ async function getSubscriptionPlans() {
   return NextResponse.json({ plans });
 }
 
-async function createSetupIntent(data: any, userId: string) {
+async function createSetupIntent(data: unknown, userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { stripeCustomerId: true },

@@ -34,7 +34,7 @@ async function getWarehouses(request: AuthenticatedRequest) {
     const city = searchParams.get('city');
 
     // Build where clause
-    const where: any = {
+    const where: unknown = {
       organizationId: request.user!.organizationId
     };
     

@@ -7,7 +7,7 @@ export interface ChannelMessage {
   timestamp: Date;
   isIncoming: boolean;
   status: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export interface CustomerConversation {
@@ -35,7 +35,7 @@ export interface UnifiedInbox {
 export interface ChannelIntegration {
   channel: string;
   isActive: boolean;
-  config: any;
+  config: unknown;
   lastSync: Date;
 }
 
@@ -55,7 +55,7 @@ export class OmnichannelService {
     });
 
     // Transform Prisma results to match interface
-    const transformedConversations: CustomerConversation[] = conversations.map((c: any) => ({
+    const transformedConversations: CustomerConversation[] = conversations.map((c: unknown) => ({
       id: c.id,
       customerId: c.customerId,
       channel: c.channel,
@@ -70,12 +70,12 @@ export class OmnichannelService {
       assignedAgentId: c.assignedAgentId
     }));
 
-    const unreadCount = transformedConversations.filter((c: any) => 
-      c.messages.some((m: any) => !m.isIncoming && m.status === 'sent')
+    const unreadCount = transformedConversations.filter((c: unknown) => 
+      c.messages.some((m: unknown) => !m.isIncoming && m.status === 'sent')
     ).length;
 
-    const pendingCount = transformedConversations.filter((c: any) => c.status === 'pending').length;
-    const urgentCount = transformedConversations.filter((c: any) => c.priority === 'urgent').length;
+    const pendingCount = transformedConversations.filter((c: unknown) => c.status === 'pending').length;
+    const urgentCount = transformedConversations.filter((c: unknown) => c.priority === 'urgent').length;
 
     return {
       conversations: transformedConversations,
@@ -185,7 +185,7 @@ export class OmnichannelService {
       where: { organizationId }
     });
 
-    return integrations.map((integration: any) => ({
+    return integrations.map((integration: unknown) => ({
       channel: integration.channel,
       isActive: integration.isActive,
       config: integration.config,
@@ -193,7 +193,7 @@ export class OmnichannelService {
     }));
   }
 
-  async updateChannelIntegration(organizationId: string, channel: string, config: any): Promise<void> {
+  async updateChannelIntegration(organizationId: string, channel: string, config: unknown): Promise<void> {
     await prisma.channelIntegration.upsert({
       where: { 
         organizationId_channel: { organizationId, channel }
@@ -288,7 +288,7 @@ export class OmnichannelService {
     };
   }
 
-  private async sendToChannel(channel: string, customerId: string, message: string): Promise<any> {
+  private async sendToChannel(channel: string, customerId: string, message: string): Promise<unknown> {
     // Implementation for sending messages to different channels
     switch (channel) {
       case 'whatsapp':
@@ -306,7 +306,7 @@ export class OmnichannelService {
     }
   }
 
-  private async fetchChannelMessages(channel: string, config: any): Promise<any[]> {
+  private async fetchChannelMessages(channel: string, config: unknown): Promise<unknown[]> {
     // Implementation for fetching messages from different channels
     switch (channel) {
       case 'whatsapp':
@@ -320,9 +320,9 @@ export class OmnichannelService {
     }
   }
 
-  private async processIncomingMessage(organizationId: string, channel: string, message: any): Promise<void> {
+  private async processIncomingMessage(organizationId: string, channel: string, message: unknown): Promise<void> {
     // Find or create conversation
-    let conversation: any = await prisma.customerConversation.findFirst({
+    let conversation: unknown = await prisma.customerConversation.findFirst({
       where: {
         customerId: message.customerId,
         channel,
@@ -366,42 +366,42 @@ export class OmnichannelService {
   }
 
   // Channel-specific implementations
-  private async sendWhatsAppMessage(customerId: string, message: string): Promise<any> {
+  private async sendWhatsAppMessage(customerId: string, message: string): Promise<unknown> {
     // WhatsApp Business API implementation
     return { status: 'sent', messageId: `wa_${Date.now()}` };
   }
 
-  private async sendFacebookMessage(customerId: string, message: string): Promise<any> {
+  private async sendFacebookMessage(customerId: string, message: string): Promise<unknown> {
     // Facebook Messenger API implementation
     return { status: 'sent', messageId: `fb_${Date.now()}` };
   }
 
-  private async sendInstagramMessage(customerId: string, message: string): Promise<any> {
+  private async sendInstagramMessage(customerId: string, message: string): Promise<unknown> {
     // Instagram DM API implementation
     return { status: 'sent', messageId: `ig_${Date.now()}` };
   }
 
-  private async sendEmailMessage(customerId: string, message: string): Promise<any> {
+  private async sendEmailMessage(customerId: string, message: string): Promise<unknown> {
     // Email service implementation
     return { status: 'sent', messageId: `email_${Date.now()}` };
   }
 
-  private async sendSMSMessage(customerId: string, message: string): Promise<any> {
+  private async sendSMSMessage(customerId: string, message: string): Promise<unknown> {
     // SMS service implementation
     return { status: 'sent', messageId: `sms_${Date.now()}` };
   }
 
-  private async fetchWhatsAppMessages(config: any): Promise<any[]> {
+  private async fetchWhatsAppMessages(config: unknown): Promise<unknown[]> {
     // WhatsApp Business API message fetching
     return [];
   }
 
-  private async fetchFacebookMessages(config: any): Promise<any[]> {
+  private async fetchFacebookMessages(config: unknown): Promise<unknown[]> {
     // Facebook Messenger API message fetching
     return [];
   }
 
-  private async fetchInstagramMessages(config: any): Promise<any[]> {
+  private async fetchInstagramMessages(config: unknown): Promise<unknown[]> {
     // Instagram DM API message fetching
     return [];
   }

@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ products: socialProducts });
 
       case 'social-posts':
-        const where: any = {};
+        const where: unknown = {};
         if (platformId) {
           where.platformId = platformId;
         }
@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Platform not found' }, { status: 404 });
         }
 
-        const totalEngagement = platformStats.socialPosts.reduce((sum: number, post: any) => 
+        const totalEngagement = platformStats.socialPosts.reduce((sum: number, post: unknown) => 
           sum + (post.engagement?.likes || 0) + (post.engagement?.comments || 0) + (post.engagement?.shares || 0), 0
         );
 

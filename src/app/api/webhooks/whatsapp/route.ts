@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function processMessages(messages: any[]): Promise<void> {
+async function processMessages(messages: unknown[]): Promise<void> {
   for (const message of messages) {
     try {
       const whatsappMessage = {
@@ -78,7 +78,7 @@ async function processMessages(messages: any[]): Promise<void> {
   }
 }
 
-async function processMessageStatuses(statuses: any[]): Promise<void> {
+async function processMessageStatuses(statuses: unknown[]): Promise<void> {
   for (const status of statuses) {
     try {
       await prisma.whatsAppMessage.updateMany({
@@ -100,7 +100,7 @@ async function getOrganizationId(phoneNumberId: string): Promise<string> {
   return integration?.organizationId || '';
 }
 
-async function findOrCreateCustomer(phone: string, organizationId: string): Promise<any> {
+async function findOrCreateCustomer(phone: string, organizationId: string): Promise<unknown> {
   let customer = await prisma.customer.findFirst({
     where: { phone, organizationId }
   });
@@ -119,7 +119,7 @@ async function findOrCreateCustomer(phone: string, organizationId: string): Prom
   return customer;
 }
 
-async function processMessageContent(message: any, customer: any): Promise<void> {
+async function processMessageContent(message: unknown, customer: unknown): Promise<void> {
   const content = message.content?.toLowerCase() || '';
 
   if (content.includes('order') || content.includes('track')) {
@@ -137,7 +137,7 @@ async function processMessageContent(message: any, customer: any): Promise<void>
   }
 }
 
-async function handleOrderQuery(message: any, customer: any): Promise<void> {
+async function handleOrderQuery(message: unknown, customer: unknown): Promise<void> {
   const orders = await prisma.order.findMany({
     where: { customerId: customer.id },
     orderBy: { createdAt: 'desc' },
@@ -147,13 +147,13 @@ async function handleOrderQuery(message: any, customer: any): Promise<void> {
   if (orders.length === 0) {
     await whatsAppService.sendTextMessage(
       message.from,
-      'You don\'t have any orders yet. Would you like to browse our products?',
+      'You don\'t have unknown orders yet. Would you like to browse our products?',
       message.organizationId
     );
     return;
   }
 
-  const orderList = orders.map((order: any) => 
+  const orderList = orders.map((order: unknown) => 
     `Order #${order.orderNumber}: ${order.status} - $${order.totalAmount}`
   ).join('\n');
 
@@ -164,7 +164,7 @@ async function handleOrderQuery(message: any, customer: any): Promise<void> {
   );
 }
 
-async function handleProductQuery(message: any, customer: any): Promise<void> {
+async function handleProductQuery(message: unknown, customer: unknown): Promise<void> {
   const products = await prisma.product.findMany({
     where: { 
       organizationId: message.organizationId,
@@ -183,7 +183,7 @@ async function handleProductQuery(message: any, customer: any): Promise<void> {
     return;
   }
 
-  const productList = products.map((product: any) => 
+  const productList = products.map((product: unknown) => 
     `${product.name} - $${product.price} (${product.stockQuantity} in stock)`
   ).join('\n');
 
@@ -194,7 +194,7 @@ async function handleProductQuery(message: any, customer: any): Promise<void> {
   );
 }
 
-async function handleSupportQuery(message: any, customer: any): Promise<void> {
+async function handleSupportQuery(message: unknown, customer: unknown): Promise<void> {
   await whatsAppService.sendTextMessage(
     message.from,
     'Our support team is here to help! Please provide your order number or describe your issue, and we\'ll get back to you soon.',

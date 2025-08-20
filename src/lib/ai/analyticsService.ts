@@ -259,7 +259,7 @@ export class AIAnalyticsService {
     }
   }
 
-  async identifyTopPerformers(organizationId: string): Promise<any[]> {
+  async identifyTopPerformers(organizationId: string): Promise<unknown[]> {
     try {
       const products = await prisma.product.findMany({
         where: { organizationId },
@@ -290,7 +290,7 @@ export class AIAnalyticsService {
   }
 
   // Operational Analytics
-  async optimizeDeliveryRoutes(organizationId: string): Promise<any[]> {
+  async optimizeDeliveryRoutes(organizationId: string): Promise<unknown[]> {
     try {
       const orders = await prisma.order.findMany({
         where: {
@@ -310,7 +310,7 @@ export class AIAnalyticsService {
         }
         acc[area].push(order);
         return acc;
-      }, {} as Record<string, any[]>);
+      }, {} as Record<string, unknown[]>);
 
       return Object.entries(routes).map(([area, orders]) => ({
         area,
@@ -364,9 +364,9 @@ export class AIAnalyticsService {
         }
 
         return acc;
-      }, {} as Record<string, any>);
+      }, {} as Record<string, unknown>);
 
-      return Object.values(courierMetrics).map((courier: any) => ({
+      return Object.values(courierMetrics).map((courier: unknown) => ({
         courierId: courier.courierId,
         courierName: courier.courierName,
         deliverySuccessRate: courier.successfulDeliveries / courier.deliveries.length,
@@ -421,7 +421,7 @@ export class AIAnalyticsService {
   }
 
   // Business Intelligence Dashboard
-  async generateBusinessInsights(organizationId: string): Promise<any> {
+  async generateBusinessInsights(organizationId: string): Promise<unknown> {
     try {
       const [
         customerSegments,

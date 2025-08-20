@@ -9,7 +9,7 @@ export interface SyncEvent {
   action: 'create' | 'update' | 'delete' | 'sync' | 'conflict';
   entityId: string;
   organizationId: string;
-  data?: any;
+  data?: unknown;
   timestamp: Date;
   source: string;
 }
@@ -20,8 +20,8 @@ export interface SyncConflict {
   entityId: string;
   conflicts: {
     field: string;
-    localValue: any;
-    remoteValue: any;
+    localValue: unknown;
+    remoteValue: unknown;
     resolution: 'local' | 'remote' | 'manual' | 'merge';
   }[];
   resolved: boolean;
@@ -100,7 +100,7 @@ export class RealTimeSyncService extends EventEmitter {
     }
   }
 
-  private extractOrganizationId(request: any): string | null {
+  private extractOrganizationId(request: unknown): string | null {
     const url = new URL(request.url, 'http://localhost');
     return url.searchParams.get('organizationId');
   }
@@ -161,8 +161,8 @@ export class RealTimeSyncService extends EventEmitter {
     );
   }
 
-  private async detectConflicts(event: SyncEvent): Promise<any[]> {
-    const conflicts: any[] = [];
+  private async detectConflicts(event: SyncEvent): Promise<unknown[]> {
+    const conflicts: unknown[] = [];
     
     try {
       const lastModified = await this.getLastModified(event);
@@ -187,7 +187,7 @@ export class RealTimeSyncService extends EventEmitter {
     return conflicts;
   }
 
-  private async handleConflicts(event: SyncEvent, conflicts: any[]): Promise<void> {
+  private async handleConflicts(event: SyncEvent, conflicts: unknown[]): Promise<void> {
     const conflictRecord: SyncConflict = {
       id: `conflict_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       entityType: event.type,
@@ -381,7 +381,7 @@ export class RealTimeSyncService extends EventEmitter {
     }
   }
 
-  private async getCurrentData(event: SyncEvent): Promise<any> {
+  private async getCurrentData(event: SyncEvent): Promise<unknown> {
     try {
       const entity = await this.getEntity(event);
       return entity || null;
@@ -390,7 +390,7 @@ export class RealTimeSyncService extends EventEmitter {
     }
   }
 
-  private async getEntity(event: SyncEvent): Promise<any> {
+  private async getEntity(event: SyncEvent): Promise<unknown> {
     const { type, data, organizationId } = event;
     const entityId = data.id || data._id;
 
@@ -412,7 +412,7 @@ export class RealTimeSyncService extends EventEmitter {
     }
   }
 
-  private compareData(newData: any, currentData: any): string[] {
+  private compareData(newData: unknown, currentData: unknown): string[] {
     const differences: string[] = [];
     
     if (!currentData) return differences;
@@ -461,7 +461,7 @@ export class RealTimeSyncService extends EventEmitter {
     this.syncQueue.push(event);
   }
 
-  public async resolveConflict(conflictId: string, resolution: any): Promise<void> {
+  public async resolveConflict(conflictId: string, resolution: unknown): Promise<void> {
     const conflict = await prisma.syncConflict.findUnique({
       where: { id: conflictId }
     });
@@ -484,7 +484,7 @@ export class RealTimeSyncService extends EventEmitter {
     }
   }
 
-  public async getSyncStatus(organizationId: string): Promise<any> {
+  public async getSyncStatus(organizationId: string): Promise<unknown> {
     const lastSync = await this.getRedis().get(`last_sync:${organizationId}`);
     const pendingCount = await this.getRedis().llen(`sync_queue:${organizationId}`);
     const activeConnections = Array.from(this.connections.keys()).filter(id => id === organizationId).length;

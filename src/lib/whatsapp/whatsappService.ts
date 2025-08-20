@@ -9,15 +9,15 @@ export interface WhatsAppMessage {
   from: string;
   to: string;
   type: 'text' | 'image' | 'document' | 'audio' | 'video' | 'location' | 'contact' | 'sticker' | 'template' | 'interactive';
-  content: any;
+  content: unknown;
   timestamp: Date;
   status: 'sent' | 'delivered' | 'read' | 'failed';
   organizationId: string;
   customerId?: string;
   orderId?: string;
-  metadata?: any;
+  metadata?: unknown;
   templateName?: string;
-  templateData?: Record<string, any>;
+  templateData?: Record<string, unknown>;
   mediaId?: string;
   mediaUrl?: string;
 }
@@ -41,8 +41,8 @@ export interface WhatsAppProduct {
   images: string[];
   category?: string;
   availability: 'in_stock' | 'out_of_stock' | 'preorder';
-  variants?: any[];
-  metadata?: any;
+  variants?: unknown[];
+  metadata?: unknown;
   retailer_id?: string;
 }
 
@@ -55,7 +55,7 @@ export interface WhatsAppTemplate {
     type: 'HEADER' | 'BODY' | 'FOOTER' | 'BUTTONS';
     format?: 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
     text?: string;
-    example?: any;
+    example?: unknown;
     buttons?: Array<{
       type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER';
       text: string;
@@ -92,8 +92,8 @@ export interface WhatsAppWebhookEntry {
         phone_number_id: string;
       };
       contacts?: WhatsAppContact[];
-      messages?: any[];
-      statuses?: any[];
+      messages?: unknown[];
+      statuses?: unknown[];
     };
     field: string;
   }>;
@@ -193,7 +193,7 @@ export class WhatsAppService extends EventEmitter {
     templateName: string,
     language: string,
     organizationId: string,
-    components?: any[]
+    components?: unknown[]
   ): Promise<WhatsAppMessage> {
     try {
       const payload = {
@@ -255,7 +255,7 @@ export class WhatsAppService extends EventEmitter {
     filename?: string
   ): Promise<WhatsAppMessage> {
     try {
-      const payload: any = {
+      const payload: unknown = {
         messaging_product: 'whatsapp',
         to,
         type: mediaType,
@@ -311,7 +311,7 @@ export class WhatsAppService extends EventEmitter {
    */
   async sendInteractiveMessage(
     to: string,
-    interactiveData: any,
+    interactiveData: unknown,
     organizationId: string
   ): Promise<WhatsAppMessage> {
     try {
@@ -567,7 +567,7 @@ export class WhatsAppService extends EventEmitter {
   /**
    * Handle incoming webhook
    */
-  async handleWebhook(body: any, signature: string): Promise<void> {
+  async handleWebhook(body: unknown, signature: string): Promise<void> {
     try {
       // Verify webhook signature
       if (!this.verifyWebhookSignature(body, signature)) {
@@ -603,7 +603,7 @@ export class WhatsAppService extends EventEmitter {
     }
   }
 
-  private verifyWebhookSignature(body: any, signature: string): boolean {
+  private verifyWebhookSignature(body: unknown, signature: string): boolean {
     try {
       const expectedSignature = crypto
         .createHmac('sha256', process.env.WHATSAPP_WEBHOOK_SECRET!)
@@ -617,7 +617,7 @@ export class WhatsAppService extends EventEmitter {
     }
   }
 
-  private async processIncomingMessage(message: any, metadata: any): Promise<void> {
+  private async processIncomingMessage(message: unknown, metadata: unknown): Promise<void> {
     try {
       const whatsappMessage: WhatsAppMessage = {
         id: message.id,
@@ -652,7 +652,7 @@ export class WhatsAppService extends EventEmitter {
     }
   }
 
-  private async processMessageStatus(status: any): Promise<void> {
+  private async processMessageStatus(status: unknown): Promise<void> {
     try {
       // Update message status in database
       await prisma.whatsAppMessage.updateMany({
@@ -673,7 +673,7 @@ export class WhatsAppService extends EventEmitter {
     }
   }
 
-  private extractMessageContent(message: any): any {
+  private extractMessageContent(message: unknown): unknown {
     switch (message.type) {
       case 'text':
         return { body: message.text.body };
@@ -823,7 +823,7 @@ For immediate assistance, visit our website or call customer service.
     });
   }
 
-  private async handleMessageStatus(status: any): Promise<void> {
+  private async handleMessageStatus(status: unknown): Promise<void> {
     // Broadcast status update
     await realTimeSyncService.broadcastEvent({
       id: `whatsapp_status_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

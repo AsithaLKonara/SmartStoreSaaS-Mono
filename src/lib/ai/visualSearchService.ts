@@ -30,7 +30,7 @@ export interface ProductRecognition {
     height: number;
   };
   category?: string;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, unknown>;
 }
 
 export class VisualSearchService {
@@ -333,7 +333,7 @@ export class VisualSearchService {
       const descriptions = {
         'Electronics': 'High-quality electronic device with modern design and advanced features.',
         'Clothing': 'Stylish and comfortable apparel made from premium materials.',
-        'Home & Garden': 'Beautiful home accessory that adds elegance to any space.',
+        'Home & Garden': 'Beautiful home accessory that adds elegance to unknown space.',
         'Sports': 'Professional-grade sports equipment for optimal performance.',
         'Books': 'Engaging and informative reading material.',
         'Toys': 'Fun and educational toy that sparks creativity and imagination.',

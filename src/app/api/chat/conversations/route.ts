@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
+import { 
+  CommonErrors,
+  generateRequestId,
+  getRequestPath
+} from '@/lib/error-handling';
 
 // Conversation creation schema
 const createConversationSchema = z.object({
@@ -13,8 +18,13 @@ const createConversationSchema = z.object({
   initialMessage: z.string().min(10, 'Initial message must be at least 10 characters'),
   tags: z.array(z.string()).optional(),
   assignedAgentId: z.string().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.unknown()).optional()
 });
+
+// Handle CORS preflight
+export function OPTIONS() {
+  return handlePreflight();
+}
 
 // GET /api/chat/conversations - List conversations with pagination and filters
 async function getConversations(request: AuthenticatedRequest) {
@@ -25,13 +35,12 @@ async function getConversations(request: AuthenticatedRequest) {
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status');
     const priority = searchParams.get('priority');
-    const channel = searchParams.get('channel');
     const assignedAgentId = searchParams.get('assignedAgentId');
     const customerId = searchParams.get('customerId');
 
     // Build where clause
-    const where: any = {
-      organizationId: (request as any).user!.organizationId
+    const where: Prisma.ChatConversationWhereInput = {
+      organizationId: request.user!.organizationId
     };
     
     if (search) {
@@ -42,17 +51,16 @@ async function getConversations(request: AuthenticatedRequest) {
       ];
     }
 
-    if (status) where.status = status;
-    if (priority) where.priority = priority;
-    if (channel) where.channel = channel;
-    if (assignedAgentId) where.assignedAgentId = assignedAgentId;
+    if (status) where.status = status as string;
+    if (priority) where.priority = priority as string;
+    if (assignedAgentId) where.assignedAgent = { id: assignedAgentId };
     if (customerId) where.customerId = customerId;
 
     // Get total count for pagination
-    const total = await prisma.customerConversation.count({ where });
+    const total = await prisma.chatConversation.count({ where });
     
     // Get conversations with pagination
-    const conversations = await prisma.customerConversation.findMany({
+    const conversations = await prisma.chatConversation.findMany({
       where,
       skip: (page - 1) * limit,
       take: limit,
@@ -66,12 +74,10 @@ async function getConversations(request: AuthenticatedRequest) {
             phone: true
           }
         },
-        // assignedAgent include removed - not in schema
         messages: {
           select: {
             id: true,
             content: true,
-
             createdAt: true
           },
           orderBy: { createdAt: 'desc' },
@@ -81,9 +87,9 @@ async function getConversations(request: AuthenticatedRequest) {
     });
 
     // Calculate conversation statistics
-    const conversationsWithStats = conversations.map((conversation: any) => {
-      const messageCount = conversation.messages.length;
-      const lastMessage = conversation.messages[0];
+    const conversationsWithStats = conversations.map((conversation) => {
+      const messageCount = conversation.messages?.length || 0;
+      const lastMessage = conversation.messages?.[0] || null;
       const isUnread = conversation.status === 'OPEN';
       
       return {
@@ -96,27 +102,37 @@ async function getConversations(request: AuthenticatedRequest) {
       };
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        conversations: conversationsWithStats,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1
-        }
+    const responseData = {
+      conversations: conversationsWithStats,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
       }
-    });
+    };
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(responseData, 200, origin);
 
   } catch (error) {
     console.error('Error fetching conversations:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch conversations' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database query error',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
@@ -128,13 +144,13 @@ async function createConversation(request: AuthenticatedRequest) {
     // Validate input
     const validationResult = createConversationSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Validation failed', 
-          errors: validationResult.error.errors 
-        }, 
-        { status: 400 }
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.VALIDATION_ERROR(
+        validationResult.error.errors,
+        path,
+        requestId
       );
     }
 
@@ -144,15 +160,15 @@ async function createConversation(request: AuthenticatedRequest) {
     const customer = await prisma.customer.findFirst({
       where: {
         id: conversationData.customerId,
-        organizationId: (request as any).user!.organizationId
+        organizationId: request.user!.organizationId
       }
     });
 
     if (!customer) {
-      return NextResponse.json(
-        { success: false, message: 'Customer not found or access denied' },
-        { status: 404 }
-      );
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.NOT_FOUND('Customer', path, requestId);
     }
 
     // Create conversation
@@ -161,7 +177,7 @@ async function createConversation(request: AuthenticatedRequest) {
         subject: conversationData.subject,
         priority: conversationData.priority || 'MEDIUM',
         organization: {
-          connect: { id: (request as any).user!.organizationId }
+          connect: { id: request.user!.organizationId }
         },
         customer: {
           connect: { id: conversationData.customerId }
@@ -182,7 +198,7 @@ async function createConversation(request: AuthenticatedRequest) {
           connect: { id: customer.id }
         },
         organization: {
-          connect: { id: (request as any).user!.organizationId }
+          connect: { id: request.user!.organizationId }
         }
       }
     });
@@ -193,7 +209,7 @@ async function createConversation(request: AuthenticatedRequest) {
         type: 'CONVERSATION_CREATED',
         description: `Conversation "${conversation.subject}" created with ${customer.name}`,
         user: {
-          connect: { id: (request as any).user!.userId }
+          connect: { id: request.user!.userId }
         },
         metadata: {
           conversationId: conversation.id,
@@ -205,21 +221,35 @@ async function createConversation(request: AuthenticatedRequest) {
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      data: { conversation },
-      message: 'Conversation created successfully'
-    }, { status: 201 });
+    const responseData = { conversation };
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(responseData, 201, origin);
 
   } catch (error) {
     console.error('Error creating conversation:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create conversation' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database operation failed',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
-// Export handlers
-export const GET = withProtection()(getConversations);
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(createConversation);
+// Export handlers with security middleware
+export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  getConversations
+);
+
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  createConversation
+);

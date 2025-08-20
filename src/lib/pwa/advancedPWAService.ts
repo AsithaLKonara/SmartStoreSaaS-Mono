@@ -6,7 +6,7 @@ export interface PushNotification {
   body: string;
   icon?: string;
   badge?: string;
-  data?: any;
+  data?: unknown;
   actions?: NotificationAction[];
   requireInteraction?: boolean;
   silent?: boolean;
@@ -20,7 +20,7 @@ export interface NotificationAction {
 
 export interface OfflineData {
   type: 'ORDER' | 'MESSAGE' | 'SYNC';
-  data: any;
+  data: unknown;
   timestamp: Date;
   id: string;
 }
@@ -28,7 +28,7 @@ export interface OfflineData {
 export interface BackgroundSyncTask {
   id: string;
   type: 'ORDER_SYNC' | 'MESSAGE_SYNC' | 'DATA_SYNC';
-  data: any;
+  data: unknown;
   retryCount: number;
   maxRetries: number;
   createdAt: Date;
@@ -36,7 +36,7 @@ export interface BackgroundSyncTask {
 
 export interface QRCodeData {
   type: 'PRODUCT' | 'ORDER' | 'CUSTOMER' | 'INVENTORY';
-  data: any;
+  data: unknown;
   size?: number;
   format?: 'PNG' | 'SVG';
 }
@@ -129,7 +129,7 @@ export class AdvancedPWAService {
 
       const serviceWorkerRegistration = await navigator.serviceWorker.ready;
       
-      const notificationOptions: any = {
+      const notificationOptions: unknown = {
         body: notification.body,
         icon: notification.icon || '/icons/icon-192x192.png',
         badge: notification.badge || '/badge-72x72.png',
@@ -224,7 +224,7 @@ export class AdvancedPWAService {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      await (registration as any).sync.register(task.id);
+      await (registration as unknown).sync.register(task.id);
       
       // Store task data
       await this.storeBackgroundSyncTask(task);
@@ -342,14 +342,14 @@ export class AdvancedPWAService {
         throw new Error('Speech recognition not supported');
       }
 
-      const recognition = new (window as any).webkitSpeechRecognition();
+      const recognition = new (window as unknown).webkitSpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: unknown) => {
         const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
+          .map((result: unknown) => result[0])
           .map(result => result.transcript)
           .join('');
 
@@ -513,8 +513,8 @@ export class AdvancedPWAService {
       });
 
       // Handle notification actions if supported
-      if ('actions' in options && Array.isArray((options as any).actions)) {
-        (options as any).actions.forEach((action: any) => {
+      if ('actions' in options && Array.isArray((options as unknown).actions)) {
+        (options as unknown).actions.forEach((action: unknown) => {
           // Handle action clicks
           notification.addEventListener('click', () => {
             console.log('Notification action clicked:', action.action);
@@ -532,12 +532,12 @@ export class AdvancedPWAService {
   }
 
   async handleBackgroundSync(tag: string): Promise<void> {
-    if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as any)) {
+    if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as unknown)) {
       const registration = await navigator.serviceWorker.ready;
       
       // Use type assertion for sync property
       if ('sync' in registration) {
-        await (registration as any).sync.register(tag);
+        await (registration as unknown).sync.register(tag);
       } else {
         console.warn('Background sync not supported');
       }

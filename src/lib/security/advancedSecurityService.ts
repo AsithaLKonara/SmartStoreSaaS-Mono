@@ -12,7 +12,7 @@ interface SecurityEvent {
   userId?: string;
   ipAddress: string;
   userAgent: string;
-  details: any;
+  details: unknown;
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
   organizationId?: string;
@@ -61,7 +61,7 @@ interface SecurityRule {
   id: string;
   name: string;
   type: 'rate_limit' | 'geo_block' | 'device_trust' | 'behavior_analysis' | 'ip_reputation';
-  conditions: any;
+  conditions: unknown;
   actions: Array<'block' | 'alert' | 'challenge' | 'log' | 'notify_admin'>;
   isActive: boolean;
   priority: number;
@@ -95,7 +95,7 @@ interface SecurityAlert {
   ipAddress: string;
   timestamp: Date;
   resolved: boolean;
-  details: any;
+  details: unknown;
   organizationId?: string;
 }
 
@@ -295,7 +295,7 @@ export class AdvancedSecurityService {
           await this.notifyAdministrators({
             id: crypto.randomUUID(),
             type: 'SUSPICIOUS_ACTIVITY',
-            severity: detection.severity.toUpperCase() as any,
+            severity: detection.severity.toUpperCase() as unknown,
             message: `Security threat detected: ${detection.reason}`,
             userId: event.userId,
             ipAddress: event.ipAddress,
@@ -477,16 +477,16 @@ export class AdvancedSecurityService {
 
       // Calculate average location
       const locations = recentEvents
-        .map((e: any) => (e.metadata as any)?.location)
-        .filter((loc: any) => loc?.coordinates)
-        .map((loc: any) => loc.coordinates);
+        .map((e: unknown) => (e.metadata as unknown)?.location)
+        .filter((loc: unknown) => loc?.coordinates)
+        .map((loc: unknown) => loc.coordinates);
 
       if (locations.length === 0) {
         return { isAnomalous: false, score: 0 };
       }
 
-      const avgLat = locations.reduce((sum: number, loc: any) => sum + loc[0], 0) / locations.length;
-      const avgLng = locations.reduce((sum: number, loc: any) => sum + loc[1], 0) / locations.length;
+      const avgLat = locations.reduce((sum: number, loc: unknown) => sum + loc[0], 0) / locations.length;
+      const avgLng = locations.reduce((sum: number, loc: unknown) => sum + loc[1], 0) / locations.length;
 
       // Calculate distance from average location
       const currentLocation = event.location.coordinates;
@@ -580,12 +580,12 @@ export class AdvancedSecurityService {
 
       // Calculate metrics
       const totalEvents = events.length;
-      const criticalThreats = events.filter((e: any) => (e.metadata as any)?.severity === 'critical').length;
-      const blockedAttempts = events.filter((e: any) => (e.metadata as any)?.details?.blocked === true).length;
-      const uniqueAttackers = new Set(events.map((e: any) => e.ipAddress)).size;
+      const criticalThreats = events.filter((e: unknown) => (e.metadata as unknown)?.severity === 'critical').length;
+      const blockedAttempts = events.filter((e: unknown) => (e.metadata as unknown)?.details?.blocked === true).length;
+      const uniqueAttackers = new Set(events.map((e: unknown) => e.ipAddress)).size;
 
       // Top threats by type
-      const threatCounts = events.reduce((acc: any, event: any) => {
+      const threatCounts = events.reduce((acc: unknown, event: unknown) => {
         const type = event.action;
         acc[type] = (acc[type] || 0) + 1;
         return acc;
@@ -595,23 +595,23 @@ export class AdvancedSecurityService {
         .map(([type, count]) => ({
           type,
           count: count as number,
-          severity: (events.find((e: any) => e.action === type)?.metadata as any)?.severity || 'low'
+          severity: (events.find((e: unknown) => e.action === type)?.metadata as unknown)?.severity || 'low'
         }))
         .sort((a, b) => (b.count as number) - (a.count as number))
         .slice(0, 10);
 
       // Geographical distribution
       const geoData = events
-        .filter((e: any) => (e.metadata as any)?.location)
-        .reduce((acc: any, event: any) => {
-          const country = (event.metadata as any)?.location?.country;
+        .filter((e: unknown) => (e.metadata as unknown)?.location)
+        .reduce((acc: unknown, event: unknown) => {
+          const country = (event.metadata as unknown)?.location?.country;
           if (country) {
             acc[country] = (acc[country] || 0) + 1;
           }
           return acc;
         }, {});
 
-      const geoDistribution = Object.entries(geoData).map(([country, data]: [string, any]) => ({
+      const geoDistribution = Object.entries(geoData).map(([country, data]: [string, unknown]) => ({
         country,
         count: data.count,
         threatLevel: data.maxSeverity || 'low'
@@ -802,7 +802,7 @@ export class AdvancedSecurityService {
         data: {
           type: this.mapEventTypeToAlertType(event.type),
           message: `Security threat detected: ${detection.reason}`,
-          severity: detection.severity.toUpperCase() as any,
+          severity: detection.severity.toUpperCase() as unknown,
           organizationId: event.organizationId || 'system', // Add missing organizationId
           metadata: {
             userId: event.userId,
@@ -866,7 +866,7 @@ export class AdvancedSecurityService {
       await this.notifyAdministrators({
         id: crypto.randomUUID(),
         type: 'SUSPICIOUS_ACTIVITY',
-        severity: detection.severity.toUpperCase() as any,
+        severity: detection.severity.toUpperCase() as unknown,
         message: `Critical security threat: ${detection.reason}`,
         userId: event.userId,
         ipAddress: event.ipAddress,
@@ -881,7 +881,7 @@ export class AdvancedSecurityService {
     }
   }
 
-  private calculateDistance(loc1: any, loc2: any): number {
+  private calculateDistance(loc1: unknown, loc2: unknown): number {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.deg2rad(loc2.lat - loc1.lat);
     const dLng = this.deg2rad(loc2.lng - loc1.lng);
@@ -908,9 +908,9 @@ export class AdvancedSecurityService {
     return weights[severity] || 1;
   }
 
-  private generateTimeline(events: any[], timeRange: { start: Date; end: Date }): any[] {
+  private generateTimeline(events: unknown[], timeRange: { start: Date; end: Date }): unknown[] {
     try {
-      const timeline: any[] = [];
+      const timeline: unknown[] = [];
       const interval = 60 * 60 * 1000; // 1 hour intervals
       
       for (let time = timeRange.start.getTime(); time <= timeRange.end.getTime(); time += interval) {
@@ -923,7 +923,7 @@ export class AdvancedSecurityService {
         
         if (eventsInInterval.length > 0) {
           const maxSeverity = eventsInInterval.reduce((max, event) => {
-            const severity = (event.metadata as any)?.severity || 'low';
+            const severity = (event.metadata as unknown)?.severity || 'low';
             return this.getSeverityWeight(severity) > this.getSeverityWeight(max) ? severity : max;
           }, 'low');
           

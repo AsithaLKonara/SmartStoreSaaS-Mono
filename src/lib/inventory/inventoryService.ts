@@ -314,8 +314,8 @@ export class InventoryService {
     }
   }
 
-  private mapMovementTypeToActivityType(movementType: StockMovement['type']): any {
-    const mapping: Record<StockMovement['type'], any> = {
+  private mapMovementTypeToActivityType(movementType: StockMovement['type']): unknown {
+    const mapping: Record<StockMovement['type'], unknown> = {
       'IN': 'STOCK_ADDED',
       'OUT': 'STOCK_REDUCED',
       'TRANSFER': 'STOCK_ADDED', // Map to available types
@@ -448,7 +448,7 @@ export class InventoryService {
           organizationId
         );
       } else {
-        // Resolve any existing alerts
+        // Resolve unknown existing alerts
         await this.resolveIrrelevantAlerts(productId, warehouseId, currentQuantity);
       }
     } catch (error) {
@@ -507,7 +507,7 @@ export class InventoryService {
   }
 
   private async sendStockAlertNotifications(
-    alert: any,
+    alert: unknown,
     organizationId: string
   ): Promise<void> {
     try {
@@ -580,7 +580,7 @@ export class InventoryService {
     }
   }
 
-  private getAlertMessage(alert: any, productName: string, warehouseName: string): string {
+  private getAlertMessage(alert: unknown, productName: string, warehouseName: string): string {
     const messages = {
       'LOW_STOCK': `${productName} is running low on stock. Current quantity: ${alert.currentQuantity}, Threshold: ${alert.threshold}`,
       'OUT_OF_STOCK': `${productName} is out of stock! Current quantity: ${alert.currentQuantity}`,
@@ -817,7 +817,7 @@ export class InventoryService {
         
         for (const activity of alertActivities) {
           if (activity.metadata && typeof activity.metadata === 'object') {
-            const alertData = activity.metadata as any;
+            const alertData = activity.metadata as unknown;
             if (alertData.alertId && alertData.isActive) {
               alerts.push({
                 id: alertData.alertId,
@@ -856,7 +856,7 @@ export class InventoryService {
     }
   }
 
-  private async getTopProductsByValue(organizationId: string): Promise<any[]> {
+  private async getTopProductsByValue(organizationId: string): Promise<unknown[]> {
     try {
       const products = await prisma.product.findMany({
         where: { organizationId },
@@ -872,7 +872,7 @@ export class InventoryService {
         take: 10
       });
 
-      return products.map((product: any) => ({
+      return products.map((product: unknown) => ({
         productId: product.id,
         name: product.name,
         quantity: product.stockQuantity || 0,
@@ -884,7 +884,7 @@ export class InventoryService {
     }
   }
 
-  private async getSlowMovingProducts(organizationId: string): Promise<any[]> {
+  private async getSlowMovingProducts(organizationId: string): Promise<unknown[]> {
     try {
       // This is a placeholder implementation
       // In a real system, you would analyze order history and calculate actual turnover rates
@@ -899,8 +899,8 @@ export class InventoryService {
       });
 
       return products
-        .filter((product: any) => (product.stockQuantity || 0) > 0)
-        .map((product: any) => ({
+        .filter((product: unknown) => (product.stockQuantity || 0) > 0)
+        .map((product: unknown) => ({
           productId: product.id,
           name: product.name,
           quantity: product.stockQuantity || 0,
@@ -984,8 +984,8 @@ export class InventoryService {
         take: limit
       });
 
-      return activities.map((activity: any) => {
-        const metadata = activity.metadata as any;
+      return activities.map((activity: unknown) => {
+        const metadata = activity.metadata as unknown;
         return {
           id: activity.id,
           productId: activity.productId,
@@ -1009,7 +1009,7 @@ export class InventoryService {
     }
   }
 
-  private mapActivityTypeToMovementType(activityType: any): StockMovement['type'] {
+  private mapActivityTypeToMovementType(activityType: unknown): StockMovement['type'] {
     const mapping: Record<string, StockMovement['type']> = {
       'STOCK_ADDED': 'IN',
       'STOCK_REDUCED': 'OUT',

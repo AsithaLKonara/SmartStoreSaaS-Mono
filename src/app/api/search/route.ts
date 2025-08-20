@@ -1,18 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
 import { AdvancedSearchService } from '@/lib/search/advancedSearchService';
+import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
+import { 
+  CommonErrors,
+  generateRequestId,
+  getRequestPath
+} from '@/lib/error-handling';
 
 const searchService = new AdvancedSearchService();
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+// Handle CORS preflight
+export function OPTIONS() {
+  return handlePreflight();
+}
 
+export async function GET(request: AuthenticatedRequest) {
+  try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
     const query = searchParams.get('query') || '';
@@ -29,16 +33,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { organization: true }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-    }
-
-    const filters: any = {};
+    const filters: Record<string, any> = {};
     if (category) filters.category = category;
     if (brand) filters.brand = brand;
     if (minPrice || maxPrice) {
@@ -58,70 +53,64 @@ export async function GET(request: NextRequest) {
     const searchOptions = {
       query,
       filters,
-      sortBy: sortBy as any,
-      sortOrder: sortOrder as any,
+      sortBy,
+      sortOrder,
       limit,
       offset
     };
 
+    let results;
     switch (action) {
       case 'products':
-        const productResults = await searchService.searchProducts(user.organizationId, searchOptions);
-        return NextResponse.json(productResults);
+        results = await searchService.searchProducts(request.user!.organizationId, searchOptions);
+        break;
 
       case 'customers':
-        const customerResults = await searchService.searchCustomers(user.organizationId, searchOptions);
-        return NextResponse.json(customerResults);
+        results = await searchService.searchCustomers(request.user!.organizationId, searchOptions);
+        break;
 
       case 'orders':
-        const orderResults = await searchService.searchOrders(user.organizationId, searchOptions);
-        return NextResponse.json(orderResults);
+        results = await searchService.searchOrders(request.user!.organizationId, searchOptions);
+        break;
 
       case 'global':
-        const globalResults = await searchService.globalSearch(user.organizationId, searchOptions);
-        return NextResponse.json(globalResults);
+        results = await searchService.globalSearch(request.user!.organizationId, searchOptions);
+        break;
 
       case 'suggestions':
-        const suggestions = await searchService.getSearchSuggestions(user.organizationId, query);
-        return NextResponse.json({ suggestions });
+        const suggestions = await searchService.getSearchSuggestions(request.user!.organizationId, query);
+        results = { suggestions };
+        break;
 
       case 'popular':
-        const popularSearches = await searchService.getPopularSearches(user.organizationId);
-        return NextResponse.json({ searches: popularSearches });
+        const popularSearches = await searchService.getPopularSearches(request.user!.organizationId);
+        results = { searches: popularSearches };
+        break;
 
       default:
         // Default to global search
-        const defaultResults = await searchService.globalSearch(user.organizationId, searchOptions);
-        return NextResponse.json(defaultResults);
+        results = await searchService.globalSearch(request.user!.organizationId, searchOptions);
     }
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(results, 200, origin);
+
   } catch (error) {
     console.error('Search API Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: AuthenticatedRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { action, ...data } = body;
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { organization: true }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-    }
-
+    let results;
     switch (action) {
       case 'search':
         const searchOptions = {
@@ -133,62 +122,80 @@ export async function POST(request: NextRequest) {
           offset: data.offset || 0
         };
 
-        let results;
         switch (data.type) {
           case 'products':
-            results = await searchService.searchProducts(user.organizationId, searchOptions);
+            results = await searchService.searchProducts(request.user!.organizationId, searchOptions);
             break;
           case 'customers':
-            results = await searchService.searchCustomers(user.organizationId, searchOptions);
+            results = await searchService.searchCustomers(request.user!.organizationId, searchOptions);
             break;
           case 'orders':
-            results = await searchService.searchOrders(user.organizationId, searchOptions);
+            results = await searchService.searchOrders(request.user!.organizationId, searchOptions);
             break;
           default:
-            results = await searchService.globalSearch(user.organizationId, searchOptions);
+            results = await searchService.globalSearch(request.user!.organizationId, searchOptions);
         }
-
-        return NextResponse.json(results);
+        break;
 
       case 'suggestions':
-        const suggestions = await searchService.getSearchSuggestions(user.organizationId, data.query);
-        return NextResponse.json({ suggestions });
+        const suggestions = await searchService.getSearchSuggestions(request.user!.organizationId, data.query);
+        results = { suggestions };
+        break;
 
       case 'save-search':
         // Save search query to user's search history
         await prisma.searchHistory.create({
           data: {
-            userId: user.id,
+            userId: request.user!.userId,
             query: data.query,
             searchType: data.type || 'global',
             filters: data.filters || {},
             resultsCount: data.resultCount || 0
           }
         });
-        return NextResponse.json({ success: true });
+        results = { success: true };
+        break;
 
       case 'get-search-history':
         const searchHistory = await prisma.searchHistory.findMany({
-          where: { userId: user.id },
+          where: { userId: request.user!.userId },
           orderBy: { createdAt: 'desc' },
           take: 10
         });
-        return NextResponse.json({ history: searchHistory });
+        results = { history: searchHistory };
+        break;
 
       case 'clear-search-history':
         await prisma.searchHistory.deleteMany({
-          where: { userId: user.id }
+          where: { userId: request.user!.userId }
         });
-        return NextResponse.json({ success: true });
+        results = { success: true };
+        break;
 
       default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+        const path = getRequestPath(request);
+        const requestId = generateRequestId();
+        return CommonErrors.BAD_REQUEST('Invalid action', path, requestId);
     }
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(results, 200, origin);
+
   } catch (error) {
     console.error('Search API Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
-} 
+}
+
+// Export protected handlers with security middleware
+export const GET_PROTECTED = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  GET
+);
+
+export const POST_PROTECTED = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  POST
+); 

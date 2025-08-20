@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function createOrder(data: any, userId: string) {
+async function createOrder(data: unknown, userId: string) {
   const { amount, currency, orderId, returnUrl, cancelUrl } = data;
   
   // Verify user owns this order
@@ -67,7 +67,7 @@ async function createOrder(data: any, userId: string) {
   return NextResponse.json(paypalOrder);
 }
 
-async function captureOrder(data: any, userId: string) {
+async function captureOrder(data: unknown, userId: string) {
   const { paypalOrderId } = data;
   
   // Verify user owns this order
@@ -86,7 +86,7 @@ async function captureOrder(data: any, userId: string) {
   return NextResponse.json(payment);
 }
 
-async function getOrder(data: any, userId: string) {
+async function getOrder(data: unknown, userId: string) {
   const { paypalOrderId } = data;
   
   // Verify user owns this order
@@ -105,7 +105,7 @@ async function getOrder(data: any, userId: string) {
   return NextResponse.json(paypalOrder);
 }
 
-async function createRefund(data: any, userId: string) {
+async function createRefund(data: unknown, userId: string) {
   const { paymentId, amount, currency, note } = data;
   
   // Verify user owns this payment
@@ -124,7 +124,7 @@ async function createRefund(data: any, userId: string) {
   return NextResponse.json(refund);
 }
 
-async function createBillingPlan(data: any, userId: string) {
+async function createBillingPlan(data: unknown, userId: string) {
   const { name, description, amount, currency, interval } = data;
   
   const plan = await paypalService.createBillingPlan(

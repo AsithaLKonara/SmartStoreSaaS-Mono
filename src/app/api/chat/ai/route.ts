@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       status: conversation.status,
       priority: conversation.priority || 'MEDIUM',
       customerId: conversation.customerId,
-      messages: conversation.messages.map((msg: any) => ({
+      messages: conversation.messages.map((msg: unknown) => ({
         id: msg.id,
         content: msg.content,
         role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
         aiResponse = `I found some products that might interest you:\n\n${recommendations
           .slice(0, 3)
           .map(rec => `• ${rec.name} - $${rec.price} (${Math.round(rec.confidence * 100)}% match)`)
-          .join('\n')}\n\nWould you like me to show you more details about any of these products?`;
+          .join('\n')}\n\nWould you like me to show you more details about unknown of these products?`;
       } else {
-        aiResponse = "I couldn't find any products matching your description. Could you try different keywords or browse our catalog?";
+        aiResponse = "I couldn't find unknown products matching your description. Could you try different keywords or browse our catalog?";
       }
     } else if (message.toLowerCase().includes('buy') || message.toLowerCase().includes('purchase')) {
       // Order creation from chat
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         status: conversation.status,
         priority: conversation.priority || 'MEDIUM',
         customerId: conversation.customerId,
-        messages: conversation.messages.map((msg: any) => ({
+        messages: conversation.messages.map((msg: unknown) => ({
           id: msg.id,
           content: msg.content,
           role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
@@ -113,14 +113,14 @@ export async function POST(request: NextRequest) {
         aiResponse = `Based on your preferences, here are some recommendations:\n\n${recommendations
           .slice(0, 3)
           .map(rec => `• ${rec.name} - $${rec.price}`)
-          .join('\n')}\n\nWould you like to know more about any of these products?`;
+          .join('\n')}\n\nWould you like to know more about unknown of these products?`;
       } else {
         aiResponse = "I don't have enough information to make personalized recommendations yet. Feel free to browse our catalog or ask about specific products!";
       }
     } else {
       // General conversation - use AI to generate contextual response
       const context = conversation.messages
-        .map((msg: any) => `${msg.role}: ${msg.content}`)
+        .map((msg: unknown) => `${msg.role}: ${msg.content}`)
         .join('\n');
 
       aiResponse = await generateContextualResponse(message, context, session.user.organizationId);
@@ -130,8 +130,8 @@ export async function POST(request: NextRequest) {
     const aiMessage = await prisma.chatMessage.create({
       data: {
         conversationId,
-        direction: 'OUTBOUND' as any,
-        type: 'TEXT' as any,
+        direction: 'OUTBOUND' as unknown,
+        type: 'TEXT' as unknown,
         content: aiResponse,
         metadata: {
           sentiment: sentiment.overall || 'neutral',
@@ -188,7 +188,7 @@ async function generateContextualResponse(message: string, context: string, orga
 
     // This would use the AI service to generate a response
     // For now, returning a generic helpful response
-    return "Thank you for your message! I'm here to help you with any questions about our products, orders, or services. How can I assist you today?";
+    return "Thank you for your message! I'm here to help you with unknown questions about our products, orders, or services. How can I assist you today?";
   } catch (error) {
     console.error('Error generating contextual response:', error);
     return "I apologize, but I'm having trouble processing your request right now. Please try again or contact our support team for immediate assistance.";
@@ -196,7 +196,7 @@ async function generateContextualResponse(message: string, context: string, orga
 }
 
 // Create urgent issue notification
-async function createUrgentIssueNotification(conversation: any, message: string, organizationId: string): Promise<void> {
+async function createUrgentIssueNotification(conversation: unknown, message: string, organizationId: string): Promise<void> {
   try {
     // Create notification for urgent issues
     await prisma.notification.create({
@@ -265,7 +265,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Get AI chat statistics
-async function getAIChatStats(organizationId: string): Promise<any> {
+async function getAIChatStats(organizationId: string): Promise<unknown> {
   try {
     const totalMessages = await prisma.chatMessage.count({
       where: {

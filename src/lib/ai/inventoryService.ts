@@ -63,9 +63,9 @@ export class AIInventoryService {
    * Predict stockout risk and recommend reorder quantities
    */
   async predictStockoutRisk(
-    productData: any[],
-    salesHistory: any[],
-    currentStock: any[]
+    productData: unknown[],
+    salesHistory: unknown[],
+    currentStock: unknown[]
   ): Promise<InventoryPrediction[]> {
     try {
       const prompt = `
@@ -104,7 +104,7 @@ export class AIInventoryService {
    * Analyze seasonal demand patterns
    */
   async analyzeSeasonalTrends(
-    salesHistory: any[],
+    salesHistory: unknown[],
     timeRange: { start: Date; end: Date }
   ): Promise<SeasonalTrend[]> {
     try {
@@ -280,9 +280,9 @@ export class AIInventoryService {
    * Get inventory data from Prisma models
    */
   async getInventoryData(organizationId: string): Promise<{
-    products: any[];
-    suppliers: any[];
-    purchaseOrders: any[];
+    products: unknown[];
+    suppliers: unknown[];
+    purchaseOrders: unknown[];
   }> {
     try {
       const [products, suppliers, purchaseOrders] = await Promise.all([
@@ -310,10 +310,10 @@ export class AIInventoryService {
    * Optimize pricing based on demand and competition
    */
   async optimizePricing(
-    productData: any[],
-    salesHistory: any[],
-    competitorPrices: any[]
-  ): Promise<any[]> {
+    productData: unknown[],
+    salesHistory: unknown[],
+    competitorPrices: unknown[]
+  ): Promise<unknown[]> {
     try {
       const prompt = `
         Optimize product pricing based on:

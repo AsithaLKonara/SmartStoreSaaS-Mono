@@ -11,7 +11,7 @@ const generateReportSchema = z.object({
     startDate: z.string().datetime('Invalid start date'),
     endDate: z.string().datetime('Invalid end date')
   }),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.unknown()).optional(),
   groupBy: z.array(z.string()).optional(),
   format: z.enum(['JSON', 'CSV', 'PDF']).default('JSON'),
   includeCharts: z.boolean().default(true)
@@ -27,7 +27,7 @@ async function getReports(request: AuthenticatedRequest) {
     const status = searchParams.get('status');
 
     // Build where clause
-    const where: any = {
+    const where: unknown = {
       organizationId: request.user!.organizationId
     };
     
@@ -38,7 +38,7 @@ async function getReports(request: AuthenticatedRequest) {
     const total = 0;
     
     // Reports functionality disabled - model doesn't exist in schema
-    const reports: any[] = [];
+    const reports: unknown[] = [];
 
     return NextResponse.json({
       success: true,
@@ -145,8 +145,8 @@ async function generateReport(request: AuthenticatedRequest) {
 
 
 // Generate sales report
-async function generateSalesReport(startDate: Date, endDate: Date, filters: any) {
-  const where: any = {
+async function generateSalesReport(startDate: Date, endDate: Date, filters: unknown) {
+  const where: unknown = {
     createdAt: { gte: startDate, lte: endDate },
     status: { notIn: ['CANCELLED', 'RETURNED'] }
   };
@@ -192,7 +192,7 @@ async function generateSalesReport(startDate: Date, endDate: Date, filters: any)
 }
 
 // Generate inventory report
-async function generateInventoryReport(startDate: Date, endDate: Date, filters: any) {
+async function generateInventoryReport(startDate: Date, endDate: Date, filters: unknown) {
   const products = await prisma.product.findMany({
     where: { organizationId: filters?.organizationId },
     include: {
@@ -222,7 +222,7 @@ async function generateInventoryReport(startDate: Date, endDate: Date, filters: 
 }
 
 // Generate customer report
-async function generateCustomerReport(startDate: Date, endDate: Date, filters: any) {
+async function generateCustomerReport(startDate: Date, endDate: Date, filters: unknown) {
   const customers = await prisma.customer.findMany({
     where: { 
       organizationId: filters?.organizationId,
@@ -258,7 +258,7 @@ async function generateCustomerReport(startDate: Date, endDate: Date, filters: a
 }
 
 // Generate product report
-async function generateProductReport(startDate: Date, endDate: Date, filters: any) {
+async function generateProductReport(startDate: Date, endDate: Date, filters: unknown) {
   const products = await prisma.product.findMany({
     where: { organizationId: filters?.organizationId },
     include: {
@@ -294,7 +294,7 @@ async function generateProductReport(startDate: Date, endDate: Date, filters: an
 }
 
 // Generate financial report
-async function generateFinancialReport(startDate: Date, endDate: Date, filters: any) {
+async function generateFinancialReport(startDate: Date, endDate: Date, filters: unknown) {
   const orders = await prisma.order.findMany({
     where: {
       createdAt: { gte: startDate, lte: endDate },
@@ -318,7 +318,7 @@ async function generateFinancialReport(startDate: Date, endDate: Date, filters: 
 }
 
 // Helper functions for report generation
-async function getTopSellingProducts(where: any) {
+async function getTopSellingProducts(where: unknown) {
   const topProducts = await prisma.orderItem.groupBy({
     by: ['productId'],
     where: { order: where },
@@ -343,7 +343,7 @@ async function getTopSellingProducts(where: any) {
   }));
 }
 
-async function getTopCustomers(where: any) {
+async function getTopCustomers(where: unknown) {
   const topCustomers = await prisma.order.groupBy({
     by: ['customerId'],
     where,
@@ -388,7 +388,7 @@ async function getMonthlyFinancialBreakdown(startDate: Date, endDate: Date) {
 }
 
 // Chart generation functions
-function generateSalesCharts(data: any) {
+function generateSalesCharts(data: unknown) {
   return [
     {
       type: 'line',
@@ -407,7 +407,7 @@ function generateSalesCharts(data: any) {
   ];
 }
 
-function generateInventoryCharts(data: any) {
+function generateInventoryCharts(data: unknown) {
   return [
     {
       type: 'pie',
@@ -421,7 +421,7 @@ function generateInventoryCharts(data: any) {
   ];
 }
 
-function generateCustomerCharts(data: any) {
+function generateCustomerCharts(data: unknown) {
   return [
     {
       type: 'bar',
@@ -433,7 +433,7 @@ function generateCustomerCharts(data: any) {
   ];
 }
 
-function generateProductCharts(data: any) {
+function generateProductCharts(data: unknown) {
   return [
     {
       type: 'bar',
@@ -445,7 +445,7 @@ function generateProductCharts(data: any) {
   ];
 }
 
-function generateFinancialCharts(data: any) {
+function generateFinancialCharts(data: unknown) {
   return [
     {
       type: 'line',

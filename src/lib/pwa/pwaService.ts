@@ -7,7 +7,7 @@ export interface PWAConfig {
   themeColor: string;
   backgroundColor: string;
   display: 'standalone' | 'fullscreen' | 'minimal-ui' | 'browser';
-  orientation: 'portrait' | 'landscape' | 'any';
+  orientation: 'portrait' | 'landscape' | 'unknown';
   scope: string;
   startUrl: string;
   icons: Array<{
@@ -24,7 +24,7 @@ export interface PushNotification {
   icon?: string;
   badge?: string;
   image?: string;
-  data?: any;
+  data?: unknown;
   actions?: Array<{
     action: string;
     title: string;
@@ -39,7 +39,7 @@ export interface PushNotification {
 export interface OfflineData {
   id: string;
   type: 'product' | 'order' | 'customer' | 'cart';
-  data: any;
+  data: unknown;
   timestamp: Date;
   syncStatus: 'pending' | 'synced' | 'error';
 }
@@ -52,7 +52,7 @@ export interface InstallPrompt {
 
 export class PWAService {
   private swRegistration: ServiceWorkerRegistration | null = null;
-  private deferredPrompt: any = null;
+  private deferredPrompt: unknown = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -113,7 +113,7 @@ export class PWAService {
   /**
    * Generate PWA manifest
    */
-  generateManifest(config: PWAConfig): any {
+  generateManifest(config: PWAConfig): unknown {
     return {
       name: config.name,
       short_name: config.shortName,
@@ -347,7 +347,7 @@ export class PWAService {
   /**
    * Store data for offline access
    */
-  async storeOfflineData(type: string, data: any): Promise<void> {
+  async storeOfflineData(type: string, data: unknown): Promise<void> {
     try {
       const request = indexedDB.open('SmartStoreOffline', 1);
       
@@ -370,7 +370,7 @@ export class PWAService {
   /**
    * Get offline data
    */
-  async getOfflineData(type: string, id?: string): Promise<any> {
+  async getOfflineData(type: string, id?: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
       try {
         const request = indexedDB.open('SmartStoreOffline', 1);
@@ -401,7 +401,7 @@ export class PWAService {
   /**
    * Add to sync queue for offline actions
    */
-  async addToSyncQueue(action: string, data: any): Promise<void> {
+  async addToSyncQueue(action: string, data: unknown): Promise<void> {
     try {
       const request = indexedDB.open('SmartStoreOffline', 1);
       
@@ -436,7 +436,7 @@ export class PWAService {
     try {
       const pendingActions = await this.getOfflineData('syncQueue');
       
-      for (const action of pendingActions.filter((a: any) => a.syncStatus === 'pending')) {
+      for (const action of pendingActions.filter((a: unknown) => a.syncStatus === 'pending')) {
         try {
           await this.executeSyncAction(action);
           
@@ -555,7 +555,7 @@ export class PWAService {
     console.log('Push subscription:', subscription);
   }
 
-  private async executeSyncAction(action: any): Promise<void> {
+  private async executeSyncAction(action: unknown): Promise<void> {
     // Execute the sync action based on type
     switch (action.action) {
       case 'create_order':

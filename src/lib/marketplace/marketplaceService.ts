@@ -445,8 +445,8 @@ export class MarketplaceService {
       });
 
       // Calculate marketplace metrics
-      const totalRevenue = orders.reduce((sum: number, order: any) => {
-        const orderTotal = order.items.reduce((itemSum: number, item: any) => 
+      const totalRevenue = orders.reduce((sum: number, order: unknown) => {
+        const orderTotal = order.items.reduce((itemSum: number, item: unknown) => 
           itemSum + (item.quantity * item.price), 0);
         return sum + orderTotal;
       }, 0);
@@ -604,7 +604,7 @@ export class MarketplaceService {
 
     if (pendingOrders.length === 0) return;
 
-    const totalPayout = pendingOrders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
+    const totalPayout = pendingOrders.reduce((sum: number, order: unknown) => sum + order.totalAmount, 0);
 
     // Process payout via Stripe Connect
     await this.processStripePayout(vendorId, totalPayout);
@@ -612,7 +612,7 @@ export class MarketplaceService {
     // Update payout status
     await prisma.order.updateMany({
       where: {
-        id: { in: pendingOrders.map((o: any) => o.id) },
+        id: { in: pendingOrders.map((o: unknown) => o.id) },
       },
       data: {
         // Note: payoutStatus field doesn't exist in Order model
@@ -685,7 +685,7 @@ export class MarketplaceService {
     });
   }
 
-  private groupSalesByMonth(orders: any[], startDate: Date, endDate: Date): any[] {
+  private groupSalesByMonth(orders: unknown[], startDate: Date, endDate: Date): unknown[] {
     const months = new Map<string, { revenue: number; orders: number }>();
     
     for (const order of orders) {
@@ -705,7 +705,7 @@ export class MarketplaceService {
       .sort((a, b) => a.month.localeCompare(b.month));
   }
 
-  private mapVendorFromDB(vendor: any): Vendor {
+  private mapVendorFromDB(vendor: unknown): Vendor {
     return {
       id: vendor.id,
       userId: vendor.userId,
@@ -720,7 +720,7 @@ export class MarketplaceService {
       bankDetails: vendor.bankDetails || {},
       status: vendor.status,
       verificationStatus: vendor.verificationStatus,
-      commissionRate: (vendor.metadata as any)?.commissionRate || 0,
+      commissionRate: (vendor.metadata as unknown)?.commissionRate || 0,
       rating: vendor.rating,
       totalSales: vendor.totalSales,
       totalOrders: vendor.totalOrders,
@@ -731,7 +731,7 @@ export class MarketplaceService {
     };
   }
 
-  private mapVendorProductFromDB(vendorProduct: any): VendorProduct {
+  private mapVendorProductFromDB(vendorProduct: unknown): VendorProduct {
     return {
       id: vendorProduct.id,
       vendorId: vendorProduct.vendorId,
@@ -742,7 +742,7 @@ export class MarketplaceService {
       condition: vendorProduct.condition,
       warranty: vendorProduct.warranty,
       shippingWeight: vendorProduct.shippingWeight,
-      shippingDimensions: vendorProduct.shippingDimensions as any,
+      shippingDimensions: vendorProduct.shippingDimensions as unknown,
       processingTime: vendorProduct.processingTime,
       status: vendorProduct.isActive ? 'active' : 'inactive',
       createdAt: vendorProduct.createdAt,
@@ -750,21 +750,21 @@ export class MarketplaceService {
     };
   }
 
-  private mapMarketplaceOrderFromDB(order: any): MarketplaceOrder {
+  private mapMarketplaceOrderFromDB(order: unknown): MarketplaceOrder {
     return {
       id: order.id,
       orderId: order.id,
-      vendorId: (order.metadata as any)?.vendorId || '',
-      items: order.items.map((item: any) => ({
+      vendorId: (order.metadata as unknown)?.vendorId || '',
+      items: order.items.map((item: unknown) => ({
         id: item.id,
         vendorProductId: item.productId,
         quantity: item.quantity,
         price: item.price,
-        commission: (item.metadata as any)?.commission || 0,
-        vendorPayout: (item.metadata as any)?.vendorPayout || 0,
+        commission: (item.metadata as unknown)?.commission || 0,
+        vendorPayout: (item.metadata as unknown)?.vendorPayout || 0,
       })),
       subtotal: order.totalAmount,
-      commission: (order.metadata as any)?.commissionAmount || 0,
+      commission: (order.metadata as unknown)?.commissionAmount || 0,
       vendorPayout: order.totalAmount, // Assuming totalAmount is the payout
       status: order.status,
       trackingNumber: order.trackingNumber,

@@ -65,7 +65,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
 
   const checkARCapabilities = async () => {
     const capabilities: ARCapabilities = {
-      webXR: 'xr' in navigator && 'requestSession' in (navigator as any).xr,
+      webXR: 'xr' in navigator && 'requestSession' in (navigator as unknown).xr,
       webGL: !!window.WebGLRenderingContext,
       deviceMotion: 'DeviceMotionEvent' in window,
       camera: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
@@ -175,7 +175,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     try {
       const loader = new GLTFLoader();
       
-      const gltf = await new Promise<any>((resolve, reject) => {
+      const gltf = await new Promise<unknown>((resolve, reject) => {
         loader.load(
           url,
           resolve,
@@ -283,7 +283,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     try {
       if (!isARMode) {
         // Enter AR mode
-        const session = await (navigator as any).xr.requestSession('immersive-ar', {
+        const session = await (navigator as unknown).xr.requestSession('immersive-ar', {
           requiredFeatures: ['local', 'hit-test'],
         });
         

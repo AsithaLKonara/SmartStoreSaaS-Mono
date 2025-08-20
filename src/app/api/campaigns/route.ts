@@ -29,7 +29,7 @@ const createCampaignSchema = z.object({
     conversions: z.number().positive('Conversions goal must be positive').optional(),
     revenue: z.number().positive('Revenue goal must be positive').optional()
   }).optional(),
-  settings: z.record(z.any()).optional()
+  settings: z.record(z.unknown()).optional()
 });
 
 // GET /api/campaigns - List campaigns with pagination and filters
@@ -45,7 +45,7 @@ async function getCampaigns(request: AuthenticatedRequest) {
     const endDate = searchParams.get('endDate');
 
     // Build where clause
-    const where: any = {
+    const where: unknown = {
       organizationId: request.user!.organizationId
     };
     
@@ -136,8 +136,8 @@ async function createCampaign(request: AuthenticatedRequest) {
     const campaign = await prisma.campaign.create({
       data: {
         name: campaignData.name,
-        type: campaignData.type as any, // Cast to allow flexibility
-        status: campaignData.status as any, // Cast to allow flexibility
+        type: campaignData.type as unknown, // Cast to allow flexibility
+        status: campaignData.status as unknown, // Cast to allow flexibility
         settings: campaignData.settings,
         organization: {
           connect: { id: request.user!.organizationId }

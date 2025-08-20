@@ -175,7 +175,7 @@ export class AIChatService {
     try {
       await prisma.order.update({
         where: { id: orderId },
-        data: { status: status as any },
+        data: { status: status as unknown },
       });
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -339,7 +339,7 @@ export class AIChatService {
         status: conversation.status,
         priority: conversation.priority,
         customerId: conversation.customerId,
-        messages: conversation.messages.map((msg: any) => ({
+        messages: conversation.messages.map((msg: unknown) => ({
           id: msg.id,
           content: msg.content,
           role: msg.direction === 'INBOUND' ? 'user' : 'assistant',

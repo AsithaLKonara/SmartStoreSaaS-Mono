@@ -4,7 +4,7 @@ export interface SocialPlatform {
   id: string;
   name: 'facebook' | 'instagram' | 'tiktok' | 'pinterest' | 'twitter';
   isActive: boolean;
-  config: any;
+  config: unknown;
   lastSync: Date;
   productCount: number;
 }
@@ -15,7 +15,7 @@ export interface SocialProduct {
   platformId: string;
   platformProductId: string;
   status: 'active' | 'inactive' | 'syncing' | 'error';
-  metadata: any;
+  metadata: unknown;
   lastSync: Date;
 }
 
@@ -77,10 +77,10 @@ export class SocialCommerceService {
     }));
   }
 
-  async connectPlatform(organizationId: string, platform: string, config: any): Promise<SocialPlatform> {
+  async connectPlatform(organizationId: string, platform: string, config: unknown): Promise<SocialPlatform> {
     const socialPlatform = await prisma.socialPlatform.upsert({
       where: {
-        organizationId_name: { organizationId, name: platform as any }
+        organizationId_name: { organizationId, name: platform as unknown }
       },
       update: {
         config,
@@ -89,7 +89,7 @@ export class SocialCommerceService {
       },
       create: {
         organizationId,
-        name: platform as any,
+        name: platform as unknown,
         config,
         isActive: true,
         lastSync: new Date()
@@ -195,7 +195,7 @@ export class SocialCommerceService {
       const post = await prisma.socialPost.create({
         data: {
           platformId,
-          type: postData.type as any,
+          type: postData.type as unknown,
           content: postData.content,
           mediaUrls: postData.mediaUrls,
           productIds: postData.productIds,
@@ -215,7 +215,7 @@ export class SocialCommerceService {
         scheduledAt: post.scheduledAt || undefined,
         publishedAt: post.publishedAt || undefined,
         status: post.status as 'draft' | 'scheduled' | 'published' | 'failed',
-        engagement: post.engagement as any
+        engagement: post.engagement as unknown
       };
     } catch (error) {
       throw new Error(`Failed to create social post: ${error}`);
@@ -262,7 +262,7 @@ export class SocialCommerceService {
           scheduledAt: updatedPost.scheduledAt || undefined,
           publishedAt: updatedPost.publishedAt || undefined,
           status: updatedPost.status as 'draft' | 'scheduled' | 'published' | 'failed',
-          engagement: updatedPost.engagement as any
+          engagement: updatedPost.engagement as unknown
         };
       } catch (error) {
         // Update post with error status
@@ -296,27 +296,27 @@ export class SocialCommerceService {
       // Calculate total engagement
       const totalEngagement = posts.reduce((sum, post) => {
         if (post.engagement && typeof post.engagement === 'object') {
-          const engagement = post.engagement as any;
+          const engagement = post.engagement as unknown;
           return sum + (engagement.likes || 0) + (engagement.comments || 0) + (engagement.shares || 0);
         }
         return sum;
       }, 0);
 
       // Calculate platform breakdown
-      const platformBreakdown: Record<string, any> = {};
+      const platformBreakdown: Record<string, unknown> = {};
       let totalFollowers = 0;
 
       for (const platform of platforms) {
         const platformPosts = posts.filter(post => post.platformId === platform.id);
         const platformEngagement = platformPosts.reduce((sum, post) => {
           if (post.engagement && typeof post.engagement === 'object') {
-            const engagement = post.engagement as any;
+            const engagement = post.engagement as unknown;
             return sum + (engagement.likes || 0) + (engagement.comments || 0) + (engagement.shares || 0);
           }
           return sum;
         }, 0);
 
-        const followers = (platform.config as any)?.followers || 0;
+        const followers = (platform.config as unknown)?.followers || 0;
         totalFollowers += followers;
 
         platformBreakdown[platform.name] = {
@@ -337,7 +337,7 @@ export class SocialCommerceService {
           }
           
           if (post.engagement && typeof post.engagement === 'object') {
-            const engagement = post.engagement as any;
+            const engagement = post.engagement as unknown;
             productSales[productId].engagement += engagement.clicks || 0;
           }
         }
@@ -366,7 +366,7 @@ export class SocialCommerceService {
     }
   }
 
-  async updatePostEngagement(postId: string, engagement: any): Promise<void> {
+  async updatePostEngagement(postId: string, engagement: unknown): Promise<void> {
     try {
       await prisma.socialPost.update({
         where: { id: postId },
@@ -379,7 +379,7 @@ export class SocialCommerceService {
 
   async getScheduledPosts(platformId?: string): Promise<SocialPost[]> {
     try {
-      const whereClause: any = {
+      const whereClause: unknown = {
         status: 'scheduled',
         scheduledAt: { gte: new Date() }
       };
@@ -403,7 +403,7 @@ export class SocialCommerceService {
         scheduledAt: post.scheduledAt || undefined,
         publishedAt: post.publishedAt || undefined,
         status: post.status as 'draft' | 'scheduled' | 'published' | 'failed',
-        engagement: post.engagement as any
+        engagement: post.engagement as unknown
       }));
     } catch (error) {
       throw new Error(`Failed to get scheduled posts: ${error}`);
@@ -416,13 +416,13 @@ export class SocialCommerceService {
         where: { id: postId }
       });
 
-      if (post && post.status === 'published' && (post.metadata as any)?.platformPostId) {
+      if (post && post.status === 'published' && (post.metadata as unknown)?.platformPostId) {
         const platform = await prisma.socialPlatform.findUnique({
           where: { id: post.platformId }
         });
 
         if (platform) {
-          await this.deleteFromPlatform(platform, (post.metadata as any).platformPostId);
+          await this.deleteFromPlatform(platform, (post.metadata as unknown).platformPostId);
         }
       }
 
@@ -473,7 +473,7 @@ export class SocialCommerceService {
     }
   }
 
-  private async syncProductToPlatform(platform: any, product: any): Promise<string> {
+  private async syncProductToPlatform(platform: unknown, product: unknown): Promise<string> {
     switch (platform.name) {
       case 'facebook':
         return this.syncToFacebook(platform, product);
@@ -490,7 +490,7 @@ export class SocialCommerceService {
     }
   }
 
-  private async publishToPlatform(platform: any, post: any): Promise<string> {
+  private async publishToPlatform(platform: unknown, post: unknown): Promise<string> {
     switch (platform.name) {
       case 'facebook':
         return this.publishToFacebook(platform, post);
@@ -507,7 +507,7 @@ export class SocialCommerceService {
     }
   }
 
-  private async deleteFromPlatform(platform: any, platformPostId: string): Promise<void> {
+  private async deleteFromPlatform(platform: unknown, platformPostId: string): Promise<void> {
     switch (platform.name) {
       case 'facebook':
         return this.deleteFromFacebook(platform, platformPostId);
@@ -524,7 +524,7 @@ export class SocialCommerceService {
     }
   }
 
-  private async updateInventoryOnPlatform(platform: any, socialProduct: any): Promise<void> {
+  private async updateInventoryOnPlatform(platform: unknown, socialProduct: unknown): Promise<void> {
     switch (platform.name) {
       case 'facebook':
         return this.updateInventoryOnFacebook(platform, socialProduct);
@@ -542,93 +542,93 @@ export class SocialCommerceService {
   }
 
   // Platform-specific implementation methods
-  private async syncToFacebook(platform: any, product: any): Promise<string> {
+  private async syncToFacebook(platform: unknown, product: unknown): Promise<string> {
     // Implement Facebook product sync
     return `fb_${Date.now()}`;
   }
 
-  private async publishToFacebook(platform: any, post: any): Promise<string> {
+  private async publishToFacebook(platform: unknown, post: unknown): Promise<string> {
     // Implement Facebook post publishing
     return `fb_post_${Date.now()}`;
   }
 
-  private async deleteFromFacebook(platform: any, platformPostId: string): Promise<void> {
+  private async deleteFromFacebook(platform: unknown, platformPostId: string): Promise<void> {
     // Implement Facebook post deletion
   }
 
-  private async updateInventoryOnFacebook(platform: any, socialProduct: any): Promise<void> {
+  private async updateInventoryOnFacebook(platform: unknown, socialProduct: unknown): Promise<void> {
     // Implement Facebook inventory update
   }
 
-  private async syncToInstagram(platform: any, product: any): Promise<string> {
+  private async syncToInstagram(platform: unknown, product: unknown): Promise<string> {
     // Implement Instagram product sync
     return `ig_${Date.now()}`;
   }
 
-  private async publishToInstagram(platform: any, post: any): Promise<string> {
+  private async publishToInstagram(platform: unknown, post: unknown): Promise<string> {
     // Implement Instagram post publishing
     return `ig_post_${Date.now()}`;
   }
 
-  private async deleteFromInstagram(platform: any, platformPostId: string): Promise<void> {
+  private async deleteFromInstagram(platform: unknown, platformPostId: string): Promise<void> {
     // Implement Instagram post deletion
   }
 
-  private async updateInventoryOnInstagram(platform: any, socialProduct: any): Promise<void> {
+  private async updateInventoryOnInstagram(platform: unknown, socialProduct: unknown): Promise<void> {
     // Implement Instagram inventory update
   }
 
-  private async syncToTikTok(platform: any, product: any): Promise<string> {
+  private async syncToTikTok(platform: unknown, product: unknown): Promise<string> {
     // Implement TikTok product sync
     return `tt_${Date.now()}`;
   }
 
-  private async publishToTikTok(platform: any, post: any): Promise<string> {
+  private async publishToTikTok(platform: unknown, post: unknown): Promise<string> {
     // Implement TikTok post publishing
     return `tt_post_${Date.now()}`;
   }
 
-  private async deleteFromTikTok(platform: any, platformPostId: string): Promise<void> {
+  private async deleteFromTikTok(platform: unknown, platformPostId: string): Promise<void> {
     // Implement TikTok post deletion
   }
 
-  private async updateInventoryOnTikTok(platform: any, socialProduct: any): Promise<void> {
+  private async updateInventoryOnTikTok(platform: unknown, socialProduct: unknown): Promise<void> {
     // Implement TikTok inventory update
   }
 
-  private async syncToPinterest(platform: any, product: any): Promise<string> {
+  private async syncToPinterest(platform: unknown, product: unknown): Promise<string> {
     // Implement Pinterest product sync
     return `pin_${Date.now()}`;
   }
 
-  private async publishToPinterest(platform: any, post: any): Promise<string> {
+  private async publishToPinterest(platform: unknown, post: unknown): Promise<string> {
     // Implement Pinterest post publishing
     return `pin_post_${Date.now()}`;
   }
 
-  private async deleteFromPinterest(platform: any, platformPostId: string): Promise<void> {
+  private async deleteFromPinterest(platform: unknown, platformPostId: string): Promise<void> {
     // Implement Pinterest post deletion
   }
 
-  private async updateInventoryOnPinterest(platform: any, socialProduct: any): Promise<void> {
+  private async updateInventoryOnPinterest(platform: unknown, socialProduct: unknown): Promise<void> {
     // Implement Pinterest inventory update
   }
 
-  private async syncToTwitter(platform: any, product: any): Promise<string> {
+  private async syncToTwitter(platform: unknown, product: unknown): Promise<string> {
     // Implement Twitter product sync
     return `tw_${Date.now()}`;
   }
 
-  private async publishToTwitter(platform: any, post: any): Promise<string> {
+  private async publishToTwitter(platform: unknown, post: unknown): Promise<string> {
     // Implement Twitter post publishing
     return `tw_post_${Date.now()}`;
   }
 
-  private async deleteFromTwitter(platform: any, platformPostId: string): Promise<void> {
+  private async deleteFromTwitter(platform: unknown, platformPostId: string): Promise<void> {
     // Implement Twitter post deletion
   }
 
-  private async updateInventoryOnTwitter(platform: any, socialProduct: any): Promise<void> {
+  private async updateInventoryOnTwitter(platform: unknown, socialProduct: unknown): Promise<void> {
     // Implement Twitter inventory update
   }
 } 

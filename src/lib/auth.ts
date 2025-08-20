@@ -77,16 +77,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role;
-        token.organizationId = (user as any).organizationId;
+        token.role = (user as unknown).role;
+        token.organizationId = (user as unknown).organizationId;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        (session.user as any).id = token.sub!;
-        (session.user as any).role = token.role as string;
-        (session.user as any).organizationId = token.organizationId as string;
+        (session.user as unknown).id = token.sub!;
+        (session.user as unknown).role = token.role as string;
+        (session.user as unknown).organizationId = token.organizationId as string;
       }
       return session;
     },

@@ -11,7 +11,7 @@ const createTemplateSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   isCustomizable: z.boolean().default(true),
   parameters: z.array(z.string()).optional(),
-  defaultFilters: z.record(z.any()).optional(),
+  defaultFilters: z.record(z.unknown()).optional(),
   visualizationTypes: z.array(z.string()).optional(),
   isActive: z.boolean().default(true),
   tags: z.array(z.string()).optional()
@@ -29,8 +29,8 @@ async function getReportTemplates(request: NextRequest) {
     const isActive = searchParams.get('isActive');
 
     // Build where clause
-    const where: any = {
-      organizationId: (request as any).user!.organizationId
+    const where: unknown = {
+      organizationId: (request as unknown).user!.organizationId
     };
     
     if (search) {
@@ -118,7 +118,7 @@ async function createReportTemplate(request: NextRequest) {
     const existingTemplate = await prisma.reportTemplate.findFirst({
       where: {
         name: templateData.name,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -133,7 +133,7 @@ async function createReportTemplate(request: NextRequest) {
     const template = await prisma.reportTemplate.create({
       data: {
         ...templateData,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -142,7 +142,7 @@ async function createReportTemplate(request: NextRequest) {
       data: {
         type: 'REPORT_TEMPLATE_CREATED',
         description: `Report template "${template.name}" created`,
-        userId: (request as any).user!.userId,
+        userId: (request as unknown).user!.userId,
         metadata: {
           templateId: template.id,
           templateName: template.name,

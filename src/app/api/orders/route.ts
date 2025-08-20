@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
+import { 
+  CommonErrors,
+  generateRequestId,
+  getRequestPath
+} from '@/lib/error-handling';
 
 // Order creation schema
 const createOrderSchema = z.object({
@@ -34,6 +39,11 @@ const createOrderSchema = z.object({
   shippingCost: z.number().min(0).optional().default(0)
 });
 
+// Handle CORS preflight
+export function OPTIONS() {
+  return handlePreflight();
+}
+
 // GET /api/orders - List orders with pagination and filters
 async function getOrders(request: AuthenticatedRequest) {
   try {
@@ -48,7 +58,7 @@ async function getOrders(request: AuthenticatedRequest) {
     const search = searchParams.get('search') || '';
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.OrderWhereInput = {
       organizationId: request.user!.organizationId
     };
     
@@ -96,27 +106,37 @@ async function getOrders(request: AuthenticatedRequest) {
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        orders,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1
-        }
+    const responseData = {
+      orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
       }
-    });
+    };
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(responseData, 200, origin);
 
   } catch (error) {
     console.error('Error fetching orders:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch orders' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database query error',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
@@ -128,13 +148,11 @@ async function createOrder(request: AuthenticatedRequest) {
     // Validate input
     const validationResult = createOrderSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Validation failed', 
-          errors: validationResult.error.errors 
-        }, 
-        { status: 400 }
+      return CommonErrors.BAD_REQUEST(
+        'Validation failed',
+        { errors: validationResult.error.errors },
+        getRequestPath(request),
+        generateRequestId()
       );
     }
 
@@ -149,9 +167,10 @@ async function createOrder(request: AuthenticatedRequest) {
     });
 
     if (!customer) {
-      return NextResponse.json(
-        { success: false, message: 'Customer not found or access denied' },
-        { status: 404 }
+      return CommonErrors.NOT_FOUND(
+        'Customer not found or access denied',
+        getRequestPath(request),
+        generateRequestId()
       );
     }
 
@@ -166,9 +185,10 @@ async function createOrder(request: AuthenticatedRequest) {
     });
 
     if (products.length !== productIds.length) {
-      return NextResponse.json(
-        { success: false, message: 'One or more products not found' },
-        { status: 404 }
+      return CommonErrors.NOT_FOUND(
+        'One or more products not found',
+        getRequestPath(request),
+        generateRequestId()
       );
     }
 
@@ -178,12 +198,10 @@ async function createOrder(request: AuthenticatedRequest) {
       if (!product) continue;
       
       if (product.stockQuantity < item.quantity) {
-        return NextResponse.json(
-          { 
-            success: false, 
-            message: `Insufficient stock for ${product.name}. Available: ${product.stockQuantity}, Requested: ${item.quantity}` 
-          },
-          { status: 400 }
+        return CommonErrors.BAD_REQUEST(
+          `Insufficient stock for ${product.name}. Available: ${product.stockQuantity}, Requested: ${item.quantity}`,
+          getRequestPath(request),
+          generateRequestId()
         );
       }
     }
@@ -266,24 +284,38 @@ async function createOrder(request: AuthenticatedRequest) {
       }
     });
 
-    return NextResponse.json({
+    return corsResponse({
       success: true,
       data: { 
         order: result.order,
         items: result.orderItems
       },
       message: 'Order created successfully'
-    }, { status: 201 });
+    }, 201, getCorsOrigin(request));
 
   } catch (error) {
     console.error('Error creating order:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create order' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database query error',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
-// Export handlers
-export const GET = withProtection()(getOrders);
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(createOrder); 
+// Export protected handlers with security middleware
+export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  getOrders
+);
+
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  createOrder
+); 

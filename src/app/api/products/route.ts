@@ -1,8 +1,14 @@
-import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
+import { 
+  CommonErrors,
+  generateRequestId,
+  getRequestPath
+} from '@/lib/error-handling';
+import { withCache, cacheKeys, invalidateProductCache } from '@/lib/cache';
 
 // Product creation schema
 const createProductSchema = z.object({
@@ -16,6 +22,11 @@ const createProductSchema = z.object({
   isActive: z.boolean().optional().default(true),
 });
 
+// Handle CORS preflight
+export function OPTIONS() {
+  return handlePreflight();
+}
+
 // GET /api/products - Get all products for the organization
 async function getProducts(request: AuthenticatedRequest) {
   try {
@@ -24,13 +35,13 @@ async function getProducts(request: AuthenticatedRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
     const minStock = searchParams.get('minStock');
-    const maxStock = searchParams.get('minStock');
+    const maxStock = searchParams.get('maxStock');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const isActive = searchParams.get('isActive');
 
     // Build where clause with organization filter
-    const where: any = {
+    const where: Prisma.ProductWhereInput = {
       organizationId: request.user!.organizationId
     };
     
@@ -48,38 +59,59 @@ async function getProducts(request: AuthenticatedRequest) {
     if (maxPrice !== null) where.price = { ...where.price, lte: parseFloat(maxPrice) };
     if (isActive !== null) where.isActive = isActive === 'true';
 
-    // Get total count for pagination
-    const total = await prisma.product.count({ where });
-    
-    // Get products with pagination
-    const products = await prisma.product.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { createdAt: 'desc' }
-    });
+    // Create cache key based on filters
+    const filtersString = JSON.stringify({ search, minStock, maxStock, minPrice, maxPrice, isActive });
+    const cacheKey = cacheKeys.productList(page, limit, filtersString);
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        products,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1
-        }
+    // Use read-through cache
+    const result = await withCache(
+      cacheKey,
+      300, // 5 minutes TTL
+      async () => {
+        // Get total count for pagination
+        const total = await prisma.product.count({ where });
+        
+        // Get products with pagination
+        const products = await prisma.product.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: 'desc' }
+        });
+
+        return {
+          products,
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+            hasNext: page < Math.ceil(total / limit),
+            hasPrev: page > 1
+          }
+        };
       }
-    });
+    );
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(result, 200, origin);
 
   } catch (error) {
     console.error('Error fetching products:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch products' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database query error',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
@@ -91,13 +123,13 @@ async function createProduct(request: AuthenticatedRequest) {
     // Validate input
     const validationResult = createProductSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Validation failed', 
-          errors: validationResult.error.errors 
-        }, 
-        { status: 400 }
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.VALIDATION_ERROR(
+        validationResult.error.errors,
+        path,
+        requestId
       );
     }
 
@@ -112,9 +144,13 @@ async function createProduct(request: AuthenticatedRequest) {
     });
 
     if (existingSku) {
-      return NextResponse.json(
-        { success: false, message: 'SKU already exists in this organization' },
-        { status: 409 }
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.CONFLICT(
+        'SKU already exists in this organization',
+        path,
+        requestId
       );
     }
 
@@ -127,9 +163,13 @@ async function createProduct(request: AuthenticatedRequest) {
     });
 
     if (existingSlug) {
-      return NextResponse.json(
-        { success: false, message: 'Product slug already exists in this organization' },
-        { status: 409 }
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.CONFLICT(
+        'Product slug already exists in this organization',
+        path,
+        requestId
       );
     }
 
@@ -158,21 +198,38 @@ async function createProduct(request: AuthenticatedRequest) {
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      data: { product },
-      message: 'Product created successfully'
-    }, { status: 201 });
+    // Invalidate related cache
+    await invalidateProductCache(product.id, request.user!.organizationId);
+
+    const responseData = { product };
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(responseData, 201, origin);
 
   } catch (error) {
     console.error('Error creating product:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create product' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database operation failed',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
-// Export protected handlers
-export const GET = withProtection()(getProducts);
-export const POST = withProtection(['ADMIN', 'MANAGER'])(createProduct); 
+// Export protected handlers with security middleware
+export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  getProducts
+);
+
+export const POST = withProtection(['ADMIN', 'MANAGER'], 100)(
+  createProduct
+); 

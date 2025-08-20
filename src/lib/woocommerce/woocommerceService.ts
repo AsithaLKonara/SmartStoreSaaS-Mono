@@ -58,7 +58,7 @@ export class WooCommerceService extends EventEmitter {
     };
   }
 
-  private async makeRequest(config: WooCommerceConfig, endpoint: string, method: string = 'GET', data?: any): Promise<any> {
+  private async makeRequest(config: WooCommerceConfig, endpoint: string, method: string = 'GET', data?: unknown): Promise<unknown> {
     const url = `${config.siteUrl}/wp-json/wc/${config.version}/${endpoint}`;
     
     const options: RequestInit = {
@@ -106,7 +106,7 @@ export class WooCommerceService extends EventEmitter {
     }
   }
 
-  private async syncProductToWooCommerce(product: any, config: WooCommerceConfig): Promise<void> {
+  private async syncProductToWooCommerce(product: unknown, config: WooCommerceConfig): Promise<void> {
     const wooProduct = {
       name: product.name,
       slug: product.slug || product.name.toLowerCase().replace(/\s+/g, '-'),
@@ -167,11 +167,11 @@ export class WooCommerceService extends EventEmitter {
     this.emit('integration_added', config);
   }
 
-  private async syncProductEvent(product: any, action: string, organizationId: string): Promise<void> {
+  private async syncProductEvent(product: unknown, action: string, organizationId: string): Promise<void> {
     const syncEvent: SyncEvent = {
       id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: 'product',
-      action: action as any,
+      action: action as unknown,
       entityId: product.id,
       data: product,
       source: 'woocommerce',

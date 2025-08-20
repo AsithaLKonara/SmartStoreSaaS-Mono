@@ -20,7 +20,7 @@ export interface BulkSMSOptions {
   recipients: Array<{
     phone: string;
     message: string;
-    variables?: Record<string, any>;
+    variables?: Record<string, unknown>;
   }>;
   from?: string;
   scheduledTime?: Date;
@@ -95,7 +95,7 @@ export class SMSService {
   }
 
   private async sendWithTwilio(options: SMSOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const messageOptions: any = {
+    const messageOptions: unknown = {
       body: options.message,
       from: options.from || process.env.TWILIO_PHONE_NUMBER!,
       to: this.formatPhoneNumber(options.to),
@@ -130,7 +130,7 @@ export class SMSService {
   /**
    * Send bulk SMS messages
    */
-  async sendBulkSMS(options: BulkSMSOptions): Promise<{ success: boolean; results: any[]; error?: string }> {
+  async sendBulkSMS(options: BulkSMSOptions): Promise<{ success: boolean; results: unknown[]; error?: string }> {
     try {
       const results = [];
 
@@ -323,8 +323,8 @@ export class SMSService {
         throw new Error('Campaign or template not found');
       }
 
-      const recipients = campaign.segments.flatMap((segment: any) =>
-        segment.customerSegment.customerSegmentCustomers.map((sub: any) => ({
+      const recipients = campaign.segments.flatMap((segment: unknown) =>
+        segment.customerSegment.customerSegmentCustomers.map((sub: unknown) => ({
           phone: sub.customer.phone!,
           customerId: sub.customer.id,
         }))
@@ -334,7 +334,7 @@ export class SMSService {
 
       // Send SMS to all recipients
       const results = await Promise.allSettled(
-        recipients.map((recipient: any) =>
+        recipients.map((recipient: unknown) =>
           this.sendSMS({
             to: recipient.phone,
             message,
@@ -468,10 +468,10 @@ export class SMSService {
         },
       });
 
-      const sent = logs.filter((log: any) => log.status === 'SENT').length;
-      const delivered = logs.filter((log: any) => log.status === 'DELIVERED').length;
-      const failed = logs.filter((log: any) => log.status === 'FAILED').length;
-      const clicked = logs.filter((log: any) => log.clicked).length;
+      const sent = logs.filter((log: unknown) => log.status === 'SENT').length;
+      const delivered = logs.filter((log: unknown) => log.status === 'DELIVERED').length;
+      const failed = logs.filter((log: unknown) => log.status === 'FAILED').length;
+      const clicked = logs.filter((log: unknown) => log.clicked).length;
 
       return {
         sent,
@@ -490,7 +490,7 @@ export class SMSService {
   /**
    * Manage SMS subscriptions
    */
-  async addToSMSList(phone: string, listId: string, customFields?: Record<string, any>): Promise<void> {
+  async addToSMSList(phone: string, listId: string, customFields?: Record<string, unknown>): Promise<void> {
     try {
       // Since smsSubscription doesn't exist in schema, we'll store it in a different way
       // For now, we'll use a generic approach or store in metadata
@@ -535,7 +535,7 @@ export class SMSService {
     return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
   }
 
-  private processTemplate(template: string, variables: Record<string, any>): string {
+  private processTemplate(template: string, variables: Record<string, unknown>): string {
     let processed = template;
     
     for (const [key, value] of Object.entries(variables)) {

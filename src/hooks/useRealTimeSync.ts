@@ -33,7 +33,7 @@ export function useRealTimeSync({
     isOnline: false
   });
   const [events, setEvents] = useState<SyncEvent[]>([]);
-  const [conflicts, setConflicts] = useState<any[]>([]);
+  const [conflicts, setConflicts] = useState<unknown[]>([]);
   
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -166,7 +166,7 @@ export function useRealTimeSync({
     return false;
   }, [organizationId, getSyncStatus]);
 
-  const resolveConflict = useCallback(async (conflictId: string, resolution: any) => {
+  const resolveConflict = useCallback(async (conflictId: string, resolution: unknown) => {
     try {
       const response = await fetch('/api/sync/status', {
         method: 'POST',

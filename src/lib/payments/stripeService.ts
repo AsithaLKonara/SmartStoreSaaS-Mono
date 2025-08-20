@@ -35,7 +35,7 @@ export interface PaymentMethod {
   billing_details: {
     name: string | null; // Changed to allow null from Stripe API
     email: string | null; // Changed to allow null from Stripe API
-    address: any;
+    address: unknown;
   };
 }
 
@@ -140,7 +140,7 @@ export class StripeService {
     customerId: string,
     priceId: string,
     metadata?: Record<string, string>
-  ): Promise<any> {
+  ): Promise<unknown> {
     try {
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
@@ -161,7 +161,7 @@ export class StripeService {
   /**
    * Cancel a subscription
    */
-  async cancelSubscription(subscriptionId: string): Promise<any> {
+  async cancelSubscription(subscriptionId: string): Promise<unknown> {
     try {
       return await stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
@@ -177,9 +177,9 @@ export class StripeService {
     paymentIntentId: string,
     amount?: number,
     reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer'
-  ): Promise<any> {
+  ): Promise<unknown> {
     try {
-      const refundData: any = {
+      const refundData: unknown = {
         payment_intent: paymentIntentId,
         reason,
       };

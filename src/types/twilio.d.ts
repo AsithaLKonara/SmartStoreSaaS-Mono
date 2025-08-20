@@ -1,7 +1,7 @@
 declare module 'twilio' {
   interface TwilioClient {
     messages: {
-      create(options: any): Promise<{ sid: string; status: string }>;
+      create(options: unknown): Promise<{ sid: string; status: string }>;
       (messageId: string): {
         fetch(): Promise<{ status: string }>;
       };

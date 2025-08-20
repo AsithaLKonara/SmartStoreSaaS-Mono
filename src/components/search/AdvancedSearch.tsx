@@ -10,7 +10,7 @@ interface SearchResult {
   title: string;
   description?: string;
   relevance: number;
-  metadata: any;
+  metadata: unknown;
   highlights: string[];
 }
 
@@ -48,7 +48,7 @@ export function AdvancedSearch({
   const [searchType, setSearchType] = useState(defaultType);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<unknown>(null);
 
   const debouncedQuery = useDebounce(query, 300);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -171,7 +171,7 @@ export function AdvancedSearch({
   };
 
   // Handle filter changes
-  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof SearchFilters, value: unknown) => {
     setFilters(prev => ({
       ...prev,
       [key]: value

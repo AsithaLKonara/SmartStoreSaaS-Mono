@@ -44,7 +44,7 @@ export async function POST(
   }
 }
 
-async function processProductCreated(product: any, organizationId: string): Promise<void> {
+async function processProductCreated(product: unknown, organizationId: string): Promise<void> {
   const syncEvent: SyncEvent = {
     id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type: 'product',
@@ -67,7 +67,7 @@ async function processProductCreated(product: any, organizationId: string): Prom
   await realTimeSyncService.queueEvent(syncEvent);
 }
 
-async function processProductUpdated(product: any, organizationId: string): Promise<void> {
+async function processProductUpdated(product: unknown, organizationId: string): Promise<void> {
   const syncEvent: SyncEvent = {
     id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type: 'product',
@@ -90,7 +90,7 @@ async function processProductUpdated(product: any, organizationId: string): Prom
   await realTimeSyncService.queueEvent(syncEvent);
 }
 
-async function processProductDeleted(product: any, organizationId: string): Promise<void> {
+async function processProductDeleted(product: unknown, organizationId: string): Promise<void> {
   const syncEvent: SyncEvent = {
     id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type: 'product',
@@ -108,7 +108,7 @@ async function processProductDeleted(product: any, organizationId: string): Prom
   await realTimeSyncService.queueEvent(syncEvent);
 }
 
-async function processOrderCreated(order: any, organizationId: string): Promise<void> {
+async function processOrderCreated(order: unknown, organizationId: string): Promise<void> {
   const syncEvent: SyncEvent = {
     id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type: 'order',
@@ -134,7 +134,7 @@ async function processOrderCreated(order: any, organizationId: string): Promise<
   await realTimeSyncService.queueEvent(syncEvent);
 }
 
-async function processOrderUpdated(order: any, organizationId: string): Promise<void> {
+async function processOrderUpdated(order: unknown, organizationId: string): Promise<void> {
   const syncEvent: SyncEvent = {
     id: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type: 'order',

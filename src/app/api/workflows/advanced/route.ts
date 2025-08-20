@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
             isActive: false,
             organizationId: originalWorkflow.organizationId,
             workflowNodes: {
-              create: originalWorkflow.workflowNodes?.map((node: any) => ({
+              create: originalWorkflow.workflowNodes?.map((node: unknown) => ({
                 type: node.type,
                 name: node.name,
                 config: node.config,
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
               })) || []
             },
             workflowConnections: {
-              create: originalWorkflow.workflowConnections?.map((conn: any) => ({
+              create: originalWorkflow.workflowConnections?.map((conn: unknown) => ({
                 sourceNodeId: conn.sourceNodeId,
                 targetNodeId: conn.targetNodeId,
                 condition: conn.condition

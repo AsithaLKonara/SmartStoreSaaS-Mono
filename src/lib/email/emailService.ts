@@ -26,10 +26,10 @@ export interface EmailOptions {
   htmlContent?: string; // Make optional for template usage
   textContent?: string;
   attachments?: EmailAttachment[];
-  metadata?: any;
+  metadata?: unknown;
   replyTo?: string;
   templateId?: string;
-  templateData?: Record<string, any>;
+  templateData?: Record<string, unknown>;
 }
 
 export interface BulkEmailOptions {
@@ -40,7 +40,7 @@ export interface BulkEmailOptions {
   };
   recipients: Array<{
     email: string;
-    templateData: Record<string, any>;
+    templateData: Record<string, unknown>;
   }>;
   subject: string;
   replyTo?: string;
@@ -61,7 +61,7 @@ export interface EmailSubscription {
   email: string;
   listId: string;
   isActive: boolean;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,7 +114,7 @@ export class EmailService {
   }
 
   private async sendWithSendGrid(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const msg: any = {
+    const msg: unknown = {
       to: Array.isArray(options.to) ? options.to : [options.to],
       from: options.from || {
         email: process.env.FROM_EMAIL!,
@@ -180,7 +180,7 @@ export class EmailService {
   /**
    * Send bulk emails using templates
    */
-  async sendBulkEmail(options: BulkEmailOptions): Promise<{ success: boolean; results: any[]; error?: string }> {
+  async sendBulkEmail(options: BulkEmailOptions): Promise<{ success: boolean; results: unknown[]; error?: string }> {
     try {
       if (this.provider === 'sendgrid') {
         return await this.sendBulkWithSendGrid(options);
@@ -193,7 +193,7 @@ export class EmailService {
     }
   }
 
-  private async sendBulkWithSendGrid(options: BulkEmailOptions): Promise<{ success: boolean; results: any[] }> {
+  private async sendBulkWithSendGrid(options: BulkEmailOptions): Promise<{ success: boolean; results: unknown[] }> {
     const msg = {
       from: options.from,
       templateId: options.templateId,
@@ -213,7 +213,7 @@ export class EmailService {
     return { success: true, results: ['mock-message-id'] }; // Mock response
   }
 
-  private async sendBulkWithSES(options: BulkEmailOptions): Promise<{ success: boolean; results: any[] }> {
+  private async sendBulkWithSES(options: BulkEmailOptions): Promise<{ success: boolean; results: unknown[] }> {
     // This part of the code was removed as per the edit hint.
     // const command = new SendBulkTemplatedEmailCommand({
     //   Source: options.from.email,
@@ -274,7 +274,7 @@ export class EmailService {
     }
   }
 
-  private async createSendGridTemplate(template: any): Promise<void> {
+  private async createSendGridTemplate(template: unknown): Promise<void> {
     // SendGrid template creation logic
     const templateData = {
       name: template.name,
@@ -285,7 +285,7 @@ export class EmailService {
     console.log('Creating SendGrid template:', templateData);
   }
 
-  private async createSESTemplate(template: any): Promise<void> {
+  private async createSESTemplate(template: unknown): Promise<void> {
     // AWS SES template creation logic
     const templateData = {
       TemplateName: template.id,
@@ -302,7 +302,7 @@ export class EmailService {
   /**
    * Send transactional emails
    */
-  async sendOrderConfirmation(order: any, customer: any): Promise<void> {
+  async sendOrderConfirmation(order: unknown, customer: unknown): Promise<void> {
     const orderTotal = order.totalAmount || 0; // Use totalAmount instead of total
     
     const emailContent = `
@@ -433,7 +433,7 @@ export class EmailService {
   /**
    * Manage email lists and subscriptions
    */
-  async addToMailingList(email: string, listId: string, organizationId: string, customFields?: Record<string, any>): Promise<void> {
+  async addToMailingList(email: string, listId: string, organizationId: string, customFields?: Record<string, unknown>): Promise<void> {
     try {
       await prisma.emailSubscription.upsert({
         where: {
@@ -542,7 +542,7 @@ export class EmailService {
     };
   }
 
-  async sendOrderSummary(order: any, customer: any): Promise<void> {
+  async sendOrderSummary(order: unknown, customer: unknown): Promise<void> {
     const orderTotal = order.totalAmount || 0; // Use totalAmount instead of total
     
     const emailContent = `

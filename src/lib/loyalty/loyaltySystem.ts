@@ -342,7 +342,7 @@ export class LoyaltySystem {
     }
   }
 
-  async getReferralStats(customerId: string): Promise<any> {
+  async getReferralStats(customerId: string): Promise<unknown> {
     try {
       const customer = await prisma.customer.findUnique({
         where: { id: customerId },
@@ -388,8 +388,8 @@ export class LoyaltySystem {
       const promotionId = generateRandomString(16);
       
       // For now, store in a static promotions map
-      (this as any).promotions = (this as any).promotions || new Map();
-      (this as any).promotions.set(promotionId, {
+      (this as unknown).promotions = (this as unknown).promotions || new Map();
+      (this as unknown).promotions.set(promotionId, {
         id: promotionId,
         ...promotion,
         createdAt: new Date(),
@@ -405,7 +405,7 @@ export class LoyaltySystem {
 
   async applyPromotionToOrder(orderId: string, promotionId: string): Promise<number> {
     try {
-      const promotion = (this as any).promotions?.get(promotionId);
+      const promotion = (this as unknown).promotions?.get(promotionId);
       if (!promotion || !promotion.isActive) {
         return 0; // No promotion applied
       }
@@ -472,7 +472,7 @@ export class LoyaltySystem {
     }
   }
 
-  async getLoyaltyAnalytics(organizationId: string): Promise<any> {
+  async getLoyaltyAnalytics(organizationId: string): Promise<unknown> {
     try {
       // Get loyalty analytics for the organization
       const customers = await prisma.customer.findMany({
@@ -482,8 +482,8 @@ export class LoyaltySystem {
 
       const analytics = {
         totalCustomers: customers.length,
-        totalPointsIssued: customers.reduce((sum: number, c: any) => sum + c.points, 0),
-        averagePointsPerCustomer: customers.length > 0 ? customers.reduce((sum: number, c: any) => sum + c.points, 0) / customers.length : 0,
+        totalPointsIssued: customers.reduce((sum: number, c: unknown) => sum + c.points, 0),
+        averagePointsPerCustomer: customers.length > 0 ? customers.reduce((sum: number, c: unknown) => sum + c.points, 0) / customers.length : 0,
         tierDistribution: {
           bronze: 0,
           silver: 0,

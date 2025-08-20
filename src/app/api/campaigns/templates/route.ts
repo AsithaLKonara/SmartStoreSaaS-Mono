@@ -27,8 +27,8 @@ async function getCampaignTemplates(request: NextRequest) {
     const isActive = searchParams.get('isActive');
 
     // Build where clause
-    const where: any = {
-      organizationId: (request as any).user!.organizationId
+    const where: unknown = {
+      organizationId: (request as unknown).user!.organizationId
     };
     
     if (search) {
@@ -114,7 +114,7 @@ async function createCampaignTemplate(request: NextRequest) {
     const existingTemplate = await prisma.campaignTemplate.findFirst({
       where: {
         name: templateData.name,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -129,7 +129,7 @@ async function createCampaignTemplate(request: NextRequest) {
     const template = await prisma.campaignTemplate.create({
       data: {
         ...templateData,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -138,7 +138,7 @@ async function createCampaignTemplate(request: NextRequest) {
       data: {
         type: 'CAMPAIGN_TEMPLATE_CREATED',
         description: `Campaign template "${template.name}" created`,
-        userId: (request as any).user!.userId,
+        userId: (request as unknown).user!.userId,
         metadata: {
           templateId: template.id,
           templateName: template.name,

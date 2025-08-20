@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
+import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
+import { 
+  CommonErrors,
+  generateRequestId,
+  getRequestPath
+} from '@/lib/error-handling';
 
 // Customer creation schema
 const createCustomerSchema = z.object({
@@ -22,6 +27,11 @@ const createCustomerSchema = z.object({
   isActive: z.boolean().optional().default(true)
 });
 
+// Handle CORS preflight
+export function OPTIONS() {
+  return handlePreflight();
+}
+
 // GET /api/customers - List customers with pagination and filters
 async function getCustomers(request: AuthenticatedRequest) {
   try {
@@ -34,7 +44,7 @@ async function getCustomers(request: AuthenticatedRequest) {
     const tags = searchParams.get('tags');
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.CustomerWhereInput = {
       organizationId: request.user!.organizationId
     };
     
@@ -77,27 +87,37 @@ async function getCustomers(request: AuthenticatedRequest) {
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        customers,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1
-        }
+    const responseData = {
+      customers,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
       }
-    });
+    };
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(responseData, 200, origin);
 
   } catch (error) {
     console.error('Error fetching customers:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch customers' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database query error',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
@@ -109,13 +129,13 @@ async function createCustomer(request: AuthenticatedRequest) {
     // Validate input
     const validationResult = createCustomerSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Validation failed', 
-          errors: validationResult.error.errors 
-        }, 
-        { status: 400 }
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.VALIDATION_ERROR(
+        validationResult.error.errors,
+        path,
+        requestId
       );
     }
 
@@ -130,9 +150,13 @@ async function createCustomer(request: AuthenticatedRequest) {
     });
 
     if (existingCustomer) {
-      return NextResponse.json(
-        { success: false, message: 'Customer with this email already exists in this organization' },
-        { status: 409 }
+      const path = getRequestPath(request);
+      const requestId = generateRequestId();
+      
+      return CommonErrors.CONFLICT(
+        'Customer with this email already exists in this organization',
+        path,
+        requestId
       );
     }
 
@@ -160,21 +184,35 @@ async function createCustomer(request: AuthenticatedRequest) {
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      data: { customer },
-      message: 'Customer created successfully'
-    }, { status: 201 });
+    const responseData = { customer };
+
+    // Apply CORS headers
+    const origin = getCorsOrigin(request);
+    return corsResponse(responseData, 201, origin);
 
   } catch (error) {
     console.error('Error creating customer:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create customer' },
-      { status: 500 }
-    );
+    const path = getRequestPath(request);
+    const requestId = generateRequestId();
+    
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return CommonErrors.BAD_REQUEST(
+        'Database operation failed',
+        { code: error.code, meta: error.meta },
+        path,
+        requestId
+      );
+    }
+    
+    return CommonErrors.INTERNAL_ERROR(path, requestId);
   }
 }
 
-// Export handlers
-export const GET = withProtection()(getCustomers);
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(createCustomer); 
+// Export protected handlers with security middleware
+export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  getCustomers
+);
+
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  createCustomer
+); 

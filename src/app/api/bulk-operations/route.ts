@@ -7,8 +7,8 @@ import { z } from 'zod';
 // Bulk operation schema
 const bulkOperationSchema = z.object({
   type: z.enum(['PRODUCT_UPDATE', 'PRODUCT_DELETE', 'CUSTOMER_UPDATE', 'ORDER_STATUS_UPDATE', 'INVENTORY_UPDATE']),
-  items: z.array(z.record(z.any())).min(1, 'At least one item is required'),
-  filters: z.record(z.any()).optional(),
+  items: z.array(z.record(z.unknown())).min(1, 'At least one item is required'),
+  filters: z.record(z.unknown()).optional(),
   settings: z.object({
     dryRun: z.boolean().default(false),
     batchSize: z.number().min(1).max(1000).default(100),
@@ -26,7 +26,7 @@ async function getBulkOperations(request: AuthenticatedRequest) {
     const status = searchParams.get('status');
 
     // Build where clause
-    const where: any = {
+    const where: unknown = {
       organizationId: request.user!.organizationId
     };
     
@@ -147,13 +147,13 @@ async function createBulkOperation(request: AuthenticatedRequest) {
 }
 
 // Process bulk operation asynchronously
-async function processBulkOperation(operation: any, operationData: any, settings: any) {
+async function processBulkOperation(operation: unknown, operationData: unknown, settings: unknown) {
   try {
     let processed = 0;
     let successful = 0;
     let failed = 0;
-    const errors: any[] = [];
-    const failedItems: any[] = [];
+    const errors: unknown[] = [];
+    const failedItems: unknown[] = [];
 
     // Update status to processing
     await prisma.bulkOperation.update({
@@ -231,7 +231,7 @@ async function processBulkOperation(operation: any, operationData: any, settings
 }
 
 // Process individual bulk operation item
-async function processBulkItem(type: string, item: any) {
+async function processBulkItem(type: string, item: unknown) {
   switch (type) {
     case 'PRODUCT_UPDATE':
       await prisma.product.update({

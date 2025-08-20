@@ -23,7 +23,7 @@ import { useRealTimeSync } from '@/hooks/useRealTimeSync';
 export interface ChartData {
   name: string;
   value: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ChartConfig {
@@ -73,7 +73,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleRealTimeUpdate = useCallback((event: any) => {
+  const handleRealTimeUpdate = useCallback((event: unknown) => {
     // Process real-time event and update chart data
     setData(prevData => {
       const newData = processEventData(event, prevData);
@@ -108,7 +108,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     };
   }, [config.refreshInterval]);
 
-  const processEventData = (event: any, currentData: ChartData[]): ChartData[] => {
+  const processEventData = (event: unknown, currentData: ChartData[]): ChartData[] => {
     // This is a generic processor - you might want to customize this
     // based on your specific event types and data structure
     
@@ -126,7 +126,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     }
   };
 
-  const updateOrderData = (orderData: any, currentData: ChartData[]): ChartData[] => {
+  const updateOrderData = (orderData: unknown, currentData: ChartData[]): ChartData[] => {
     const now = new Date();
     const timeKey = now.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
@@ -151,7 +151,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     }
   };
 
-  const updateProductViewData = (productData: any, currentData: ChartData[]): ChartData[] => {
+  const updateProductViewData = (productData: unknown, currentData: ChartData[]): ChartData[] => {
     const productName = productData.name || 'Unknown Product';
     const existingIndex = currentData.findIndex(item => item.name === productName);
     
@@ -168,7 +168,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     }
   };
 
-  const updatePaymentData = (paymentData: any, currentData: ChartData[]): ChartData[] => {
+  const updatePaymentData = (paymentData: unknown, currentData: ChartData[]): ChartData[] => {
     const method = paymentData.method || 'Unknown';
     const existingIndex = currentData.findIndex(item => item.name === method);
     
@@ -184,7 +184,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     }
   };
 
-  const updateInventoryData = (inventoryData: any, currentData: ChartData[]): ChartData[] => {
+  const updateInventoryData = (inventoryData: unknown, currentData: ChartData[]): ChartData[] => {
     const productName = inventoryData.productName || 'Unknown Product';
     const existingIndex = currentData.findIndex(item => item.name === productName);
     
@@ -215,7 +215,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     }
   };
 
-  const formatTooltipValue = (value: any, name: string) => {
+  const formatTooltipValue = (value: unknown, name: string) => {
     if (typeof value === 'number') {
       // Format based on the chart type and data
       if (name.toLowerCase().includes('amount') || name.toLowerCase().includes('revenue')) {

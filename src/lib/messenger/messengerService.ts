@@ -73,7 +73,7 @@ export interface MessengerWebhookEntry {
     message?: {
       mid: string;
       text?: string;
-      attachments?: any[];
+      attachments?: unknown[];
       quick_reply?: {
         payload: string;
       };
@@ -124,7 +124,7 @@ export class MessengerService {
     }>
   ): Promise<MessengerMessage> {
     try {
-      const messageData: any = {
+      const messageData: unknown = {
         recipient: { id: recipientId },
         message: { text },
       };
@@ -168,13 +168,13 @@ export class MessengerService {
       // Log the message activity
       await prisma.activity.create({
         data: {
-          type: 'messenger_message_sent' as any, // Use type assertion to bypass constraint
+          type: 'messenger_message_sent' as unknown, // Use type assertion to bypass constraint
           description: `Messenger message sent to ${recipientId}`,
           metadata: {
             platform: 'messenger',
             recipientId,
             messageType: 'text',
-            content: message as any, // Cast to any to bypass type constraint
+            content: message as unknown, // Cast to unknown to bypass type constraint
             timestamp: new Date()
           },
           userId: 'page' // Assuming senderId is 'page' for Facebook messages
@@ -236,13 +236,13 @@ export class MessengerService {
       // Log the template activity
       await prisma.activity.create({
         data: {
-          type: 'messenger_template_sent' as any, // Use type assertion to bypass constraint
+          type: 'messenger_template_sent' as unknown, // Use type assertion to bypass constraint
           description: `Messenger template sent to ${recipientId}`,
           metadata: {
             platform: 'messenger',
             recipientId,
             templateName: 'generic', // Assuming a default template name
-            templateData: template as any, // Cast to any to bypass type constraint
+            templateData: template as unknown, // Cast to unknown to bypass type constraint
             timestamp: new Date()
           },
           userId: 'page' // Assuming senderId is 'page' for Facebook messages
@@ -310,7 +310,7 @@ export class MessengerService {
       // Log the attachment activity
       await prisma.activity.create({
         data: {
-          type: 'messenger_attachment_sent' as any, // Use type assertion to bypass constraint
+          type: 'messenger_attachment_sent' as unknown, // Use type assertion to bypass constraint
           description: `Messenger attachment sent to ${recipientId}`,
           metadata: {
             platform: 'messenger',
@@ -454,7 +454,7 @@ export class MessengerService {
   /**
    * Handle incoming webhook
    */
-  async handleWebhook(body: any, signature: string): Promise<void> {
+  async handleWebhook(body: unknown, signature: string): Promise<void> {
     try {
       // Verify webhook signature
       if (!this.verifyWebhookSignature(body, signature)) {
@@ -474,7 +474,7 @@ export class MessengerService {
     }
   }
 
-  private verifyWebhookSignature(body: any, signature: string): boolean {
+  private verifyWebhookSignature(body: unknown, signature: string): boolean {
     try {
       const expectedSignature = crypto
         .createHmac('sha256', this.appSecret)
@@ -488,7 +488,7 @@ export class MessengerService {
     }
   }
 
-  private async processMessagingEvent(event: any, pageId: string): Promise<void> {
+  private async processMessagingEvent(event: unknown, pageId: string): Promise<void> {
     try {
       const senderId = event.sender.id;
       const recipientId = event.recipient.id;
@@ -511,7 +511,7 @@ export class MessengerService {
     }
   }
 
-  private async processIncomingMessage(event: any, organizationId: string): Promise<void> {
+  private async processIncomingMessage(event: unknown, organizationId: string): Promise<void> {
     try {
       const message: MessengerMessage = {
         id: event.message.mid,
@@ -546,13 +546,13 @@ export class MessengerService {
       // Log the received message activity
       await prisma.activity.create({
         data: {
-          type: 'messenger_message_received' as any, // Use type assertion to bypass constraint
+          type: 'messenger_message_received' as unknown, // Use type assertion to bypass constraint
           description: `Messenger message received from ${message.senderId || 'unknown'}`,
           metadata: {
             platform: 'messenger',
             senderId: message.senderId || 'unknown',
             messageType: 'text',
-            content: message as any, // Cast to any to bypass type constraint
+            content: message as unknown, // Cast to unknown to bypass type constraint
             timestamp: new Date()
           },
           userId: 'page' // Using 'page' as the user ID for Facebook messages
@@ -564,7 +564,7 @@ export class MessengerService {
     }
   }
 
-  private async processPostback(event: any, organizationId: string): Promise<void> {
+  private async processPostback(event: unknown, organizationId: string): Promise<void> {
     try {
       const senderId = event.sender.id;
       const payload = event.postback.payload;
@@ -593,7 +593,7 @@ export class MessengerService {
     }
   }
 
-  private async processDeliveryReceipt(event: any, organizationId: string): Promise<void> {
+  private async processDeliveryReceipt(event: unknown, organizationId: string): Promise<void> {
     try {
       // Update message delivery status
       // Note: messengerMessage model doesn't exist in Prisma schema
@@ -604,7 +604,7 @@ export class MessengerService {
     }
   }
 
-  private async processReadReceipt(event: any, organizationId: string): Promise<void> {
+  private async processReadReceipt(event: unknown, organizationId: string): Promise<void> {
     try {
       // Update message read status
       // Note: messengerMessage model doesn't exist in Prisma schema

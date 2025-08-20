@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform orders into delivery format
-    const deliveries = orders.map((order: any) => ({
+    const deliveries = orders.map((order: unknown) => ({
       id: order.id,
       orderNumber: order.orderNumber,
       customerName: order.customer?.name || 'Unknown',
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       courier: order.courier || null,
       estimatedDeliveryTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
       actualDeliveryTime: order.status === 'DELIVERED' ? order.updatedAt.toISOString() : undefined,
-      items: order.items.map((item: any) => ({
+      items: order.items.map((item: unknown) => ({
         productId: item.productId,
         quantity: item.quantity,
         price: item.price,

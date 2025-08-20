@@ -14,7 +14,7 @@ export interface BulkOperation {
   failedRecords: number;
   fileUrl?: string;
   errors: string[];
-  metadata?: any;
+  metadata?: unknown;
   createdAt: Date;
   completedAt?: Date;
 }
@@ -26,7 +26,7 @@ export interface ImportResult {
   successRecords: number;
   failedRecords: number;
   errors: string[];
-  data?: any[];
+  data?: unknown[];
 }
 
 export interface ExportResult {
@@ -37,7 +37,7 @@ export interface ExportResult {
 }
 
 export class BulkOperationsService {
-  async createBulkOperation(type: 'import' | 'export', entity: string, metadata?: any): Promise<BulkOperation> {
+  async createBulkOperation(type: 'import' | 'export', entity: string, metadata?: unknown): Promise<BulkOperation> {
     const operation = await prisma.bulkOperation.create({
       data: {
         type,
@@ -78,7 +78,7 @@ export class BulkOperationsService {
     const operation = await this.createBulkOperation('import', 'products');
     
     try {
-      let data: any[];
+      let data: unknown[];
       
       if (format === 'csv') {
         data = parse(fileBuffer.toString(), {
@@ -177,7 +177,7 @@ export class BulkOperationsService {
     const operation = await this.createBulkOperation('import', 'customers');
     
     try {
-      let data: any[];
+      let data: unknown[];
       
       if (format === 'csv') {
         data = parse(fileBuffer.toString(), {
@@ -305,7 +305,7 @@ export class BulkOperationsService {
       });
 
       let fileUrl: string;
-      let fileData: any;
+      let fileData: unknown;
 
       if (format === 'csv') {
         fileData = stringify(products, { header: true });
@@ -383,7 +383,7 @@ export class BulkOperationsService {
       });
 
       let fileUrl: string;
-      let fileData: any;
+      let fileData: unknown;
 
       if (format === 'csv') {
         fileData = stringify(customers, { header: true });
@@ -464,7 +464,7 @@ export class BulkOperationsService {
       });
 
       // Transform orders to exportable format
-      const exportData = orders.map((order: any) => ({
+      const exportData = orders.map((order: unknown) => ({
         id: order.id,
         orderNumber: order.orderNumber,
         customerName: order.customer?.name || '',
@@ -481,7 +481,7 @@ export class BulkOperationsService {
       }));
 
       let fileUrl: string;
-      let fileData: any;
+      let fileData: unknown;
 
       if (format === 'csv') {
         fileData = stringify(exportData, { header: true });
@@ -537,7 +537,7 @@ export class BulkOperationsService {
       orderBy: { createdAt: 'desc' }
     });
 
-    return operations.map((operation: any) => ({
+    return operations.map((operation: unknown) => ({
       id: operation.id,
       type: operation.type as 'import' | 'export',
       entity: operation.entity as 'products' | 'customers' | 'orders' | 'inventory',

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         const size = searchParams.get('size');
         const format = searchParams.get('format');
         const qrCodeUrl = await advancedPWAService.generateQRCode({
-          type: qrType as any,
+          type: qrType as unknown,
           data: JSON.parse(qrData || '{}'),
           size: size ? parseInt(size) : 200,
           format: (format as 'PNG' | 'SVG') || 'PNG',
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
               recipient: session.user.id,
               organizationId,
               status: 'sent',
-              metadata: { subscription: subscription.toJSON() as Record<string, any> },
+              metadata: { subscription: subscription.toJSON() as Record<string, unknown> },
             },
           });
         }

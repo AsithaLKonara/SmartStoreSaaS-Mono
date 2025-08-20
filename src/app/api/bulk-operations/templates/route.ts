@@ -11,8 +11,8 @@ const createTemplateSchema = z.object({
   entity: z.string().min(1, 'Entity is required'),
   fields: z.array(z.string()).min(1, 'At least one field is required'),
   sampleFile: z.string().optional(),
-  validationRules: z.record(z.any()).optional(),
-  transformationRules: z.record(z.any()).optional(),
+  validationRules: z.record(z.unknown()).optional(),
+  transformationRules: z.record(z.unknown()).optional(),
   isActive: z.boolean().default(true),
   category: z.string().optional(),
   tags: z.array(z.string()).optional()
@@ -30,8 +30,8 @@ async function getBulkOperationTemplates(request: NextRequest) {
     const isActive = searchParams.get('isActive');
 
     // Build where clause
-    const where: any = {
-      organizationId: (request as any).user!.organizationId
+    const where: unknown = {
+      organizationId: (request as unknown).user!.organizationId
     };
     
     if (search) {
@@ -119,7 +119,7 @@ async function createBulkOperationTemplate(request: NextRequest) {
     const existingTemplate = await prisma.bulkOperationTemplate.findFirst({
       where: {
         name: templateData.name,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -134,7 +134,7 @@ async function createBulkOperationTemplate(request: NextRequest) {
     const template = await prisma.bulkOperationTemplate.create({
       data: {
         ...templateData,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -143,7 +143,7 @@ async function createBulkOperationTemplate(request: NextRequest) {
       data: {
         type: 'BULK_OPERATION_TEMPLATE_CREATED',
         description: `Bulk operation template "${template.name}" created`,
-        userId: (request as any).user!.userId,
+        userId: (request as unknown).user!.userId,
         metadata: {
           templateId: template.id,
           templateName: template.name,

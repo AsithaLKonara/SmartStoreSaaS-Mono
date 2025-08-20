@@ -50,7 +50,7 @@ export interface ProductLookup {
   brand?: string;
   manufacturer?: string;
   images: string[];
-  specifications?: Record<string, any>;
+  specifications?: Record<string, unknown>;
   source: 'internal' | 'external';
 }
 
@@ -67,7 +67,7 @@ export class BarcodeService {
       try {
         this.currentConfig = config;
 
-        Quagga.init(config, (err: any) => {
+        Quagga.init(config, (err: unknown) => {
           if (err) {
             console.error('Error initializing Quagga:', err);
             reject(err);
@@ -109,7 +109,7 @@ export class BarcodeService {
    * Set up event listeners for barcode detection
    */
   private setupEventListeners(): void {
-    Quagga.onDetected((result: any) => {
+    Quagga.onDetected((result: unknown) => {
       const barcodeResult: BarcodeResult = {
         code: result.codeResult.code,
         format: result.codeResult.format,
@@ -123,14 +123,14 @@ export class BarcodeService {
       }
     });
 
-    Quagga.onProcessed((result: any) => {
+    Quagga.onProcessed((result: unknown) => {
       const drawingCtx = Quagga.canvas.ctx.overlay;
       const drawingCanvas = Quagga.canvas.dom.overlay;
 
       if (result) {
         if (result.boxes) {
           drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-          result.boxes.filter((box: any) => box !== result.box).forEach((box: any) => {
+          result.boxes.filter((box: unknown) => box !== result.box).forEach((box: unknown) => {
             Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: 'green', lineWidth: 2 });
           });
         }
@@ -197,7 +197,7 @@ export class BarcodeService {
           Quagga.decodeSingle({
             ...config,
             src: canvas.toDataURL(),
-          }, (result: any) => {
+          }, (result: unknown) => {
             if (result && result.codeResult) {
               const barcodeResult: BarcodeResult = {
                 code: result.codeResult.code,
@@ -514,7 +514,7 @@ export class BarcodeService {
   validateBarcode(barcode: string, format?: string): boolean {
     if (!barcode) return false;
 
-    // Remove any non-alphanumeric characters
+    // Remove unknown non-alphanumeric characters
     const cleaned = barcode.replace(/[^A-Za-z0-9]/g, '');
 
     switch (format) {

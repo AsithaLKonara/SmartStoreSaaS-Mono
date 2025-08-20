@@ -69,9 +69,9 @@ export class CustomerIntelligenceService {
    * Predict customer lifetime value
    */
   async predictCustomerLTV(
-    customerData: any[],
-    purchaseHistory: any[],
-    interactionHistory: any[]
+    customerData: unknown[],
+    purchaseHistory: unknown[],
+    interactionHistory: unknown[]
   ): Promise<CustomerLTV[]> {
     try {
       const openaiClient = getOpenAIClient();
@@ -111,9 +111,9 @@ export class CustomerIntelligenceService {
    * Assess churn risk for customers
    */
   async assessChurnRisk(
-    customerData: any[],
-    purchaseHistory: any[],
-    interactionHistory: any[]
+    customerData: unknown[],
+    purchaseHistory: unknown[],
+    interactionHistory: unknown[]
   ): Promise<ChurnRisk[]> {
     try {
       const prompt = `
@@ -151,9 +151,9 @@ export class CustomerIntelligenceService {
    * Create customer segments with AI
    */
   async createCustomerSegments(
-    customerData: any[],
-    purchaseHistory: any[],
-    behaviorData: any[]
+    customerData: unknown[],
+    purchaseHistory: unknown[],
+    behaviorData: unknown[]
   ): Promise<CustomerSegment[]> {
     try {
       const prompt = `
@@ -190,9 +190,9 @@ export class CustomerIntelligenceService {
    * Generate personalized product recommendations
    */
   async generateProductRecommendations(
-    customerData: any[],
-    purchaseHistory: any[],
-    productCatalog: any[]
+    customerData: unknown[],
+    purchaseHistory: unknown[],
+    productCatalog: unknown[]
   ): Promise<ProductRecommendation[]> {
     try {
       const prompt = `
@@ -229,10 +229,10 @@ export class CustomerIntelligenceService {
    * Analyze customer sentiment using Prisma models
    */
   async analyzeCustomerSentiment(
-    customerData: any[],
-    reviews: any[],
-    supportTickets: any[],
-    socialMediaData: any[]
+    customerData: unknown[],
+    reviews: unknown[],
+    supportTickets: unknown[],
+    socialMediaData: unknown[]
   ): Promise<SentimentAnalysis[]> {
     try {
       const prompt = `
@@ -271,10 +271,10 @@ export class CustomerIntelligenceService {
    * Get customer sentiment data from Prisma models
    */
   async getCustomerSentimentData(organizationId: string, customerId?: string): Promise<{
-    reviews: any[];
-    supportTickets: any[];
-    customerSegments: any[];
-    customerOffers: any[];
+    reviews: unknown[];
+    supportTickets: unknown[];
+    customerSegments: unknown[];
+    customerOffers: unknown[];
   }> {
     try {
       const whereClause = customerId ? { customerId } : {};
@@ -310,9 +310,9 @@ export class CustomerIntelligenceService {
    * Analyze purchase patterns and behavior
    */
   async analyzePurchasePatterns(
-    customerData: any[],
-    purchaseHistory: any[]
-  ): Promise<any[]> {
+    customerData: unknown[],
+    purchaseHistory: unknown[]
+  ): Promise<unknown[]> {
     try {
       const prompt = `
         Analyze customer purchase patterns based on:

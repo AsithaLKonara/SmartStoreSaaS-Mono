@@ -12,7 +12,7 @@ async function getAnalytics(request: AuthenticatedRequest) {
     const endDate = searchParams.get('endDate');
 
     // Calculate date range
-    let dateFilter: any = {};
+    let dateFilter: unknown = {};
     const now = new Date();
     
     if (startDate && endDate) {

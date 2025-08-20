@@ -31,8 +31,8 @@ async function getCouriers(request: AuthenticatedRequest) {
     const isActive = searchParams.get('isActive');
 
     // Build where clause
-    const where: any = {
-      organizationId: (request as any).user!.organizationId
+    const where: unknown = {
+      organizationId: (request as unknown).user!.organizationId
     };
     
     if (search) {
@@ -109,7 +109,7 @@ async function createCourier(request: AuthenticatedRequest) {
     const existingCourier = await prisma.courier.findFirst({
       where: {
         code: courierData.code,
-        organizationId: (request as any).user!.organizationId
+        organizationId: (request as unknown).user!.organizationId
       }
     });
 
@@ -125,7 +125,7 @@ async function createCourier(request: AuthenticatedRequest) {
       data: {
         ...courierData,
         organization: {
-          connect: { id: (request as any).user!.organizationId }
+          connect: { id: (request as unknown).user!.organizationId }
         }
       }
     });
@@ -136,7 +136,7 @@ async function createCourier(request: AuthenticatedRequest) {
         type: 'COURIER_CREATED',
         description: `Courier "${courier.name}" created`,
         user: {
-          connect: { id: (request as any).user!.userId }
+          connect: { id: (request as unknown).user!.userId }
         },
         metadata: {
           courierId: courier.id,

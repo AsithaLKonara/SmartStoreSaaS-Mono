@@ -1,62 +1,42 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2022",
     "lib": [
-      "dom",
-      "dom.iterable",
-      "es6"
+      "ES2022",
+      "DOM"
     ],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "preserve",
+    "allowJs": false,
     "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ],
-      "@/utils/*": [
-        "./src/utils/*"
-      ],
-      "@/hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@/services/*": [
-        "./src/services/*"
-      ],
-      "@/prisma/*": [
-        "./prisma/*"
       ]
-    }
+    },
+    "types": [
+      "node"
+    ],
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",
-    "src/types/react.d.ts",
-    "src/types/global.d.ts",
-    "src/types/next.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src",
+    "next.config.js",
     ".next/types/**/*.ts"
   ],
   "exclude": [

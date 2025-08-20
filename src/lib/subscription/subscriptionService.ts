@@ -36,7 +36,7 @@ export interface Subscription {
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
   stripeSubscriptionId?: string | null;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,7 +47,7 @@ export interface UsageRecord {
   metricType: string;
   quantity: number;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface MembershipTier {
@@ -103,7 +103,7 @@ export interface BoxSubscription {
     allergies?: string[];
     dietaryRestrictions?: string[];
   };
-  deliveryAddress: any;
+  deliveryAddress: unknown;
   nextDelivery: Date;
   status: 'active' | 'paused' | 'canceled';
 }
@@ -288,7 +288,7 @@ export class SubscriptionService {
           status: immediate ? 'canceled' : 'active',
           cancelAtPeriodEnd: !immediate,
           metadata: {
-            ...(subscription.metadata as Record<string, any> || {}),
+            ...(subscription.metadata as Record<string, unknown> || {}),
             cancelReason: reason,
             canceledAt: immediate ? new Date() : undefined
           }
@@ -334,7 +334,7 @@ export class SubscriptionService {
     subscriptionId: string,
     metricType: string,
     quantity: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<UsageRecord> {
     try {
       // Check usage limits before recording
@@ -351,7 +351,7 @@ export class SubscriptionService {
       }
 
       // Update usage in subscription metadata
-      const currentUsage = (subscription.metadata as any)?.usage || {};
+      const currentUsage = (subscription.metadata as unknown)?.usage || {};
       const newUsage = {
         ...currentUsage,
         [metricType]: (currentUsage[metricType] || 0) + quantity,
@@ -362,7 +362,7 @@ export class SubscriptionService {
         where: { id: subscriptionId },
         data: {
           metadata: {
-            ...(subscription.metadata as Record<string, any> || {}),
+            ...(subscription.metadata as Record<string, unknown> || {}),
             usage: newUsage
           }
         }
@@ -442,7 +442,7 @@ export class SubscriptionService {
       }
 
       // Calculate total spent from completed orders
-      const totalSpent = customer.orders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
+      const totalSpent = customer.orders.reduce((sum: number, order: unknown) => sum + order.totalAmount, 0);
 
       // Determine membership tier based on total spent
       const currentTier = this.getTierLevel(totalSpent);
@@ -509,7 +509,7 @@ export class SubscriptionService {
     }
   }
 
-  async getSubscriptionBoxes(customerId: string): Promise<any[]> {
+  async getSubscriptionBoxes(customerId: string): Promise<unknown[]> {
     try {
       // Note: SubscriptionBox model doesn't exist in the schema
       // This functionality needs to be implemented with actual models
@@ -541,7 +541,7 @@ export class SubscriptionService {
 
       if (!subscription) return;
 
-      const plan = (subscription.metadata as any)?.plan;
+      const plan = (subscription.metadata as unknown)?.plan;
       if (!plan) {
         console.warn('No plan information found in subscription metadata');
         return;
@@ -585,7 +585,7 @@ export class SubscriptionService {
         templateId: 'subscription-welcome',
         templateData: {
           customerName: customer.name || 'Valued Customer',
-          planName: (subscription.metadata as any)?.plan || 'Premium Plan',
+          planName: (subscription.metadata as unknown)?.plan || 'Premium Plan',
           startDate: subscription.currentPeriodStart.toLocaleDateString(),
           endDate: subscription.currentPeriodEnd.toLocaleDateString()
         }
@@ -621,7 +621,7 @@ export class SubscriptionService {
         templateId: 'subscription-cancelled',
         templateData: {
           customerName: customer.name || 'Valued Customer',
-          planName: (subscription.metadata as any)?.plan || 'Premium Plan',
+          planName: (subscription.metadata as unknown)?.plan || 'Premium Plan',
           endDate: subscription.currentPeriodEnd.toLocaleDateString()
         }
       });
@@ -656,9 +656,9 @@ export class SubscriptionService {
         templateId: 'usage-limit-reached',
         templateData: {
           customerName: customer.name || 'Valued Customer',
-          planName: (subscription.metadata as any)?.plan || 'Premium Plan',
-          currentUsage: (subscription.metadata as any)?.usage || 0,
-          usageLimit: (subscription.metadata as any)?.usageLimit || 'Unlimited'
+          planName: (subscription.metadata as unknown)?.plan || 'Premium Plan',
+          currentUsage: (subscription.metadata as unknown)?.usage || 0,
+          usageLimit: (subscription.metadata as unknown)?.usageLimit || 'Unlimited'
         }
       });
     } catch (error) {
@@ -676,7 +676,7 @@ export class SubscriptionService {
 
       if (!subscription) return 0;
 
-      const usage = (subscription.metadata as any)?.usage || {};
+      const usage = (subscription.metadata as unknown)?.usage || {};
       return usage[metricType] || 0;
     } catch (error) {
       console.warn('Failed to get current usage:', error);

@@ -34,7 +34,7 @@ interface SyncEvent {
 export default function SyncPage() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [events, setEvents] = useState<SyncEvent[]>([]);
-  const [conflicts, setConflicts] = useState<any[]>([]);
+  const [conflicts, setConflicts] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [organizationId, setOrganizationId] = useState<string>('');
 

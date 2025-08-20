@@ -15,7 +15,7 @@ export interface BlockchainTransaction {
   blockNumber?: number;
   confirmations: number;
   status: 'pending' | 'confirmed' | 'failed';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   confirmedAt?: Date;
 }
@@ -34,7 +34,7 @@ export interface SupplyChainRecord {
     humidity?: number;
     quality?: string;
     certifications?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -42,7 +42,7 @@ export interface SmartContract {
   id: string;
   name: string;
   address: string;
-  abi: any[];
+  abi: unknown[];
   type: 'escrow' | 'subscription' | 'marketplace' | 'nft' | 'governance';
   network: 'ethereum' | 'polygon' | 'binance' | 'arbitrum';
   deployedAt: Date;
@@ -133,8 +133,8 @@ export class BlockchainService {
       type: SmartContract['type'];
       network: SmartContract['network'];
       bytecode: string;
-      abi: any[];
-      constructorArgs?: any[];
+      abi: unknown[];
+      constructorArgs?: unknown[];
     }
   ): Promise<SmartContract> {
     try {
@@ -165,7 +165,7 @@ export class BlockchainService {
       };
 
       // Cache contract instance
-      this.contracts.set(contractAddress, contract as any);
+      this.contracts.set(contractAddress, contract as unknown);
 
       return contractInfo;
     } catch (error) {
@@ -246,14 +246,14 @@ export class BlockchainService {
     stage: SupplyChainRecord['stage'],
     location: string,
     verifiedBy: string,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, unknown> = {}
   ): Promise<SupplyChainRecord> {
     try {
       // Store supply chain record in ProductActivity with metadata
       const record = await prisma.productActivity.create({
         data: {
           productId: productId,
-          type: "INVENTORY_UPDATE" as any, // Cast to any to bypass enum restriction
+          type: "INVENTORY_UPDATE" as unknown, // Cast to unknown to bypass enum restriction
           description: `Supply chain update: ${stage} at ${location}`,
           metadata: {
             batchNumber: batchNumber,
@@ -287,7 +287,7 @@ export class BlockchainService {
         timestamp: record.createdAt,
         verifiedBy,
         transactionHash,
-        metadata: record.metadata as any,
+        metadata: record.metadata as unknown,
       };
     } catch (error) {
       console.error('Error recording supply chain event:', error);
@@ -404,7 +404,7 @@ export class BlockchainService {
       const activities = await prisma.productActivity.findMany({
         where: {
           productId,
-          type: "INVENTORY_UPDATE" as any,
+          type: "INVENTORY_UPDATE" as unknown,
           metadata: {
             not: null
           }
@@ -412,8 +412,8 @@ export class BlockchainService {
       });
 
       // Convert to SupplyChainRecord format
-      const supplyChainHistory: SupplyChainRecord[] = activities.map((activity: any) => {
-        const metadata = activity.metadata as any;
+      const supplyChainHistory: SupplyChainRecord[] = activities.map((activity: unknown) => {
+        const metadata = activity.metadata as unknown;
         return {
           id: activity.id,
           productId: activity.productId,
@@ -538,7 +538,7 @@ export class BlockchainService {
   /**
    * Store data on blockchain
    */
-  private async storeOnBlockchain(data: any): Promise<string> {
+  private async storeOnBlockchain(data: unknown): Promise<string> {
     // In production, this would store data on the actual blockchain
     // For now, return a mock transaction hash
     return crypto.randomBytes(32).toString('hex');
@@ -547,7 +547,7 @@ export class BlockchainService {
   /**
    * Deploy NFT contract
    */
-  private async deployNFTContract(collectionData: any): Promise<string> {
+  private async deployNFTContract(collectionData: unknown): Promise<string> {
     // In production, this would deploy an actual NFT contract
     // For now, return a mock contract address
     return `0x${crypto.randomBytes(32).toString('hex')}`;
@@ -560,7 +560,7 @@ export class BlockchainService {
     contractAddress: string,
     tokenId: number,
     ownerAddress: string,
-    tokenData: any
+    tokenData: unknown
   ): Promise<string> {
     // In production, this would mint an actual NFT
     // For now, return a mock transaction hash
