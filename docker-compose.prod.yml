@@ -1,0 +1,245 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (Production)
+  postgres:
+    image: postgres:15-alpine
+    container_name: smartstore-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-smartstore_prod}
+      POSTGRES_USER: ${POSTGRES_USER:-smartstore_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartstore_user} -d ${POSTGRES_DB:-smartstore_prod}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+  # PgBouncer for connection pooling (Production)
+  pgbouncer:
+    image: edoburu/pgbouncer:1.18.0
+    container_name: smartstore-pgbouncer-prod
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${POSTGRES_USER:-smartstore_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB:-smartstore_prod}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 50
+      RESERVE_POOL_SIZE: 10
+      MAX_DB_CONNECTIONS: 100
+      MAX_USER_CONNECTIONS: 200
+      SERVER_RESET_QUERY: DISCARD ALL
+      SERVER_CHECK_QUERY: SELECT 1
+      SERVER_CHECK_DELAY: 30
+    ports:
+      - "6432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-smartstore_user} -d ${POSTGRES_DB:-smartstore_prod}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+  # Redis for caching and rate limiting (Production)
+  redis:
+    image: redis:7-alpine
+    container_name: smartstore-redis-prod
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10 --save 60 10000
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+  # Nginx reverse proxy and load balancer (Production)
+  nginx:
+    image: nginx:alpine
+    container_name: smartstore-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs_prod:/var/log/nginx
+    depends_on:
+      - smartstore-app
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+  # SmartStore SaaS Application (Production)
+  smartstore-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: smartstore-app-prod
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartstore_user}:${POSTGRES_PASSWORD}@pgbouncer:5432/${POSTGRES_DB:-smartstore_prod}?schema=public&pgbouncer=true&connection_limit=1&pool_timeout=30
+      REDIS_URL: redis://redis:6379
+      UPSTASH_REDIS_REST_URL: http://redis:6379
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Background Worker for heavy tasks (Production)
+  smartstore-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    container_name: smartstore-worker-prod
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smartstore_user}:${POSTGRES_PASSWORD}@pgbouncer:5432/${POSTGRES_DB:-smartstore_prod}?schema=public&pgbouncer=true&connection_limit=1&pool_timeout=30
+      REDIS_URL: redis://redis:6379
+      UPSTASH_REDIS_REST_URL: http://redis:6379
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN}
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Prometheus for metrics collection (Production)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: smartstore-prometheus-prod
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_prod:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+  # Grafana for metrics visualization (Production)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: smartstore-grafana-prod
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+    volumes:
+      - grafana_data_prod:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+  # Jaeger for distributed tracing (Production)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: smartstore-jaeger-prod
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+    networks:
+      - smartstore-network-prod
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+  nginx_logs_prod:
+    driver: local
+  prometheus_data_prod:
+    driver: local
+  grafana_data_prod:
+    driver: local
+
+networks:
+  smartstore-network-prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

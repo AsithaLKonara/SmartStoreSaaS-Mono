@@ -1,0 +1,38 @@
+{
+  "database": {
+    "connectionPool": {
+      "min": 2,
+      "max": 10,
+      "acquireTimeoutMillis": 30000,
+      "createTimeoutMillis": 30000,
+      "destroyTimeoutMillis": 5000,
+      "idleTimeoutMillis": 30000,
+      "reapIntervalMillis": 1000,
+      "createRetryIntervalMillis": 200
+    },
+    "queryTimeout": 5000,
+    "statementTimeout": 5000
+  },
+  "redis": {
+    "connectionPool": {
+      "min": 2,
+      "max": 10,
+      "acquireTimeoutMillis": 30000,
+      "createTimeoutMillis": 30000,
+      "destroyTimeoutMillis": 5000,
+      "idleTimeoutMillis": 30000
+    },
+    "retryStrategy": {
+      "retries": 3,
+      "factor": 2,
+      "minTimeout": 1000,
+      "maxTimeout": 5000
+    }
+  },
+  "api": {
+    "compression": true,
+    "etags": true,
+    "responseTimeHeaders": true,
+    "jsonOptimization": true
+  }
+}

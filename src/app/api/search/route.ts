@@ -15,7 +15,7 @@ export function OPTIONS() {
   return handlePreflight();
 }
 
-export async function GET(request: AuthenticatedRequest) {
+async function searchHandler(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
@@ -105,7 +105,7 @@ export async function GET(request: AuthenticatedRequest) {
   }
 }
 
-export async function POST(request: AuthenticatedRequest) {
+async function postHandler(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     const { action, ...data } = body;
@@ -192,10 +192,10 @@ export async function POST(request: AuthenticatedRequest) {
 }
 
 // Export protected handlers with security middleware
-export const GET_PROTECTED = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  GET
+export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  searchHandler
 );
 
-export const POST_PROTECTED = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  POST
+export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
+  postHandler
 ); 
