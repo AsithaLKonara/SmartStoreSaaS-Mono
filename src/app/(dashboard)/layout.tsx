@@ -45,6 +45,7 @@ const navigation = [
   { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
   { name: 'Chat', href: '/chat', icon: MessageCircle },
   { name: 'Reports', href: '/reports', icon: BarChart },
+  { name: 'AI Insights', href: '/ai-insights', icon: Bot },
   { name: 'Integrations', href: '/integrations', icon: Settings },
   { name: 'Sync', href: '/sync', icon: RefreshCw },
   { name: 'Settings', href: '/settings', icon: Settings2 },

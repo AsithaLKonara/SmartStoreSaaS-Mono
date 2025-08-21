@@ -1,26 +1,19 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
-// Mock user data for development (using plain text for now)
-const mockUsers = [
-  {
-    id: '1',
-    email: 'admin@smartstore.ai',
-    password: 'admin123', // Plain text for testing
-    name: 'Admin User',
-    role: 'ADMIN',
-    organizationId: 'org-1',
-  },
-  {
-    id: '2',
-    email: 'user@smartstore.ai',
-    password: 'user123', // Plain text for testing
-    name: 'Test User',
-    role: 'USER',
-    organizationId: 'org-1',
-  },
-];
+const prisma = new PrismaClient();
+
+// Define proper types for our user and session
+interface ExtendedUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  organizationId: string;
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -34,7 +27,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<ExtendedUser | null> {
         console.log('🔐 Auth attempt:', { email: credentials?.email, hasPassword: !!credentials?.password });
         
         if (!credentials?.email || !credentials?.password) {
@@ -42,32 +35,52 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Find user in mock data
-        const user = mockUsers.find(u => u.email === credentials.email);
-        console.log('👤 User found:', !!user);
+        try {
+          // Find user in database
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            include: { organization: true }
+          });
+          
+          console.log('👤 User found:', !!user);
 
-        if (!user) {
-          console.log('❌ User not found');
+          if (!user) {
+            console.log('❌ User not found');
+            return null;
+          }
+
+          // Check if user is active
+          if (!user.isActive) {
+            console.log('❌ User account is inactive');
+            return null;
+          }
+
+          // Verify password
+          if (user.password) {
+            const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+            console.log('🔑 Password valid:', isPasswordValid);
+
+            if (!isPasswordValid) {
+              console.log('❌ Invalid password');
+              return null;
+            }
+          } else {
+            console.log('❌ No password set for user');
+            return null;
+          }
+
+          console.log('✅ Authentication successful for:', user.email);
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name || '',
+            role: user.role || 'USER',
+            organizationId: user.organizationId || '',
+          };
+        } catch (error) {
+          console.error('❌ Database error during authentication:', error);
           return null;
         }
-
-        // Simple password comparison for testing
-        const isPasswordValid = credentials.password === user.password;
-        console.log('🔑 Password valid:', isPasswordValid);
-
-        if (!isPasswordValid) {
-          console.log('❌ Invalid password');
-          return null;
-        }
-
-        console.log('✅ Authentication successful for:', user.email);
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          organizationId: user.organizationId,
-        };
       },
     }),
   ],
@@ -77,16 +90,23 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as unknown).role;
-        token.organizationId = (user as unknown).organizationId;
+        const extendedUser = user as ExtendedUser;
+        token.role = extendedUser.role;
+        token.organizationId = extendedUser.organizationId;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        (session.user as unknown).id = token.sub!;
-        (session.user as unknown).role = token.role as string;
-        (session.user as unknown).organizationId = token.organizationId as string;
+        return {
+          ...session,
+          user: {
+            ...session.user,
+            id: token.sub!,
+            role: token.role as string,
+            organizationId: token.organizationId as string,
+          }
+        };
       }
       return session;
     },

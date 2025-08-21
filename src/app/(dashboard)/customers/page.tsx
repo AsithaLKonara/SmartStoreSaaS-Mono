@@ -19,7 +19,8 @@ import {
   Star,
   Tag,
   TrendingUp,
-  Users
+  Users,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
@@ -54,6 +55,7 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [spendingFilter, setSpendingFilter] = useState('');
+  const [aiInsights, setAiInsights] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -62,6 +64,7 @@ export default function CustomersPage() {
       return;
     }
     fetchCustomers();
+    fetchAIInsights();
   }, [session, status]);
 
   const fetchCustomers = async () => {
@@ -76,6 +79,20 @@ export default function CustomersPage() {
       toast.error('Failed to load customers');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAIInsights = async () => {
+    try {
+      const response = await fetch('/api/analytics/dashboard?organizationId=org-1&period=30');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.aiInsights) {
+          setAiInsights(data.aiInsights);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching AI insights:', error);
     }
   };
 
@@ -245,6 +262,57 @@ export default function CustomersPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Customer Insights */}
+      {aiInsights?.churnPredictions?.length > 0 && (
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg p-6 border border-red-200 dark:border-red-700">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">AI Customer Risk Alert</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">High churn risk customers identified by AI</p>
+              </div>
+            </div>
+            <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+              {aiInsights.churnPredictions.filter((p: any) => p.riskLevel === 'HIGH').length} High Risk
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {aiInsights.churnPredictions
+              .filter((p: any) => p.riskLevel === 'HIGH')
+              .slice(0, 6)
+              .map((prediction: any, index: number) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-red-200 dark:border-red-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-gray-900 dark:text-white">{prediction.customerName}</h3>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      {prediction.churnProbability}% Risk
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <p>Last Order: {formatDate(prediction.lastOrderDate)}</p>
+                    <p>Total Spent: {formatCurrency(prediction.totalSpent)}</p>
+                  </div>
+                  <div className="mt-3">
+                    <p className="text-xs text-red-600 font-medium">Prevention Actions:</p>
+                    <ul className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
+                      {prediction.preventionActions?.slice(0, 2).map((action: string, actionIndex: number) => (
+                        <li key={actionIndex} className="flex items-center">
+                          <span className="w-1 h-1 bg-red-400 rounded-full mr-2"></span>
+                          {action}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4">

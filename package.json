@@ -10,24 +10,20 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:unit": "jest --testPathPattern=tests/unit",
     "test:integration": "jest --config jest.integration.config.js",
     "test:api": "jest --testPathPattern=tests/integration/api",
-    
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:install": "playwright install",
-    
     "test:load": "k6 run tests/load/k6-load-test.js",
     "test:load:prod": "k6 run tests/load/k6-load-test.js --env BASE_URL=https://your-domain.com",
     "test:load:stress": "k6 run tests/load/k6-stress-test.js",
-    
     "test:security": "jest --testPathPattern=tests/security --coverage",
     "test:security:zap": "docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:3000 -J -j",
     "test:security:audit": "npm audit --audit-level=moderate",
@@ -36,20 +32,17 @@
     "test:security:check-deps": "npx audit-ci --moderate",
     "test:security:scan": "npx snyk test",
     "test:security:monitor": "npx snyk monitor",
-    
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e && npm run test:load && npm run test:security",
     "test:ci": "npm run test:unit && npm run test:integration && npm run test:e2e:headless && npm run test:load && npm run test:security",
-    
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:comprehensive": "tsx prisma/seed-comprehensive.ts",
     "db:test:setup": "NODE_ENV=test prisma db push",
     "db:test:reset": "NODE_ENV=test prisma db push --force-reset",
-    
     "lint:security": "npx eslint . --ext .ts,.tsx,.js,.jsx",
     "pre-commit": "npm run lint:security && npm run test:security:audit",
-    
     "monolithic:setup": "./setup-monolithic.sh",
     "monolithic:start": "docker-compose up -d",
     "monolithic:stop": "docker-compose down",
@@ -145,6 +138,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.9.0",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@playwright/test": "^1.54.2",
     "@testing-library/jest-dom": "^6.7.0",

@@ -31,7 +31,6 @@ model User {
 
   // Relations
   organizationId  String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
   createdOrders   Order[] @relation("OrderCreatedBy")
   updatedOrders   Order[] @relation("OrderUpdatedBy")
   createdProducts Product[] @relation("ProductCreatedBy")
@@ -67,10 +66,6 @@ model Organization {
   analytics   Analytics[]
   reports     Report[]
   inventoryMovements InventoryMovement[]
-  purchaseOrders PurchaseOrder[]
-  wooCommerceIntegrations WooCommerceIntegration[]
-  whatsAppIntegrations WhatsAppIntegration[]
-  customerLoyalty CustomerLoyalty[]
 
   @@map("organizations")
 }
@@ -95,31 +90,8 @@ model Customer {
   payments     Payment[]
   deliveries   Delivery[]
   analytics    Analytics[]
-  loyalty      CustomerLoyalty?
 
   @@map("customers")
-}
-
-// Customer Loyalty Management
-model CustomerLoyalty {
-  id              String   @id @default(cuid())
-  customerId      String   @unique
-  organizationId  String
-  points          Int      @default(0)
-  tier            String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
-  totalSpent      Float    @default(0)
-  totalOrders     Int      @default(0)
-  lastOrderDate   DateTime?
-  tierExpiryDate  DateTime?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  customer        Customer     @relation(fields: [customerId], references: [id])
-  organization    Organization @relation(fields: [organizationId], references: [id])
-
-  @@map("customer_loyalty")
 }
 
 // Category Management
@@ -158,69 +130,19 @@ model Product {
   weight           Float?
   dimensions       Json?    // Dimensions object
   tags             String[]
-  isVariant       Boolean  @default(false)
-  parentProductId  String?  // For variant products
-  variantGroup    String?  // Group variants together
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relations
   organization     Organization @relation(fields: [organizationId], references: [id])
   category        Category?    @relation(fields: [categoryId], references: [id])
   createdBy       User         @relation("ProductCreatedBy", fields: [createdById], references: [id])
   updatedBy       User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
-  parentProduct   Product?     @relation("ProductVariants", fields: [parentProductId], references: [id])
-  variants        Product[]    @relation("ProductVariants")
-  productVariants ProductVariant[]
   orderItems      OrderItem[]
   inventoryMovements InventoryMovement[]
   analytics       Analytics[]
-  media           ProductMedia[]
 
   @@map("products")
-}
-
-// Product Media Management
-model ProductMedia {
-  id          String   @id @default(cuid())
-  productId   String
-  type        String   // IMAGE, VIDEO, DOCUMENT, 3D_MODEL
-  url         String
-  altText     String?
-  sortOrder   Int      @default(0)
-  isPrimary   Boolean  @default(false)
-  metadata    Json?    // Additional media properties
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  product     Product  @relation(fields: [productId], references: [id])
-
-  @@map("product_media")
-}
-
-// Product Variant Management
-model ProductVariant {
-  id          String   @id @default(cuid())
-  productId   String
-  name        String   // e.g., "Red", "Large", "Cotton"
-  value       String   // e.g., "Red", "XL", "100% Cotton"
-  sku         String?  @unique
-  price       Float?
-  comparePrice Float?
-  cost        Float?
-  inventoryQuantity Int @default(0)
-  weight      Float?
-  dimensions  Json?    // Variant-specific dimensions
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  product     Product  @relation(fields: [productId], references: [id])
-
-  @@map("product_variants")
 }
 
 // Order Management
@@ -253,26 +175,8 @@ model Order {
   deliveries      Delivery[]
   inventoryMovements InventoryMovement[]
   analytics       Analytics[]
-  statusHistory   OrderStatusHistory[]
 
   @@map("orders")
-}
-
-// Order Status History
-model OrderStatusHistory {
-  id          String   @id @default(cuid())
-  orderId     String
-  status      String   // Previous status
-  newStatus   String   // New status
-  reason      String?  // Reason for status change
-  notes       String?  // Additional notes
-  changedBy   String   // User ID who made the change
-  createdAt   DateTime @default(now())
-
-  // Relations
-  order       Order    @relation(fields: [orderId], references: [id])
-
-  @@map("order_status_history")
 }
 
 // Order Item Management
@@ -365,7 +269,6 @@ model Courier {
   vehicleNumber     String?
   organizationId    String
   status            String   @default("ACTIVE") // ACTIVE, INACTIVE, OFFLINE
-  isActive          Boolean  @default(true)
   rating            Float?
   totalDeliveries   Int      @default(0)
   createdAt         DateTime @default(now())
@@ -420,28 +323,8 @@ model Campaign {
 
   // Relations
   organization      Organization @relation(fields: [organizationId], references: [id])
-  details           CampaignDetail[]
 
   @@map("campaigns")
-}
-
-// Marketing Campaign Details
-model CampaignDetail {
-  id              String   @id @default(cuid())
-  campaignId      String
-  type            String   // EMAIL_TEMPLATE, SMS_TEMPLATE, SOCIAL_POST, LANDING_PAGE
-  content         Json     // Template content, design, etc.
-  targetAudience  Json     // Audience criteria
-  schedule        Json     // Timing and frequency
-  metrics         Json     // Performance tracking
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  campaign        Campaign @relation(fields: [campaignId], references: [id])
-
-  @@map("campaign_details")
 }
 
 // Analytics Management
@@ -507,42 +390,4 @@ model PurchaseOrder {
   createdBy       User         @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
 
   @@map("purchase_orders")
-}
-
-// WooCommerce Integration
-model WooCommerceIntegration {
-  id              String   @id @default(cuid())
-  organizationId  String
-  siteUrl         String
-  consumerKey     String
-  consumerSecret  String
-  isActive        Boolean  @default(true)
-  lastSync        DateTime?
-  syncSettings    Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  @@map("woocommerce_integrations")
-}
-
-// WhatsApp Integration
-model WhatsAppIntegration {
-  id              String   @id @default(cuid())
-  organizationId  String
-  phoneNumber     String
-  accessToken     String
-  isActive        Boolean  @default(true)
-  webhookUrl      String?
-  lastSync        DateTime?
-  syncSettings    Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id])
-
-  @@map("whatsapp_integrations")
 }

@@ -15,7 +15,8 @@ import {
   Tag,
   DollarSign,
   AlertTriangle,
-  Trash2
+  Trash2,
+  Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -55,6 +56,8 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [stockFilter, setStockFilter] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  const [showAIRecommendations, setShowAIRecommendations] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -63,6 +66,7 @@ export default function ProductsPage() {
       return;
     }
     fetchProducts();
+    fetchAIRecommendations();
   }, [session, status]);
 
   const fetchProducts = async () => {
@@ -77,6 +81,18 @@ export default function ProductsPage() {
       toast.error('Failed to load products');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAIRecommendations = async () => {
+    try {
+      const response = await fetch('/api/ai/recommendations?userId=user-1&organizationId=org-1&limit=5');
+      if (response.ok) {
+        const data = await response.json();
+        setAiRecommendations(data.recommendations || []);
+      }
+    } catch (error) {
+      console.error('Error fetching AI recommendations:', error);
     }
   };
 
@@ -259,6 +275,57 @@ export default function ProductsPage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* AI Recommendations Section */}
+      {aiRecommendations.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-700 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">AI Product Recommendations</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Based on your browsing and purchase patterns</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowAIRecommendations(!showAIRecommendations)}
+              className="border-purple-200 text-purple-600 hover:bg-purple-50"
+            >
+              {showAIRecommendations ? 'Hide' : 'Show'} Recommendations
+            </Button>
+          </div>
+          
+          {showAIRecommendations && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {aiRecommendations.map((rec, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-gray-900 dark:text-white text-sm">{rec.productName}</h3>
+                    <span className="text-xs text-purple-600 bg-purple-100 dark:bg-purple-900/20 px-2 py-1 rounded-full">
+                      Score: {rec.score?.toFixed(2) || 'N/A'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">{rec.reason || 'AI recommended based on your preferences'}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Confidence: {rec.confidence || 'N/A'}%</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/products/${rec.productId}`)}
+                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                    >
+                      View Product
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

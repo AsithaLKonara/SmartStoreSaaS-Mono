@@ -81,12 +81,14 @@ export class SriLankaCourierService extends EventEmitter {
       });
 
       courierConfigs.forEach(courier => {
-        this.couriers.set(courier.code, {
+        // Use courier name as code if code field doesn't exist
+        const courierCode = (courier as any).code || courier.name.toLowerCase().replace(/\s+/g, '_');
+        this.couriers.set(courierCode, {
           name: courier.name,
-          code: courier.code,
-          apiKey: courier.apiKey || '',
-          apiSecret: courier.apiSecret || '',
-          baseUrl: this.getCourierBaseUrl(courier.code),
+          code: courierCode,
+          apiKey: (courier as any).apiKey || '',
+          apiSecret: (courier as any).apiSecret || '',
+          baseUrl: this.getCourierBaseUrl(courierCode),
           isActive: courier.isActive,
           organizationId: courier.organizationId
         });
@@ -97,6 +99,8 @@ export class SriLankaCourierService extends EventEmitter {
   }
 
   private getCourierBaseUrl(courierCode: string): string {
+    if (!courierCode) return '';
+    
     const baseUrls: Record<string, string> = {
       'aramex': 'https://ws.aramex.com/',
       'dhl': 'https://api.dhl.com/',
