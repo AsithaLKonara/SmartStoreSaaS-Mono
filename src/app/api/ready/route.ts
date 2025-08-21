@@ -1,26 +1,24 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
-import { createSuccessResponse, CommonErrors, generateRequestId, getRequestPath } from '@/lib/error-handling';
 
 // Handle CORS preflight
 export function OPTIONS() {
-  return handlePreflight();
+  return new NextResponse(null, { status: 200 });
 }
 
 // Readiness check - determines if the app is ready to serve traffic
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const startTime = Date.now();
     const readinessChecks = {
       database: { ready: false, responseTime: 0, error: null },
-      redis: { ready: false, responseTime: 0, error: null },
       app: { ready: true, responseTime: 0, error: null }
     };
 
     // Check database readiness
     try {
       const dbStart = Date.now();
+      // Simple PostgreSQL health check
       await prisma.$queryRaw`SELECT 1`;
       const dbEnd = Date.now();
       readinessChecks.database = {
@@ -36,40 +34,11 @@ export async function GET(request: Request) {
       };
     }
 
-    // Check Redis readiness (if configured)
-    if (process.env.UPSTASH_REDIS_REST_URL) {
-      try {
-        const redisStart = Date.now();
-        // Simple Redis check - you might want to use your Redis client here
-        const redisEnd = Date.now();
-        readinessChecks.redis = {
-          ready: true,
-          responseTime: redisEnd - redisStart,
-          error: null
-        };
-      } catch (error) {
-        readinessChecks.redis = {
-          ready: false,
-          responseTime: 0,
-          error: error instanceof Error ? error.message : 'Redis connection failed'
-        };
-      }
-    } else {
-      readinessChecks.redis = {
-        ready: true, // Not required for basic operation
-        responseTime: 0,
-        error: null
-      };
-    }
-
     const endTime = Date.now();
     const totalResponseTime = endTime - startTime;
 
     // Determine overall readiness
-    const criticalServices = ['database'];
-    const isReady = criticalServices.every(
-      service => readinessChecks[service as keyof typeof readinessChecks].ready
-    );
+    const isReady = readinessChecks.database.ready;
 
     const readinessData = {
       ready: isReady,
@@ -84,21 +53,30 @@ export async function GET(request: Request) {
     };
 
     if (isReady) {
-      const response = createSuccessResponse(readinessData, 'Application is ready');
-      const origin = getCorsOrigin(request);
-      return corsResponse(response.data, response.status, origin);
+      return NextResponse.json({
+        success: true,
+        data: readinessData,
+        message: 'Application is ready',
+        timestamp: new Date().toISOString()
+      });
     } else {
       // Return 503 Service Unavailable if not ready
-      const response = createSuccessResponse(readinessData, 'Application is not ready', 503);
-      const origin = getCorsOrigin(request);
-      return corsResponse(response.data, response.status, origin);
+      return NextResponse.json({
+        success: false,
+        data: readinessData,
+        message: 'Application is not ready',
+        timestamp: new Date().toISOString()
+      }, { status: 503 });
     }
 
   } catch (error) {
     console.error('Readiness check error:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
     
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
+    return NextResponse.json({
+      success: false,
+      error: 'Internal Server Error',
+      message: 'Failed to check application readiness',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }

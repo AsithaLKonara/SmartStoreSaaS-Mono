@@ -17,21 +17,40 @@ export async function GET(request: Request) {
       redis: { status: 'unknown', responseTime: 0, error: null }
     };
 
-    // Check database connectivity (critical)
+    // Check database connectivity (critical) - database-agnostic
     try {
       const dbStart = Date.now();
-      await prisma.$queryRaw`SELECT 1`;
+      
+      // Try to determine database type and run appropriate health check
+      const dbUrl = process.env.DATABASE_URL || '';
+      let dbType = 'unknown';
+      
+      if (dbUrl.includes('postgresql') || dbUrl.includes('postgres')) {
+        dbType = 'postgresql';
+        await prisma.$queryRaw`SELECT 1`;
+      } else if (dbUrl.includes('mongodb')) {
+        dbType = 'mongodb';
+        // MongoDB health check - try to access a collection
+        await prisma.$runCommandRaw({ ping: 1 });
+      } else {
+        // Generic health check
+        await prisma.$queryRaw`SELECT 1`;
+        dbType = 'generic';
+      }
+      
       const dbEnd = Date.now();
       readinessChecks.database = {
         status: 'ready',
         responseTime: dbEnd - dbStart,
-        error: null
+        error: null,
+        type: dbType
       };
     } catch (error) {
       readinessChecks.database = {
         status: 'not_ready',
         responseTime: 0,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Database connection failed',
+        type: 'unknown'
       };
     }
 
