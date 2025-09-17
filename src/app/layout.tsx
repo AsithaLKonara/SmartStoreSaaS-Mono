@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PerformanceOptimizer } from '@/components/PerformanceOptimizer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -66,18 +67,32 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full bg-gray-50`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="theme-color" content="#3b82f6" />
+      </head>
+      <body className={`${inter.className} h-full bg-gradient-to-br from-gray-50 to-blue-50 antialiased`}>
         <ErrorBoundary>
           <QueryProvider>
             <AuthProvider>
-              {children}
+              <PerformanceOptimizer>
+                {children}
+              </PerformanceOptimizer>
               <Toaster
                 position="top-right"
                 toastOptions={{
                   duration: 4000,
                   style: {
-                    background: '#363636',
+                    background: '#1f2937',
                     color: '#fff',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                   },
                   success: {
                     duration: 3000,

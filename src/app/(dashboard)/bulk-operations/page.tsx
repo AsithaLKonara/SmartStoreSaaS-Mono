@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
   Upload, Download, FileText, CheckCircle, XCircle, Clock, AlertTriangle,
-  Users, Package, ShoppingCart, DollarSign, Settings, Plus, Eye, Trash2,
+  Users, Package, ShoppingCart, Banknote, Settings, Plus, Eye, Trash2,
   BarChart3, Database, RefreshCw, Filter, Search, ArrowUpDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -88,7 +88,7 @@ export default function BulkOperationsPage() {
       case 'CUSTOMERS': return <Users className="w-4 h-4" />;
       case 'ORDERS': return <ShoppingCart className="w-4 h-4" />;
       case 'INVENTORY': return <Database className="w-4 h-4" />;
-      case 'EXPENSES': return <DollarSign className="w-4 h-4" />;
+      case 'EXPENSES': return <Banknote className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
     }
   };
@@ -208,7 +208,7 @@ export default function BulkOperationsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <Database className="w-8 h-8 text-blue-600" />
             Bulk Operations
           </h1>
@@ -234,16 +234,16 @@ export default function BulkOperationsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Operations</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalOperations}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalOperations}</p>
             </div>
             <Database className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Completed</p>
@@ -252,7 +252,7 @@ export default function BulkOperationsPage() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Processing</p>
@@ -261,7 +261,7 @@ export default function BulkOperationsPage() {
             <RefreshCw className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Failed</p>
@@ -273,7 +273,7 @@ export default function BulkOperationsPage() {
       </div>
 
       {/* Quick Operations */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold mb-4">Quick Operations</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button
@@ -308,8 +308,8 @@ export default function BulkOperationsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'operations', label: 'Active Operations', icon: RefreshCw },
@@ -370,7 +370,7 @@ export default function BulkOperationsPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -401,12 +401,12 @@ export default function BulkOperationsPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {filteredOperations.map((operation) => (
                         <tr key={operation.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{operation.name}</div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{operation.name}</div>
                               <div className="text-sm text-gray-500">ID: {operation.id}</div>
                             </div>
                           </td>
@@ -439,7 +439,7 @@ export default function BulkOperationsPage() {
                               {operation.processedRecords} / {operation.totalRecords}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             <div className="flex gap-2">
                               <span className="text-green-600">✓ {operation.successCount}</span>
                               <span className="text-red-600">✗ {operation.errorCount}</span>
@@ -495,9 +495,9 @@ export default function BulkOperationsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.map((template) => (
-                  <div key={template.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
+                  <div key={template.id} className="bg-white dark:bg-gray-800 rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900">{template.name}</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</h4>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEntityColor(template.entity)}`}>
                         {getEntityIcon(template.entity)}
                         <span className="ml-1">{template.entity}</span>
@@ -549,7 +549,7 @@ export default function BulkOperationsPage() {
                     <h4 className="text-lg font-semibold mb-4">Recent Operations</h4>
                     <div className="space-y-3">
                       {operations.slice(0, 5).map((operation) => (
-                        <div key={operation.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <div key={operation.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
                           <div>
                             <p className="font-medium">{operation.name}</p>
                             <p className="text-sm text-gray-600">{operation.entity}</p>
@@ -578,7 +578,7 @@ export default function BulkOperationsPage() {
                         const successRate = total > 0 ? (completed / total) * 100 : 0;
 
                         return (
-                          <div key={entity} className="flex items-center justify-between p-3 bg-white rounded border">
+                          <div key={entity} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
                             <div className="flex items-center gap-2">
                               {getEntityIcon(entity)}
                               <span className="font-medium">{entity}</span>

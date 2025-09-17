@@ -7,7 +7,7 @@ import {
   Truck, MapPin, Clock, User, Phone, Mail, Plus, Search, Filter,
   Download, Upload, AlertTriangle, CheckCircle, XCircle, TrendingUp,
   BarChart3, Settings, Edit, Trash2, Eye, Navigation, Route, Package,
-  DollarSign, Star, Calendar, Map, Wifi, WifiOff, Battery
+  Banknote, Star, Calendar, Map, Wifi, WifiOff, Battery
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
@@ -155,7 +155,7 @@ export default function CouriersPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <Truck className="w-8 h-8 text-blue-600" />
             Courier Management
           </h1>
@@ -181,16 +181,16 @@ export default function CouriersPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Couriers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCouriers}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalCouriers}</p>
             </div>
             <Truck className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Active Couriers</p>
@@ -199,7 +199,7 @@ export default function CouriersPage() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Online Now</p>
@@ -208,20 +208,20 @@ export default function CouriersPage() {
             <Wifi className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Earnings</p>
               <p className="text-2xl font-bold text-purple-600">{formatCurrency(stats.totalEarnings)}</p>
             </div>
-            <DollarSign className="w-8 h-8 text-purple-600" />
+            <Banknote className="w-8 h-8 text-purple-600" />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'couriers', label: 'Couriers', icon: User },
@@ -281,14 +281,14 @@ export default function CouriersPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCouriers.map((courier) => (
-                  <div key={courier.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
+                  <div key={courier.id} className="bg-white dark:bg-gray-800 rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                           <User className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="text-lg font-semibold text-gray-900">{courier.name}</h4>
+                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{courier.name}</h4>
                           <p className="text-sm text-gray-600">{courier.email}</p>
                         </div>
                       </div>
@@ -371,7 +371,7 @@ export default function CouriersPage() {
                 </Button>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -402,17 +402,17 @@ export default function CouriersPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {deliveries.map((delivery) => (
                         <tr key={delivery.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{delivery.orderNumber}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{delivery.orderNumber}</div>
                             <div className="text-sm text-gray-500">{formatDate(delivery.createdAt)}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {delivery.customerName}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {delivery.assignedCourierName || 'Unassigned'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -420,10 +420,10 @@ export default function CouriersPage() {
                               {delivery.status.replace('_', ' ')}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {delivery.distance.toFixed(1)} km
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {formatCurrency(delivery.earnings)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -460,7 +460,7 @@ export default function CouriersPage() {
                       .sort((a, b) => b.totalDeliveries - a.totalDeliveries)
                       .slice(0, 5)
                       .map((courier) => (
-                        <div key={courier.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <div key={courier.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
                           <div>
                             <p className="font-medium">{courier.name}</p>
                             <p className="text-sm text-gray-600">{courier.vehicleType}</p>
@@ -482,7 +482,7 @@ export default function CouriersPage() {
                       const percentage = deliveries.length > 0 ? (count / deliveries.length) * 100 : 0;
 
                       return (
-                        <div key={status} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <div key={status} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
                           <div className="flex items-center gap-2">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getDeliveryStatusColor(status)}`}>
                               {status.replace('_', ' ')}

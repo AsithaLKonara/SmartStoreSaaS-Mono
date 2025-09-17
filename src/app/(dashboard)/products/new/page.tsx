@@ -10,7 +10,7 @@ import {
   X, 
   Upload, 
   Package,
-  DollarSign,
+  Banknote,
   Tag,
   AlertTriangle,
   CheckCircle
@@ -223,7 +223,7 @@ export default function NewProductPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto container-responsive">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button
@@ -234,7 +234,7 @@ export default function NewProductPage() {
           Back
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Product</h1>
           <p className="text-gray-600">Create a new product for your catalog</p>
         </div>
       </div>
@@ -244,8 +244,8 @@ export default function NewProductPage() {
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Information */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                 <Package className="w-5 h-5 mr-2" />
                 Basic Information
               </h2>
@@ -344,9 +344,9 @@ export default function NewProductPage() {
             </div>
 
             {/* Pricing & Inventory */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <Banknote className="w-5 h-5 mr-2" />
                 Pricing & Inventory
               </h2>
               
@@ -423,9 +423,9 @@ export default function NewProductPage() {
             </div>
 
             {/* Product Variants */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                   <Tag className="w-5 h-5 mr-2" />
                   Product Variants
                 </h2>
@@ -465,8 +465,8 @@ export default function NewProductPage() {
               )}
 
               {showVariantForm && (
-                <div className="mt-4 p-4 border border-gray-200 rounded-lg">
-                  <h3 className="font-medium text-gray-900 mb-3">Add New Variant</h3>
+                <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">Add New Variant</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
@@ -529,8 +529,8 @@ export default function NewProductPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Images */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Product Images</h2>
               
               <div className="space-y-4">
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
@@ -575,8 +575,8 @@ export default function NewProductPage() {
             </div>
 
             {/* Preview */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Preview</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Product Preview</h2>
               
               <div className="space-y-3">
                 <div className="flex items-center gap-2">

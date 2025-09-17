@@ -1,11 +1,10 @@
 import twilio from 'twilio';
 import { prisma } from '@/lib/prisma';
 
-// Initialize Twilio
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!
-);
+// Initialize Twilio (with fallback for missing credentials)
+const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
 
 export interface SMSOptions {
   to: string;
@@ -95,27 +94,44 @@ export class SMSService {
   }
 
   private async sendWithTwilio(options: SMSOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const messageOptions: unknown = {
-      body: options.message,
-      from: options.from || process.env.TWILIO_PHONE_NUMBER!,
-      to: this.formatPhoneNumber(options.to),
-    };
+    try {
+      // Check if Twilio is configured
+      if (!twilioClient) {
+        console.warn('Twilio credentials not configured, using mock processing');
+        return {
+          success: true,
+          messageId: `twilio_mock_${Date.now()}`,
+        };
+      }
 
-    if (options.mediaUrl && options.mediaUrl.length > 0) {
-      messageOptions.mediaUrl = options.mediaUrl;
+      const messageOptions: any = {
+        body: options.message,
+        from: options.from || process.env.TWILIO_PHONE_NUMBER || '+1234567890',
+        to: this.formatPhoneNumber(options.to),
+      };
+
+      if (options.mediaUrl && options.mediaUrl.length > 0) {
+        messageOptions.mediaUrl = options.mediaUrl;
+      }
+
+      if (options.scheduledTime) {
+        messageOptions.scheduleType = 'fixed';
+        messageOptions.sendAt = options.scheduledTime;
+      }
+
+      const message = await twilioClient.messages.create(messageOptions);
+
+      return {
+        success: true,
+        messageId: message.sid,
+      };
+    } catch (error: any) {
+      console.error('Twilio SMS error:', error);
+      return {
+        success: false,
+        error: error.message || 'Unknown error',
+      };
     }
-
-    if (options.scheduledTime) {
-      messageOptions.scheduleType = 'fixed';
-      messageOptions.sendAt = options.scheduledTime;
-    }
-
-    const message = await twilioClient.messages.create(messageOptions);
-
-    return {
-      success: true,
-      messageId: message.sid,
-    };
   }
 
   private async sendWithAWSSNS(options: SMSOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {

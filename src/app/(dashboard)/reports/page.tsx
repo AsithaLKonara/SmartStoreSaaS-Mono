@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
-  BarChart3, Download, Calendar, TrendingUp, TrendingDown, DollarSign,
+  BarChart3, Download, Calendar, TrendingUp, TrendingDown, Banknote,
   Users, Package, ShoppingCart, Filter, Search, FileText, PieChart,
   LineChart, BarChart, Activity, Target, Award, Clock, CheckCircle,
   XCircle, AlertTriangle, Plus, Eye, Settings
@@ -82,7 +82,7 @@ export default function ReportsPage() {
       case 'SALES': return <TrendingUp className="w-4 h-4" />;
       case 'INVENTORY': return <Package className="w-4 h-4" />;
       case 'CUSTOMER': return <Users className="w-4 h-4" />;
-      case 'FINANCIAL': return <DollarSign className="w-4 h-4" />;
+      case 'FINANCIAL': return <Banknote className="w-4 h-4" />;
       case 'OPERATIONAL': return <Activity className="w-4 h-4" />;
       case 'CUSTOM': return <FileText className="w-4 h-4" />;
       default: return <BarChart3 className="w-4 h-4" />;
@@ -196,7 +196,7 @@ export default function ReportsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-blue-600" />
             Advanced Reporting
           </h1>
@@ -222,16 +222,16 @@ export default function ReportsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Reports</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalReports}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalReports}</p>
             </div>
             <BarChart3 className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Ready Reports</p>
@@ -240,7 +240,7 @@ export default function ReportsPage() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Generating</p>
@@ -249,7 +249,7 @@ export default function ReportsPage() {
             <Clock className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Failed</p>
@@ -261,7 +261,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Quick Report Generation */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold mb-4">Quick Report Generation</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button
@@ -289,15 +289,15 @@ export default function ReportsPage() {
             onClick={() => handleGenerateReport('financial-overview')}
             className="bg-yellow-600 hover:bg-yellow-700 text-white"
           >
-            <DollarSign className="w-4 h-4 mr-2" />
+            <Banknote className="w-4 h-4 mr-2" />
             Financial Overview
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'reports', label: 'Generated Reports', icon: FileText },
@@ -347,7 +347,7 @@ export default function ReportsPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -372,12 +372,12 @@ export default function ReportsPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {filteredReports.map((report) => (
                         <tr key={report.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{report.name}</div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{report.name}</div>
                               {report.size && (
                                 <div className="text-sm text-gray-500">Size: {report.size}</div>
                               )}
@@ -395,7 +395,7 @@ export default function ReportsPage() {
                               <span className="ml-1">{report.status}</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {report.format}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -446,9 +446,9 @@ export default function ReportsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.map((template) => (
-                  <div key={template.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
+                  <div key={template.id} className="bg-white dark:bg-gray-800 rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900">{template.name}</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</h4>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getReportTypeColor(template.type)}`}>
                         {getReportTypeIcon(template.type)}
                         <span className="ml-1">{template.type}</span>
@@ -496,7 +496,7 @@ export default function ReportsPage() {
 
               <div className="bg-gray-50 rounded-lg p-6 text-center">
                 <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 mb-2">No Scheduled Reports</h4>
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Scheduled Reports</h4>
                 <p className="text-gray-600 mb-4">
                   Schedule reports to be generated automatically at regular intervals.
                 </p>

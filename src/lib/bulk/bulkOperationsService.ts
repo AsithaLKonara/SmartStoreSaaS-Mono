@@ -1,5 +1,5 @@
 import { prisma } from '../prisma';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
 

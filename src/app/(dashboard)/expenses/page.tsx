@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
-  DollarSign, Plus, Search, Filter, Download, Upload, AlertTriangle,
+  Banknote, Plus, Search, Filter, Download, Upload, AlertTriangle,
   CheckCircle, XCircle, Clock, TrendingUp, BarChart3, Settings, Edit,
-  Trash2, Eye, Receipt, CreditCard, Banknote, ShoppingCart, Truck,
+  Trash2, Eye, Receipt, CreditCard, ShoppingCart, Truck,
   Building2, Users, Calendar, PieChart, LineChart, FileText, Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -81,7 +81,7 @@ export default function ExpensesPage() {
       case 'PENDING': return <Clock className="w-4 h-4" />;
       case 'APPROVED': return <CheckCircle className="w-4 h-4" />;
       case 'REJECTED': return <XCircle className="w-4 h-4" />;
-      case 'PAID': return <DollarSign className="w-4 h-4" />;
+      case 'PAID': return <Banknote className="w-4 h-4" />;
       default: return <Clock className="w-4 h-4" />;
     }
   };
@@ -146,8 +146,8 @@ export default function ExpensesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <Banknote className="w-8 h-8 text-blue-600" />
             Expense Management
           </h1>
           <p className="text-gray-600 mt-2">Track, categorize, and manage business expenses</p>
@@ -172,16 +172,16 @@ export default function ExpensesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalExpenses}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalExpenses}</p>
             </div>
-            <DollarSign className="w-8 h-8 text-blue-600" />
+            <Banknote className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Amount</p>
@@ -190,7 +190,7 @@ export default function ExpensesPage() {
             <Receipt className="w-8 h-8 text-red-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pending Amount</p>
@@ -199,7 +199,7 @@ export default function ExpensesPage() {
             <Clock className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Paid Amount</p>
@@ -211,8 +211,8 @@ export default function ExpensesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'expenses', label: 'Expenses', icon: Receipt },
@@ -270,7 +270,7 @@ export default function ExpensesPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -295,12 +295,12 @@ export default function ExpensesPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {filteredExpenses.map((expense) => (
                         <tr key={expense.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{expense.title}</div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{expense.title}</div>
                               <div className="text-sm text-gray-500">{expense.description}</div>
                               {expense.vendor && (
                                 <div className="text-xs text-gray-400">Vendor: {expense.vendor}</div>
@@ -313,7 +313,7 @@ export default function ExpensesPage() {
                               <span className="ml-1">{expense.category}</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                             {formatCurrency(expense.amount)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -379,7 +379,7 @@ export default function ExpensesPage() {
                       const percentage = stats.totalAmount > 0 ? (totalAmount / stats.totalAmount) * 100 : 0;
                       
                       return (
-                        <div key={category} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <div key={category} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
                           <div className="flex items-center gap-2">
                             {getCategoryIcon(category)}
                             <span className="font-medium">{category}</span>
@@ -432,7 +432,7 @@ export default function ExpensesPage() {
                 </Button>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -457,7 +457,7 @@ export default function ExpensesPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
                       {expenses
                         .filter(expense => expense.status === 'PENDING')
                         .map((expense) => (
@@ -467,11 +467,11 @@ export default function ExpensesPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{expense.title}</div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">{expense.title}</div>
                                 <div className="text-sm text-gray-500">{expense.description}</div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                               {formatCurrency(expense.amount)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

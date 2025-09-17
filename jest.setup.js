@@ -33,6 +33,83 @@ jest.mock('next/image', () => ({
   },
 }))
 
+// Mock NextResponse
+const MockResponse = class MockResponse {
+  constructor(body, options = {}) {
+    this.body = body
+    this.status = options.status || 200
+    this._headers = new Map(Object.entries(options.headers || {}))
+  }
+  
+  get headers() {
+    return {
+      get: (name) => this._headers.get(name),
+      set: (name, value) => this._headers.set(name, value)
+    }
+  }
+  
+  json() {
+    return this.body
+  }
+  
+  static json(data, options = {}) {
+    return new MockResponse(data, options)
+  }
+}
+
+jest.mock('next/server', () => ({
+  NextResponse: MockResponse,
+}))
+
+// Mock Prisma for tests
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    $connect: jest.fn(),
+    $disconnect: jest.fn(),
+    product: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({}),
+      update: jest.fn().mockResolvedValue({}),
+      delete: jest.fn().mockResolvedValue({}),
+    },
+    order: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({}),
+      update: jest.fn().mockResolvedValue({}),
+    },
+    customer: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({}),
+      update: jest.fn().mockResolvedValue({}),
+    },
+    payment: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockResolvedValue({}),
+      update: jest.fn().mockResolvedValue({}),
+    },
+    organization: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'test-org', name: 'Test Organization' }),
+    },
+  },
+}))
+
+// Mock TextEncoder for Node.js environment
+global.TextEncoder = class TextEncoder {
+  encode(input) {
+    return Buffer.from(input, 'utf8')
+  }
+}
+
+global.TextDecoder = class TextDecoder {
+  decode(input) {
+    return Buffer.from(input).toString('utf8')
+  }
+}
+
 // Mock environment variables
 process.env.NEXTAUTH_SECRET = 'test-secret'
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
@@ -65,24 +142,7 @@ global.Request = class MockRequest {
   }
 }
 
-global.Response = class MockResponse {
-  constructor(body, options = {}) {
-    this.body = body
-    this.status = options.status || 200
-    this._headers = new Map(Object.entries(options.headers || {}))
-  }
-  
-  get headers() {
-    return {
-      get: (name) => this._headers.get(name),
-      set: (name, value) => this._headers.set(name, value)
-    }
-  }
-  
-  json() {
-    return Promise.resolve(this.body)
-  }
-}
+global.Response = MockResponse
 
 // Console error suppression for tests
 const originalError = console.error

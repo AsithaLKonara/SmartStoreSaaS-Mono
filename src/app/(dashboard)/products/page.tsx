@@ -13,7 +13,7 @@ import {
   Eye,
   Package,
   Tag,
-  DollarSign,
+  Banknote,
   AlertTriangle,
   Trash2,
   Brain
@@ -334,7 +334,7 @@ export default function ProductsPage() {
         {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-x-auto hover:shadow-md transition-shadow"
           >
             {/* Product Image */}
             <div className="relative h-48 bg-gray-100">
@@ -404,7 +404,7 @@ export default function ProductsPage() {
 
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1">
-                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <Banknote className="w-4 h-4 text-green-600" />
                   <span className="font-semibold text-green-600">
                     {formatCurrency(product.price)}
                   </span>

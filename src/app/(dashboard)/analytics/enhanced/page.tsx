@@ -7,7 +7,7 @@ import {
   BarChart3,
   TrendingUp,
   Users,
-  DollarSign,
+  Banknote,
   Package,
   ShoppingCart,
   Target,
@@ -161,7 +161,7 @@ export default function EnhancedAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
             <Brain className="w-6 h-6 mr-2 text-purple-600" />
             AI-Powered Analytics
           </h1>
@@ -200,20 +200,20 @@ export default function EnhancedAnalyticsPage() {
         {/* Key Metrics */}
         <div className="lg:col-span-2 space-y-6">
           {/* Predictive Metrics */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <Zap className="w-5 h-5 mr-2 text-yellow-600" />
               Predictive Analytics
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {predictiveMetrics.map((metric) => (
-                <div key={metric.metric} className="p-4 border border-gray-200 rounded-lg">
+                <div key={metric.metric} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-gray-900">{metric.metric}</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white">{metric.metric}</h3>
                     {getTrendIcon(metric.trend)}
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
                       {formatCurrency(metric.currentValue)}
                     </span>
                     <span className="text-sm text-gray-500">
@@ -240,29 +240,29 @@ export default function EnhancedAnalyticsPage() {
           </div>
 
           {/* Customer Segments */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <Users className="w-5 h-5 mr-2 text-blue-600" />
               Customer Segmentation
             </h2>
             <div className="space-y-4">
               {customerSegments.map((segment) => (
-                <div key={segment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div key={segment.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{segment.name}</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white">{segment.name}</h3>
                     <p className="text-sm text-gray-600">
                       {segment.count} customers • {formatCurrency(segment.value)} value
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {segment.growthRate > 0 ? '+' : ''}{segment.growthRate}%
                       </p>
                       <p className="text-xs text-gray-500">Growth</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {segment.churnRisk}%
                       </p>
                       <p className="text-xs text-gray-500">Churn Risk</p>
@@ -276,8 +276,8 @@ export default function EnhancedAnalyticsPage() {
 
         {/* AI Insights Sidebar */}
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <Brain className="w-5 h-5 mr-2 text-purple-600" />
               AI Insights
             </h2>
@@ -290,10 +290,10 @@ export default function EnhancedAnalyticsPage() {
                   <div className="flex items-start gap-3">
                     {getInsightIcon(insight.type)}
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{insight.title}</h3>
+                      <h3 className="font-medium text-gray-900 dark:text-white">{insight.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
                       {insight.value && (
-                        <p className="text-sm font-medium text-gray-900 mt-2">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white mt-2">
                           Impact: {formatCurrency(insight.value)}
                         </p>
                       )}
@@ -324,8 +324,8 @@ export default function EnhancedAnalyticsPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
             <div className="space-y-3">
               <Button
                 variant="outline"
@@ -367,8 +367,8 @@ export default function EnhancedAnalyticsPage() {
       {/* Business Intelligence */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Performance */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <BarChart3 className="w-5 h-5 mr-2 text-green-600" />
             Sales Performance
           </h2>
@@ -389,7 +389,7 @@ export default function EnhancedAnalyticsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-900">Top Performing Products</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white">Top Performing Products</h4>
                 {(businessInsights.salesInsights.topProducts || []).slice(0, 3).map((product: unknown) => (
                   <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <span className="text-sm font-medium">{product.name}</span>
@@ -402,8 +402,8 @@ export default function EnhancedAnalyticsPage() {
         </div>
 
         {/* Customer Insights */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Users className="w-5 h-5 mr-2 text-blue-600" />
             Customer Insights
           </h2>
@@ -424,7 +424,7 @@ export default function EnhancedAnalyticsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-900">Customer Segments</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white">Customer Segments</h4>
                 {(businessInsights.customerInsights.segments || []).slice(0, 3).map((segment: unknown) => (
                   <div key={segment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <span className="text-sm font-medium">{segment.name}</span>
@@ -438,14 +438,14 @@ export default function EnhancedAnalyticsPage() {
       </div>
 
       {/* Recommendations */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
           <Lightbulb className="w-5 h-5 mr-2 text-yellow-600" />
           AI Recommendations
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(businessInsights.recommendations || []).map((recommendation: string, index: number) => (
-            <div key={index} className="p-4 border border-gray-200 rounded-lg">
+            <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                 <p className="text-sm text-gray-700">{recommendation}</p>

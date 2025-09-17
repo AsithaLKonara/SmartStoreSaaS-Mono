@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
               validationResults.push(validation);
             }
           } else if (validateFormat === 'xlsx') {
-            const XLSX = await import('xlsx');
+            const XLSX = await import('xlsx-js-style');
             const workbook = XLSX.read(fileBuffer);
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];

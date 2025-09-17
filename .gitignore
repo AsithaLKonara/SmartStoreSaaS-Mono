@@ -181,3 +181,4 @@ test-results-*.txt
 
 # Backup directories
 backups/ 
+.env*.local

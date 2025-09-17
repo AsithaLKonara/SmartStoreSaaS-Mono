@@ -16,7 +16,7 @@ describe('Error Handling Utilities', () => {
       expect(data.error).toBe('Bad Request')
       expect(data.message).toBe('Invalid input')
       expect(data.code).toBe('INVALID_INPUT')
-      expect(data.status).toBe(400)
+      expect(data.success).toBe(false)
     })
 
     it('should create error response with custom status', () => {
@@ -24,7 +24,9 @@ describe('Error Handling Utilities', () => {
       
       expect(response.status).toBe(404)
       const data = response.json()
-      expect(data.status).toBe(404)
+      expect(data.error).toBe('Not Found')
+      expect(data.message).toBe('Resource not found')
+      expect(data.code).toBe('NOT_FOUND')
     })
 
     it('should include request ID and path when provided', () => {
@@ -55,7 +57,8 @@ describe('Error Handling Utilities', () => {
       
       expect(response.status).toBe(201)
       const data = response.json()
-      expect(data.status).toBe(201)
+      expect(data.success).toBe(true)
+      expect(data.message).toBe('Created')
     })
   })
 
@@ -71,12 +74,13 @@ describe('Error Handling Utilities', () => {
     it('should generate error responses with path and requestId', () => {
       const path = '/api/test'
       const requestId = 'test-123'
-      const error = CommonErrors.BAD_REQUEST(path, requestId)
+      const error = CommonErrors.BAD_REQUEST('Test message', undefined, path, requestId)
       
       const data = error.json()
       expect(data.path).toBe(path)
       expect(data.requestId).toBe(requestId)
-      expect(data.status).toBe(400)
+      expect(data.success).toBe(false)
+      expect(error.status).toBe(400)
     })
   })
 

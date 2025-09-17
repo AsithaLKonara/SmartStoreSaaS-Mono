@@ -6,8 +6,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Currency formatting
-export function formatCurrency(amount: number, currency = 'USD'): string {
+// Currency formatting - Updated to use LKR as default
+export function formatCurrency(amount: number, currency = 'LKR'): string {
+  if (currency === 'LKR') {
+    return new Intl.NumberFormat('en-LK', {
+      style: 'currency',
+      currency: 'LKR',
+    }).format(amount);
+  }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,

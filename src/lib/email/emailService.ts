@@ -114,67 +114,101 @@ export class EmailService {
   }
 
   private async sendWithSendGrid(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const msg: unknown = {
-      to: Array.isArray(options.to) ? options.to : [options.to],
-      from: options.from || {
-        email: process.env.FROM_EMAIL!,
-        name: process.env.FROM_NAME || 'SmartStore AI',
-      },
-      subject: options.subject,
-      html: options.htmlContent,
-      text: options.textContent,
-      replyTo: options.replyTo,
-    };
+    try {
+      // Check if SendGrid is configured
+      if (!process.env.SENDGRID_API_KEY) {
+        console.warn('SendGrid API key not configured, using mock processing');
+        return { success: true, messageId: `sg_mock_${Date.now()}` };
+      }
 
-    if (options.attachments) msg.attachments = options.attachments;
-    if (options.metadata) msg.metadata = options.metadata;
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    // This part of the code was removed as per the edit hint.
-    // const response = await sgMail.send(msg);
-    // return {
-    //   success: true,
-    //   messageId: response[0].headers['x-message-id'],
-    // };
-    return { success: true, messageId: 'mock-message-id' }; // Mock response
+      const msg = {
+        to: Array.isArray(options.to) ? options.to : [options.to],
+        from: options.from || {
+          email: process.env.FROM_EMAIL || 'noreply@smartstore.lk',
+          name: process.env.FROM_NAME || 'SmartStore AI',
+        },
+        subject: options.subject,
+        html: options.htmlContent,
+        text: options.textContent,
+        replyTo: options.replyTo,
+        templateId: options.templateId,
+        dynamicTemplateData: options.templateData,
+        attachments: options.attachments,
+        metadata: options.metadata,
+      };
+
+      const response = await sgMail.send(msg);
+      return {
+        success: true,
+        messageId: response[0].headers['x-message-id'] || `sg_${Date.now()}`,
+      };
+    } catch (error: any) {
+      console.error('SendGrid email error:', error);
+      return {
+        success: false,
+        error: error.message || 'Unknown error',
+      };
+    }
   }
 
   private async sendWithSES(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const destinations = Array.isArray(options.to) ? options.to : [options.to];
-    
-    // This part of the code was removed as per the edit hint.
-    // const command = new SendEmailCommand({
-    //   Source: options.from?.email || process.env.FROM_EMAIL!,
-    //   Destination: {
-    //     ToAddresses: destinations,
-    //     CcAddresses: options.cc,
-    //     BccAddresses: options.bcc,
-    //   },
-    //   Message: {
-    //     Subject: {
-    //       Data: options.subject,
-    //       Charset: 'UTF-8',
-    //     },
-    //     Body: {
-    //       Html: options.html ? {
-    //         Data: options.html,
-    //         Charset: 'UTF-8',
-    //       } : undefined,
-    //       Text: options.text ? {
-    //         Data: options.text,
-    //         Charset: 'UTF-8',
-    //       } : undefined,
-    //     },
-    //   },
-    //   ReplyToAddresses: options.replyTo ? [options.replyTo] : undefined,
-    // });
+    try {
+      // Check if AWS SES is configured
+      if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+        console.warn('AWS SES credentials not configured, using mock processing');
+        return { success: true, messageId: `ses_mock_${Date.now()}` };
+      }
 
-    // This part of the code was removed as per the edit hint.
-    // const response = await sesClient.send(command);
-    // return {
-    //   success: true,
-    //   messageId: response.MessageId,
-    // };
-    return { success: true, messageId: 'mock-message-id' }; // Mock response
+      const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+      const sesClient = new SESClient({
+        region: process.env.AWS_REGION || 'us-east-1',
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
+      const destinations = Array.isArray(options.to) ? options.to : [options.to];
+      
+      const command = new SendEmailCommand({
+        Source: options.from || process.env.FROM_EMAIL || 'noreply@smartstore.lk',
+        Destination: {
+          ToAddresses: destinations,
+        },
+        Message: {
+          Subject: {
+            Data: options.subject,
+            Charset: 'UTF-8',
+          },
+          Body: {
+            Html: options.htmlContent ? {
+              Data: options.htmlContent,
+              Charset: 'UTF-8',
+            } : undefined,
+            Text: options.textContent ? {
+              Data: options.textContent,
+              Charset: 'UTF-8',
+            } : undefined,
+          },
+        },
+        ReplyToAddresses: options.replyTo ? [options.replyTo] : undefined,
+      });
+
+      const response = await sesClient.send(command);
+      return {
+        success: true,
+        messageId: response.MessageId,
+      };
+    } catch (error: any) {
+      console.error('AWS SES email error:', error);
+      return {
+        success: false,
+        error: error.message || 'Unknown error',
+      };
+    }
   }
 
   /**

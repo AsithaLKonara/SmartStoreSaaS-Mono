@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  DollarSign,
+  Banknote,
   ShoppingCart,
   Star,
   ArrowUpRight,
@@ -248,7 +248,7 @@ export default function AIInsightsPage() {
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+                  <Banknote className="w-6 h-6 text-green-600" />
                 </div>
               </div>
             </div>
@@ -415,7 +415,7 @@ export default function AIInsightsPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <Banknote className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p>No revenue forecasts available</p>
                 </div>
               )}

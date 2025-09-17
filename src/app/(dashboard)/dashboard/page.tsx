@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
+  Banknote, 
   ShoppingCart, 
   Users, 
   Package,
@@ -156,7 +156,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-green-600" />
+              <Banknote className="w-6 h-6 text-green-600" />
             </div>
           </div>
           {dashboardData && (

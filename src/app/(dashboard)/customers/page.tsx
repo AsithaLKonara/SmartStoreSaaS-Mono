@@ -14,7 +14,7 @@ import {
   User,
   Mail,
   Phone,
-  DollarSign,
+  Banknote,
   Calendar,
   Star,
   Tag,
@@ -220,7 +220,7 @@ export default function CustomersPage() {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-green-600" />
+              <Banknote className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
@@ -366,7 +366,7 @@ export default function CustomersPage() {
         {filteredCustomers.map((customer) => (
           <div
             key={customer.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
           >
             {/* Customer Header */}
             <div className="flex items-start justify-between mb-4">

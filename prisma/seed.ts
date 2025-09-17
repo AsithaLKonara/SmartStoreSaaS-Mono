@@ -36,15 +36,15 @@ async function main() {
       slug: 'demo-store',
       plan: 'PRO',
       settings: {
-        currency: 'USD',
-        timezone: 'America/New_York',
+        currency: 'LKR',
+        timezone: 'Asia/Colombo',
         language: 'en',
-        taxRate: 8.5,
-        shippingMethods: ['standard', 'express', 'overnight'],
-        paymentMethods: ['stripe', 'paypal', 'cash'],
+        taxRate: 15.0,
+        shippingMethods: ['standard', 'express', 'same-day'],
+        paymentMethods: ['stripe', 'paypal', 'payhere', 'cash'],
         notifications: {
           email: true,
-          sms: false,
+          sms: true,
           whatsapp: true
         }
       }
@@ -57,12 +57,12 @@ async function main() {
       slug: 'tech-gadgets',
       plan: 'ENTERPRISE',
       settings: {
-        currency: 'EUR',
-        timezone: 'Europe/London',
+        currency: 'LKR',
+        timezone: 'Asia/Colombo',
         language: 'en',
-        taxRate: 20.0,
+        taxRate: 15.0,
         shippingMethods: ['standard', 'express', 'same-day'],
-        paymentMethods: ['stripe', 'paypal', 'apple-pay', 'google-pay'],
+        paymentMethods: ['stripe', 'paypal', 'payhere', 'apple-pay', 'google-pay'],
         notifications: {
           email: true,
           sms: true,
@@ -78,16 +78,16 @@ async function main() {
       slug: 'fashion-boutique',
       plan: 'STARTER',
       settings: {
-        currency: 'GBP',
-        timezone: 'Europe/London',
+        currency: 'LKR',
+        timezone: 'Asia/Colombo',
         language: 'en',
-        taxRate: 0.0,
+        taxRate: 15.0,
         shippingMethods: ['standard', 'express'],
-        paymentMethods: ['stripe', 'paypal'],
+        paymentMethods: ['stripe', 'paypal', 'payhere'],
         notifications: {
           email: true,
-          sms: false,
-          whatsapp: false
+          sms: true,
+          whatsapp: true
         }
       }
     }
@@ -145,7 +145,7 @@ async function main() {
         slug: 'premium-wood-watch',
         sku: 'WW-001',
         description: 'Handcrafted wooden watch with genuine leather strap. Perfect for both casual and formal occasions.',
-        price: 89.99,
+        price: 12500.00,
         stockQuantity: 25,
         images: ['/images/products/wood-watch-1.jpg', '/images/products/wood-watch-2.jpg', '/images/products/wood-watch-3.jpg'],
         isActive: true,
@@ -159,7 +159,7 @@ async function main() {
         slug: 'led-name-board',
         sku: 'LED-NB-001',
         description: 'Customizable LED name board with remote control. Perfect for home decoration and special occasions.',
-        price: 149.99,
+        price: 18500.00,
         stockQuantity: 15,
         images: ['/images/products/led-board-1.jpg', '/images/products/led-board-2.jpg'],
         isActive: true,
@@ -173,7 +173,7 @@ async function main() {
         slug: 'smartphone-pro-max',
         sku: 'SP-PRO-001',
         description: 'Latest smartphone with 6.7-inch display, 256GB storage, and advanced camera system.',
-        price: 999.99,
+        price: 125000.00,
         stockQuantity: 50,
         images: ['/images/products/smartphone-1.jpg', '/images/products/smartphone-2.jpg', '/images/products/smartphone-3.jpg', '/images/products/smartphone-4.jpg'],
         isActive: true,
@@ -187,7 +187,7 @@ async function main() {
         slug: 'ultrabook-laptop',
         sku: 'UB-001',
         description: 'Lightweight laptop with 13-inch display, 16GB RAM, and 512GB SSD. Perfect for professionals.',
-        price: 1299.99,
+        price: 185000.00,
         stockQuantity: 30,
         images: ['/images/products/laptop-1.jpg', '/images/products/laptop-2.jpg'],
         isActive: true,
@@ -201,7 +201,7 @@ async function main() {
         slug: 'elegant-evening-dress',
         sku: 'ED-001',
         description: 'Beautiful evening dress perfect for special occasions. Available in multiple colors and sizes.',
-        price: 199.99,
+        price: 25000.00,
         stockQuantity: 20,
         images: ['/images/products/dress-1.jpg', '/images/products/dress-2.jpg', '/images/products/dress-3.jpg'],
         isActive: true,
@@ -215,7 +215,7 @@ async function main() {
         slug: 'comfort-sneakers',
         sku: 'CS-001',
         description: 'Comfortable sneakers with memory foam insole. Perfect for daily wear and casual outings.',
-        price: 79.99,
+        price: 8500.00,
         stockQuantity: 40,
         images: ['/images/products/sneakers-1.jpg', '/images/products/sneakers-2.jpg'],
         isActive: true,
@@ -273,8 +273,8 @@ async function main() {
       orderNumber: 'ORD-001',
       customerId: customers[0].id,
       organizationId: demoOrg.id,
-      totalAmount: 239.98,
-      subtotal: 239.98,
+      totalAmount: 31000.00,
+      subtotal: 31000.00,
       tax: 0,
       shipping: 0,
       discount: 0,
@@ -289,8 +289,8 @@ async function main() {
       orderNumber: 'ORD-002',
       customerId: customers[1].id,
       organizationId: techOrg.id,
-      totalAmount: 999.99,
-      subtotal: 999.99,
+      totalAmount: 125000.00,
+      subtotal: 125000.00,
       tax: 0,
       shipping: 0,
       discount: 0,
@@ -307,22 +307,22 @@ async function main() {
       {
         productId: products[0].id,
         quantity: 1,
-        price: 89.99,
-        total: 89.99,
+        price: 12500.00,
+        total: 12500.00,
         orderId: order1.id
       },
       {
         productId: products[1].id,
         quantity: 1,
-        price: 149.99,
-        total: 149.99,
+        price: 18500.00,
+        total: 18500.00,
         orderId: order1.id
       },
       {
         productId: products[2].id,
         quantity: 1,
-        price: 999.99,
-        total: 999.99,
+        price: 125000.00,
+        total: 125000.00,
         orderId: order2.id
       }
     ]
@@ -334,8 +334,8 @@ async function main() {
     data: [
       {
         orderId: order1.id,
-        amount: 239.98,
-        currency: 'USD',
+        amount: 31000.00,
+        currency: 'LKR',
         status: 'COMPLETED',
         method: 'STRIPE',
         gateway: 'stripe',
@@ -347,8 +347,8 @@ async function main() {
       },
       {
         orderId: order2.id,
-        amount: 999.99,
-        currency: 'EUR',
+        amount: 125000.00,
+        currency: 'LKR',
         status: 'COMPLETED',
         method: 'PAYPAL',
         gateway: 'paypal',

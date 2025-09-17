@@ -5,8 +5,8 @@
     "subdomain": "demo",
     "plan": "premium",
     "settings": {
-      "currency": "USD",
-      "timezone": "America/New_York",
+      "currency": "LKR",
+      "timezone": "Asia/Colombo",
       "language": "en",
       "taxRate": 8.5,
       "shippingMethods": ["standard", "express", "overnight"],
@@ -26,8 +26,8 @@
     "subdomain": "tech",
     "plan": "enterprise",
     "settings": {
-      "currency": "EUR",
-      "timezone": "Europe/London",
+      "currency": "LKR",
+      "timezone": "Asia/Colombo",
       "language": "en",
       "taxRate": 20.0,
       "shippingMethods": ["standard", "express", "same-day"],
@@ -47,8 +47,8 @@
     "subdomain": "fashion",
     "plan": "basic",
     "settings": {
-      "currency": "GBP",
-      "timezone": "Europe/London",
+      "currency": "LKR",
+      "timezone": "Asia/Colombo",
       "language": "en",
       "taxRate": 0.0,
       "shippingMethods": ["standard", "express"],
