@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
-import { withProtection, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { z } from 'zod';
 
 // Customer update schema
@@ -23,7 +23,7 @@ const updateCustomerSchema = z.object({
 
 // GET /api/customers/[id] - Get customer by ID
 async function getCustomer(
-  request: AuthenticatedRequest,
+  request: AuthRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -98,7 +98,7 @@ async function getCustomer(
 
 // PUT /api/customers/[id] - Update customer (Admin/Manager/Staff only)
 async function updateCustomer(
-  request: AuthenticatedRequest,
+  request: AuthRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -260,17 +260,38 @@ async function deleteCustomer(
 }
 
 // Export handlers
-export const GET = withProtection()(async (request: AuthenticatedRequest) => {
-  const params = { id: request.nextUrl.pathname.split('/').pop()! };
-  return getCustomer(request, { params });
-});
+export const GET = createAuthHandler(
+  async (request: AuthRequest) => {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop()!;
+    return getCustomer(request, { params: { id } });
+  },
+  {
+    requiredRole: ROLES.USER,
+    requiredPermissions: [PERMISSIONS.CUSTOMERS_READ],
+  }
+);
 
-export const PUT = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(async (request: AuthenticatedRequest) => {
-  const params = { id: request.nextUrl.pathname.split('/').pop()! };
-  return updateCustomer(request, { params });
-});
+export const PUT = createAuthHandler(
+  async (request: AuthRequest) => {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop()!;
+    return updateCustomer(request, { params: { id } });
+  },
+  {
+    requiredRole: ROLES.USER,
+    requiredPermissions: [PERMISSIONS.CUSTOMERS_WRITE],
+  }
+);
 
-export const DELETE = withProtection(['ADMIN'])(async (request: AuthenticatedRequest) => {
-  const params = { id: request.nextUrl.pathname.split('/').pop()! };
-  return deleteCustomer(request, { params });
-});
+export const DELETE = createAuthHandler(
+  async (request: AuthRequest) => {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop()!;
+    return deleteCustomer(request, { params: { id } });
+  },
+  {
+    requiredRole: ROLES.ADMIN,
+    requiredPermissions: [PERMISSIONS.CUSTOMERS_DELETE],
+  }
+);

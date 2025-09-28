@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
 // GET - Get customer loyalty information
-export async function GET(request: NextRequest) {
+async function getLoyalty(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
     const customerId = searchParams.get('customerId');
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'Organization ID required' }, { status: 400 });
-    }
+    const organizationId = request.user!.organizationId;
 
     if (customerId) {
       // Get specific customer loyalty
@@ -62,6 +52,11 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = createAuthHandler(getLoyalty, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.CUSTOMERS_READ],
+});
 
 // POST - Create or update customer loyalty
 export async function POST(request: NextRequest) {
