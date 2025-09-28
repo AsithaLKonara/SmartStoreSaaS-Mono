@@ -3,6 +3,8 @@ import { AuthenticatedRequest } from '@/lib/middleware/auth';
 import { prisma } from '@/lib/prisma';
 import { withProtection } from '@/lib/middleware/auth';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/analytics - Get comprehensive analytics data
 async function getAnalytics(request: AuthenticatedRequest) {
   try {

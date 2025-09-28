@@ -2,400 +2,432 @@ import { prisma } from '@/lib/prisma';
 
 export interface ProductRecommendation {
   productId: string;
-  score: number;
+  productName: string;
   reason: string;
   confidence: number;
 }
 
 export interface UserBehavior {
-  userId: string;
   productId: string;
-  action: 'VIEW' | 'CART_ADD' | 'PURCHASE' | 'RATE';
-  timestamp: Date;
-  value?: number; // For ratings
+  viewCount: number;
+  purchaseCount: number;
+  lastInteraction: Date;
 }
 
 export class AIRecommendationEngine {
-  private readonly MIN_INTERACTIONS = 5;
-  private readonly MAX_RECOMMENDATIONS = 20;
-  private readonly COLLABORATIVE_WEIGHT = 0.6;
-  private readonly CONTENT_WEIGHT = 0.4;
-
   /**
    * Get personalized product recommendations for a user
    */
   async getRecommendations(
-    userId: string,
+    customerId: string,
+    organizationId: string,
+    limit: number = 5
+  ): Promise<ProductRecommendation[]> {
+    try {
+      const recommendations: ProductRecommendation[] = [];
+
+      // Get customer's order history
+      const customerOrders = await prisma.order.findMany({
+        where: {
+          customerId,
+          organizationId,
+          status: { in: ['COMPLETED', 'DELIVERED'] }
+        },
+        include: {
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  category: true,
+                  price: true,
+                  tags: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (customerOrders.length === 0) {
+        // New customer - recommend popular products
+        return await this.getPopularProducts(organizationId, limit);
+      }
+
+      // Get customer's purchased product categories
+      const purchasedCategories = new Set<string>();
+      const purchasedProducts = new Set<string>();
+      
+      customerOrders.forEach(order => {
+        order.items.forEach(item => {
+          if (item.product.category) {
+            purchasedCategories.add(item.product.category);
+          }
+          purchasedProducts.add(item.product.id);
+        });
+      });
+
+      // Collaborative filtering - find similar customers
+      const similarCustomers = await this.findSimilarCustomers(
+        customerId,
+        organizationId,
+        purchasedCategories
+      );
+
+      // Content-based filtering - recommend products in purchased categories
+      const contentBasedRecs = await this.getContentBasedRecommendations(
+        organizationId,
+        purchasedCategories,
+        purchasedProducts,
+        limit
+      );
+
+      // Collaborative filtering - recommend products bought by similar customers
+      const collaborativeRecs = await this.getCollaborativeRecommendations(
+        organizationId,
+        similarCustomers,
+        purchasedProducts,
+        limit
+      );
+
+      // Combine and rank recommendations
+      const allRecommendations = [...contentBasedRecs, ...collaborativeRecs];
+      const rankedRecs = this.rankRecommendations(allRecommendations);
+
+      return rankedRecs.slice(0, limit);
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+      return await this.getPopularProducts(organizationId, limit);
+    }
+  }
+
+  /**
+   * Get popular products for new customers
+   */
+  private async getPopularProducts(
+    organizationId: string,
+    limit: number
+  ): Promise<ProductRecommendation[]> {
+    try {
+      const popularProducts = await prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          order: {
+            organizationId,
+            status: { in: ['COMPLETED', 'DELIVERED'] },
+            createdAt: {
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+            }
+          }
+        },
+        _count: { id: true },
+        _sum: { quantity: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: limit * 2 // Get more to filter out inactive products
+      });
+
+      const productIds = popularProducts.map(p => p.productId);
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          organizationId,
+          status: 'ACTIVE'
+        },
+        select: {
+          id: true,
+          name: true,
+          category: true
+        }
+      });
+
+      return products.slice(0, limit).map(product => ({
+        productId: product.id,
+        productName: product.name,
+        reason: 'Popular product',
+        confidence: 0.7
+      }));
+    } catch (error) {
+      console.error('Error getting popular products:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Find customers with similar purchase patterns
+   */
+  private async findSimilarCustomers(
+    customerId: string,
+    organizationId: string,
+    purchasedCategories: Set<string>
+  ): Promise<string[]> {
+    try {
+      // Get customers who bought products in the same categories
+      const similarCustomers = await prisma.orderItem.groupBy({
+        by: ['orderId'],
+        where: {
+          order: {
+            organizationId,
+            customerId: { not: customerId },
+            status: { in: ['COMPLETED', 'DELIVERED'] },
+            createdAt: {
+              gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+            }
+          },
+          product: {
+            category: { in: Array.from(purchasedCategories) }
+          }
+        },
+        _count: { id: true }
+      });
+
+      // Get customer IDs from orders
+      const orderIds = similarCustomers.map(item => item.orderId);
+      const orders = await prisma.order.findMany({
+        where: {
+          id: { in: orderIds }
+        },
+        select: { customerId: true }
+      });
+
+      // Count occurrences and return top similar customers
+      const customerCounts = new Map<string, number>();
+      orders.forEach(order => {
+        customerCounts.set(order.customerId, (customerCounts.get(order.customerId) || 0) + 1);
+      });
+
+      return Array.from(customerCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([customerId]) => customerId);
+    } catch (error) {
+      console.error('Error finding similar customers:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get content-based recommendations
+   */
+  private async getContentBasedRecommendations(
+    organizationId: string,
+    purchasedCategories: Set<string>,
+    purchasedProducts: Set<string>,
+    limit: number
+  ): Promise<ProductRecommendation[]> {
+    try {
+      const products = await prisma.product.findMany({
+        where: {
+          organizationId,
+          status: 'ACTIVE',
+          id: { notIn: Array.from(purchasedProducts) },
+          category: { in: Array.from(purchasedCategories) }
+        },
+        select: {
+          id: true,
+          name: true,
+          category: true
+        },
+        take: limit * 2
+      });
+
+      return products.slice(0, limit).map(product => ({
+        productId: product.id,
+        productName: product.name,
+        reason: `Similar to products in ${product.category}`,
+        confidence: 0.8
+      }));
+    } catch (error) {
+      console.error('Error getting content-based recommendations:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get collaborative filtering recommendations
+   */
+  private async getCollaborativeRecommendations(
+    organizationId: string,
+    similarCustomers: string[],
+    purchasedProducts: Set<string>,
+    limit: number
+  ): Promise<ProductRecommendation[]> {
+    try {
+      if (similarCustomers.length === 0) return [];
+
+      const recommendations = await prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          order: {
+            organizationId,
+            customerId: { in: similarCustomers },
+            status: { in: ['COMPLETED', 'DELIVERED'] },
+            createdAt: {
+              gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+            }
+          },
+          productId: { notIn: Array.from(purchasedProducts) }
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: limit
+      });
+
+      const productIds = recommendations.map(r => r.productId);
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          organizationId,
+          status: 'ACTIVE'
+        },
+        select: {
+          id: true,
+          name: true,
+          category: true
+        }
+      });
+
+      return products.map(product => ({
+        productId: product.id,
+        productName: product.name,
+        reason: 'Customers like you also bought',
+        confidence: 0.75
+      }));
+    } catch (error) {
+      console.error('Error getting collaborative recommendations:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Rank and deduplicate recommendations
+   */
+  private rankRecommendations(
+    recommendations: ProductRecommendation[]
+  ): ProductRecommendation[] {
+    // Remove duplicates and rank by confidence
+    const uniqueRecs = new Map<string, ProductRecommendation>();
+    
+    recommendations.forEach(rec => {
+      const existing = uniqueRecs.get(rec.productId);
+      if (!existing || rec.confidence > existing.confidence) {
+        uniqueRecs.set(rec.productId, rec);
+      }
+    });
+
+    return Array.from(uniqueRecs.values())
+      .sort((a, b) => b.confidence - a.confidence);
+  }
+
+  /**
+   * Get trending products
+   */
+  async getTrendingProducts(
     organizationId: string,
     limit: number = 10
   ): Promise<ProductRecommendation[]> {
     try {
-      const [collaborativeRecs, contentRecs] = await Promise.all([
-        this.getCollaborativeRecommendations(userId, organizationId, limit),
-        this.getContentBasedRecommendations(userId, organizationId, limit)
-      ]);
-
-      // Combine and rank recommendations
-      const combinedRecs = this.combineRecommendations(
-        collaborativeRecs,
-        contentRecs,
-        limit
-      );
-
-      return combinedRecs;
-    } catch (error) {
-      console.error('Error getting recommendations:', error);
-      return this.getFallbackRecommendations(organizationId, limit);
-    }
-  }
-
-  /**
-   * Collaborative filtering based on user behavior similarity
-   */
-  private async getCollaborativeRecommendations(
-    userId: string,
-    organizationId: string,
-    limit: number
-  ): Promise<ProductRecommendation[]> {
-    try {
-      // Get user's purchase history
-      const userPurchases = await prisma.order.findMany({
-        where: {
-          customer: { userId },
-          organizationId,
-          status: { in: ['COMPLETED', 'DELIVERED'] }
-        },
-        include: {
-          orderItems: {
-            include: { product: true }
-          }
-        }
-      });
-
-      if (userPurchases.length < this.MIN_INTERACTIONS) {
-        return [];
-      }
-
-      // Find similar users based on purchase patterns
-      const similarUsers = await this.findSimilarUsers(
-        userId,
-        organizationId,
-        userPurchases
-      );
-
-      // Get products that similar users bought but current user didn't
-      const recommendations = await this.getProductsFromSimilarUsers(
-        userId,
-        similarUsers,
-        organizationId
-      );
-
-      return recommendations.slice(0, limit);
-    } catch (error) {
-      console.error('Collaborative filtering error:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Content-based filtering based on product attributes
-   */
-  private async getContentBasedRecommendations(
-    userId: string,
-    organizationId: string,
-    limit: number
-  ): Promise<ProductRecommendation[]> {
-    try {
-      // Get user's preferred categories and tags
-      const userPreferences = await this.getUserPreferences(userId, organizationId);
-      
-      if (!userPreferences.categories.length && !userPreferences.tags.length) {
-        return [];
-      }
-
-      // Find products similar to user's preferences
-      const recommendations = await prisma.product.findMany({
-        where: {
-          organizationId,
-          status: 'ACTIVE',
-          OR: [
-            { categoryId: { in: userPreferences.categories } },
-            { tags: { hasSome: userPreferences.tags } }
-          ],
-          NOT: {
-            orderItems: {
-              some: {
-                order: {
-                  customer: { userId }
-                }
-              }
-            }
-          }
-        },
-        include: {
-          category: true,
-          _count: {
-            select: { orderItems: true }
-          }
-        },
-        orderBy: [
-          { _count: { orderItems: 'desc' } },
-          { createdAt: 'desc' }
-        ],
-        take: limit * 2 // Get more to filter by relevance
-      });
-
-      // Score products based on relevance
-      const scoredRecs = recommendations.map(product => {
-        const categoryScore = userPreferences.categories.includes(product.categoryId || '') ? 0.8 : 0;
-        const tagScore = product.tags.filter(tag => userPreferences.tags.includes(tag)).length * 0.2;
-        const popularityScore = Math.min(product._count.orderItems / 100, 0.3);
-        
-        const totalScore = categoryScore + tagScore + popularityScore;
-        
-        return {
-          productId: product.id,
-          score: totalScore,
-          reason: 'Similar to your preferences',
-          confidence: Math.min(totalScore, 1.0)
-        };
-      });
-
-      return scoredRecs
-        .filter(rec => rec.score > 0.3)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, limit);
-    } catch (error) {
-      console.error('Content-based filtering error:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Find users with similar purchase patterns
-   */
-  private async findSimilarUsers(
-    userId: string,
-    organizationId: string,
-    userPurchases: any[]
-  ): Promise<string[]> {
-    try {
-      const userProductIds = userPurchases.flatMap(order => 
-        order.orderItems.map(item => item.productId)
-      );
-
-      // Find users who bought similar products
-      const similarUsers = await prisma.order.groupBy({
-        by: ['customerId'],
-        where: {
-          organizationId,
-          status: { in: ['COMPLETED', 'DELIVERED'] },
-          customerId: { not: userId },
-          orderItems: {
-            some: {
-              productId: { in: userProductIds }
-            }
-          }
-        },
-        _count: { id: true },
-        having: {
-          id: { _count: { gte: 2 } } // At least 2 similar purchases
-        },
-        orderBy: { _count: { id: 'desc' } },
-        take: 10
-      });
-
-      return similarUsers.map(user => user.customerId);
-    } catch (error) {
-      console.error('Error finding similar users:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get products from similar users
-   */
-  private async getProductsFromSimilarUsers(
-    userId: string,
-    similarUserIds: string[],
-    organizationId: string
-  ): Promise<ProductRecommendation[]> {
-    try {
-      const recommendations = await prisma.order.groupBy({
+      const trendingProducts = await prisma.orderItem.groupBy({
         by: ['productId'],
         where: {
-          organizationId,
-          status: { in: ['COMPLETED', 'DELIVERED'] },
-          customerId: { in: similarUserIds },
-          NOT: {
-            orderItems: {
-              some: {
-                order: {
-                  customer: { userId }
-                }
-              }
+          order: {
+            organizationId,
+            status: { in: ['COMPLETED', 'DELIVERED'] },
+            createdAt: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
             }
           }
         },
         _count: { id: true },
-        _sum: { total: true },
+        _sum: { quantity: true },
         orderBy: { _count: { id: 'desc' } },
-        take: 20
-      });
-
-      return recommendations.map(rec => ({
-        productId: rec.productId,
-        score: rec._count.id / 10, // Normalize score
-        reason: 'Popular among similar users',
-        confidence: Math.min(rec._count.id / 20, 1.0)
-      }));
-    } catch (error) {
-      console.error('Error getting products from similar users:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get user preferences based on purchase history
-   */
-  private async getUserPreferences(
-    userId: string,
-    organizationId: string
-  ): Promise<{ categories: string[]; tags: string[] }> {
-    try {
-      const userOrders = await prisma.order.findMany({
-        where: {
-          customer: { userId },
-          organizationId,
-          status: { in: ['COMPLETED', 'DELIVERED'] }
-        },
-        include: {
-          orderItems: {
-            include: {
-              product: {
-                include: { category: true }
-              }
-            }
-          }
-        }
-      });
-
-      const categories = new Set<string>();
-      const tags = new Set<string>();
-
-      userOrders.forEach(order => {
-        order.orderItems.forEach(item => {
-          if (item.product.categoryId) {
-            categories.add(item.product.categoryId);
-          }
-          item.product.tags.forEach(tag => tags.add(tag));
-        });
-      });
-
-      return {
-        categories: Array.from(categories),
-        tags: Array.from(tags)
-      };
-    } catch (error) {
-      console.error('Error getting user preferences:', error);
-      return { categories: [], tags: [] };
-    }
-  }
-
-  /**
-   * Combine different recommendation approaches
-   */
-  private combineRecommendations(
-    collaborative: ProductRecommendation[],
-    content: ProductRecommendation[],
-    limit: number
-  ): ProductRecommendation[] {
-    const combined = new Map<string, ProductRecommendation>();
-
-    // Add collaborative recommendations
-    collaborative.forEach(rec => {
-      combined.set(rec.productId, {
-        ...rec,
-        score: rec.score * this.COLLABORATIVE_WEIGHT
-      });
-    });
-
-    // Add content-based recommendations
-    content.forEach(rec => {
-      const existing = combined.get(rec.productId);
-      if (existing) {
-        existing.score += rec.score * this.CONTENT_WEIGHT;
-        existing.confidence = Math.min(existing.confidence + rec.confidence * 0.2, 1.0);
-      } else {
-        combined.set(rec.productId, {
-          ...rec,
-          score: rec.score * this.CONTENT_WEIGHT
-        });
-      }
-    });
-
-    return Array.from(combined.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
-  }
-
-  /**
-   * Fallback recommendations when AI fails
-   */
-  private async getFallbackRecommendations(
-    organizationId: string,
-    limit: number
-  ): Promise<ProductRecommendation[]> {
-    try {
-      const popularProducts = await prisma.product.findMany({
-        where: {
-          organizationId,
-          status: 'ACTIVE'
-        },
-        include: {
-          _count: {
-            select: { orderItems: true }
-          }
-        },
-        orderBy: { _count: { orderItems: 'desc' } },
         take: limit
       });
 
-      return popularProducts.map(product => ({
+      const productIds = trendingProducts.map(p => p.productId);
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          organizationId,
+          status: 'ACTIVE'
+        },
+        select: {
+          id: true,
+          name: true
+        }
+      });
+
+      return products.map(product => ({
         productId: product.id,
-        score: 0.5,
-        reason: 'Popular products',
-        confidence: 0.3
+        productName: product.name,
+        reason: 'Trending now',
+        confidence: 0.9
       }));
     } catch (error) {
-      console.error('Error getting fallback recommendations:', error);
+      console.error('Error getting trending products:', error);
       return [];
     }
   }
 
   /**
-   * Update user behavior for learning
+   * Get frequently bought together products
    */
-  async recordUserBehavior(behavior: UserBehavior): Promise<void> {
+  async getFrequentlyBoughtTogether(
+    productId: string,
+    organizationId: string,
+    limit: number = 5
+  ): Promise<ProductRecommendation[]> {
     try {
-      // Store behavior for future recommendations
-      await prisma.analytics.create({
-        data: {
-          type: behavior.action,
-          value: behavior.value || 1,
-          organizationId: '', // Will be set from context
-          customerId: '', // Will be set from context
-          productId: behavior.productId,
-          timestamp: behavior.timestamp,
-          metadata: {
-            userId: behavior.userId,
-            action: behavior.action,
-            value: behavior.value
+      // Find orders that contain the given product
+      const ordersWithProduct = await prisma.orderItem.findMany({
+        where: {
+          productId,
+          order: {
+            organizationId,
+            status: { in: ['COMPLETED', 'DELIVERED'] }
           }
+        },
+        select: { orderId: true }
+      });
+
+      if (ordersWithProduct.length === 0) return [];
+
+      const orderIds = ordersWithProduct.map(item => item.orderId);
+
+      // Find other products in those orders
+      const relatedProducts = await prisma.orderItem.groupBy({
+        by: ['productId'],
+        where: {
+          orderId: { in: orderIds },
+          productId: { not: productId }
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: limit
+      });
+
+      const productIds = relatedProducts.map(p => p.productId);
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: productIds },
+          organizationId,
+          status: 'ACTIVE'
+        },
+        select: {
+          id: true,
+          name: true
         }
       });
+
+      return products.map(product => ({
+        productId: product.id,
+        productName: product.name,
+        reason: 'Frequently bought together',
+        confidence: 0.85
+      }));
     } catch (error) {
-      console.error('Error recording user behavior:', error);
+      console.error('Error getting frequently bought together products:', error);
+      return [];
     }
   }
 }

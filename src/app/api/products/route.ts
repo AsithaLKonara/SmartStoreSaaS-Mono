@@ -1,235 +1,191 @@
-import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
+import { NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
-import { Prisma } from '@prisma/client';
-import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
-import { 
-  CommonErrors,
-  generateRequestId,
-  getRequestPath
-} from '@/lib/error-handling';
-import { withCache, cacheKeys, invalidateProductCache } from '@/lib/cache';
 
-// Product creation schema
-const createProductSchema = z.object({
-  name: z.string().min(2, 'Product name must be at least 2 characters'),
-  slug: z.string().min(2, 'Product slug must be at least 2 characters').regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
-  sku: z.string().min(2, 'SKU must be at least 2 characters'),
-  description: z.string().optional(),
-  price: z.number().positive('Price must be positive'),
-  stockQuantity: z.number().int().nonnegative('Stock quantity must be non-negative'),
-  images: z.array(z.string().url('Invalid image URL')).optional(),
-  isActive: z.boolean().optional().default(true),
-});
-
-// Handle CORS preflight
-export function OPTIONS() {
-  return handlePreflight();
-}
-
-// GET /api/products - Get all products for the organization
-async function getProducts(request: AuthenticatedRequest) {
+async function handler(request: AuthRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const search = searchParams.get('search') || '';
-    const minStock = searchParams.get('minStock');
-    const maxStock = searchParams.get('maxStock');
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    const isActive = searchParams.get('isActive');
+    const user = request.user!;
 
-    // Build where clause with organization filter
-    const where: Prisma.ProductWhereInput = {
-      organizationId: request.user!.organizationId
-    };
-    
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-      ];
-    }
+    switch (request.method) {
+      case 'GET':
+        // Get products list (paginated)
+        const { searchParams } = new URL(request.url);
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '10');
+        const search = searchParams.get('search') || '';
+        const categoryIdParam = searchParams.get('categoryId') || '';
+        const isActive = searchParams.get('isActive') || 'true';
 
-    if (minStock !== null) where.stockQuantity = { gte: parseInt(minStock) };
-    if (maxStock !== null) where.stockQuantity = { ...where.stockQuantity, lte: parseInt(maxStock) };
-    if (minPrice !== null) where.price = { gte: parseFloat(minPrice) };
-    if (maxPrice !== null) where.price = { ...where.price, lte: parseFloat(maxPrice) };
-    if (isActive !== null) where.isActive = isActive === 'true';
+        const where: any = {
+          organizationId: user.organizationId,
+          isActive: isActive === 'true',
+        };
 
-    // Create cache key based on filters
-    const filtersString = JSON.stringify({ search, minStock, maxStock, minPrice, maxPrice, isActive });
-    const cacheKey = cacheKeys.productList(page, limit, filtersString);
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { sku: { contains: search, mode: 'insensitive' } },
+          ];
+        }
 
-    // Use read-through cache
-    const result = await withCache(
-      cacheKey,
-      300, // 5 minutes TTL
-      async () => {
-        // Get total count for pagination
-        const total = await prisma.product.count({ where });
-        
-        // Get products with pagination
-        const products = await prisma.product.findMany({
-          where,
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { createdAt: 'desc' }
-        });
+        if (categoryIdParam) {
+          where.categoryId = categoryIdParam;
+        }
 
-        return {
+        const [products, total] = await Promise.all([
+          prisma.product.findMany({
+            where,
+            include: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              variants: {
+                select: {
+                  id: true,
+                  name: true,
+                  sku: true,
+                  price: true,
+                  stock: true,
+                  isActive: true,
+                },
+              },
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.product.count({ where }),
+        ]);
+
+        return NextResponse.json({
           products,
           pagination: {
             page,
             limit,
             total,
             pages: Math.ceil(total / limit),
-            hasNext: page < Math.ceil(total / limit),
-            hasPrev: page > 1
-          }
-        };
-      }
-    );
+          },
+        });
 
-    // Apply CORS headers
-    const origin = getCorsOrigin(request);
-    return corsResponse(result, 200, origin);
+      case 'POST':
+        // Create new product
+        const body = await request.json();
+        const { 
+          name, 
+          description, 
+          sku, 
+          price, 
+          cost, 
+          stock, 
+          minStock, 
+          weight, 
+          dimensions, 
+          tags, 
+          categoryId: productCategoryId,
+          variants 
+        } = body;
 
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
-    
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return CommonErrors.BAD_REQUEST(
-        'Database query error',
-        { code: error.code, meta: error.meta },
-        path,
-        requestId
-      );
-    }
-    
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
-  }
-}
-
-// POST /api/products - Create new product (Admin/Manager only)
-async function createProduct(request: AuthenticatedRequest) {
-  try {
-    const body = await request.json();
-    
-    // Validate input
-    const validationResult = createProductSchema.safeParse(body);
-    if (!validationResult.success) {
-      const path = getRequestPath(request);
-      const requestId = generateRequestId();
-      
-      return CommonErrors.VALIDATION_ERROR(
-        validationResult.error.errors,
-        path,
-        requestId
-      );
-    }
-
-    const productData = validationResult.data;
-
-    // Check if SKU already exists in the organization
-    const existingSku = await prisma.product.findFirst({
-      where: {
-        sku: productData.sku,
-        organizationId: request.user!.organizationId
-      }
-    });
-
-    if (existingSku) {
-      const path = getRequestPath(request);
-      const requestId = generateRequestId();
-      
-      return CommonErrors.CONFLICT(
-        'SKU already exists in this organization',
-        path,
-        requestId
-      );
-    }
-
-    // Check if slug already exists in the organization
-    const existingSlug = await prisma.product.findFirst({
-      where: {
-        slug: productData.slug,
-        organizationId: request.user!.organizationId
-      }
-    });
-
-    if (existingSlug) {
-      const path = getRequestPath(request);
-      const requestId = generateRequestId();
-      
-      return CommonErrors.CONFLICT(
-        'Product slug already exists in this organization',
-        path,
-        requestId
-      );
-    }
-
-    // Create product
-    const product = await prisma.product.create({
-      data: {
-        ...productData,
-        organizationId: request.user!.organizationId,
-        createdById: request.user!.userId
-      }
-    });
-
-    // Create activity log
-    await prisma.activity.create({
-      data: {
-        type: 'PRODUCT_CREATED',
-        description: `Product "${product.name}" created`,
-        user: {
-          connect: { id: request.user!.userId }
-        },
-        metadata: {
-          productId: product.id,
-          productName: product.name,
-          sku: product.sku || null
+        // Validate required fields
+        if (!name || !sku || price === undefined) {
+          return NextResponse.json(
+            { error: 'Missing required fields: name, sku, price' },
+            { status: 400 }
+          );
         }
-      }
-    });
 
-    // Invalidate related cache
-    await invalidateProductCache(product.id, request.user!.organizationId);
+        // Check if SKU already exists
+        const existingProduct = await prisma.product.findUnique({
+          where: { sku },
+        });
 
-    const responseData = { product };
+        if (existingProduct) {
+          return NextResponse.json(
+            { error: 'Product with this SKU already exists' },
+            { status: 409 }
+          );
+        }
 
-    // Apply CORS headers
-    const origin = getCorsOrigin(request);
-    return corsResponse(responseData, 201, origin);
+        // Create product
+        const newProduct = await prisma.product.create({
+          data: {
+            name,
+            description: description || null,
+            sku,
+            price: parseFloat(price),
+            cost: cost ? parseFloat(cost) : null,
+            stock: parseInt(stock) || 0,
+            minStock: parseInt(minStock) || 0,
+            weight: weight ? parseFloat(weight) : null,
+            dimensions: dimensions ? JSON.stringify(dimensions) : null,
+            tags: tags ? JSON.stringify(tags) : null,
+            categoryId: productCategoryId || null,
+            organizationId: user.organizationId,
+            isActive: true,
+          },
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
 
-  } catch (error) {
-    console.error('Error creating product:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
-    
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return CommonErrors.BAD_REQUEST(
-        'Database operation failed',
-        { code: error.code, meta: error.meta },
-        path,
-        requestId
-      );
+        // Create variants if provided
+        if (variants && variants.length > 0) {
+          for (const variant of variants) {
+            await prisma.productVariant.create({
+              data: {
+                name: variant.name,
+                sku: variant.sku,
+                price: parseFloat(variant.price),
+                cost: variant.cost ? parseFloat(variant.cost) : null,
+                stock: parseInt(variant.stock) || 0,
+                weight: variant.weight ? parseFloat(variant.weight) : null,
+                dimensions: variant.dimensions ? JSON.stringify(variant.dimensions) : null,
+                productId: newProduct.id,
+                organizationId: user.organizationId,
+                isActive: true,
+              },
+            });
+          }
+        }
+
+        return NextResponse.json(
+          {
+            message: 'Product created successfully',
+            product: newProduct,
+          },
+          { status: 201 }
+        );
+
+      default:
+        return NextResponse.json(
+          { error: 'Method not allowed' },
+          { status: 405 }
+        );
     }
-    
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
+  } catch (error) {
+    console.error('Products API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
-// Export protected handlers with security middleware
-export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  getProducts
-);
+// Export handlers with appropriate authentication
+export const GET = createAuthHandler(handler, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.PRODUCTS_READ],
+});
 
-export const POST = withProtection(['ADMIN', 'MANAGER'], 100)(
-  createProduct
-); 
+export const POST = createAuthHandler(handler, {
+  requiredRole: ROLES.MANAGER,
+  requiredPermissions: [PERMISSIONS.PRODUCTS_WRITE],
+});

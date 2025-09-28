@@ -1,61 +1,82 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
+
+const errorMessages = {
+  Configuration: 'There is a problem with the server configuration.',
+  AccessDenied: 'Access denied. You do not have permission to sign in.',
+  Verification: 'The verification token has expired or has already been used.',
+  Default: 'An error occurred during authentication.',
+};
 
 function AuthErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const error = searchParams.get('error') as keyof typeof errorMessages;
 
-  const getErrorMessage = (error: string | null) => {
-    switch (error) {
-      case 'Configuration':
-        return 'There is a problem with the server configuration.';
-      case 'AccessDenied':
-        return 'Access denied. You do not have permission to sign in.';
-      case 'Verification':
-        return 'The verification token has expired or has already been used.';
-      case 'Default':
-        return 'An error occurred during authentication.';
-      default:
-        return 'An unexpected error occurred. Please try again.';
-    }
-  };
+  const errorMessage = errorMessages[error] || errorMessages.Default;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="h-6 w-6 text-red-600" />
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+              <AlertCircle className="w-7 h-7 text-white" />
+            </div>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Authentication Error
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900">Authentication Error</h2>
           <p className="mt-2 text-sm text-gray-600">
-            {getErrorMessage(error)}
+            {errorMessage}
           </p>
         </div>
-        
-        <div className="mt-8 space-y-4">
-          <Link href="/auth/signin">
-            <Button className="w-full">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Sign In
-            </Button>
-          </Link>
-          
+
+        {/* Error Details */}
+        <div className="bg-white py-8 px-6 shadow-xl rounded-xl border border-red-200">
           <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              What can you do?
+            </h3>
+            <ul className="text-sm text-gray-600 space-y-2 mb-6">
+              <li>• Check your credentials and try again</li>
+              <li>• Make sure you have an active account</li>
+              <li>• Contact support if the problem persists</li>
+            </ul>
+            
+            <div className="space-y-3">
+              <Button asChild className="w-full">
+                <Link href="/auth/signin">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Try Again
+                </Link>
+              </Button>
+              
+              <Button variant="outline" asChild className="w-full">
+                <Link href="/">
+                  Go Home
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Support Link */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Need help?{' '}
             <Link
-              href="/"
+              href="/support"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              Go to Homepage
+              Contact Support
             </Link>
-          </div>
+          </p>
         </div>
       </div>
     </div>
@@ -64,7 +85,20 @@ function AuthErrorContent() {
 
 export default function AuthErrorPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-7 h-7 text-white" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">Loading...</h2>
+          </div>
+        </div>
+      </div>
+    }>
       <AuthErrorContent />
     </Suspense>
   );

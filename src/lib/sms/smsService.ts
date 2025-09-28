@@ -42,6 +42,11 @@ export interface SMSAnalytics {
   clickRate: number;
 }
 
+export type SendSMSParams = {
+  to: string;
+  body: string;
+};
+
 export class SMSService {
   private provider: 'twilio' | 'aws-sns' = 'twilio';
 
@@ -49,98 +54,32 @@ export class SMSService {
     this.provider = (process.env.SMS_PROVIDER as 'twilio' | 'aws-sns') || 'twilio';
   }
 
-  /**
-   * Send a single SMS
-   */
-  async sendSMS(options: SMSOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    try {
-      // Log SMS in database
-      const smsLog = await prisma.smsLog.create({
-        data: {
-          phone: options.to,
-          message: options.message,
-          status: 'PENDING',
-          provider: this.provider,
-          organization: {
-            connect: {
-              id: process.env.DEFAULT_ORGANIZATION_ID || 'default'
-            }
-          }
-        },
-      });
-
-      let result;
-      if (this.provider === 'twilio') {
-        result = await this.sendWithTwilio(options);
-      } else {
-        result = await this.sendWithAWSSNS(options);
-      }
-
-      // Update SMS log with result
-      await prisma.smsLog.update({
-        where: { id: smsLog.id },
-        data: {
-          status: result.success ? 'SENT' : 'FAILED',
-          messageId: result.messageId,
-          sentAt: result.success ? new Date() : undefined,
-        },
-      });
-
-      return result;
-    } catch (error) {
-      console.error('Error sending SMS:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  private getClient() {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (!accountSid || !authToken) {
+      throw new Error('Twilio configuration missing (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)');
     }
+    // Lazy import to avoid bundling twilio SDK in edge by default
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const twilio = require('twilio');
+    return twilio(accountSid, authToken);
   }
 
-  private async sendWithTwilio(options: SMSOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    try {
-      // Check if Twilio is configured
-      if (!twilioClient) {
-        console.warn('Twilio credentials not configured, using mock processing');
-        return {
-          success: true,
-          messageId: `twilio_mock_${Date.now()}`,
-        };
-      }
-
-      const messageOptions: any = {
-        body: options.message,
-        from: options.from || process.env.TWILIO_PHONE_NUMBER || '+1234567890',
-        to: this.formatPhoneNumber(options.to),
-      };
-
-      if (options.mediaUrl && options.mediaUrl.length > 0) {
-        messageOptions.mediaUrl = options.mediaUrl;
-      }
-
-      if (options.scheduledTime) {
-        messageOptions.scheduleType = 'fixed';
-        messageOptions.sendAt = options.scheduledTime;
-      }
-
-      const message = await twilioClient.messages.create(messageOptions);
-
-      return {
-        success: true,
-        messageId: message.sid,
-      };
-    } catch (error: any) {
-      console.error('Twilio SMS error:', error);
-      return {
-        success: false,
-        error: error.message || 'Unknown error',
-      };
+  async sendSMS(params: SendSMSParams): Promise<{ sid: string }> {
+    const from = process.env.TWILIO_PHONE_NUMBER;
+    if (!from) {
+      throw new Error('TWILIO_PHONE_NUMBER is not set');
     }
-  }
 
-  private async sendWithAWSSNS(options: SMSOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    // AWS SNS implementation would go here
-    // For now, return error since AWS SDK is not available
-    return {
-      success: false,
-      error: 'AWS SNS not configured',
-    };
+    const client = this.getClient();
+    const message = await client.messages.create({
+      to: params.to,
+      from,
+      body: params.body,
+    });
+
+    return { sid: message.sid };
   }
 
   /**

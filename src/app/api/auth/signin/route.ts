@@ -108,18 +108,7 @@ export async function POST(request: NextRequest) {
       data: { updatedAt: new Date() },
     });
 
-    // Create activity log
-    await prisma.activity.create({
-      data: {
-        type: 'LOGIN',
-        description: 'User signed in successfully',
-        userId: user.id,
-        metadata: {
-          ip: request.headers.get('x-forwarded-for') || request.ip || 'unknown',
-          userAgent: request.headers.get('user-agent') || 'unknown',
-        },
-      },
-    });
+    // Note: Activity logging removed as Activity model doesn't exist in current schema
 
     // Set secure cookies
     const response = NextResponse.json({
@@ -134,8 +123,8 @@ export async function POST(request: NextRequest) {
           organization: user.organization ? {
             id: user.organization.id,
             name: user.organization.name,
-            slug: user.organization.slug,
-            plan: user.organization.plan,
+            domain: user.organization.domain,
+            status: user.organization.status,
           } : null,
         },
         token,

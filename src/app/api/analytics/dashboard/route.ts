@@ -1,25 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 import { PredictiveAnalyticsEngine } from '@/lib/ai/predictiveAnalytics';
 import { AIRecommendationEngine } from '@/lib/ai/recommendationEngine';
 
-// GET - Get comprehensive dashboard analytics
-export async function GET(request: NextRequest) {
+export const dynamic = 'force-dynamic';
+
+async function handler(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = request.user!;
 
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
     const period = searchParams.get('period') || '30'; // days
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'Organization ID required' }, { status: 400 });
-    }
+    const organizationId = user.organizationId;
 
     const days = parseInt(period);
     const startDate = new Date();
@@ -33,20 +26,20 @@ export async function GET(request: NextRequest) {
         createdAt: { gte: startDate },
       },
       _count: { status: true },
-      _sum: { total: true },
+      _sum: { totalAmount: true },
     });
 
     // Get revenue trends (daily for the period)
     const revenueTrends = await prisma.$queryRaw`
       SELECT 
-        DATE(created_at) as date,
-        SUM(total) as revenue,
+        DATE(createdAt) as date,
+        SUM(totalAmount) as revenue,
         COUNT(*) as orders
-      FROM orders 
-      WHERE organization_id = ${organizationId} 
-        AND created_at >= ${startDate}
+      FROM "Order" 
+      WHERE organizationId = ${organizationId} 
+        AND createdAt >= ${startDate}
         AND status IN ('COMPLETED', 'DELIVERED')
-      GROUP BY DATE(created_at)
+      GROUP BY DATE(createdAt)
       ORDER BY date ASC
     `;
 
@@ -106,17 +99,17 @@ export async function GET(request: NextRequest) {
     const lowStockProducts = await prisma.product.findMany({
       where: {
         organizationId,
-        inventoryQuantity: { lte: 10 },
+        stockQuantity: { lte: 10 },
         status: 'ACTIVE',
       },
       select: {
         id: true,
         name: true,
         sku: true,
-        inventoryQuantity: true,
+        stockQuantity: true,
         price: true,
       },
-      orderBy: { inventoryQuantity: 'asc' },
+      orderBy: { stockQuantity: 'asc' },
       take: 20,
     });
 
@@ -137,7 +130,7 @@ export async function GET(request: NextRequest) {
     // Calculate key metrics
     const totalRevenue = salesData
       .filter(item => ['COMPLETED', 'DELIVERED'].includes(item.status))
-      .reduce((sum, item) => sum + (item._sum.total || 0), 0);
+      .reduce((sum, item) => sum + (item._sum.totalAmount || 0), 0);
 
     const totalOrders = salesData.reduce((sum, item) => sum + item._count.status, 0);
     const completedOrders = salesData
@@ -157,11 +150,11 @@ export async function GET(request: NextRequest) {
         createdAt: { gte: previousStartDate, lt: startDate },
         status: { in: ['COMPLETED', 'DELIVERED'] },
       },
-      _sum: { total: true },
+      _sum: { totalAmount: true },
     });
 
-    const revenueGrowth = previousRevenue._sum.total && totalRevenue > 0
-      ? ((totalRevenue - previousRevenue._sum.total) / previousRevenue._sum.total) * 100
+    const revenueGrowth = previousRevenue._sum.totalAmount && totalRevenue > 0
+      ? ((totalRevenue - previousRevenue._sum.totalAmount) / previousRevenue._sum.totalAmount) * 100
       : 0;
 
     // Get AI-powered insights
@@ -254,3 +247,9 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Export with authentication
+export const GET = createAuthHandler(handler, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});

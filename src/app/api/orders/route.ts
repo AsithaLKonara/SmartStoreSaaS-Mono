@@ -1,13 +1,10 @@
-import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
-import { 
-  CommonErrors,
-  generateRequestId,
-  getRequestPath
-} from '@/lib/error-handling';
+
+export const dynamic = 'force-dynamic';
 
 // Order creation schema
 const createOrderSchema = z.object({
@@ -39,13 +36,8 @@ const createOrderSchema = z.object({
   shippingCost: z.number().min(0).optional().default(0)
 });
 
-// Handle CORS preflight
-export function OPTIONS() {
-  return handlePreflight();
-}
-
 // GET /api/orders - List orders with pagination and filters
-async function getOrders(request: AuthenticatedRequest) {
+async function getOrders(request: AuthRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -118,41 +110,28 @@ async function getOrders(request: AuthenticatedRequest) {
       }
     };
 
-    // Apply CORS headers
-    const origin = getCorsOrigin(request);
-    return corsResponse(responseData, 200, origin);
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Error fetching orders:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
-    
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return CommonErrors.BAD_REQUEST(
-        'Database query error',
-        { code: error.code, meta: error.meta },
-        path,
-        requestId
-      );
-    }
-    
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
 // POST /api/orders - Create new order
-async function createOrder(request: AuthenticatedRequest) {
+async function createOrder(request: AuthRequest) {
   try {
     const body = await request.json();
     
     // Validate input
     const validationResult = createOrderSchema.safeParse(body);
     if (!validationResult.success) {
-      return CommonErrors.BAD_REQUEST(
-        'Validation failed',
-        { errors: validationResult.error.errors },
-        getRequestPath(request),
-        generateRequestId()
+      return NextResponse.json(
+        { error: 'Validation failed', details: validationResult.error.errors },
+        { status: 400 }
       );
     }
 
@@ -167,10 +146,9 @@ async function createOrder(request: AuthenticatedRequest) {
     });
 
     if (!customer) {
-      return CommonErrors.NOT_FOUND(
-        'Customer not found or access denied',
-        getRequestPath(request),
-        generateRequestId()
+      return NextResponse.json(
+        { error: 'Customer not found or access denied' },
+        { status: 404 }
       );
     }
 
@@ -185,10 +163,9 @@ async function createOrder(request: AuthenticatedRequest) {
     });
 
     if (products.length !== productIds.length) {
-      return CommonErrors.NOT_FOUND(
-        'One or more products not found',
-        getRequestPath(request),
-        generateRequestId()
+      return NextResponse.json(
+        { error: 'One or more products not found' },
+        { status: 404 }
       );
     }
 
@@ -198,10 +175,9 @@ async function createOrder(request: AuthenticatedRequest) {
       if (!product) continue;
       
       if (product.stockQuantity < item.quantity) {
-        return CommonErrors.BAD_REQUEST(
-          `Insufficient stock for ${product.name}. Available: ${product.stockQuantity}, Requested: ${item.quantity}`,
-          getRequestPath(request),
-          generateRequestId()
+        return NextResponse.json(
+          { error: `Insufficient stock for ${product.name}. Available: ${product.stockQuantity}, Requested: ${item.quantity}` },
+          { status: 400 }
         );
       }
     }
@@ -220,12 +196,8 @@ async function createOrder(request: AuthenticatedRequest) {
       const order = await tx.order.create({
         data: {
           orderNumber,
-          customer: {
-            connect: { id: orderData.customerId }
-          },
-          organization: {
-            connect: { id: request.user!.organizationId }
-          },
+          customerId: orderData.customerId,
+          organizationId: request.user!.organizationId,
           totalAmount: total,
           subtotal,
           tax,
@@ -233,13 +205,9 @@ async function createOrder(request: AuthenticatedRequest) {
           discount: 0, // Will be calculated if discount code is valid
           status: 'PENDING',
           paymentStatus: 'PENDING',
-          // shippingMethod field removed - not in schema
           paymentMethod: orderData.paymentMethod,
           notes: orderData.notes,
-          createdBy: {
-            connect: { id: request.user!.userId }
-          },
-          // Address fields removed - not in schema
+          createdById: request.user!.id,
         }
       });
 
@@ -269,53 +237,31 @@ async function createOrder(request: AuthenticatedRequest) {
       return { order, orderItems };
     });
 
-    // Create activity log
-    await prisma.activity.create({
-      data: {
-        type: 'ORDER_CREATED',
-        description: `Order ${result.order.orderNumber} created`,
-        userId: request.user!.userId,
-        metadata: {
-          orderId: result.order.id,
-          orderNumber: result.order.orderNumber,
-          customerId: result.order.customerId,
-          totalAmount: result.order.totalAmount
-        }
-      }
-    });
-
-    return corsResponse({
+    return NextResponse.json({
       success: true,
       data: { 
         order: result.order,
         items: result.orderItems
       },
       message: 'Order created successfully'
-    }, 201, getCorsOrigin(request));
+    }, { status: 201 });
 
   } catch (error) {
     console.error('Error creating order:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return CommonErrors.BAD_REQUEST(
-        'Database query error',
-        { code: error.code, meta: error.meta },
-        path,
-        requestId
-      );
-    }
-    
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
 // Export protected handlers with security middleware
-export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  getOrders
-);
+export const GET = createAuthHandler(getOrders, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ORDERS_READ],
+});
 
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  createOrder
-); 
+export const POST = createAuthHandler(createOrder, {
+  requiredRole: ROLES.MANAGER,
+  requiredPermissions: [PERMISSIONS.ORDERS_WRITE],
+}); 

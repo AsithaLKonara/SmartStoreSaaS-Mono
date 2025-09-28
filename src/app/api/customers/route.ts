@@ -1,13 +1,10 @@
-import { AuthenticatedRequest, withProtection } from '@/lib/middleware/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
-import { 
-  CommonErrors,
-  generateRequestId,
-  getRequestPath
-} from '@/lib/error-handling';
+
+export const dynamic = 'force-dynamic';
 
 // Customer creation schema
 const createCustomerSchema = z.object({
@@ -27,13 +24,8 @@ const createCustomerSchema = z.object({
   isActive: z.boolean().optional().default(true)
 });
 
-// Handle CORS preflight
-export function OPTIONS() {
-  return handlePreflight();
-}
-
 // GET /api/customers - List customers with pagination and filters
-async function getCustomers(request: AuthenticatedRequest) {
+async function getCustomers(request: AuthRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -99,43 +91,28 @@ async function getCustomers(request: AuthenticatedRequest) {
       }
     };
 
-    // Apply CORS headers
-    const origin = getCorsOrigin(request);
-    return corsResponse(responseData, 200, origin);
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Error fetching customers:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
-    
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return CommonErrors.BAD_REQUEST(
-        'Database query error',
-        { code: error.code, meta: error.meta },
-        path,
-        requestId
-      );
-    }
-    
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
 // POST /api/customers - Create new customer
-async function createCustomer(request: AuthenticatedRequest) {
+async function createCustomer(request: AuthRequest) {
   try {
     const body = await request.json();
     
     // Validate input
     const validationResult = createCustomerSchema.safeParse(body);
     if (!validationResult.success) {
-      const path = getRequestPath(request);
-      const requestId = generateRequestId();
-      
-      return CommonErrors.VALIDATION_ERROR(
-        validationResult.error.errors,
-        path,
-        requestId
+      return NextResponse.json(
+        { error: 'Validation failed', details: validationResult.error.errors },
+        { status: 400 }
       );
     }
 
@@ -150,13 +127,9 @@ async function createCustomer(request: AuthenticatedRequest) {
     });
 
     if (existingCustomer) {
-      const path = getRequestPath(request);
-      const requestId = generateRequestId();
-      
-      return CommonErrors.CONFLICT(
-        'Customer with this email already exists in this organization',
-        path,
-        requestId
+      return NextResponse.json(
+        { error: 'Customer with this email already exists in this organization' },
+        { status: 409 }
       );
     }
 
@@ -164,55 +137,28 @@ async function createCustomer(request: AuthenticatedRequest) {
     const customer = await prisma.customer.create({
       data: {
         ...customerData,
-        organization: {
-          connect: { id: request.user!.organizationId }
-        }
+        organizationId: request.user!.organizationId
       }
     });
 
-    // Create activity log
-    await prisma.activity.create({
-      data: {
-        type: 'CUSTOMER_CREATED',
-        description: `Customer "${customer.name}" created`,
-        userId: request.user!.userId,
-        metadata: {
-          customerId: customer.id,
-          customerName: customer.name,
-          customerEmail: customer.email
-        }
-      }
-    });
-
-    const responseData = { customer };
-
-    // Apply CORS headers
-    const origin = getCorsOrigin(request);
-    return corsResponse(responseData, 201, origin);
+    return NextResponse.json({ customer }, { status: 201 });
 
   } catch (error) {
     console.error('Error creating customer:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
-    
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return CommonErrors.BAD_REQUEST(
-        'Database operation failed',
-        { code: error.code, meta: error.meta },
-        path,
-        requestId
-      );
-    }
-    
-    return CommonErrors.INTERNAL_ERROR(path, requestId);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
 // Export protected handlers with security middleware
-export const GET = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  getCustomers
-);
+export const GET = createAuthHandler(getCustomers, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.CUSTOMERS_READ],
+});
 
-export const POST = withProtection(['ADMIN', 'MANAGER', 'STAFF'], 100)(
-  createCustomer
-); 
+export const POST = createAuthHandler(createCustomer, {
+  requiredRole: ROLES.MANAGER,
+  requiredPermissions: [PERMISSIONS.CUSTOMERS_WRITE],
+}); 

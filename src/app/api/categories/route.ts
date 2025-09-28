@@ -1,18 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export const dynamic = 'force-dynamic';
+
+async function handler(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+    const user = request.user!;
 
     const categories = await prisma.category.findMany({
       where: {
-        organizationId: session.user.organizationId,
+        isActive: true,
       },
       orderBy: { name: 'asc' },
     });
@@ -22,4 +20,10 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching categories:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
-} 
+}
+
+// Export with authentication
+export const GET = createAuthHandler(handler, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.PRODUCTS_READ],
+}); 

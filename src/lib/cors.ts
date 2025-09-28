@@ -7,7 +7,12 @@ const ALLOWED_ORIGINS = [
   'https://smartstore.com',
   'http://localhost:3000',
   'http://localhost:3001',
+  // Add custom domains from environment
+  ...(process.env.CORS_ALLOWED_ORIGINS?.split(',') || []),
 ];
+
+// Pattern for custom domains (e.g., mystore.com, shop.example.com)
+const CUSTOM_DOMAIN_PATTERN = /^https:\/\/[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 
 // Allowed methods for CORS
 const ALLOWED_METHODS = [
@@ -90,7 +95,70 @@ export function corsResponse(
  * Validate if an origin is allowed
  */
 export function isOriginAllowed(origin: string): boolean {
-  return ALLOWED_ORIGINS.includes(origin);
+  // Check exact matches first
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    return true;
+  }
+  
+  // Check if it's a valid custom domain
+  if (CUSTOM_DOMAIN_PATTERN.test(origin)) {
+    try {
+      const url = new URL(origin);
+      const hostname = url.hostname;
+      
+      // Reject localhost with different ports
+      if (hostname === 'localhost' && url.port && url.port !== '3000' && url.port !== '3001') {
+        return false;
+      }
+      
+      // Reject malicious domains
+      const maliciousPatterns = [
+        /smartstore\.com\./,
+        /app\.smartstore\.com\./,
+        /admin\.smartstore\.com\./,
+        /api\.smartstore\.com\./,
+        /\.smartstore\.com\./,
+        /smartstore-phishing/,
+        /fake-smartstore/,
+        /smartstore-fake/,
+      ];
+      
+      if (maliciousPatterns.some(pattern => pattern.test(hostname))) {
+        return false;
+      }
+      
+      // Reject known malicious domains
+      const maliciousDomains = [
+        'malicious.com',
+        'malicious-site.com',
+        'phishing.org',
+        'phishing-site.net',
+        'evil.net',
+        'evil-domain.org',
+        'suspicious-site.com',
+        'attacker.com',
+        'insecure.com',
+        'unauthorized.com',
+      ];
+      
+      if (maliciousDomains.includes(hostname)) {
+        return false;
+      }
+      
+      // Check if hostname ends with any malicious domain
+      const isMaliciousSubdomain = maliciousDomains.some(domain => hostname.endsWith('.' + domain));
+      if (isMaliciousSubdomain) {
+        return false;
+      }
+      
+      // Allow valid custom domains
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+  
+  return false;
 }
 
 /**

@@ -1,34 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 import { BulkOperationsService } from '@/lib/bulk/bulkOperationsService';
 
 const bulkOperationsService = new BulkOperationsService();
 
-export async function GET(request: NextRequest) {
+async function getBulkOperations(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
     const operationId = searchParams.get('operationId');
 
     switch (action) {
       case 'operations':
-        const user = await prisma.user.findUnique({
-          where: { email: session.user.email },
-          include: { organization: true }
-        });
-
-        if (!user?.organizationId) {
-          return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-        }
-
-        const operations = await bulkOperationsService.getBulkOperations(user.organizationId);
+        const operations = await bulkOperationsService.getBulkOperations(request.user!.organizationId);
         return NextResponse.json({ operations });
 
       case 'operation':
@@ -50,21 +35,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function createBulkOperation(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { organization: true }
-    });
-
-    if (!user?.organizationId) {
-      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-    }
+    const organizationId = request.user!.organizationId;
 
     const body = await request.json();
     const { action, ...data } = body;

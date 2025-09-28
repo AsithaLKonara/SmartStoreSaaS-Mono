@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { MarketingAutomationEngine } from '@/lib/ai/marketingAutomation';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 const automationEngine = new MarketingAutomationEngine();
 
 // GET - Get automation statistics and customer segments
-export async function GET(request: NextRequest) {
+async function getAutomation(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
+    const organizationId = request.user!.organizationId;
     const type = searchParams.get('type'); // 'stats', 'segments', 'all'
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'Organization ID required' }, { status: 400 });
-    }
 
     let results: Record<string, any> = {};
 
@@ -51,19 +43,16 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Process automation triggers and create campaigns
-export async function POST(request: NextRequest) {
+async function processAutomation(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const body = await request.json();
-    const { action, organizationId, parameters } = body;
+    const { action, parameters } = body;
+    const organizationId = request.user!.organizationId;
 
-    if (!action || !organizationId) {
+    if (!action) {
       return NextResponse.json({
-        error: 'Action and organization ID are required'
+        error: 'Action is required'
       }, { status: 400 });
     }
 
@@ -117,19 +106,16 @@ export async function POST(request: NextRequest) {
 }
 
 // PUT - Update automation settings and triggers
-export async function PUT(request: NextRequest) {
+async function updateAutomation(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const body = await request.json();
-    const { organizationId, settings } = body;
+    const { settings } = body;
+    const organizationId = request.user!.organizationId;
 
-    if (!organizationId || !settings) {
+    if (!settings) {
       return NextResponse.json({
-        error: 'Organization ID and settings are required'
+        error: 'Settings are required'
       }, { status: 400 });
     }
 
@@ -163,3 +149,19 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+// Export protected handlers with security middleware
+export const GET = createAuthHandler(getAutomation, {
+  requiredRole: ROLES.MANAGER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});
+
+export const POST = createAuthHandler(processAutomation, {
+  requiredRole: ROLES.MANAGER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_WRITE],
+});
+
+export const PUT = createAuthHandler(updateAutomation, {
+  requiredRole: ROLES.ADMIN,
+  requiredPermissions: [PERMISSIONS.SETTINGS_WRITE],
+});

@@ -1,19 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest) {
+export const dynamic = 'force-dynamic';
+
+async function handler(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = request.user!;
 
     const { searchParams } = new URL(request.url);
     const dateRange = searchParams.get('dateRange') || '30days';
-    const organizationId = searchParams.get('organizationId');
+    const organizationId = user.organizationId;
 
     // Calculate date range
     const now = new Date();
@@ -37,16 +34,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's organization
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+    const userData = await prisma.user.findUnique({
+      where: { email: user.email },
       select: { organizationId: true }
     });
 
-    if (!user) {
+    if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const orgId = organizationId || user.organizationId;
+    const orgId = organizationId || userData.organizationId;
 
     // Get customers with their order data
     const customers = await prisma.customer.findMany({
@@ -197,3 +194,9 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Export with authentication
+export const GET = createAuthHandler(handler, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});

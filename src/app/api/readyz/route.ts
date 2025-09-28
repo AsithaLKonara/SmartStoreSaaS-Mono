@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import { corsResponse, handlePreflight, getCorsOrigin } from '@/lib/cors';
-import { CommonErrors, generateRequestId, getRequestPath } from '@/lib/error-handling';
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 // Handle CORS preflight
 export function OPTIONS() {
-  return handlePreflight();
+  return new NextResponse(null, { status: 200 });
 }
 
 // GET /api/readyz - Readiness check for load balancer
@@ -105,20 +106,15 @@ export async function GET(request: Request) {
       }
     };
 
-    // Apply CORS headers
-    const origin = getCorsOrigin(request);
-    return corsResponse(readinessData, httpStatus, origin);
+    return NextResponse.json(readinessData, { status: httpStatus });
 
   } catch (error) {
     console.error('Readiness check error:', error);
-    const path = getRequestPath(request);
-    const requestId = generateRequestId();
     
     // Return 503 Service Unavailable on readiness check failure
-    return corsResponse(
-      CommonErrors.INTERNAL_ERROR(path, requestId),
-      503,
-      getCorsOrigin(request)
+    return NextResponse.json(
+      { error: 'Readiness check failed', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 503 }
     );
   }
 }

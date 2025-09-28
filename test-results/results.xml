@@ -1,0 +1,112 @@
+<testsuites id="" name="" tests="50" failures="0" skipped="0" errors="0" time="112.24538999999999">
+<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="chromium" tests="10" failures="0" skipped="0" time="43.256" errors="0">
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="15.171">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="14.424">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="2.242">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="1.898">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="2.095">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="1.115">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="1.117">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="1.074">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="3.677">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.443">
+</testcase>
+</testsuite>
+<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="firefox" tests="10" failures="0" skipped="0" time="9.696" errors="0">
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="1.255">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="0.869">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="0.753">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="1.045">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="0.917">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="0.74">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="0.815">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="0.702">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="1.79">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.81">
+</testcase>
+</testsuite>
+<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="webkit" tests="10" failures="0" skipped="0" time="8.821" errors="0">
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="0.876">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="1.149">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="0.777">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="0.449">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="0.804">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="0.988">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="1.092">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="1.064">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="1.389">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.233">
+</testcase>
+</testsuite>
+<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="Mobile Chrome" tests="10" failures="0" skipped="0" time="26.41" errors="0">
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="3.074">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="2.985">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="5.434">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="5.88">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="1.808">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="2.195">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="1.099">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="0.713">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="2.534">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.688">
+</testcase>
+</testsuite>
+<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="Mobile Safari" tests="10" failures="0" skipped="0" time="19.42" errors="0">
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="2.632">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="2.265">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="4.07">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="4.718">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="2.057">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="0.686">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="0.559">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="0.754">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="1.408">
+</testcase>
+<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.271">
+</testcase>
+</testsuite>
+</testsuites>

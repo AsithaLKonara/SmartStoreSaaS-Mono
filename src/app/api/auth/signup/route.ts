@@ -47,16 +47,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if organization slug is available
+    // Check if organization domain is available (using domain instead of slug)
     const existingOrg = await prisma.organization.findUnique({
-      where: { slug: organizationSlug },
+      where: { domain: organizationSlug },
     });
 
     if (existingOrg) {
       return NextResponse.json(
         { 
           success: false, 
-          message: 'Organization slug is already taken' 
+          message: 'Organization domain is already taken' 
         }, 
         { status: 409 }
       );
@@ -71,9 +71,10 @@ export async function POST(request: NextRequest) {
       const organization = await tx.organization.create({
         data: {
           name: organizationName,
-          slug: organizationSlug,
-          plan: 'STARTER',
-          settings: {
+          domain: organizationSlug,
+          description: `Organization for ${organizationName}`,
+          status: 'ACTIVE',
+          settings: JSON.stringify({
             currency: 'USD',
             timezone: 'UTC',
             language: 'en',
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
               sms: false,
               whatsapp: false
             }
-          }
+          })
         }
       });
 
@@ -97,8 +98,6 @@ export async function POST(request: NextRequest) {
           password: hashedPassword,
           role: 'ADMIN',
           isActive: true,
-          mfaEnabled: false,
-          mfaBackupCodes: [],
           organizationId: organization.id
         }
       });
@@ -128,18 +127,7 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     );
 
-    // Create activity log
-    await prisma.activity.create({
-      data: {
-        type: 'USER_CREATED',
-        description: 'New user account created',
-        userId: result.user.id,
-        metadata: {
-          ip: request.headers.get('x-forwarded-for') || request.ip || 'unknown',
-          userAgent: request.headers.get('user-agent') || 'unknown',
-        },
-      },
-    });
+    // Note: Activity logging removed as Activity model doesn't exist in current schema
 
     // Set secure cookies
     const response = NextResponse.json({
@@ -155,8 +143,8 @@ export async function POST(request: NextRequest) {
         organization: {
           id: result.organization.id,
           name: result.organization.name,
-          slug: result.organization.slug,
-          plan: result.organization.plan,
+          domain: result.organization.domain,
+          status: result.organization.status,
         },
         token,
       },

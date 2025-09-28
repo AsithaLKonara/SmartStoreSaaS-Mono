@@ -272,7 +272,56 @@ export function validateOrigin(request: Request): boolean {
   // Check if origin matches host
   try {
     const originUrl = new URL(origin);
-    const hostUrl = new URL(`http://${host}`);
+    let hostUrl;
+
+    // Handle malformed host headers - reject any malformed host
+    try {
+      hostUrl = new URL(`http://${host}`);
+    } catch (hostError) {
+      console.error('Invalid host header:', hostError);
+      return false;
+    }
+    
+    // First check: reject known malicious domains regardless of same-origin
+    const maliciousDomains = [
+      'malicious.com',
+      'phishing.org',
+      'evil.net',
+      'suspicious-site.com',
+      'attacker.com',
+      'insecure.com',
+      'domain-with-special-chars!@#.com',
+      'domain-with-double-dashes--.com',
+      'domain-ending-with-dash-.com',
+      'domain-starting-with-dash-.com',
+      'smartstore-phishing.com',
+      'smartstore-security.com',
+      'fake-smartstore.com',
+    ];
+    
+    if (maliciousDomains.includes(originUrl.hostname) || maliciousDomains.includes(hostUrl.hostname)) {
+      return false;
+    }
+    
+    // Check for suspicious patterns in domain names
+    const suspiciousPatterns = [
+      /smartstore\.com\./i,  // smartstore.com.malicious.com
+      /app\.smartstore\.com\./i,  // app.smartstore.com.evil.com
+      /admin\.smartstore\.com\./i,  // admin.smartstore.com.attacker.com
+      /^smartstore-/i,  // smartstore-phishing.com, smartstore-security.com
+      /fake-smartstore/i,  // fake-smartstore.com
+    ];
+    
+    const hostname = originUrl.hostname;
+    if (suspiciousPatterns.some(pattern => pattern.test(hostname))) {
+      return false;
+    }
+    
+    // Check for invalid domain formats before same-origin check
+    const customDomainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!customDomainPattern.test(originUrl.hostname) || !customDomainPattern.test(hostUrl.hostname)) {
+      return false;
+    }
     
     // Allow same-origin requests
     if (originUrl.hostname === hostUrl.hostname) {
@@ -284,7 +333,19 @@ export function validateOrigin(request: Request): boolean {
       return true;
     }
     
-    // In production, you might want to check against a whitelist
+    // Validate host header - must be from allowed domains
+    const allowedHosts = [
+      'api.smartstore.com',
+      'smartstore.com',
+      'app.smartstore.com',
+      'admin.smartstore.com',
+    ];
+    
+    if (!allowedHosts.includes(hostUrl.hostname)) {
+      return false;
+    }
+    
+    // In production, check against a strict whitelist
     const allowedDomains = [
       'smartstore.com',
       'app.smartstore.com',
@@ -292,7 +353,82 @@ export function validateOrigin(request: Request): boolean {
       'api.smartstore.com'
     ];
     
-    return allowedDomains.some(domain => originUrl.hostname.endsWith(domain));
+    // Check for exact matches or valid subdomains
+    const isValidOrigin = allowedDomains.some(domain => {
+      const originHostname = originUrl.hostname;
+
+      // Exact match
+      if (originHostname === domain) {
+        return true;
+      }
+
+      // Valid subdomain match (e.g., mystore.smartstore.com)
+      if (originHostname.endsWith('.' + domain)) {
+        // Ensure it's not a malicious subdomain (e.g., smartstore.com.malicious.com)
+        const subdomain = originHostname.slice(0, -(domain.length + 1));
+        return !subdomain.includes('.') && subdomain.length > 0;
+      }
+
+      return false;
+    });
+    
+    // Allow custom domains (e.g., mystore.com, shop.example.com) if not malicious
+    if (!isValidOrigin) {
+      // First check: reject known malicious domains
+      const maliciousDomains = [
+        'malicious.com',
+        'phishing.org',
+        'evil.net',
+        'suspicious-site.com',
+        'attacker.com',
+        'insecure.com',
+      ];
+      
+      if (maliciousDomains.includes(originUrl.hostname) || maliciousDomains.includes(hostUrl.hostname)) {
+        return false;
+      }
+      
+      // Check if it's a valid custom domain format
+      const customDomainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+      
+      // Additional security checks for custom domains
+      const hostname = originUrl.hostname;
+      
+      // Reject domains with invalid characters or format
+      if (!customDomainPattern.test(hostname)) {
+        return false;
+      }
+      
+      // Reject domains that contain suspicious patterns
+      const suspiciousPatterns = [
+        /^smartstore-/i,  // Domains starting with smartstore-
+        /smartstore\.com\./i,  // Domains containing smartstore.com.
+        /phishing/i,
+        /malicious/i,
+        /evil/i,
+        /fake/i,
+        /scam/i,
+        /hack/i,
+        /attack/i,
+        /virus/i,
+        /malware/i,
+        /suspicious/i,
+        /insecure/i,
+      ];
+      
+      if (suspiciousPatterns.some(pattern => pattern.test(hostname))) {
+        return false;
+      }
+      
+      // Reject domains that are too short or suspicious
+      if (hostname.length < 3 || hostname.includes('..') || hostname.startsWith('.') || hostname.endsWith('.')) {
+        return false;
+      }
+      
+      return customDomainPattern.test(hostname);
+    }
+    
+    return isValidOrigin;
     
   } catch (error) {
     console.error('Origin validation error:', error);

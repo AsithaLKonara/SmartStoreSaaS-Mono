@@ -1,9 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  engineType = "library"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -11,538 +8,589 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Management
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  password      String?
-  image         String?
-  role          String    @default("STAFF") // ADMIN, STAFF, USER
-  isActive      Boolean   @default(true)
-  emailVerified DateTime?
-  stripeCustomerId String? // Stripe customer ID for payments
-  mfaEnabled    Boolean   @default(false) // MFA status
-  mfaSecret    String?   // MFA secret for TOTP
-  mfaBackupCodes String[] // MFA backup codes
-  deletedAt     DateTime? // Soft delete timestamp
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                                   String                 @id @default(cuid())
+  email                                String                 @unique
+  name                                 String?
+  password                             String?
+  role                                 String                 @default("USER")
+  organizationId                       String?
+  isActive                             Boolean                @default(true)
+  emailVerified                        DateTime?
+  image                                String?
+  phone                                String?
+  mfaEnabled                           Boolean                @default(false)
+  mfaSecret                            String?
+  mfaBackupCodes                       String?                // JSON string instead of array
+  deletedAt                            DateTime?
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organizationId  String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  createdOrders   Order[] @relation("OrderCreatedBy")
-  updatedOrders   Order[] @relation("OrderUpdatedBy")
-  createdProducts Product[] @relation("ProductCreatedBy")
-  updatedProducts Product[] @relation("ProductUpdatedBy")
-  createdReports    Report[] @relation("ReportCreatedBy")
-  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+  organization                         Organization?          @relation(fields: [organizationId], references: [id])
+  reports                              Report[]
 
   @@map("users")
 }
 
-// Organization Management
 model Organization {
-  id          String   @id @default(cuid())
-  name        String
-  domain      String?  @unique
-  plan        String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
-  status      String   @default("ACTIVE") // ACTIVE, SUSPENDED, CANCELLED
-  settings    Json     @default("{}")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  domain                               String?                @unique
+  description                          String?
+  logo                                 String?
+  status                               String                 @default("ACTIVE")
+  settings                             String?                // JSON string instead of Json
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  users       User[]
-  customers   Customer[]
-  categories  Category[]
-  products    Product[]
-  orders      Order[]
-  payments    Payment[]
-  warehouses  Warehouse[]
-  couriers    Courier[]
-  deliveries  Delivery[]
-  campaigns   Campaign[]
-  analytics   Analytics[]
-  reports     Report[]
-  inventoryMovements InventoryMovement[]
-  purchaseOrders PurchaseOrder[]
-  wooCommerceIntegrations WooCommerceIntegration[]
-  whatsAppIntegrations WhatsAppIntegration[]
-  customerLoyalty CustomerLoyalty[]
+  users                                User[]
+  customers                            Customer[]
+  products                             Product[]
+  orders                               Order[]
+  payments                             Payment[]
+  deliveries                           Delivery[]
+  couriers                             Courier[]
+  warehouses                           Warehouse[]
+  analytics                            Analytics[]
+  reports                              Report[]
+  wooCommerceIntegrations              WooCommerceIntegration[]
+  whatsAppIntegration                 WhatsAppIntegration?
+  socialCommerce                      SocialCommerce[]
+  whatsAppMessages                    WhatsAppMessage[]
+  aiConversations                     AIConversation[]
+  aiAnalytics                         AIAnalytics[]
+  performanceMetrics                  PerformanceMetric[]
 
   @@map("organizations")
 }
 
-// Customer Management
 model Customer {
-  id            String   @id @default(cuid())
-  email         String
-  name          String
-  phone         String?
-  address       Json?    // Address object
-  organizationId String
-  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, BLOCKED
-  totalOrders   Int      @default(0)
-  totalSpent    Float    @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  email                                String
+  phone                                String?
+  address                              String?                // JSON string instead of Json
+  organizationId                       String
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization Organization @relation(fields: [organizationId], references: [id])
-  orders       Order[]
-  payments     Payment[]
-  deliveries   Delivery[]
-  analytics    Analytics[]
-  loyalty      CustomerLoyalty?
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  orders                               Order[]
+  loyalty                              CustomerLoyalty[]
+  whatsAppMessages                     WhatsAppMessage[]
+  wishlist                             Wishlist[]
 
   @@map("customers")
 }
 
-// Customer Loyalty Management
-model CustomerLoyalty {
-  id              String   @id @default(cuid())
-  customerId      String   @unique
-  organizationId  String
-  points          Int      @default(0)
-  tier            String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
-  totalSpent      Float    @default(0)
-  totalOrders     Int      @default(0)
-  lastOrderDate   DateTime?
-  tierExpiryDate  DateTime?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  customer        Customer     @relation(fields: [customerId], references: [id])
-  organization    Organization @relation(fields: [organizationId], references: [id])
-
-  @@map("customer_loyalty")
-}
-
-// Category Management
-model Category {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  organizationId String
-  parentId      String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  organization Organization @relation(fields: [organizationId], references: [id])
-  products     Product[]
-
-  @@map("categories")
-}
-
-// Product Management
 model Product {
-  id               String   @id @default(cuid())
-  name             String
-  description      String?
-  sku              String?  @unique
-  price            Float
-  comparePrice     Float?
-  cost             Float?
-  organizationId   String
-  categoryId       String?
-  createdById      String
-  updatedById      String?
-  status           String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
-  inventoryQuantity Int     @default(0)
-  weight           Float?
-  dimensions       Json?    // Dimensions object
-  tags             String[]
-  isVariant       Boolean  @default(false)
-  parentProductId  String?  // For variant products
-  variantGroup    String?  // Group variants together
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  description                          String?
+  sku                                  String                 @unique
+  price                                Decimal
+  cost                                 Decimal?
+  stock                                Int                    @default(0)
+  minStock                             Int                    @default(0)
+  weight                               Float?
+  dimensions                           String?                // JSON string instead of Json
+  tags                                 String?                // JSON string instead of array
+  isVariant                            Boolean                @default(false)
+  parentProductId                      String?
+  organizationId                       String
+  categoryId                           String?
+  isActive                             Boolean                @default(true)
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization     Organization @relation(fields: [organizationId], references: [id])
-  category        Category?    @relation(fields: [categoryId], references: [id])
-  createdBy       User         @relation("ProductCreatedBy", fields: [createdById], references: [id])
-  updatedBy       User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
-  parentProduct   Product?     @relation("ProductVariants", fields: [parentProductId], references: [id])
-  variants        Product[]    @relation("ProductVariants")
-  productVariants ProductVariant[]
-  orderItems      OrderItem[]
-  inventoryMovements InventoryMovement[]
-  analytics       Analytics[]
-  media           ProductMedia[]
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  category                             Category?              @relation(fields: [categoryId], references: [id])
+  variants                             ProductVariant[]
+  orderItems                           OrderItem[]
+  wishlistItems                        WishlistItem[]
+  inventoryMovements                   InventoryMovement[]
+  socialProducts                       SocialProduct[]
 
   @@map("products")
 }
 
-// Product Media Management
-model ProductMedia {
-  id          String   @id @default(cuid())
-  productId   String
-  type        String   // IMAGE, VIDEO, DOCUMENT, 3D_MODEL
-  url         String
-  altText     String?
-  sortOrder   Int      @default(0)
-  isPrimary   Boolean  @default(false)
-  metadata    Json?    // Additional media properties
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  product     Product  @relation(fields: [productId], references: [id])
-
-  @@map("product_media")
-}
-
-// Product Variant Management
 model ProductVariant {
-  id          String   @id @default(cuid())
-  productId   String
-  name        String   // e.g., "Red", "Large", "Cotton"
-  value       String   // e.g., "Red", "XL", "100% Cotton"
-  sku         String?  @unique
-  price       Float?
-  comparePrice Float?
-  cost        Float?
-  inventoryQuantity Int @default(0)
-  weight      Float?
-  dimensions  Json?    // Variant-specific dimensions
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  sku                                  String                 @unique
+  price                                Decimal
+  cost                                 Decimal?
+  stock                                Int                    @default(0)
+  weight                               Float?
+  dimensions                           String?                // JSON string instead of Json
+  isActive                             Boolean                @default(true)
+  productId                            String
+  organizationId                       String
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  product     Product  @relation(fields: [productId], references: [id])
+  product                              Product                @relation(fields: [productId], references: [id])
+  orderItems                           OrderItem[]
+  inventoryMovements                   InventoryMovement[]
 
   @@map("product_variants")
 }
 
-// Order Management
-model Order {
-  id              String   @id @default(cuid())
-  orderNumber     String   @unique
-  status          String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
-  total           Float
-  subtotal        Float
-  tax             Float    @default(0)
-  shipping        Float    @default(0)
-  discount        Float    @default(0)
-  organizationId  String
-  customerId      String
-  createdById     String
-  updatedById     String?
-  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
-  shippingStatus  String   @default("PENDING") // PENDING, SHIPPED, DELIVERED
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model Category {
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  description                          String?
+  parentId                             String?
+  isActive                             Boolean                @default(true)
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  customer        Customer     @relation(fields: [customerId], references: [id])
-  createdBy       User         @relation("OrderCreatedBy", fields: [createdById], references: [id])
-  updatedBy       User?        @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
-  orderItems      OrderItem[]
-  payments        Payment[]
-  deliveries      Delivery[]
-  inventoryMovements InventoryMovement[]
-  analytics       Analytics[]
-  statusHistory   OrderStatusHistory[]
+  parent                               Category?              @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children                             Category[]             @relation("CategoryHierarchy")
+  products                             Product[]
+
+  @@map("categories")
+}
+
+model Order {
+  id                                   String                 @id @default(cuid())
+  orderNumber                          String                 @unique
+  customerId                           String
+  organizationId                       String
+  status                               String                 @default("PENDING")
+  total                                Decimal
+  subtotal                            Decimal
+  tax                                  Decimal                @default(0)
+  shipping                             Decimal                @default(0)
+  discount                             Decimal                @default(0)
+  notes                                String?
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  customer                             Customer                @relation(fields: [customerId], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  items                                OrderItem[]
+  payments                             Payment[]
+  deliveries                           Delivery[]
+  statusHistory                        OrderStatusHistory[]
 
   @@map("orders")
 }
 
-// Order Status History
-model OrderStatusHistory {
-  id          String   @id @default(cuid())
-  orderId     String
-  status      String   // Previous status
-  newStatus   String   // New status
-  reason      String?  // Reason for status change
-  notes       String?  // Additional notes
-  changedBy   String   // User ID who made the change
-  createdAt   DateTime @default(now())
-
-  // Relations
-  order       Order    @relation(fields: [orderId], references: [id])
-
-  @@map("order_status_history")
-}
-
-// Order Item Management
 model OrderItem {
-  id        String   @id @default(cuid())
-  quantity  Int
-  price     Float
-  total     Float
-  orderId   String
-  productId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  orderId                              String
+  productId                            String
+  variantId                            String?
+  quantity                             Int
+  price                                Decimal
+  total                                Decimal
+  createdAt                            DateTime               @default(now())
 
   // Relations
-  order     Order    @relation(fields: [orderId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  order                                Order                  @relation(fields: [orderId], references: [id])
+  product                              Product                @relation(fields: [productId], references: [id])
+  variant                              ProductVariant?        @relation(fields: [variantId], references: [id])
 
   @@map("order_items")
 }
 
-// Payment Management
 model Payment {
-  id              String   @id @default(cuid())
-  amount          Float
-  currency        String   @default("USD")
-  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
-  method          String   // CREDIT_CARD, PAYPAL, BANK_TRANSFER, CRYPTO
-  organizationId  String
-  orderId         String?
-  customerId      String?
-  transactionId   String?  @unique
-  gateway         String?  // STRIPE, PAYPAL, SQUARE
-  metadata        Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  orderId                              String
+  organizationId                       String
+  amount                               Decimal
+  currency                             String                 @default("LKR")
+  method                               String
+  status                               String                 @default("PENDING")
+  transactionId                        String?
+  gateway                              String?
+  metadata                             String?                // JSON string instead of Json
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  order           Order?       @relation(fields: [orderId], references: [id])
-  customer        Customer?    @relation(fields: [customerId], references: [id])
+  order                                Order                  @relation(fields: [orderId], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
 
   @@map("payments")
 }
 
-// Inventory Management
-model InventoryMovement {
-  id              String   @id @default(cuid())
-  type            String   // IN, OUT, ADJUSTMENT, TRANSFER
-  quantity        Int
-  reason          String?
-  organizationId  String
-  productId       String?
-  orderId         String?
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  product         Product?     @relation(fields: [productId], references: [id])
-  order           Order?       @relation(fields: [orderId], references: [id])
-
-  @@map("inventory_movements")
-}
-
-// Warehouse Management
-model Warehouse {
-  id              String   @id @default(cuid())
-  name            String
-  address         Json?    // Address object
-  organizationId  String
-  isActive        Boolean  @default(true)
-  capacity        Int?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-
-  @@map("warehouses")
-}
-
-// Courier Management
-model Courier {
-  id                String   @id @default(cuid())
-  name              String
-  email             String?
-  phone             String?
-  vehicleType       String?  // CAR, MOTORCYCLE, BICYCLE, TRUCK
-  vehicleNumber     String?
-  organizationId    String
-  status            String   @default("ACTIVE") // ACTIVE, INACTIVE, OFFLINE
-  isActive          Boolean  @default(true)
-  rating            Float?
-  totalDeliveries   Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relations
-  organization      Organization @relation(fields: [organizationId], references: [id])
-  deliveries        Delivery[]
-
-  @@map("couriers")
-}
-
-// Delivery Management
 model Delivery {
-  id                  String    @id @default(cuid())
-  trackingNumber      String    @unique
-  status              String    @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED
-  estimatedDelivery   DateTime?
-  actualDelivery      DateTime?
-  organizationId      String
-  orderId             String?
-  courierId           String?
-  customerId          String?
-  address             Json?     // Address object
-  notes               String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                                   String                 @id @default(cuid())
+  orderId                              String
+  organizationId                       String
+  courierId                            String?
+  status                               String                 @default("PENDING")
+  trackingNumber                       String?
+  estimatedDelivery                    DateTime?
+  actualDelivery                       DateTime?
+  customerId                           String?
+  address                              String?                // JSON string instead of Json
+  notes                                String?
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization        Organization @relation(fields: [organizationId], references: [id])
-  order               Order?       @relation(fields: [orderId], references: [id])
-  courier             Courier?     @relation(fields: [courierId], references: [id])
-  customer            Customer?    @relation(fields: [customerId], references: [id])
+  order                                Order                  @relation(fields: [orderId], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  courier                              Courier?               @relation(fields: [courierId], references: [id])
+  statusHistory                        DeliveryStatusHistory[]
 
   @@map("deliveries")
 }
 
-// Campaign Management
-model Campaign {
-  id                String   @id @default(cuid())
-  name              String
-  description       String?
-  type              String   // EMAIL, SMS, SOCIAL_MEDIA, PUSH_NOTIFICATION
-  status            String   @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, PAUSED, COMPLETED
-  organizationId    String
-  startDate         DateTime?
-  endDate           DateTime?
-  budget             Float?
-  targetAudience    String[]
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+model Courier {
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  phone                                String?
+  email                                String?
+  organizationId                       String
+  isActive                             Boolean                @default(true)
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization      Organization @relation(fields: [organizationId], references: [id])
-  details           CampaignDetail[]
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  deliveries                           Delivery[]
 
-  @@map("campaigns")
+  @@map("couriers")
 }
 
-// Marketing Campaign Details
-model CampaignDetail {
-  id              String   @id @default(cuid())
-  campaignId      String
-  type            String   // EMAIL_TEMPLATE, SMS_TEMPLATE, SOCIAL_POST, LANDING_PAGE
-  content         Json     // Template content, design, etc.
-  targetAudience  Json     // Audience criteria
-  schedule        Json     // Timing and frequency
-  metrics         Json     // Performance tracking
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model OrderStatusHistory {
+  id                                   String                 @id @default(cuid())
+  orderId                              String
+  status                               String
+  notes                                String?
+  createdAt                            DateTime               @default(now())
 
   // Relations
-  campaign        Campaign @relation(fields: [campaignId], references: [id])
+  order                                Order                  @relation(fields: [orderId], references: [id])
 
-  @@map("campaign_details")
+  @@map("order_status_history")
 }
 
-// Analytics Management
+model DeliveryStatusHistory {
+  id                                   String                 @id @default(cuid())
+  deliveryId                           String
+  status                               String
+  notes                                String?
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  delivery                             Delivery                @relation(fields: [deliveryId], references: [id])
+
+  @@map("delivery_status_history")
+}
+
+model InventoryMovement {
+  id                                   String                 @id @default(cuid())
+  productId                            String
+  variantId                            String?
+  type                                 String                 // IN, OUT, ADJUSTMENT
+  quantity                             Int
+  reason                               String?
+  reference                            String?
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  product                              Product                @relation(fields: [productId], references: [id])
+  variant                              ProductVariant?        @relation(fields: [variantId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model CustomerLoyalty {
+  id                                   String                 @id @default(cuid())
+  customerId                           String
+  points                               Int                    @default(0)
+  tier                                 String                 @default("BRONZE")
+  totalSpent                           Decimal                @default(0)
+  lastActivity                         DateTime?
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  customer                             Customer                @relation(fields: [customerId], references: [id])
+  transactions                         LoyaltyTransaction[]
+
+  @@map("customer_loyalty")
+}
+
+model LoyaltyTransaction {
+  id                                   String                 @id @default(cuid())
+  customerId                           String
+  loyaltyId                            String
+  type                                 String                 // EARNED, REDEEMED, EXPIRED
+  points                               Int
+  description                          String?
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  loyalty                              CustomerLoyalty         @relation(fields: [loyaltyId], references: [id])
+
+  @@map("loyalty_transactions")
+}
+
+model Wishlist {
+  id                                   String                 @id @default(cuid())
+  customerId                           String
+  name                                 String                 @default("My Wishlist")
+  isPublic                             Boolean                @default(false)
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  customer                             Customer                @relation(fields: [customerId], references: [id])
+  items                                WishlistItem[]
+
+  @@map("wishlists")
+}
+
+model WishlistItem {
+  id                                   String                 @id @default(cuid())
+  wishlistId                           String
+  productId                            String
+  quantity                             Int                    @default(1)
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  wishlist                             Wishlist                @relation(fields: [wishlistId], references: [id])
+  product                              Product                @relation(fields: [productId], references: [id])
+
+  @@map("wishlist_items")
+}
+
 model Analytics {
-  id              String   @id @default(cuid())
-  type            String   // PAGE_VIEW, PRODUCT_VIEW, PURCHASE, CART_ADD
-  value           Int
-  metadata        Json     @default("{}")
-  organizationId  String
-  customerId      String?
-  productId       String?
-  orderId         String?
-  timestamp       DateTime
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  type                                 String
+  value                                Int
+  metadata                             String?                // JSON string instead of Json
+  organizationId                       String
+  createdAt                            DateTime               @default(now())
 
   // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  customer        Customer?    @relation(fields: [customerId], references: [id])
-  product         Product?     @relation(fields: [productId], references: [id])
-  order           Order?       @relation(fields: [orderId], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
 
   @@map("analytics")
 }
 
-// Report Management
 model Report {
-  id              String   @id @default(cuid())
-  name            String
-  type            String   // SALES, INVENTORY, CUSTOMER, FINANCIAL
-  status          String   @default("DRAFT") // DRAFT, GENERATED, SCHEDULED
-  organizationId  String
-  createdById     String?
-  data            Json     @default("{}")
-  schedule        String?  // DAILY, WEEKLY, MONTHLY, QUARTERLY
-  lastGenerated   DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  type                                 String
+  data                                 String?                // JSON string instead of Json
+  schedule                             String?
+  organizationId                       String
+  createdById                          String?
+  createdAt                            DateTime               @default(now())
 
   // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  createdBy       User?        @relation("ReportCreatedBy", fields: [createdById], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  createdBy                            User?                  @relation(fields: [createdById], references: [id])
 
   @@map("reports")
 }
 
-// Purchase Order Management
-model PurchaseOrder {
-  id              String   @id @default(cuid())
-  poNumber        String   @unique
-  status          String   @default("DRAFT") // DRAFT, APPROVED, ORDERED, RECEIVED, CANCELLED
-  total           Float
-  organizationId  String
-  supplierId      String?
-  createdById     String
-  notes           String?
-  expectedDelivery DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model Warehouse {
+  id                                   String                 @id @default(cuid())
+  name                                 String
+  address                              String?                // JSON string instead of Json
+  organizationId                       String
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  createdBy       User         @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  inventory                            WarehouseInventory[]
 
-  @@map("purchase_orders")
+  @@map("warehouses")
 }
 
-// WooCommerce Integration
-model WooCommerceIntegration {
-  id              String   @id @default(cuid())
-  organizationId  String
-  siteUrl         String
-  consumerKey     String
-  consumerSecret  String
-  isActive        Boolean  @default(true)
-  lastSync        DateTime?
-  syncSettings    Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model WarehouseInventory {
+  id                                   String                 @id @default(cuid())
+  warehouseId                          String
+  productId                            String
+  variantId                            String?
+  quantity                             Int                    @default(0)
+  reservedQuantity                     Int                    @default(0)
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  warehouse                            Warehouse               @relation(fields: [warehouseId], references: [id])
+
+  @@map("warehouse_inventory")
+}
+
+model WooCommerceIntegration {
+  id                                   String                 @id @default(cuid())
+  organizationId                       String
+  storeUrl                             String
+  consumerKey                          String
+  consumerSecret                       String
+  isActive                             Boolean                @default(true)
+  lastSync                             DateTime?
+  syncSettings                         String?                // JSON string instead of Json
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
 
   @@map("woocommerce_integrations")
 }
 
-// WhatsApp Integration
 model WhatsAppIntegration {
-  id              String   @id @default(cuid())
-  organizationId  String
-  phoneNumber     String
-  accessToken     String
-  isActive        Boolean  @default(true)
-  webhookUrl      String?
-  lastSync        DateTime?
-  syncSettings    Json     @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                                   String                 @id @default(cuid())
+  organizationId                       String                 @unique
+  phoneNumber                          String
+  accessToken                          String
+  isActive                             Boolean                @default(true)
+  lastSync                             DateTime?
+  syncSettings                         String?                // JSON string instead of Json
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
 
   // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
 
   @@map("whatsapp_integrations")
 }
+
+model SocialCommerce {
+  id                                   String                 @id @default(cuid())
+  platform                             String
+  organizationId                       String
+  accessToken                          String?
+  refreshToken                         String?
+  expiresAt                            DateTime?
+  isActive                             Boolean                @default(true)
+  lastSync                             DateTime?
+  settings                             String?                // JSON string
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  products                             SocialProduct[]
+  posts                                SocialPost[]
+
+  @@map("social_commerce")
+}
+
+model SocialProduct {
+  id                                   String                 @id @default(cuid())
+  socialCommerceId                     String
+  productId                            String
+  platformProductId                    String
+  isActive                             Boolean                @default(true)
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  socialCommerce                       SocialCommerce         @relation(fields: [socialCommerceId], references: [id])
+  product                              Product                @relation(fields: [productId], references: [id])
+
+  @@map("social_products")
+}
+
+model SocialPost {
+  id                                   String                 @id @default(cuid())
+  organizationId                       String
+  socialCommerceId                     String?
+  content                              String
+  mediaUrls                            String?                // JSON string instead of array
+  hashtags                             String?                // JSON string instead of array
+  platform                             String
+  status                               String                 @default("DRAFT") // DRAFT, SCHEDULED, PUBLISHED, FAILED
+  scheduledAt                          DateTime?
+  publishedAt                          DateTime?
+  externalId                           String?
+  engagement                           String?                // JSON string
+  isActive                             Boolean                @default(true)
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  socialCommerce                       SocialCommerce?        @relation(fields: [socialCommerceId], references: [id])
+
+  @@map("social_posts")
+}
+
+model WhatsAppMessage {
+  id                                   String                 @id @default(cuid())
+  organizationId                       String
+  customerId                           String?
+  phoneNumber                          String
+  message                              String
+  type                                 String                 @default("text") // text, image, document, etc.
+  mediaUrl                             String?
+  status                               String                 @default("PENDING") // PENDING, SENT, DELIVERED, READ, FAILED
+  direction                            String                 @default("OUTBOUND") // INBOUND, OUTBOUND
+  externalId                           String?
+  isAutoReply                          Boolean                @default(false)
+  receivedAt                           DateTime?
+  sentAt                               DateTime?
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+  customer                             Customer?              @relation(fields: [customerId], references: [id])
+
+  @@map("whatsapp_messages")
+}
+
+model AIConversation {
+  id                                   String                 @id @default(cuid())
+  organizationId                       String
+  messages                             String                 // JSON string of conversation messages
+  createdAt                            DateTime               @default(now())
+  updatedAt                            DateTime               @updatedAt
+
+  // Relations
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+
+  @@map("ai_conversations")
+}
+
+model AIAnalytics {
+  id                                   String                 @id @default(cuid())
+  organizationId                       String
+  query                                String
+  insights                             String
+  dataContext                          String?                // JSON string
+  filters                              String?                // JSON string
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+
+  @@map("ai_analytics")
+}
+
+model PerformanceMetric {
+  id                                   String                 @id @default(cuid())
+  organizationId                       String
+  endpoint                             String
+  method                               String
+  responseTime                         Float
+  statusCode                           Int                    @default(200)
+  errorMessage                         String?
+  metadata                             String?                // JSON string
+  createdAt                            DateTime               @default(now())
+
+  // Relations
+  organization                         Organization           @relation(fields: [organizationId], references: [id])
+
+  @@map("performance_metrics")
+}
+
+

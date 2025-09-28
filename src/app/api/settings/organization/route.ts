@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,15 +49,35 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, domain, description, settings } = body;
-
-    // Validate required fields
-    if (!name) {
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
       return NextResponse.json(
-        { error: 'Organization name is required' },
+        { error: 'Invalid JSON in request body' },
         { status: 400 }
       );
+    }
+    
+    let { name, domain, description, settings } = body;
+
+    // Validate required fields - only require name if it's being updated
+    if (name === undefined) {
+      // If name is not provided, fetch the existing organization to get current name
+      const existingOrg = await prisma.organization.findUnique({
+        where: { id: session.user.organizationId },
+        select: { name: true }
+      });
+      
+      if (!existingOrg) {
+        return NextResponse.json(
+          { error: 'Organization not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Use existing name if not provided
+      name = existingOrg.name;
     }
 
     // Check if domain is already taken by another organization

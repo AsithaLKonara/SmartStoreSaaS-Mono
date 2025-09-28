@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { securityService } from '@/lib/security/securityService';
 import { prisma } from '@/lib/prisma';
 
@@ -20,16 +19,11 @@ function getPermissionsForRole(role: string): string[] {
   }
 }
 
-export async function GET(request: NextRequest) {
+async function getSecurity(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
-    const organizationId = session.user.organizationId;
+    const organizationId = request.user!.organizationId;
 
     switch (type) {
       case 'audit-logs':
@@ -58,7 +52,7 @@ export async function GET(request: NextRequest) {
 
       case 'user-permissions':
         const user = await prisma.user.findUnique({
-          where: { id: session.user.id },
+          where: { id: request.user!.id },
         });
         
         if (!user?.role) {

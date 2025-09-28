@@ -1,10 +1,12 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Bot, Mail, Lock, Eye, EyeOff, User, Building2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -379,5 +381,5 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
-  );
-} 
+    );
+}

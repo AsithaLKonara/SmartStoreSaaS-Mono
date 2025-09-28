@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer';
+
 import { prisma } from '@/lib/prisma';
 
 export interface EmailTemplate {
@@ -102,6 +104,10 @@ export class EmailService {
    */
   async sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
+      // Fallback to SMTP if configured
+      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        return await this.sendWithSMTP(options);
+      }
       if (this.provider === 'sendgrid') {
         return await this.sendWithSendGrid(options);
       } else {
@@ -110,6 +116,37 @@ export class EmailService {
     } catch (error) {
       console.error('Error sending email:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  private async sendWithSMTP(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    try {
+      const host = process.env.SMTP_HOST!;
+      const port = Number(process.env.SMTP_PORT || 587);
+      const user = process.env.SMTP_USER!;
+      const pass = process.env.SMTP_PASS!;
+
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+      });
+
+      const from = options.from || process.env.SMTP_FROM || user;
+      const to = Array.isArray(options.to) ? options.to.join(',') : options.to;
+
+      const info = await transporter.sendMail({
+        from,
+        to,
+        subject: options.subject,
+        text: options.textContent,
+        html: options.htmlContent,
+      });
+
+      return { success: true, messageId: info.messageId };
+    } catch (error: any) {
+      return { success: false, error: error.message || 'SMTP send failed' };
     }
   }
 
