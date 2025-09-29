@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { paypalService } from '@/lib/payments/paypalService';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(request: NextRequest) {
+async function handler(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { action, ...data } = await request.json();
 
     switch (action) {
       case 'create-order':
-        return await createOrder(data, session.user.id);
+        return await createOrder(data, request.user!.id);
       
       case 'capture-order':
-        return await captureOrder(data, session.user.id);
+        return await captureOrder(data, request.user!.id);
       
       case 'get-order':
-        return await getOrder(data, session.user.id);
+        return await getOrder(data, request.user!.id);
       
       case 'create-refund':
-        return await createRefund(data, session.user.id);
+        return await createRefund(data, request.user!.id);
       
       case 'create-billing-plan':
-        return await createBillingPlan(data, session.user.id);
+        return await createBillingPlan(data, request.user!.id);
       
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
@@ -151,3 +144,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Webhook failed' }, { status: 400 });
   }
 }
+
+export const POST = createAuthHandler(handler, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});
