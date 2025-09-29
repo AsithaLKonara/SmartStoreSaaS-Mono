@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-const prisma = new PrismaClient();
-
-export async function GET(request: NextRequest) {
+async function handler(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const organizationId = request.user!.organizationId;
 
-    // Get organization settings that contain AI configuration
+    // Get current organization settings
     const organization = await prisma.organization.findUnique({
-      where: { id: session.user.organizationId },
+      where: { id: organizationId },
       select: { settings: true }
     });
 
@@ -46,7 +39,11 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    return NextResponse.json(aiSettings);
+    return NextResponse.json({
+      success: true,
+      data: aiSettings
+    });
+
   } catch (error) {
     console.error('Error fetching AI settings:', error);
     return NextResponse.json(
@@ -56,14 +53,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+async function updateAISettings(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    const organizationId = request.user!.organizationId;
     const body = await request.json();
     const { recommendationEngine, predictiveAnalytics, marketingAutomation } = body;
 
@@ -77,7 +69,7 @@ export async function PUT(request: NextRequest) {
 
     // Get current organization settings
     const organization = await prisma.organization.findUnique({
-      where: { id: session.user.organizationId },
+      where: { id: organizationId },
       select: { settings: true }
     });
 
@@ -111,11 +103,16 @@ export async function PUT(request: NextRequest) {
 
     // Update organization with new AI settings
     await prisma.organization.update({
-      where: { id: session.user.organizationId },
+      where: { id: organizationId },
       data: { settings: updatedSettings }
     });
 
-    return NextResponse.json({ message: 'AI settings updated successfully' });
+    return NextResponse.json({
+      success: true,
+      data: updatedSettings.ai,
+      message: 'AI settings updated successfully'
+    });
+
   } catch (error) {
     console.error('Error updating AI settings:', error);
     return NextResponse.json(
@@ -124,3 +121,13 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export const GET = createAuthHandler(handler, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});
+
+export const PUT = createAuthHandler(updateAISettings, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_WRITE],
+});
