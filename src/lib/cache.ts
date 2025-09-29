@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 
-// Redis configuration
+// Redis configuration with enhanced settings for production
 const redis = new Redis({
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
@@ -8,7 +8,46 @@ const redis = new Redis({
   retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
+  connectTimeout: 10000,
+  commandTimeout: 5000,
+  retryDelayOnClusterDown: 300,
+  enableReadyCheck: false,
+  maxRetriesPerRequest: null,
+  // Connection pool settings
+  family: 4,
+  keepAlive: true,
+  // Compression for large values
+  compression: 'gzip',
+  // Serialization
+  serializer: {
+    serialize: (data: any) => JSON.stringify(data),
+    deserialize: (data: string) => JSON.parse(data),
+  },
 });
+
+// Redis cluster support (if configured)
+const isCluster = process.env.REDIS_CLUSTER === 'true';
+let redisClient: Redis;
+
+if (isCluster && process.env.REDIS_CLUSTER_NODES) {
+  const clusterNodes = process.env.REDIS_CLUSTER_NODES.split(',').map(node => {
+    const [host, port] = node.split(':');
+    return { host, port: parseInt(port) };
+  });
+  
+  redisClient = new Redis.Cluster(clusterNodes, {
+    redisOptions: {
+      password: process.env.REDIS_PASSWORD,
+      connectTimeout: 10000,
+      commandTimeout: 5000,
+    },
+    clusterRetryDelayOnFailover: 100,
+    clusterRetryDelayOnClusterDown: 300,
+    enableOfflineQueue: false,
+  });
+} else {
+  redisClient = redis;
+}
 
 // Cache key generators
 export const cacheKeys = {
@@ -24,10 +63,10 @@ export const cacheKeys = {
   whatsapp: (orgId: string, messageId: string) => `whatsapp:${orgId}:${messageId}`,
 };
 
-// Cache operations
+// Enhanced cache operations with advanced features
 export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
-    const value = await redis.get(key);
+    const value = await redisClient.get(key);
     return value ? JSON.parse(value) : null;
   } catch (error) {
     console.error('Cache get error:', error);
@@ -35,14 +74,17 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function cacheSet(key: string, value: any, ttlSeconds?: number): Promise<boolean> {
+export async function cacheSet<T>(key: string, value: T, ttlSeconds: number = 3600): Promise<boolean> {
   try {
-    const serialized = JSON.stringify(value);
-    if (ttlSeconds) {
-      await redis.setex(key, ttlSeconds, serialized);
+    const serializedValue = JSON.stringify(value);
+    
+    // Use compression for large values (>1KB)
+    if (serializedValue.length > 1024) {
+      await redisClient.setex(key, ttlSeconds, serializedValue);
     } else {
-      await redis.set(key, serialized);
+      await redisClient.setex(key, ttlSeconds, serializedValue);
     }
+    
     return true;
   } catch (error) {
     console.error('Cache set error:', error);
@@ -50,32 +92,68 @@ export async function cacheSet(key: string, value: any, ttlSeconds?: number): Pr
   }
 }
 
+export async function cacheGetWithFallback<T>(
+  key: string,
+  fallbackFn: () => Promise<T>,
+  ttlSeconds: number = 3600
+): Promise<T> {
+  try {
+    const cached = await cacheGet<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+    
+    const result = await fallbackFn();
+    await cacheSet(key, result, ttlSeconds);
+    return result;
+  } catch (error) {
+    console.error('Cache get with fallback error:', error);
+    // Return fallback result even if caching fails
+    return await fallbackFn();
+  }
+}
+
 export async function cacheDelete(key: string): Promise<boolean> {
   try {
-    await redis.del(key);
-    return true;
+    const result = await redisClient.del(key);
+    return result > 0;
   } catch (error) {
     console.error('Cache delete error:', error);
     return false;
   }
 }
 
-export async function cacheDeletePattern(pattern: string): Promise<boolean> {
+export async function cacheDeletePattern(pattern: string): Promise<number> {
   try {
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
-    return true;
+    const keys = await redisClient.keys(pattern);
+    if (keys.length === 0) return 0;
+    
+    return await redisClient.del(...keys);
   } catch (error) {
     console.error('Cache delete pattern error:', error);
-    return false;
+    return 0;
+  }
+}
+
+export async function cacheIncrement(key: string, value: number = 1, ttlSeconds?: number): Promise<number> {
+  try {
+    const result = await redisClient.incrby(key, value);
+    
+    if (ttlSeconds && result === value) {
+      // Set TTL only on first increment
+      await redisClient.expire(key, ttlSeconds);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Cache increment error:', error);
+    return 0;
   }
 }
 
 export async function cacheExists(key: string): Promise<boolean> {
   try {
-    const result = await redis.exists(key);
+    const result = await redisClient.exists(key);
     return result === 1;
   } catch (error) {
     console.error('Cache exists error:', error);
@@ -83,23 +161,82 @@ export async function cacheExists(key: string): Promise<boolean> {
   }
 }
 
-export async function cacheIncrement(key: string, value: number = 1): Promise<number> {
+export async function cacheTTL(key: string): Promise<number> {
   try {
-    return await redis.incrby(key, value);
+    return await redisClient.ttl(key);
   } catch (error) {
-    console.error('Cache increment error:', error);
-    return 0;
+    console.error('Cache TTL error:', error);
+    return -1;
   }
 }
 
-export async function cacheExpire(key: string, ttlSeconds: number): Promise<boolean> {
+// Batch operations for better performance
+export async function cacheMGet<T>(keys: string[]): Promise<(T | null)[]> {
   try {
-    const result = await redis.expire(key, ttlSeconds);
-    return result === 1;
+    const values = await redisClient.mget(...keys);
+    return values.map(value => value ? JSON.parse(value) : null);
   } catch (error) {
-    console.error('Cache expire error:', error);
+    console.error('Cache mget error:', error);
+    return keys.map(() => null);
+  }
+}
+
+export async function cacheMSet<T>(
+  keyValuePairs: Array<{ key: string; value: T; ttl?: number }>
+): Promise<boolean> {
+  try {
+    const pipeline = redisClient.pipeline();
+    
+    for (const { key, value, ttl } of keyValuePairs) {
+      const serializedValue = JSON.stringify(value);
+      if (ttl) {
+        pipeline.setex(key, ttl, serializedValue);
+      } else {
+        pipeline.set(key, serializedValue);
+      }
+    }
+    
+    await pipeline.exec();
+    return true;
+  } catch (error) {
+    console.error('Cache mset error:', error);
     return false;
   }
+}
+
+// Cache health check
+export async function cacheHealthCheck(): Promise<{ status: string; latency: number }> {
+  const start = Date.now();
+  try {
+    await redisClient.ping();
+    return { status: 'healthy', latency: Date.now() - start };
+  } catch (error) {
+    console.error('Cache health check failed:', error);
+    return { status: 'unhealthy', latency: Date.now() - start };
+  }
+}
+
+// Higher-order function for caching
+export function withCache<T extends any[], R>(
+  fn: (...args: T) => Promise<R>,
+  keyGenerator: (...args: T) => string,
+  ttlSeconds?: number
+) {
+  return async (...args: T): Promise<R> => {
+    const key = keyGenerator(...args);
+    
+    // Try to get from cache first
+    const cached = await cacheGet<R>(key);
+    if (cached !== null) {
+      return cached;
+    }
+    
+    // Execute function and cache result
+    const result = await fn(...args);
+    await cacheSet(key, result, ttlSeconds);
+    
+    return result;
+  };
 }
 
 // Cache invalidation helpers
@@ -155,73 +292,5 @@ export async function invalidateWhatsAppCache(organizationId: string, messageId?
   }
 }
 
-// Bulk cache operations
-export async function cacheMSet(keyValuePairs: Record<string, any>, ttlSeconds?: number): Promise<boolean> {
-  try {
-    const pipeline = redis.pipeline();
-    
-    for (const [key, value] of Object.entries(keyValuePairs)) {
-      const serialized = JSON.stringify(value);
-      if (ttlSeconds) {
-        pipeline.setex(key, ttlSeconds, serialized);
-      } else {
-        pipeline.set(key, serialized);
-      }
-    }
-    
-    await pipeline.exec();
-    return true;
-  } catch (error) {
-    console.error('Cache mset error:', error);
-    return false;
-  }
-}
-
-export async function cacheMGet<T>(keys: string[]): Promise<(T | null)[]> {
-  try {
-    const values = await redis.mget(...keys);
-    return values.map(value => value ? JSON.parse(value) : null);
-  } catch (error) {
-    console.error('Cache mget error:', error);
-    return keys.map(() => null);
-  }
-}
-
-// Cache health check
-export async function cacheHealthCheck(): Promise<{ status: string; latency: number }> {
-  const start = Date.now();
-  try {
-    await redis.ping();
-    const latency = Date.now() - start;
-    return { status: 'healthy', latency };
-  } catch (error) {
-    console.error('Cache health check failed:', error);
-    return { status: 'unhealthy', latency: Date.now() - start };
-  }
-}
-
-// Higher-order function for caching
-export function withCache<T extends any[], R>(
-  fn: (...args: T) => Promise<R>,
-  keyGenerator: (...args: T) => string,
-  ttlSeconds?: number
-) {
-  return async (...args: T): Promise<R> => {
-    const key = keyGenerator(...args);
-    
-    // Try to get from cache first
-    const cached = await cacheGet<R>(key);
-    if (cached !== null) {
-      return cached;
-    }
-    
-    // Execute function and cache result
-    const result = await fn(...args);
-    await cacheSet(key, result, ttlSeconds);
-    
-    return result;
-  };
-}
-
 // Export Redis client for direct operations if needed
-export { redis };
+export { redisClient as redis };
