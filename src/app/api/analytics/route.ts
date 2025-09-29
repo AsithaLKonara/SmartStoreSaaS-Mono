@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/analytics - Get comprehensive analytics data
-async function getAnalytics(request: AuthenticatedRequest) {
+async function getAnalytics(request: AuthRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || '30d'; // 7d, 30d, 90d, 1y
@@ -257,4 +256,7 @@ async function getAnalytics(request: AuthenticatedRequest) {
 }
 
 // Export handlers
-export const GET = withProtection()(getAnalytics); 
+export const GET = createAuthHandler(getAnalytics, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+}); 
