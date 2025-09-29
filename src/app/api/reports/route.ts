@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
 import { z } from 'zod';
 
 // Report generation schema
@@ -18,7 +17,7 @@ const generateReportSchema = z.object({
 });
 
 // GET /api/reports - List available reports and generated reports
-async function getReports(request: AuthenticatedRequest) {
+async function getReports(request: AuthRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -65,7 +64,7 @@ async function getReports(request: AuthenticatedRequest) {
 }
 
 // POST /api/reports - Generate new report
-async function generateReport(request: AuthenticatedRequest) {
+async function generateReport(request: AuthRequest) {
   try {
     const body = await request.json();
     
@@ -458,5 +457,12 @@ function generateFinancialCharts(data: unknown) {
 }
 
 // Export handlers
-export const GET = withProtection()(getReports);
-export const POST = withProtection(['ADMIN', 'MANAGER'])(generateReport); 
+export const GET = createAuthHandler(getReports, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});
+
+export const POST = createAuthHandler(generateReport, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_WRITE],
+}); 

@@ -116,29 +116,20 @@ async function getSecurity(request: AuthRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handleSecurityPost(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { action, data } = body;
-    const organizationId = session.user.organizationId;
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'Organization ID not found' }, { status: 400 });
-    }
+    const organizationId = request.user!.organizationId;
 
     switch (action) {
       case 'setup-mfa':
-        const mfaSetup = await securityService.setupMFA(session.user.id);
+        const mfaSetup = await securityService.setupMFA(request.user!.id);
         return NextResponse.json({ mfaSetup });
 
       case 'verify-mfa':
         const { token } = data;
-        const isValid = await securityService.verifyMFAToken(session.user.id, token);
+        const isValid = await securityService.verifyMFAToken(request.user!.id, token);
         return NextResponse.json({ isValid });
 
       case 'create-role':
@@ -153,13 +144,13 @@ export async function POST(request: NextRequest) {
 
       case 'check-permission':
         const { permission } = data;
-        const hasPermission = await securityService.checkPermission(session.user.id, permission);
+        const hasPermission = await securityService.checkPermission(request.user!.id, permission);
         return NextResponse.json({ hasPermission });
 
       case 'log-security-event':
         const { eventAction, resource, ipAddress, userAgent, success, details } = data;
         await securityService.logSecurityEvent(
-          session.user.id,
+          request.user!.id,
           eventAction,
           resource,
           ipAddress,
@@ -228,4 +219,15 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
+
+// Export handlers with appropriate authentication
+export const GET = createAuthHandler(getSecurity, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});
+
+export const POST = createAuthHandler(handleSecurityPost, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_WRITE],
+}); 
