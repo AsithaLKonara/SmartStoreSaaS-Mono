@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
 // POST /api/coupons/validate - Validate coupon
-export async function POST(request: NextRequest) {
+async function validateCoupon(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { code, orderAmount, customerId } = await request.json();
 
     if (!code || !orderAmount) {
@@ -20,7 +14,7 @@ export async function POST(request: NextRequest) {
     const coupon = await prisma.coupon.findFirst({
       where: {
         code,
-        organizationId: session.user.organizationId,
+        organizationId: request.user!.organizationId,
         isActive: true
       }
     });
@@ -97,3 +91,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const POST = createAuthHandler(validateCoupon, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
+});
