@@ -1,28 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
 // GET - Get orders with advanced filtering and status tracking
-export async function GET(request: NextRequest) {
+async function getAdvancedOrders(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
+    const organizationId = request.user!.organizationId;
     const status = searchParams.get('status');
     const customerId = searchParams.get('customerId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'Organization ID required' }, { status: 400 });
-    }
 
     const skip = (page - 1) * limit;
 
@@ -42,25 +32,14 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         customer: true,
-        orderItems: {
+        items: {
           include: {
             product: true,
           },
         },
-        payments: true,
-        deliveries: true,
-        statusHistory: {
-          orderBy: { createdAt: 'desc' },
-          take: 5, // Last 5 status changes
-        },
-        _count: {
-          select: {
-            orderItems: true,
-            payments: true,
-            deliveries: true,
-            statusHistory: true,
-          },
-        },
+        createdBy: {
+          select: { id: true, name: true, email: true }
+        }
       },
       orderBy: { createdAt: 'desc' },
       skip,
@@ -75,7 +54,7 @@ export async function GET(request: NextRequest) {
       by: ['status'],
       where: { organizationId },
       _count: { status: true },
-      _sum: { total: true },
+      _sum: { totalAmount: true },
     });
 
     return NextResponse.json({
@@ -99,166 +78,68 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Update order status with history tracking
-export async function POST(request: NextRequest) {
+async function updateOrderStatus(request: AuthRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { orderId, newStatus, reason, notes } = body;
+    const { orderId, status, notes } = body;
 
-    if (!orderId || !newStatus) {
-      return NextResponse.json({
-        error: 'Order ID and new status are required',
-      }, { status: 400 });
+    if (!orderId || !status) {
+      return NextResponse.json(
+        { error: 'Order ID and status are required' },
+        { status: 400 }
+      );
     }
 
-    // Get current order
-    const currentOrder = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { statusHistory: true },
-    });
-
-    if (!currentOrder) {
-      return NextResponse.json({
-        error: 'Order not found',
-      }, { status: 404 });
-    }
-
-    // Update order status and create history record
-    const result = await prisma.$transaction(async (tx) => {
-      // Create status history record
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId,
-          status: currentOrder.status,
-          newStatus,
-          reason: reason || null,
-          notes: notes || null,
-          changedBy: session.user.id,
-        },
-      });
-
-      // Update order status
-      const updatedOrder = await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status: newStatus,
-          updatedAt: new Date(),
-        },
-        include: {
-          customer: true,
-          orderItems: true,
-          statusHistory: {
-            orderBy: { createdAt: 'desc' },
-          },
-        },
-      });
-
-      return updatedOrder;
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Order status updated successfully',
-      data: result,
-    });
-  } catch (error) {
-    console.error('Order status update error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT - Fulfill order (mark as shipped/delivered)
-export async function PUT(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { orderId, fulfillmentType, trackingNumber, courierId, estimatedDelivery } = body;
-
-    if (!orderId || !fulfillmentType) {
-      return NextResponse.json({
-        error: 'Order ID and fulfillment type are required',
-      }, { status: 400 });
-    }
-
-    // Get current order
-    const currentOrder = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { orderItems: true },
-    });
-
-    if (!currentOrder) {
-      return NextResponse.json({
-        error: 'Order not found',
-      }, { status: 404 });
-    }
-
-    // Update order and create delivery record
-    const result = await prisma.$transaction(async (tx) => {
-      // Update order status
-      const updatedOrder = await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status: fulfillmentType === 'SHIPPED' ? 'SHIPPED' : 'DELIVERED',
-          updatedAt: new Date(),
-        },
-      });
-
-      // Create delivery record
-      if (fulfillmentType === 'SHIPPED') {
-        await tx.delivery.create({
-          data: {
-            trackingNumber: trackingNumber || `DEL-${Date.now()}`,
-            status: 'IN_TRANSIT',
-            estimatedDelivery: estimatedDelivery ? new Date(estimatedDelivery) : null,
-            organizationId: currentOrder.organizationId,
-            orderId,
-            courierId,
-            customerId: currentOrder.customerId,
-          },
-        });
+    // Check if order exists and belongs to organization
+    const order = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        organizationId: request.user!.organizationId
       }
+    });
 
-      // Update inventory if delivered
-      if (fulfillmentType === 'DELIVERED') {
-        for (const item of currentOrder.orderItems) {
-          await tx.inventoryMovement.create({
-            data: {
-              type: 'SALE',
-              quantity: -item.quantity,
-              organizationId: currentOrder.organizationId,
-              productId: item.productId,
-              warehouseId: null, // Could be set based on fulfillment location
-              reference: `Order ${orderId}`,
-              notes: 'Order fulfilled',
-            },
-          });
+    if (!order) {
+      return NextResponse.json(
+        { error: 'Order not found or access denied' },
+        { status: 404 }
+      );
+    }
+
+    // Update order status
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: {
+        customer: true,
+        items: {
+          include: {
+            product: true,
+          },
         }
       }
-
-      return updatedOrder;
     });
 
     return NextResponse.json({
       success: true,
-      message: `Order ${fulfillmentType.toLowerCase()} successfully`,
-      data: result,
+      data: updatedOrder,
+      message: 'Order status updated successfully'
     });
+
   } catch (error) {
-    console.error('Order fulfillment error:', error);
+    console.error('Update order status error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
+
+export const GET = createAuthHandler(getAdvancedOrders, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ORDERS_READ],
+});
+
+export const POST = createAuthHandler(updateOrderStatus, {
+  requiredRole: ROLES.USER,
+  requiredPermissions: [PERMISSIONS.ORDERS_WRITE],
+});

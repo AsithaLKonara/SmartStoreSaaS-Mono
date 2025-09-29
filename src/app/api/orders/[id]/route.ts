@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
-import { withProtection, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { z } from 'zod';
 
 // Order update schema
@@ -28,7 +28,7 @@ const updateOrderSchema = z.object({
 
 // GET /api/orders/[id] - Get order by ID
 async function getOrder(
-  request: AuthenticatedRequest,
+  request: AuthRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -82,7 +82,7 @@ async function getOrder(
 
 // PUT /api/orders/[id] - Update order (Admin/Manager/Staff only)
 async function updateOrder(
-  request: AuthenticatedRequest,
+  request: AuthRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -253,17 +253,38 @@ async function updateOrderStatus(
 }
 
 // Export handlers
-export const GET = withProtection()(async (request: AuthenticatedRequest) => {
-  const params = { id: request.nextUrl.pathname.split('/').pop()! };
-  return getOrder(request, { params });
-});
+export const GET = createAuthHandler(
+  async (request: AuthRequest) => {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop()!;
+    return getOrder(request, { params: { id } });
+  },
+  {
+    requiredRole: ROLES.USER,
+    requiredPermissions: [PERMISSIONS.ORDERS_READ],
+  }
+);
 
-export const PUT = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(async (request: AuthenticatedRequest) => {
-  const params = { id: request.nextUrl.pathname.split('/').pop()! };
-  return updateOrder(request, { params });
-});
+export const PUT = createAuthHandler(
+  async (request: AuthRequest) => {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop()!;
+    return updateOrder(request, { params: { id } });
+  },
+  {
+    requiredRole: ROLES.USER,
+    requiredPermissions: [PERMISSIONS.ORDERS_WRITE],
+  }
+);
 
-export const PATCH = withProtection(['ADMIN', 'MANAGER', 'STAFF'])(async (request: AuthenticatedRequest) => {
-  const params = { id: request.nextUrl.pathname.split('/').pop()! };
-  return updateOrderStatus(request, { params });
-});
+export const PATCH = createAuthHandler(
+  async (request: AuthRequest) => {
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop()!;
+    return updateOrderStatus(request, { params: { id } });
+  },
+  {
+    requiredRole: ROLES.USER,
+    requiredPermissions: [PERMISSIONS.ORDERS_WRITE],
+  }
+);
