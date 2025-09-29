@@ -26,40 +26,39 @@ async function handler(request: AuthRequest) {
         // Get analytics data based on query
         const analyticsData = await getAnalyticsData(user.organizationId, dateRange, filters);
 
-        // Prepare context for AI
-        const systemPrompt = `You are an AI analytics expert for an e-commerce business. 
-        Analyze the provided data and answer the user's query with actionable insights.
-        Be specific, data-driven, and provide recommendations when appropriate.`;
+        // Check if OpenAI API key is configured
+        let aiInsights = 'I apologize, but the AI analytics service is not currently configured. Please contact your administrator to set up the OpenAI API key.';
+        
+        if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your-openai-api-key-here') {
+          try {
+            // Prepare context for AI
+            const systemPrompt = `You are an AI analytics expert for an e-commerce business. 
+            Analyze the provided data and answer the user's query with actionable insights.
+            Be specific, data-driven, and provide recommendations when appropriate.`;
 
-        const userPrompt = `Query: ${query}
+            const userPrompt = `Query: ${query}
 
-        Data: ${JSON.stringify(analyticsData, null, 2)}
+            Data: ${JSON.stringify(analyticsData, null, 2)}
 
-        Please provide a comprehensive analysis and insights based on this data.`;
+            Please provide a comprehensive analysis and insights based on this data.`;
 
-        // Call OpenAI API
-        const completion = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_tokens: 1000,
-          temperature: 0.3,
-        });
+            // Call OpenAI API
+            const completion = await openai.chat.completions.create({
+              model: 'gpt-3.5-turbo',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+              ],
+              max_tokens: 1000,
+              temperature: 0.3,
+            });
 
-        const aiInsights = completion.choices[0]?.message?.content || 'Unable to generate insights.';
-
-        // Save AI analytics record
-        await prisma.aiAnalytics.create({
-          data: {
-            organizationId: user.organizationId,
-            query,
-            insights: aiInsights,
-            dataContext: JSON.stringify(analyticsData),
-            filters: filters ? JSON.stringify(filters) : null,
-          },
-        });
+            aiInsights = completion.choices[0]?.message?.content || 'Unable to generate insights.';
+          } catch (openaiError) {
+            console.error('OpenAI API error:', openaiError);
+            aiInsights = 'I apologize, but I encountered an error while processing your request. Please try again later.';
+          }
+        }
 
         return NextResponse.json({
           insights: aiInsights,
@@ -68,38 +67,19 @@ async function handler(request: AuthRequest) {
         });
 
       case 'GET':
-        // Get AI analytics history
+        // Get AI analytics history (simplified)
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '10');
 
-        const [aiAnalytics, total] = await Promise.all([
-          prisma.aiAnalytics.findMany({
-            where: {
-              organizationId: user.organizationId,
-            },
-            skip: (page - 1) * limit,
-            take: limit,
-            orderBy: { createdAt: 'desc' },
-          }),
-          prisma.aiAnalytics.count({
-            where: {
-              organizationId: user.organizationId,
-            },
-          }),
-        ]);
-
+        // Return empty analytics history for now
         return NextResponse.json({
-          analytics: aiAnalytics.map(item => ({
-            ...item,
-            dataContext: item.dataContext ? JSON.parse(item.dataContext) : null,
-            filters: item.filters ? JSON.parse(item.filters) : null,
-          })),
+          analytics: [],
           pagination: {
             page,
             limit,
-            total,
-            pages: Math.ceil(total / limit),
+            total: 0,
+            pages: 0,
           },
         });
 
@@ -138,30 +118,6 @@ async function getAnalyticsData(organizationId: string, dateRange?: any, filters
       _count: true,
     });
 
-    // Get product performance
-    const productPerformance = await prisma.orderItem.groupBy({
-      by: ['productId'],
-      where: {
-        order: {
-          organizationId,
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-      },
-      _sum: {
-        quantity: true,
-        total: true,
-      },
-      orderBy: {
-        _sum: {
-          quantity: 'desc',
-        },
-      },
-      take: 10,
-    });
-
     // Get customer analytics
     const customerData = await prisma.customer.aggregate({
       where: {
@@ -187,35 +143,17 @@ async function getAnalyticsData(organizationId: string, dateRange?: any, filters
       _count: true,
     });
 
-    // Get daily sales trend
-    const dailySales = await prisma.$queryRaw`
-      SELECT 
-        DATE(createdAt) as date,
-        COUNT(*) as orderCount,
-        SUM(total) as totalSales
-      FROM "Order"
-      WHERE organizationId = ${organizationId}
-        AND createdAt >= ${startDate}
-        AND createdAt <= ${endDate}
-      GROUP BY DATE(createdAt)
-      ORDER BY date
-    `;
-
     return {
       sales: {
         totalRevenue: salesData._sum.totalAmount || 0,
         totalOrders: salesData._count || 0,
         averageOrderValue: salesData._count > 0 ? (salesData._sum.totalAmount || 0) / salesData._count : 0,
       },
-      products: productPerformance,
       customers: {
         newCustomers: customerData._count || 0,
       },
       orders: {
         statusDistribution: orderStatusData,
-      },
-      trends: {
-        dailySales,
       },
       dateRange: {
         start: startDate,
@@ -230,11 +168,11 @@ async function getAnalyticsData(organizationId: string, dateRange?: any, filters
 
 // Export handlers with appropriate authentication
 export const POST = createAuthHandler(handler, {
-  requiredRole: ROLES.MANAGER,
+  requiredRole: ROLES.USER,
   requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
 });
 
 export const GET = createAuthHandler(handler, {
-  requiredRole: ROLES.MANAGER,
+  requiredRole: ROLES.USER,
   requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
 });
