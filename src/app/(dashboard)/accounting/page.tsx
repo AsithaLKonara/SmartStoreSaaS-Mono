@@ -94,11 +94,11 @@ export default function AccountingDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="accounting-page">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Accounting</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="accounting-title">Accounting</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
           Manage your financial accounts, transactions, and reports
         </p>
       </div>

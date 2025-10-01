@@ -53,10 +53,10 @@ export default function ProcurementDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="procurement-page">
       <div>
-        <h1 className="text-3xl font-bold">Procurement Management</h1>
-        <p className="text-gray-600 mt-2">Supplier, PO, and RFQ management</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="procurement-title">Procurement Management</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Supplier, PO, and RFQ management</p>
       </div>
 
       {/* Module Cards */}

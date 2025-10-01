@@ -182,12 +182,12 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" data-testid="customers-page">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-600">Manage your customer relationships and insights</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="customers-title">Customers</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your customer relationships and insights</p>
         </div>
         <div className="flex gap-2">
           <Button

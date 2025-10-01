@@ -1,112 +1,2997 @@
-<testsuites id="" name="" tests="50" failures="0" skipped="0" errors="0" time="112.24538999999999">
-<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="chromium" tests="10" failures="0" skipped="0" time="43.256" errors="0">
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="15.171">
+<testsuites id="" name="" tests="170" failures="93" skipped="0" errors="0" time="1320.093291">
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="2" failures="0" skipped="0" time="42.983" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="23.075">
+<system-out>
+<![CDATA[🚀 Starting SmartStore SaaS E2E Tests
+=====================================
+✅ Successfully connected to SmartStore SaaS
+Page title: SmartStore SaaS
+✅ No error messages detected on homepage
+✅ Test environment is ready
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:42347) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="14.424">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="2.242">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="1.898">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="2.095">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="1.115">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="1.117">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="1.074">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="3.677">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.443">
-</testcase>
-</testsuite>
-<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="firefox" tests="10" failures="0" skipped="0" time="9.696" errors="0">
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="1.255">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="0.869">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="0.753">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="1.045">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="0.917">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="0.74">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="0.815">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="0.702">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="1.79">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.81">
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="19.908">
+<system-out>
+<![CDATA[Testing on chromium browser
+JavaScript enabled: ✅
+Viewport size: 1280x720
+User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:42346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
 </testcase>
 </testsuite>
-<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="webkit" tests="10" failures="0" skipped="0" time="8.821" errors="0">
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="0.876">
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="5" failures="2" skipped="0" time="33.772" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="10.174">
+<failure message="01-authentication.spec.ts:8:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:8:7 › Authentication Flow › should display login page correctly 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[type="email"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[type="email"]')
+
+
+      11 |     
+      12 |     // Check for login form elements
+    > 13 |     await expect(page.locator('input[type="email"]')).toBeVisible();
+         |                                                       ^
+      14 |     await expect(page.locator('input[type="password"]')).toBeVisible();
+      15 |     await expect(page.locator('button[type="submit"]')).toBeVisible();
+      16 |     
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:13:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/video.webm]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="1.149">
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="2.862">
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="0.777">
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="5.984">
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="0.449">
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="4.306">
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="0.804">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="0.988">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="1.092">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="1.064">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="1.389">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.233">
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="10.446">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Dashboard')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Dashboard')
+
+
+      79 |     } else {
+      80 |       // If we somehow got to dashboard, check for dashboard elements
+    > 81 |       await expect(page.locator('text=Dashboard')).toBeVisible();
+         |                                                    ^
+      82 |     }
+      83 |   });
+      84 | });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:81:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-chromium/video.webm]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
-<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="Mobile Chrome" tests="10" failures="0" skipped="0" time="26.41" errors="0">
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="3.074">
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="4" failures="2" skipped="0" time="43.722" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="9.157">
+<failure message="02-dashboard.spec.ts:8:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [chromium] › 02-dashboard.spec.ts:8:7 › Dashboard Functionality › should load dashboard page ─────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Dashboard')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Dashboard')
+
+
+      16 |     } else {
+      17 |       // If we're on dashboard, check for key elements
+    > 18 |       await expect(page.locator('text=Dashboard')).toBeVisible();
+         |                                                    ^
+      19 |       await expect(page.locator('text=Welcome')).toBeVisible();
+      20 |     }
+      21 |   });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:18:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="2.985">
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="2.993">
+<failure message="02-dashboard.spec.ts:23:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [chromium] › 02-dashboard.spec.ts:23:7 › Dashboard Functionality › should display navigation menu 
+
+    Error: locator.isVisible: Error: strict mode violation: locator('text=Analytics') resolved to 2 elements:
+        1) <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">Transform your business with intelligent automati…</p> aka getByText('Transform your business with')
+        2) <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">AI Analytics</h3> aka getByRole('heading', { name: 'AI Analytics' })
+
+    Call log:
+        - checking visibility of locator('text=Analytics')
+
+
+      36 |     for (const item of navItems) {
+      37 |       const navElement = page.locator(`text=${item}`);
+    > 38 |       if (await navElement.isVisible()) {
+         |                            ^
+      39 |         await expect(navElement).toBeVisible();
+      40 |         console.log(`✅ Navigation item "${item}" is visible`);
+      41 |       }
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:38:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="5.434">
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="5.281">
+<system-out>
+<![CDATA[✅ Desktop navigation is visible
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:44540) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="5.88">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="1.808">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="2.195">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="1.099">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="0.713">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="2.534">
-</testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.688">
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="26.291">
+<system-out>
+<![CDATA[Testing Home page...
+✅ Home page loads successfully
+Testing Login page...
+✅ Login page loads successfully
+Testing Products page...
+✅ Products page loads successfully
+Testing Orders page...
+✅ Orders page loads successfully
+Testing Customers page...
+✅ Customers page loads successfully
+Testing Analytics page...
+✅ Analytics page loads successfully
+Testing Accounting page...
+✅ Accounting page loads successfully
+Testing Procurement page...
+✅ Procurement page loads successfully
+Testing Monitoring page...
+✅ Monitoring page loads successfully
+Testing Documentation page...
+✅ Documentation page loads successfully
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:44590) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
 </testcase>
 </testsuite>
-<testsuite name="production-ready.spec.ts" timestamp="2025-09-23T02:33:01.347Z" hostname="Mobile Safari" tests="10" failures="0" skipped="0" time="19.42" errors="0">
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to health check endpoint with extended timeout" classname="production-ready.spec.ts" time="2.632">
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="6" failures="5" skipped="0" time="61.336" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="10.305">
+<failure message="03-crud-operations.spec.ts:8:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:8:7 › CRUD Operations › should test products page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Products')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Products')
+
+
+      17 |     
+      18 |     // Check for products page elements
+    > 19 |     await expect(page.locator('text=Products')).toBeVisible();
+         |                                                 ^
+      20 |     
+      21 |     // Look for add product button
+      22 |     const addButton = page.locator('text=Add Product').or(page.locator('button:has-text("Add")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:19:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should respond to ready check endpoint with extended timeout" classname="production-ready.spec.ts" time="2.265">
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="10.418">
+<failure message="03-crud-operations.spec.ts:36:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:36:7 › CRUD Operations › should test orders page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Orders')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Orders')
+
+
+      44 |     
+      45 |     // Check for orders page elements
+    > 46 |     await expect(page.locator('text=Orders')).toBeVisible();
+         |                                               ^
+      47 |     
+      48 |     // Look for create order button
+      49 |     const createButton = page.locator('text=Create Order').or(page.locator('button:has-text("Create")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:46:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch packages with extended timeout" classname="production-ready.spec.ts" time="4.07">
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="8.254">
+<failure message="03-crud-operations.spec.ts:56:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:56:7 › CRUD Operations › should test customers page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Customers')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Customers')
+
+
+      64 |     
+      65 |     // Check for customers page elements
+    > 66 |     await expect(page.locator('text=Customers')).toBeVisible();
+         |                                                  ^
+      67 |     
+      68 |     // Look for add customer button
+      69 |     const addButton = page.locator('text=Add Customer').or(page.locator('button:has-text("Add")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:66:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch courier services with extended timeout" classname="production-ready.spec.ts" time="4.718">
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="10.998">
+<failure message="03-crud-operations.spec.ts:76:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:76:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Accounting')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Accounting')
+
+
+      84 |     
+      85 |     // Check for accounting page elements
+    > 86 |     await expect(page.locator('text=Accounting')).toBeVisible();
+         |                                                   ^
+      87 |     
+      88 |     // Check for accounting sub-pages
+      89 |     const accountingPages = [
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:86:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Core Functionality › should fetch warehouses with extended timeout" classname="production-ready.spec.ts" time="2.057">
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="10.411">
+<failure message="03-crud-operations.spec.ts:111:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:111:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Procurement')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Procurement')
+
+
+      119 |     
+      120 |     // Check for procurement page elements
+    > 121 |     await expect(page.locator('text=Procurement')).toBeVisible();
+          |                                                    ^
+      122 |     
+      123 |     // Check for procurement sub-pages
+      124 |     const procurementPages = [
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:121:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should handle database connection with retry logic" classname="production-ready.spec.ts" time="0.686">
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="10.95">
+<system-out>
+<![CDATA[Testing forms on /products...
+✅ /products correctly redirects to login
+Testing forms on /orders...
+✅ /orders correctly redirects to login
+Testing forms on /customers...
+✅ /customers correctly redirects to login
+Testing forms on /accounting/chart-of-accounts...
+✅ /accounting/chart-of-accounts correctly redirects to login
+Testing forms on /procurement/suppliers...
+✅ /procurement/suppliers correctly redirects to login
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:46234) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Database Resilience › should provide comprehensive health information" classname="production-ready.spec.ts" time="0.559">
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="4" failures="0" skipped="0" time="16.624" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="8.061">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:46449) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should respond within reasonable time for production" classname="production-ready.spec.ts" time="0.754">
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="5.811">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › API Performance › should handle concurrent requests" classname="production-ready.spec.ts" time="1.408">
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="2.507">
+<system-out>
+<![CDATA[/api/health: 200 (332ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (965ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (373ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (818ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
 </testcase>
-<testcase name="SmartStore SaaS - Production Ready Tests › Error Handling › should handle invalid JSON requests gracefully" classname="production-ready.spec.ts" time="0.271">
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.245">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="7" failures="0" skipped="0" time="40.326" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="5.595">
+<system-out>
+<![CDATA[✅ Desktop navigation is visible
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="4.351">
+<system-out>
+<![CDATA[ℹ️ Theme toggle button not found
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="6.773">
+<system-out>
+<![CDATA[✅ Form validation is working
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="5.347">
+<system-out>
+<![CDATA[✅ Loading indicators are present
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="6.539">
+<system-out>
+<![CDATA[✅ No error messages detected
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="6.205">
+<system-out>
+<![CDATA[✅ H1 heading found
+✅ 0/0 buttons have accessible labels
+✅ 0/0 inputs have accessible labels
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="5.516">
+<system-out>
+<![CDATA[✅ Keyboard navigation is working
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="chromium" tests="6" failures="1" skipped="0" time="68.781" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="14.561">
+<system-out>
+<![CDATA[Testing performance for Home...
+Home: 1606ms
+✅ Home loads quickly
+Testing performance for Login...
+Login: 1809ms
+✅ Login loads quickly
+Testing performance for Products...
+Products: 1291ms
+✅ Products loads quickly
+Testing performance for Orders...
+Orders: 1148ms
+✅ Orders loads quickly
+Testing performance for Customers...
+Customers: 1194ms
+✅ Customers loads quickly
+Testing performance for Analytics...
+Analytics: 1338ms
+✅ Analytics loads quickly
+Testing performance for Accounting...
+Accounting: 1188ms
+✅ Accounting loads quickly
+Testing performance for Procurement...
+Procurement: 1212ms
+✅ Procurement loads quickly
+Testing performance for Monitoring...
+Monitoring: 1152ms
+✅ Monitoring loads quickly
+Testing performance for Documentation...
+Documentation: 1448ms
+✅ Documentation loads quickly
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="41.229">
+<failure message="06-performance.spec.ts:38:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [chromium] › 06-performance.spec.ts:38:7 › Performance Tests › should test Core Web Vitals ───────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.evaluate: Test timeout of 30000ms exceeded.
+
+      40 |     
+      41 |     // Measure First Contentful Paint (FCP)
+    > 42 |     const fcp = await page.evaluate(() => {
+         |                            ^
+      43 |       return new Promise((resolve) => {
+      44 |         new PerformanceObserver((list) => {
+      45 |           const entries = list.getEntries();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:42:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/video.webm]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="2.744">
+<system-out>
+<![CDATA[Memory Usage: 10MB / 10MB (Limit: 2222MB)
+✅ Memory usage is reasonable
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="3.451">
+<system-out>
+<![CDATA[Total network requests: 18
+✅ No failed network requests
+✅ Network request monitoring completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="2.082">
+<system-out>
+<![CDATA[Mobile load time: 1219ms
+✅ Mobile performance is good
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="4.714">
+<system-out>
+<![CDATA[/api/health: 200 (359ms)
+✅ /api/health responds quickly
+/api/db-check: 200 (1194ms)
+⚠️ /api/db-check responds slowly
+/api/auth/providers: 200 (363ms)
+✅ /api/auth/providers responds quickly
+/api/monitoring/status: 200 (1286ms)
+⚠️ /api/monitoring/status responds slowly
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="2" failures="0" skipped="0" time="39.84" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="20.723">
+<system-out>
+<![CDATA[🚀 Starting SmartStore SaaS E2E Tests
+=====================================
+✅ Successfully connected to SmartStore SaaS
+Page title: SmartStore SaaS
+✅ No error messages detected on homepage
+✅ Test environment is ready
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:48123) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="19.117">
+<system-out>
+<![CDATA[Testing on firefox browser
+JavaScript enabled: ✅
+Viewport size: 1280x720
+User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0...
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:48603) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="5" failures="2" skipped="0" time="69.478" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="18.783">
+<failure message="01-authentication.spec.ts:8:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [firefox] › 01-authentication.spec.ts:8:7 › Authentication Flow › should display login page correctly 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[type="email"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[type="email"]')
+
+
+      11 |     
+      12 |     // Check for login form elements
+    > 13 |     await expect(page.locator('input[type="email"]')).toBeVisible();
+         |                                                       ^
+      14 |     await expect(page.locator('input[type="password"]')).toBeVisible();
+      15 |     await expect(page.locator('button[type="submit"]')).toBeVisible();
+      16 |     
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:13:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-firefox/video.webm]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="17.989">
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="9.719">
+</testcase>
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="12.591">
+</testcase>
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="10.396">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [firefox] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Dashboard')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Dashboard')
+
+
+      79 |     } else {
+      80 |       // If we somehow got to dashboard, check for dashboard elements
+    > 81 |       await expect(page.locator('text=Dashboard')).toBeVisible();
+         |                                                    ^
+      82 |     }
+      83 |   });
+      84 | });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:81:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-firefox/video.webm]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="4" failures="3" skipped="0" time="76.58" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="15.385">
+<failure message="02-dashboard.spec.ts:8:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [firefox] › 02-dashboard.spec.ts:8:7 › Dashboard Functionality › should load dashboard page ──────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Dashboard')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Dashboard')
+
+
+      16 |     } else {
+      17 |       // If we're on dashboard, check for key elements
+    > 18 |       await expect(page.locator('text=Dashboard')).toBeVisible();
+         |                                                    ^
+      19 |       await expect(page.locator('text=Welcome')).toBeVisible();
+      20 |     }
+      21 |   });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:18:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-firefox/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="7.203">
+<failure message="02-dashboard.spec.ts:23:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [firefox] › 02-dashboard.spec.ts:23:7 › Dashboard Functionality › should display navigation menu ─
+
+    Error: locator.isVisible: Error: strict mode violation: locator('text=Analytics') resolved to 2 elements:
+        1) <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">Transform your business with intelligent automati…</p> aka getByText('Transform your business with')
+        2) <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">AI Analytics</h3> aka getByRole('heading', { name: 'AI Analytics' })
+
+    Call log:
+        - checking visibility of locator('text=Analytics')
+
+
+      36 |     for (const item of navItems) {
+      37 |       const navElement = page.locator(`text=${item}`);
+    > 38 |       if (await navElement.isVisible()) {
+         |                            ^
+      39 |         await expect(navElement).toBeVisible();
+      40 |         console.log(`✅ Navigation item "${item}" is visible`);
+      41 |       }
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:38:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-firefox/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="22.413">
+<system-out>
+<![CDATA[✅ Desktop navigation is visible
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:51053) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="31.579">
+<failure message="02-dashboard.spec.ts:69:7 should load all main pages" type="FAILURE">
+<![CDATA[  [firefox] › 02-dashboard.spec.ts:69:7 › Dashboard Functionality › should load all main pages ─────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForTimeout: Test timeout of 30000ms exceeded.
+
+       97 |       
+       98 |       // Small delay between page loads
+    >  99 |       await page.waitForTimeout(1000);
+          |                  ^
+      100 |     }
+      101 |   });
+      102 | });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:99:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-9d94e--should-load-all-main-pages-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-9d94e--should-load-all-main-pages-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-9d94e--should-load-all-main-pages-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing Home page...
+✅ Home page loads successfully
+Testing Login page...
+✅ Login page loads successfully
+Testing Products page...
+✅ Products page loads successfully
+Testing Orders page...
+✅ Orders page loads successfully
+Testing Customers page...
+✅ Customers page loads successfully
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-9d94e--should-load-all-main-pages-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-9d94e--should-load-all-main-pages-firefox/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-9d94e--should-load-all-main-pages-firefox/error-context.md]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:51644) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="6" failures="6" skipped="0" time="122.303" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="11.938">
+<failure message="03-crud-operations.spec.ts:8:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [firefox] › 03-crud-operations.spec.ts:8:7 › CRUD Operations › should test products page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Products')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Products')
+
+
+      17 |     
+      18 |     // Check for products page elements
+    > 19 |     await expect(page.locator('text=Products')).toBeVisible();
+         |                                                 ^
+      20 |     
+      21 |     // Look for add product button
+      22 |     const addButton = page.locator('text=Add Product').or(page.locator('button:has-text("Add")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:19:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-firefox/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="17.877">
+<failure message="03-crud-operations.spec.ts:36:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [firefox] › 03-crud-operations.spec.ts:36:7 › CRUD Operations › should test orders page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Orders')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Orders')
+
+
+      44 |     
+      45 |     // Check for orders page elements
+    > 46 |     await expect(page.locator('text=Orders')).toBeVisible();
+         |                                               ^
+      47 |     
+      48 |     // Look for create order button
+      49 |     const createButton = page.locator('text=Create Order').or(page.locator('button:has-text("Create")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:46:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-firefox/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="24.197">
+<failure message="03-crud-operations.spec.ts:56:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [firefox] › 03-crud-operations.spec.ts:56:7 › CRUD Operations › should test customers page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Customers')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Customers')
+
+
+      64 |     
+      65 |     // Check for customers page elements
+    > 66 |     await expect(page.locator('text=Customers')).toBeVisible();
+         |                                                  ^
+      67 |     
+      68 |     // Look for add customer button
+      69 |     const addButton = page.locator('text=Add Customer').or(page.locator('button:has-text("Add")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:66:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-firefox/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="18.099">
+<failure message="03-crud-operations.spec.ts:76:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [firefox] › 03-crud-operations.spec.ts:76:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Accounting')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Accounting')
+
+
+      84 |     
+      85 |     // Check for accounting page elements
+    > 86 |     await expect(page.locator('text=Accounting')).toBeVisible();
+         |                                                   ^
+      87 |     
+      88 |     // Check for accounting sub-pages
+      89 |     const accountingPages = [
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:86:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-firefox/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="19.267">
+<failure message="03-crud-operations.spec.ts:111:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [firefox] › 03-crud-operations.spec.ts:111:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Procurement')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Procurement')
+
+
+      119 |     
+      120 |     // Check for procurement page elements
+    > 121 |     await expect(page.locator('text=Procurement')).toBeVisible();
+          |                                                    ^
+      122 |     
+      123 |     // Check for procurement sub-pages
+      124 |     const procurementPages = [
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:121:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-firefox/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="30.925">
+<failure message="03-crud-operations.spec.ts:145:7 should test form interactions" type="FAILURE">
+<![CDATA[  [firefox] › 03-crud-operations.spec.ts:145:7 › CRUD Operations › should test form interactions ───
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForLoadState: Test timeout of 30000ms exceeded.
+
+      156 |       console.log(`Testing forms on ${formPage}...`);
+      157 |       await page.goto(formPage);
+    > 158 |       await page.waitForLoadState('networkidle');
+          |                  ^
+      159 |       
+      160 |       const currentUrl = page.url();
+      161 |       if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:158:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing forms on /products...
+✅ /products correctly redirects to login
+Testing forms on /orders...
+ℹ️ No form inputs found on /orders
+Testing forms on /customers...
+✅ /customers correctly redirects to login
+Testing forms on /accounting/chart-of-accounts...
+✅ /accounting/chart-of-accounts correctly redirects to login
+Testing forms on /procurement/suppliers...
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-firefox/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-firefox/error-context.md]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:54656) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="4" failures="0" skipped="0" time="15.762" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="7.656">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:55421) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="5.373">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:55881) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="2.582">
+<system-out>
+<![CDATA[/api/health: 200 (355ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (1097ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (348ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (812ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.151">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="7" failures="0" skipped="0" time="140.977" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="32.233">
+<system-out>
+<![CDATA[✅ Desktop navigation is visible
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="29.303">
+<system-out>
+<![CDATA[ℹ️ Theme toggle button not found
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="19.047">
+<system-out>
+<![CDATA[✅ Form validation is working
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="14.662">
+<system-out>
+<![CDATA[✅ Loading indicators are present
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="15.905">
+<system-out>
+<![CDATA[✅ No error messages detected
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="17.866">
+<system-out>
+<![CDATA[✅ H1 heading found
+✅ 0/0 buttons have accessible labels
+✅ 0/0 inputs have accessible labels
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="11.961">
+<system-out>
+<![CDATA[✅ Keyboard navigation is working
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="firefox" tests="6" failures="2" skipped="0" time="128.703" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="34.429">
+<failure message="06-performance.spec.ts:4:7 should test page load performance" type="FAILURE">
+<![CDATA[  [firefox] › 06-performance.spec.ts:4:7 › Performance Tests › should test page load performance ───
+
+    Test timeout of 30000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-5d27c--test-page-load-performance-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-5d27c--test-page-load-performance-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/06-performance-Performance-5d27c--test-page-load-performance-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing performance for Home...
+Home: 2635ms
+✅ Home loads quickly
+Testing performance for Login...
+Login: 1942ms
+✅ Login loads quickly
+Testing performance for Products...
+Products: 3006ms
+✅ Products loads quickly
+Testing performance for Orders...
+Orders: 1887ms
+✅ Orders loads quickly
+Testing performance for Customers...
+Customers: 5322ms
+⚠️ Customers loads slowly: 5322ms
+Testing performance for Analytics...
+Analytics: 2812ms
+✅ Analytics loads quickly
+Testing performance for Accounting...
+Accounting: 2190ms
+✅ Accounting loads quickly
+Testing performance for Procurement...
+Procurement: 2203ms
+✅ Procurement loads quickly
+Testing performance for Monitoring...
+Monitoring: 2634ms
+✅ Monitoring loads quickly
+Testing performance for Documentation...
+Documentation: 2100ms
+✅ Documentation loads quickly
+
+[[ATTACHMENT|06-performance-Performance-5d27c--test-page-load-performance-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-5d27c--test-page-load-performance-firefox/video.webm]]
+
+[[ATTACHMENT|06-performance-Performance-5d27c--test-page-load-performance-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="31.21">
+<failure message="06-performance.spec.ts:38:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [firefox] › 06-performance.spec.ts:38:7 › Performance Tests › should test Core Web Vitals ────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.evaluate: Test timeout of 30000ms exceeded.
+
+      40 |     
+      41 |     // Measure First Contentful Paint (FCP)
+    > 42 |     const fcp = await page.evaluate(() => {
+         |                            ^
+      43 |       return new Promise((resolve) => {
+      44 |         new PerformanceObserver((list) => {
+      45 |           const entries = list.getEntries();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:42:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-firefox/video.webm]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="18.943">
+<system-out>
+<![CDATA[ℹ️ Memory info not available
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:59435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="23.513">
+<system-out>
+<![CDATA[Total network requests: 19
+✅ No failed network requests
+✅ Network request monitoring completed
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:59615) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="12.296">
+<system-out>
+<![CDATA[Mobile load time: 4118ms
+⚠️ Mobile performance needs improvement
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="8.312">
+<system-out>
+<![CDATA[/api/health: 200 (1219ms)
+⚠️ /api/health responds slowly
+/api/db-check: 200 (1310ms)
+⚠️ /api/db-check responds slowly
+/api/auth/providers: 200 (418ms)
+✅ /api/auth/providers responds quickly
+/api/monitoring/status: 200 (1096ms)
+⚠️ /api/monitoring/status responds slowly
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="2" failures="2" skipped="0" time="89.622" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="44.36">
+<failure message="00-setup.spec.ts:4:7 should verify test environment" type="FAILURE">
+<![CDATA[  [webkit] › 00-setup.spec.ts:4:7 › Test Setup and Environment › should verify test environment ────
+
+    Test timeout of 30000ms exceeded while setting up "page".
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-webkit/test-failed-1.png]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="45.262">
+<failure message="00-setup.spec.ts:35:7 should check browser capabilities" type="FAILURE">
+<![CDATA[  [webkit] › 00-setup.spec.ts:35:7 › Test Setup and Environment › should check browser capabilities 
+
+    Test timeout of 30000ms exceeded while setting up "page".
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/00-setup-Test-Setup-and-En-63960--check-browser-capabilities-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|00-setup-Test-Setup-and-En-63960--check-browser-capabilities-webkit/test-failed-1.png]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="5" failures="5" skipped="0" time="21.52" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="3.933">
+<failure message="01-authentication.spec.ts:8:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [webkit] › 01-authentication.spec.ts:8:7 › Authentication Flow › should display login page correctly 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="3.671">
+<failure message="01-authentication.spec.ts:22:7 should navigate to login page from home" type="FAILURE">
+<![CDATA[  [webkit] › 01-authentication.spec.ts:22:7 › Authentication Flow › should navigate to login page from home 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="3.611">
+<failure message="01-authentication.spec.ts:31:7 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [webkit] › 01-authentication.spec.ts:31:7 › Authentication Flow › should show error for invalid credentials 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="5.133">
+<failure message="01-authentication.spec.ts:52:7 should have working social login buttons" type="FAILURE">
+<![CDATA[  [webkit] › 01-authentication.spec.ts:52:7 › Authentication Flow › should have working social login buttons 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="5.172">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [webkit] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="4" failures="4" skipped="0" time="15.165" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="4.023">
+<failure message="02-dashboard.spec.ts:8:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [webkit] › 02-dashboard.spec.ts:8:7 › Dashboard Functionality › should load dashboard page ───────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="3.835">
+<failure message="02-dashboard.spec.ts:23:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [webkit] › 02-dashboard.spec.ts:23:7 › Dashboard Functionality › should display navigation menu ──
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="3.385">
+<failure message="02-dashboard.spec.ts:45:7 should have responsive design" type="FAILURE">
+<![CDATA[  [webkit] › 02-dashboard.spec.ts:45:7 › Dashboard Functionality › should have responsive design ───
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="3.922">
+<failure message="02-dashboard.spec.ts:69:7 should load all main pages" type="FAILURE">
+<![CDATA[  [webkit] › 02-dashboard.spec.ts:69:7 › Dashboard Functionality › should load all main pages ──────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="6" failures="6" skipped="0" time="26.514" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="3.737">
+<failure message="03-crud-operations.spec.ts:8:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [webkit] › 03-crud-operations.spec.ts:8:7 › CRUD Operations › should test products page functionality 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="5.773">
+<failure message="03-crud-operations.spec.ts:36:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [webkit] › 03-crud-operations.spec.ts:36:7 › CRUD Operations › should test orders page functionality 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="5.158">
+<failure message="03-crud-operations.spec.ts:56:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [webkit] › 03-crud-operations.spec.ts:56:7 › CRUD Operations › should test customers page functionality 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="4.578">
+<failure message="03-crud-operations.spec.ts:76:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [webkit] › 03-crud-operations.spec.ts:76:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="5.318">
+<failure message="03-crud-operations.spec.ts:111:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [webkit] › 03-crud-operations.spec.ts:111:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="1.95">
+<failure message="03-crud-operations.spec.ts:145:7 should test form interactions" type="FAILURE">
+<![CDATA[  [webkit] › 03-crud-operations.spec.ts:145:7 › CRUD Operations › should test form interactions ────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="4" failures="0" skipped="0" time="17.768" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="10.136">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:67243) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="4.917">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:67567) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="2.489">
+<system-out>
+<![CDATA[/api/health: 200 (343ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (968ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (326ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (834ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.226">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="7" failures="7" skipped="0" time="28.949" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="4.32">
+<failure message="05-ui-components.spec.ts:8:7 should test responsive navigation" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:8:7 › UI Components › should test responsive navigation ──────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="3.74">
+<failure message="05-ui-components.spec.ts:43:7 should test theme toggle functionality" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:43:7 › UI Components › should test theme toggle functionality 
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="3.758">
+<failure message="05-ui-components.spec.ts:77:7 should test form validation" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:77:7 › UI Components › should test form validation ───────────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="4.513">
+<failure message="05-ui-components.spec.ts:100:7 should test loading states" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:100:7 › UI Components › should test loading states ───────────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="4.249">
+<failure message="05-ui-components.spec.ts:117:7 should test error boundaries" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:117:7 › UI Components › should test error boundaries ─────────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="3.769">
+<failure message="05-ui-components.spec.ts:133:7 should test accessibility features" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:133:7 › UI Components › should test accessibility features ───
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="4.6">
+<failure message="05-ui-components.spec.ts:178:7 should test keyboard navigation" type="FAILURE">
+<![CDATA[  [webkit] › 05-ui-components.spec.ts:178:7 › UI Components › should test keyboard navigation ──────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="webkit" tests="6" failures="6" skipped="0" time="20.573" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="3.117">
+<failure message="06-performance.spec.ts:4:7 should test page load performance" type="FAILURE">
+<![CDATA[  [webkit] › 06-performance.spec.ts:4:7 › Performance Tests › should test page load performance ────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="3.625">
+<failure message="06-performance.spec.ts:38:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [webkit] › 06-performance.spec.ts:38:7 › Performance Tests › should test Core Web Vitals ─────────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="3.221">
+<failure message="06-performance.spec.ts:80:7 should test memory usage" type="FAILURE">
+<![CDATA[  [webkit] › 06-performance.spec.ts:80:7 › Performance Tests › should test memory usage ────────────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="3.792">
+<failure message="06-performance.spec.ts:112:7 should test network requests" type="FAILURE">
+<![CDATA[  [webkit] › 06-performance.spec.ts:112:7 › Performance Tests › should test network requests ───────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="3.596">
+<failure message="06-performance.spec.ts:140:7 should test mobile performance" type="FAILURE">
+<![CDATA[  [webkit] › 06-performance.spec.ts:140:7 › Performance Tests › should test mobile performance ─────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="3.222">
+<failure message="06-performance.spec.ts:159:7 should test API response times" type="FAILURE">
+<![CDATA[  [webkit] › 06-performance.spec.ts:159:7 › Performance Tests › should test API response times ─────
+
+    Error: browserContext.newPage: Protocol error (Page.overrideSetting): Unknown setting: FixedBackgroundsPaintRelativeToDocument
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="2" failures="0" skipped="0" time="5.727" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="4.033">
+<system-out>
+<![CDATA[🚀 Starting SmartStore SaaS E2E Tests
+=====================================
+✅ Successfully connected to SmartStore SaaS
+Page title: SmartStore SaaS
+✅ No error messages detected on homepage
+✅ Test environment is ready
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:69909) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="1.694">
+<system-out>
+<![CDATA[Testing on chromium browser
+JavaScript enabled: ✅
+Viewport size: 393x727
+User agent: Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebK...
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:70101) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="5" failures="2" skipped="0" time="36.371" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="12.736">
+<failure message="01-authentication.spec.ts:8:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:8:7 › Authentication Flow › should display login page correctly 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[type="email"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[type="email"]')
+
+
+      11 |     
+      12 |     // Check for login form elements
+    > 13 |     await expect(page.locator('input[type="email"]')).toBeVisible();
+         |                                                       ^
+      14 |     await expect(page.locator('input[type="password"]')).toBeVisible();
+      15 |     await expect(page.locator('button[type="submit"]')).toBeVisible();
+      16 |     
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:13:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="4.98">
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="6.458">
+</testcase>
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="3.283">
+</testcase>
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="8.914">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Dashboard')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Dashboard')
+
+
+      79 |     } else {
+      80 |       // If we somehow got to dashboard, check for dashboard elements
+    > 81 |       await expect(page.locator('text=Dashboard')).toBeVisible();
+         |                                                    ^
+      82 |     }
+      83 |   });
+      84 | });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:81:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="4" failures="2" skipped="0" time="54.946" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="9.819">
+<failure message="02-dashboard.spec.ts:8:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 02-dashboard.spec.ts:8:7 › Dashboard Functionality › should load dashboard page 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Dashboard')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Dashboard')
+
+
+      16 |     } else {
+      17 |       // If we're on dashboard, check for key elements
+    > 18 |       await expect(page.locator('text=Dashboard')).toBeVisible();
+         |                                                    ^
+      19 |       await expect(page.locator('text=Welcome')).toBeVisible();
+      20 |     }
+      21 |   });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:18:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="4.997">
+<failure message="02-dashboard.spec.ts:23:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 02-dashboard.spec.ts:23:7 › Dashboard Functionality › should display navigation menu 
+
+    Error: locator.isVisible: Error: strict mode violation: locator('text=Analytics') resolved to 2 elements:
+        1) <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">Transform your business with intelligent automati…</p> aka getByText('Transform your business with')
+        2) <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">AI Analytics</h3> aka getByRole('heading', { name: 'AI Analytics' })
+
+    Call log:
+        - checking visibility of locator('text=Analytics')
+
+
+      36 |     for (const item of navItems) {
+      37 |       const navElement = page.locator(`text=${item}`);
+    > 38 |       if (await navElement.isVisible()) {
+         |                            ^
+      39 |         await expect(navElement).toBeVisible();
+      40 |         console.log(`✅ Navigation item "${item}" is visible`);
+      41 |       }
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:38:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="15.331">
+<system-out>
+<![CDATA[✅ Desktop navigation is visible
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:71856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="24.799">
+<system-out>
+<![CDATA[Testing Home page...
+✅ Home page loads successfully
+Testing Login page...
+✅ Login page loads successfully
+Testing Products page...
+✅ Products page loads successfully
+Testing Orders page...
+✅ Orders page loads successfully
+Testing Customers page...
+✅ Customers page loads successfully
+Testing Analytics page...
+✅ Analytics page loads successfully
+Testing Accounting page...
+✅ Accounting page loads successfully
+Testing Procurement page...
+✅ Procurement page loads successfully
+Testing Monitoring page...
+✅ Monitoring page loads successfully
+Testing Documentation page...
+✅ Documentation page loads successfully
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="6" failures="5" skipped="0" time="60.762" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="10.22">
+<failure message="03-crud-operations.spec.ts:8:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:8:7 › CRUD Operations › should test products page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Products')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Products')
+
+
+      17 |     
+      18 |     // Check for products page elements
+    > 19 |     await expect(page.locator('text=Products')).toBeVisible();
+         |                                                 ^
+      20 |     
+      21 |     // Look for add product button
+      22 |     const addButton = page.locator('text=Add Product').or(page.locator('button:has-text("Add")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:19:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="9.484">
+<failure message="03-crud-operations.spec.ts:36:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:36:7 › CRUD Operations › should test orders page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Orders')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Orders')
+
+
+      44 |     
+      45 |     // Check for orders page elements
+    > 46 |     await expect(page.locator('text=Orders')).toBeVisible();
+         |                                               ^
+      47 |     
+      48 |     // Look for create order button
+      49 |     const createButton = page.locator('text=Create Order').or(page.locator('button:has-text("Create")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:46:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="10.293">
+<failure message="03-crud-operations.spec.ts:56:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:56:7 › CRUD Operations › should test customers page functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Customers')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Customers')
+
+
+      64 |     
+      65 |     // Check for customers page elements
+    > 66 |     await expect(page.locator('text=Customers')).toBeVisible();
+         |                                                  ^
+      67 |     
+      68 |     // Look for add customer button
+      69 |     const addButton = page.locator('text=Add Customer').or(page.locator('button:has-text("Add")'));
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:66:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="11.114">
+<failure message="03-crud-operations.spec.ts:76:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:76:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Accounting')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Accounting')
+
+
+      84 |     
+      85 |     // Check for accounting page elements
+    > 86 |     await expect(page.locator('text=Accounting')).toBeVisible();
+         |                                                   ^
+      87 |     
+      88 |     // Check for accounting sub-pages
+      89 |     const accountingPages = [
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:86:51
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="10.148">
+<failure message="03-crud-operations.spec.ts:111:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:111:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=Procurement')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('text=Procurement')
+
+
+      119 |     
+      120 |     // Check for procurement page elements
+    > 121 |     await expect(page.locator('text=Procurement')).toBeVisible();
+          |                                                    ^
+      122 |     
+      123 |     // Check for procurement sub-pages
+      124 |     const procurementPages = [
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:121:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="9.503">
+<system-out>
+<![CDATA[Testing forms on /products...
+✅ /products correctly redirects to login
+Testing forms on /orders...
+✅ /orders correctly redirects to login
+Testing forms on /customers...
+✅ /customers correctly redirects to login
+Testing forms on /accounting/chart-of-accounts...
+✅ /accounting/chart-of-accounts correctly redirects to login
+Testing forms on /procurement/suppliers...
+✅ /procurement/suppliers correctly redirects to login
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:74287) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="4" failures="0" skipped="0" time="16.306" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="6.234">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:74577) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="5.076">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="4.688">
+<system-out>
+<![CDATA[/api/health: 200 (379ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (2978ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (441ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (875ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.308">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="7" failures="0" skipped="0" time="37.662" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="5.814">
+<system-out>
+<![CDATA[✅ Desktop navigation is visible
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="4.732">
+<system-out>
+<![CDATA[ℹ️ Theme toggle button not found
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="6.715">
+<system-out>
+<![CDATA[✅ Form validation is working
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="4.918">
+<system-out>
+<![CDATA[✅ Loading indicators are present
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="5.027">
+<system-out>
+<![CDATA[✅ No error messages detected
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="5.369">
+<system-out>
+<![CDATA[✅ H1 heading found
+✅ 0/0 buttons have accessible labels
+✅ 0/0 inputs have accessible labels
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="5.087">
+<system-out>
+<![CDATA[✅ Keyboard navigation is working
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Chrome" tests="6" failures="1" skipped="0" time="73.196" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="14.543">
+<system-out>
+<![CDATA[Testing performance for Home...
+Home: 1513ms
+✅ Home loads quickly
+Testing performance for Login...
+Login: 1665ms
+✅ Login loads quickly
+Testing performance for Products...
+Products: 1222ms
+✅ Products loads quickly
+Testing performance for Orders...
+Orders: 1380ms
+✅ Orders loads quickly
+Testing performance for Customers...
+Customers: 1180ms
+✅ Customers loads quickly
+Testing performance for Analytics...
+Analytics: 1181ms
+✅ Analytics loads quickly
+Testing performance for Accounting...
+Accounting: 1272ms
+✅ Accounting loads quickly
+Testing performance for Procurement...
+Procurement: 1266ms
+✅ Procurement loads quickly
+Testing performance for Monitoring...
+Monitoring: 1256ms
+✅ Monitoring loads quickly
+Testing performance for Documentation...
+Documentation: 1252ms
+✅ Documentation loads quickly
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="39.961">
+<failure message="06-performance.spec.ts:38:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 06-performance.spec.ts:38:7 › Performance Tests › should test Core Web Vitals ──
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.evaluate: Test timeout of 30000ms exceeded.
+
+      40 |     
+      41 |     // Measure First Contentful Paint (FCP)
+    > 42 |     const fcp = await page.evaluate(() => {
+         |                            ^
+      43 |       return new Promise((resolve) => {
+      44 |         new PerformanceObserver((list) => {
+      45 |           const entries = list.getEntries();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:42:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="4.106">
+<system-out>
+<![CDATA[Memory Usage: 10MB / 10MB (Limit: 2222MB)
+✅ Memory usage is reasonable
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="4.019">
+<system-out>
+<![CDATA[Total network requests: 18
+✅ No failed network requests
+✅ Network request monitoring completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="6.246">
+<system-out>
+<![CDATA[Mobile load time: 4620ms
+⚠️ Mobile performance needs improvement
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="4.321">
+<system-out>
+<![CDATA[/api/health: 200 (388ms)
+✅ /api/health responds quickly
+/api/db-check: 200 (1236ms)
+⚠️ /api/db-check responds slowly
+/api/auth/providers: 200 (357ms)
+✅ /api/auth/providers responds quickly
+/api/monitoring/status: 200 (987ms)
+✅ /api/monitoring/status responds quickly
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="2" failures="2" skipped="0" time="1.792" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="1.057">
+<failure message="00-setup.spec.ts:4:7 should verify test environment" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 00-setup.spec.ts:4:7 › Test Setup and Environment › should verify test environment 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="0.735">
+<failure message="00-setup.spec.ts:35:7 should check browser capabilities" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 00-setup.spec.ts:35:7 › Test Setup and Environment › should check browser capabilities 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="5" failures="5" skipped="0" time="4.221" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="1.032">
+<failure message="01-authentication.spec.ts:8:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 01-authentication.spec.ts:8:7 › Authentication Flow › should display login page correctly 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="0.789">
+<failure message="01-authentication.spec.ts:22:7 should navigate to login page from home" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 01-authentication.spec.ts:22:7 › Authentication Flow › should navigate to login page from home 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="0.829">
+<failure message="01-authentication.spec.ts:31:7 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 01-authentication.spec.ts:31:7 › Authentication Flow › should show error for invalid credentials 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="0.729">
+<failure message="01-authentication.spec.ts:52:7 should have working social login buttons" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 01-authentication.spec.ts:52:7 › Authentication Flow › should have working social login buttons 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="0.842">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="4" failures="4" skipped="0" time="3.369" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="0.823">
+<failure message="02-dashboard.spec.ts:8:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 02-dashboard.spec.ts:8:7 › Dashboard Functionality › should load dashboard page 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="0.982">
+<failure message="02-dashboard.spec.ts:23:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 02-dashboard.spec.ts:23:7 › Dashboard Functionality › should display navigation menu 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="0.777">
+<failure message="02-dashboard.spec.ts:45:7 should have responsive design" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 02-dashboard.spec.ts:45:7 › Dashboard Functionality › should have responsive design 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="0.787">
+<failure message="02-dashboard.spec.ts:69:7 should load all main pages" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 02-dashboard.spec.ts:69:7 › Dashboard Functionality › should load all main pages 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="6" failures="6" skipped="0" time="4.089" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="0.736">
+<failure message="03-crud-operations.spec.ts:8:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 03-crud-operations.spec.ts:8:7 › CRUD Operations › should test products page functionality 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="0.762">
+<failure message="03-crud-operations.spec.ts:36:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 03-crud-operations.spec.ts:36:7 › CRUD Operations › should test orders page functionality 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="0.594">
+<failure message="03-crud-operations.spec.ts:56:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 03-crud-operations.spec.ts:56:7 › CRUD Operations › should test customers page functionality 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="0.677">
+<failure message="03-crud-operations.spec.ts:76:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 03-crud-operations.spec.ts:76:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="0.721">
+<failure message="03-crud-operations.spec.ts:111:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 03-crud-operations.spec.ts:111:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="0.599">
+<failure message="03-crud-operations.spec.ts:145:7 should test form interactions" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 03-crud-operations.spec.ts:145:7 › CRUD Operations › should test form interactions 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="4" failures="0" skipped="0" time="12.071" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="4.72">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:78544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="4.678">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:78761) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="2.583">
+<system-out>
+<![CDATA[/api/health: 200 (426ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (1078ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (319ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (739ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.09">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="7" failures="7" skipped="0" time="5.574" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="0.469">
+<failure message="05-ui-components.spec.ts:8:7 should test responsive navigation" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:8:7 › UI Components › should test responsive navigation 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="0.945">
+<failure message="05-ui-components.spec.ts:43:7 should test theme toggle functionality" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:43:7 › UI Components › should test theme toggle functionality 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="0.707">
+<failure message="05-ui-components.spec.ts:77:7 should test form validation" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:77:7 › UI Components › should test form validation ────
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="0.672">
+<failure message="05-ui-components.spec.ts:100:7 should test loading states" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:100:7 › UI Components › should test loading states ────
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="1.022">
+<failure message="05-ui-components.spec.ts:117:7 should test error boundaries" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:117:7 › UI Components › should test error boundaries ──
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="0.678">
+<failure message="05-ui-components.spec.ts:133:7 should test accessibility features" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:133:7 › UI Components › should test accessibility features 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="1.081">
+<failure message="05-ui-components.spec.ts:178:7 should test keyboard navigation" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 05-ui-components.spec.ts:178:7 › UI Components › should test keyboard navigation 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-01T21:02:55.343Z" hostname="Mobile Safari" tests="6" failures="6" skipped="0" time="4.583" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="0.925">
+<failure message="06-performance.spec.ts:4:7 should test page load performance" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 06-performance.spec.ts:4:7 › Performance Tests › should test page load performance 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="0.723">
+<failure message="06-performance.spec.ts:38:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 06-performance.spec.ts:38:7 › Performance Tests › should test Core Web Vitals ──
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="0.672">
+<failure message="06-performance.spec.ts:80:7 should test memory usage" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 06-performance.spec.ts:80:7 › Performance Tests › should test memory usage ─────
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="0.637">
+<failure message="06-performance.spec.ts:112:7 should test network requests" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 06-performance.spec.ts:112:7 › Performance Tests › should test network requests 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="0.909">
+<failure message="06-performance.spec.ts:140:7 should test mobile performance" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 06-performance.spec.ts:140:7 › Performance Tests › should test mobile performance 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="0.717">
+<failure message="06-performance.spec.ts:159:7 should test API response times" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 06-performance.spec.ts:159:7 › Performance Tests › should test API response times 
+
+    Error: browserContext.newPage: Protocol error (Emulation.setOrientationOverride): 'Emulation.setOrientationOverride' was not found
+]]>
+</failure>
 </testcase>
 </testsuite>
 </testsuites>

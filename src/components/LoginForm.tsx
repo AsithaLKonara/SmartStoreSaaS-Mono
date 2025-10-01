@@ -44,18 +44,18 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" data-testid="login-page">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">SmartStore SaaS</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">SmartStore SaaS</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             Sign in to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -63,10 +63,12 @@ export default function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                data-testid="email-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -74,12 +76,15 @@ export default function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                data-testid="password-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <Button 
               type="submit" 
               className="w-full" 
               disabled={isLoading}
+              data-testid="submit-button"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
