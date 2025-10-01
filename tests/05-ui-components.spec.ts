@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { ensureAuthenticated } from './auth-helper';
 
 test.describe('UI Components', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await ensureAuthenticated(page);
   });
 
   test('should test responsive navigation', async ({ page }) => {

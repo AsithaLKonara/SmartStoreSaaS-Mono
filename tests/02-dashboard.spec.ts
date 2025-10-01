@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { ensureAuthenticated } from './auth-helper';
 
 test.describe('Dashboard Functionality', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/dashboard');
+    await ensureAuthenticated(page);
   });
 
   test('should load dashboard page', async ({ page }) => {

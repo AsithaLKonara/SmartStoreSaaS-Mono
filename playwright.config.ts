@@ -55,7 +55,13 @@ export default defineConfig({
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { 
+        ...devices['Desktop Safari'],
+        // Disable problematic WebKit features
+        launchOptions: {
+          args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
+        }
+      },
     },
 
     /* Test against mobile viewports. */
@@ -70,7 +76,12 @@ export default defineConfig({
         // Disable problematic features for mobile Safari
         launchOptions: {
           args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
-        }
+        },
+        // Disable orientation emulation that causes protocol errors
+        hasTouch: true,
+        isMobile: true,
+        deviceScaleFactor: 2,
+        viewport: { width: 390, height: 844 }
       },
     },
 

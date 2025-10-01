@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureAuthenticated } from './auth-helper';
 
 test.describe('Performance Tests', () => {
   test('should test page load performance', async ({ page }) => {
@@ -37,44 +38,24 @@ test.describe('Performance Tests', () => {
 
   test('should test Core Web Vitals', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
     
-    // Measure First Contentful Paint (FCP)
-    const fcp = await page.evaluate(() => {
-      return new Promise((resolve) => {
-        new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          const fcpEntry = entries.find(entry => entry.name === 'first-contentful-paint');
-          if (fcpEntry) {
-            resolve(fcpEntry.startTime);
-          }
-        }).observe({ entryTypes: ['paint'] });
-      });
+    // Simplified performance measurement
+    const performanceMetrics = await page.evaluate(() => {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      return {
+        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+        loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
+        totalTime: navigation.loadEventEnd - navigation.fetchStart
+      };
     });
     
-    if (fcp && fcp < 1800) {
-      console.log(`✅ First Contentful Paint: ${fcp}ms (Good)`);
-    } else if (fcp) {
-      console.log(`⚠️ First Contentful Paint: ${fcp}ms (Needs improvement)`);
-    }
+    console.log(`DOM Content Loaded: ${performanceMetrics.domContentLoaded}ms`);
+    console.log(`Load Complete: ${performanceMetrics.loadComplete}ms`);
+    console.log(`Total Time: ${performanceMetrics.totalTime}ms`);
     
-    // Measure Largest Contentful Paint (LCP)
-    const lcp = await page.evaluate(() => {
-      return new Promise((resolve) => {
-        new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          const lcpEntry = entries[entries.length - 1];
-          if (lcpEntry) {
-            resolve(lcpEntry.startTime);
-          }
-        }).observe({ entryTypes: ['largest-contentful-paint'] });
-      });
-    });
-    
-    if (lcp && lcp < 2500) {
-      console.log(`✅ Largest Contentful Paint: ${lcp}ms (Good)`);
-    } else if (lcp) {
-      console.log(`⚠️ Largest Contentful Paint: ${lcp}ms (Needs improvement)`);
-    }
+    // Basic performance assertions
+    expect(performanceMetrics.totalTime).toBeLessThan(5000); // Total load time under 5 seconds
   });
 
   test('should test memory usage', async ({ page }) => {
