@@ -236,7 +236,7 @@ export default function ChartOfAccountsPage() {
             Manage your account structure and hierarchy
           </p>
         </div>
-        <Button onClick={openAddModal}>
+        <Button onClick={openAddModal} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
           Add Account
         </Button>

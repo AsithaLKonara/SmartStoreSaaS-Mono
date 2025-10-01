@@ -135,9 +135,9 @@ export default function MonitoringPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">System Monitoring</h1>
+          <h1 className="text-3xl font-bold">System Monitoring Dashboard</h1>
           <p className="text-muted-foreground">
-            Real-time system health and performance metrics
+            Real-time system health, performance metrics, and status monitoring
           </p>
         </div>
         <Button onClick={refreshData} disabled={loading}>

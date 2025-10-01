@@ -70,7 +70,7 @@ export default function FinancialReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Financial Reports</h1>
-        <p className="text-gray-600 mt-2">Generate and view financial statements</p>
+        <p className="text-gray-600 mt-2">Generate and view financial statements including P&L, Balance Sheet, and Cash Flow reports</p>
       </div>
 
       <div className="flex gap-2">
