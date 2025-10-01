@@ -8,9 +8,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Skip all static optimization to fix deployment
+  // Configure for dynamic rendering
   experimental: {
     appDir: true,
+  },
+  // Ignore static page generation errors
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
   },
   async headers() {
     return [
