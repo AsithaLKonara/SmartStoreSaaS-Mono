@@ -1,7 +1,7 @@
 'use client';
 
 export const dynamic = 'force-dynamic';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -163,7 +163,8 @@ export default function DashboardPage() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-6" data-testid="dashboard-page">
+      <React.Fragment>
+        <div className="space-y-6" data-testid="dashboard-page">
       {/* Page Title */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="dashboard-title">Dashboard</h1>
@@ -478,7 +479,8 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-      </div>
+        </div>
+      </React.Fragment>
     </ErrorBoundary>
   );
 }
