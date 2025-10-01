@@ -1,3 +1,4 @@
+'use client';
 import { IntegrationManager } from '@/components/integrations/IntegrationManager';
 export const dynamic = 'force-dynamic';
 import { getServerSession } from 'next-auth';
