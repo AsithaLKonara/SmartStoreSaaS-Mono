@@ -2,14 +2,15 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('admin@smartstore.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('admin@techhub.lk');
+  const [password, setPassword] = useState('demo123');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -19,24 +20,20 @@ export default function LoginForm() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (result?.error) {
+        setMessage('❌ Invalid credentials. Please try again.');
+      } else if (result?.ok) {
         setMessage('✅ Login successful! Redirecting...');
         // Redirect to dashboard
         setTimeout(() => {
-          window.location.href = data.data.redirectUrl || '/dashboard';
+          window.location.href = '/dashboard';
         }, 1000);
-      } else {
-        setMessage(`❌ ${data.message}`);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -95,9 +92,12 @@ export default function LoginForm() {
           )}
           
           <div className="mt-4 text-center text-sm text-gray-600">
-            <p><strong>Test Credentials:</strong></p>
-            <p>Email: admin@smartstore.com</p>
-            <p>Password: admin123</p>
+            <p><strong>Demo Credentials:</strong></p>
+            <p>Email: admin@techhub.lk</p>
+            <p>Password: demo123</p>
+            <p className="mt-2 text-xs text-gray-500">
+              Alternative: manager@colombofashion.lk / admin@freshmart.lk
+            </p>
           </div>
         </CardContent>
       </Card>
