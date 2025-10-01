@@ -1,50 +1,5 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "buildCommand": "prisma generate && next build",
   "framework": "nextjs",
-  "env": {
-    "NODE_ENV": "production",
-    "NEXTAUTH_URL": "https://smartstore-saas.vercel.app",
-    "NEXT_PUBLIC_APP_URL": "https://smartstore-saas.vercel.app",
-    "CORS_ALLOWED_ORIGINS": "https://smartstore-saas.vercel.app,https://smartstore-saas-git-main-asithalkonaras-projects.vercel.app",
-    "NEXTAUTH_SECRET": "smartstore-production-nextauth-secret-key-2024-secure",
-    "JWT_SECRET": "smartstore-production-jwt-secret-key-2024-secure",
-    "JWT_REFRESH_SECRET": "smartstore-production-jwt-refresh-secret-key-2024-secure",
-    "JWT_EXPIRES_IN": "15m",
-    "JWT_REFRESH_EXPIRES_IN": "7d",
-    "DATABASE_URL": "postgresql://neondb_owner:npg_lH72xXfQiSpg@ep-dry-morning-ado12pcf-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
-    "SECURITY_HEADERS_ENABLED": "true",
-    "CSP_ENABLED": "true",
-    "HSTS_ENABLED": "true",
-    "API_RATE_LIMIT": "1000",
-    "API_TIMEOUT": "30000",
-    "ENABLE_ANALYTICS": "true",
-    "ENABLE_NOTIFICATIONS": "true",
-    "ENABLE_PWA": "true",
-    "ENABLE_LOGGING": "true",
-    "LOG_LEVEL": "info",
-    "ENABLE_METRICS": "true",
-    "RATE_LIMIT_WINDOW_MS": "900000",
-    "RATE_LIMIT_MAX_REQUESTS": "100"
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-API-Key"
-        }
-      ]
-    }
-  ]
+  "installCommand": "npm install"
 }
