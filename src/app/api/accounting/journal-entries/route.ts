@@ -2,46 +2,52 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
 
-// GET - List journal entries
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
+    if (!session?.user?.organizationId) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const status = searchParams.get('status');
+    const fromDate = searchParams.get('fromDate');
+    const toDate = searchParams.get('toDate');
 
-    const entries = await db.journalEntry.findMany({
-      where: {
-        organizationId: session.user.organizationId,
-        ...(status && { status: status as any }),
-      },
-      include: {
-        lines: {
-          include: {
-            account: true,
+    const where: any = {
+      organizationId: session.user.organizationId,
+    };
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (fromDate || toDate) {
+      where.entryDate = {};
+      if (fromDate) where.entryDate.gte = new Date(fromDate);
+      if (toDate) where.entryDate.lte = new Date(toDate);
+    }
+
+    const [entries, total] = await Promise.all([
+      prisma.journal_entries.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { entryDate: 'desc' },
+        include: {
+          journal_entry_lines: {
+            include: {
+              chart_of_accounts: true,
+            },
           },
         },
-      },
-      orderBy: { entryDate: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    const total = await db.journalEntry.count({
-      where: {
-        organizationId: session.user.organizationId,
-        ...(status && { status: status as any }),
-      },
-    });
+      }),
+      prisma.journal_entries.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -54,94 +60,117 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    apiLogger.error('Error fetching journal entries', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch entries' }, { status: 500 });
+    console.error('Error fetching journal entries:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch journal entries' },
+      { status: 500 }
+    );
   }
 }
 
-// POST - Create journal entry
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
+    if (!session?.user?.organizationId) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { entryDate, description, reference, lines } = body;
+    const {
+      entryNumber,
+      entryDate,
+      description,
+      reference,
+      lines,
+    } = body;
 
-    // Validate lines
-    if (!lines || lines.length < 2) {
+    // Validate required fields
+    if (!entryNumber || !entryDate || !description || !lines || !Array.isArray(lines)) {
+      return NextResponse.json(
+        { success: false, message: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate journal entry lines
+    if (lines.length < 2) {
       return NextResponse.json(
         { success: false, message: 'Journal entry must have at least 2 lines' },
         { status: 400 }
       );
     }
 
-    // Validate double-entry (debits = credits)
-    const totalDebits = lines.reduce((sum: number, line: any) => sum + (line.debit || 0), 0);
-    const totalCredits = lines.reduce((sum: number, line: any) => sum + (line.credit || 0), 0);
+    // Check if entry number already exists
+    const existingEntry = await prisma.journal_entries.findFirst({
+      where: {
+        organizationId: session.user.organizationId,
+        entryNumber,
+      },
+    });
 
-    if (Math.abs(totalDebits - totalCredits) > 0.01) {
+    if (existingEntry) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Debits must equal credits', 
-          details: { debits: totalDebits, credits: totalCredits } 
-        },
+        { success: false, message: 'Entry number already exists' },
         { status: 400 }
       );
     }
 
-    // Generate entry number
-    const lastEntry = await db.journalEntry.findFirst({
-      where: { organizationId: session.user.organizationId },
-      orderBy: { entryNumber: 'desc' },
-    });
+    // Validate debits and credits balance
+    const totalDebits = lines.reduce((sum, line) => sum + (line.debit || 0), 0);
+    const totalCredits = lines.reduce((sum, line) => sum + (line.credit || 0), 0);
 
-    const nextNumber = lastEntry 
-      ? parseInt(lastEntry.entryNumber.split('-')[1]) + 1 
-      : 1;
-    const entryNumber = `JE-${String(nextNumber).padStart(5, '0')}`;
+    if (Math.abs(totalDebits - totalCredits) > 0.01) {
+      return NextResponse.json(
+        { success: false, message: 'Debits and credits must balance' },
+        { status: 400 }
+      );
+    }
 
-    // Create journal entry with lines
-    const entry = await db.journalEntry.create({
-      data: {
-        organizationId: session.user.organizationId,
-        entryNumber,
-        entryDate: new Date(entryDate),
-        description,
-        reference,
-        createdBy: session.user.id,
-        lines: {
-          create: lines.map((line: any, index: number) => ({
-            accountId: line.accountId,
-            description: line.description,
-            debit: line.debit || 0,
-            credit: line.credit || 0,
-            lineNumber: index + 1,
-          })),
+    // Create journal entry with lines in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const entry = await tx.journal_entries.create({
+        data: {
+          id: `je_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          organizationId: session.user.organizationId,
+          entryNumber,
+          entryDate: new Date(entryDate),
+          description,
+          reference,
+          status: 'DRAFT',
+          createdBy: session.user.id,
         },
-      },
-      include: {
-        lines: {
-          include: {
-            account: true,
-          },
-        },
-      },
-    });
+      });
 
-    apiLogger.info('Journal entry created', { entryId: entry.id, entryNumber });
+      // Create journal entry lines
+      const entryLines = await Promise.all(
+        lines.map((line, index) =>
+          tx.journal_entry_lines.create({
+            data: {
+              id: `jel_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
+              journalEntryId: entry.id,
+              accountId: line.accountId,
+              description: line.description,
+              debit: line.debit || 0,
+              credit: line.credit || 0,
+              lineNumber: index + 1,
+            },
+          })
+        )
+      );
+
+      return { entry, lines: entryLines };
+    });
 
     return NextResponse.json({
       success: true,
-      data: entry,
+      data: result.entry,
+      message: 'Journal entry created successfully',
     });
   } catch (error) {
-    apiLogger.error('Error creating journal entry', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create entry' }, { status: 500 });
+    console.error('Error creating journal entry:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create journal entry' },
+      { status: 500 }
+    );
   }
 }
-

@@ -14,46 +14,47 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const accountType = searchParams.get('accountType');
     const search = searchParams.get('search');
-    const status = searchParams.get('status');
 
     const where: any = {
       organizationId: session.user.organizationId,
     };
 
+    if (accountType) {
+      where.accountType = accountType;
+    }
+
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { contactPerson: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
-    if (status) {
-      where.status = status;
-    }
-
-    const [suppliers, total] = await Promise.all([
-      prisma.suppliers.findMany({
+    const [accounts, total] = await Promise.all([
+      prisma.chart_of_accounts.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { name: 'asc' },
+        orderBy: { code: 'asc' },
         include: {
+          tax_rates: true,
           _count: {
             select: {
-              purchase_orders: true,
-              products: true,
+              journal_entry_lines: true,
+              ledger: true,
             },
           },
         },
       }),
-      prisma.suppliers.count({ where }),
+      prisma.chart_of_accounts.count({ where }),
     ]);
 
     return NextResponse.json({
       success: true,
-      data: suppliers,
+      data: accounts,
       pagination: {
         page,
         limit,
@@ -62,9 +63,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching suppliers:', error);
+    console.error('Error fetching chart of accounts:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch suppliers' },
+      { success: false, message: 'Failed to fetch chart of accounts' },
       { status: 500 }
     );
   }
@@ -79,79 +80,70 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
+      code,
       name,
-      email,
-      phone,
-      contactPerson,
-      address,
-      city,
-      state,
-      country,
-      postalCode,
-      taxId,
-      paymentTerms,
+      description,
+      accountType,
+      accountSubType,
+      parentId,
+      balance,
       currency,
-      status,
-      notes,
+      taxEnabled,
+      taxRateId,
     } = body;
 
     // Validate required fields
-    if (!name || !email) {
+    if (!code || !name || !accountType || !accountSubType) {
       return NextResponse.json(
-        { success: false, message: 'Name and email are required' },
+        { success: false, message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Check if supplier already exists
-    const existingSupplier = await prisma.suppliers.findFirst({
+    // Check if code already exists
+    const existingAccount = await prisma.chart_of_accounts.findFirst({
       where: {
         organizationId: session.user.organizationId,
-        email,
+        code,
       },
     });
 
-    if (existingSupplier) {
+    if (existingAccount) {
       return NextResponse.json(
-        { success: false, message: 'Supplier with this email already exists' },
+        { success: false, message: 'Account code already exists' },
         { status: 400 }
       );
     }
 
-    const supplier = await prisma.suppliers.create({
+    const account = await prisma.chart_of_accounts.create({
       data: {
-        id: `sup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `acc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         organizationId: session.user.organizationId,
+        code,
         name,
-        email,
-        phone,
-        contactPerson,
-        address,
-        city,
-        state,
-        country,
-        postalCode,
-        taxId,
-        paymentTerms: paymentTerms || 'NET_30',
+        description,
+        accountType,
+        accountSubType,
+        parentId,
+        balance: balance || 0,
         currency: currency || 'USD',
-        status: status || 'ACTIVE',
-        notes,
-        rating: 0,
-        totalOrders: 0,
-        totalValue: 0,
-        lastOrderDate: null,
+        taxEnabled: taxEnabled || false,
+        taxRateId,
+      },
+      include: {
+        tax_rates: true,
       },
     });
 
     return NextResponse.json({
       success: true,
-      data: supplier,
-      message: 'Supplier created successfully',
+      data: account,
+      message: 'Chart of account created successfully',
     });
   } catch (error) {
-    console.error('Error creating supplier:', error);
+    console.error('Error creating chart of account:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to create supplier' },
+      { success: false, message: 'Failed to create chart of account' },
       { status: 500 }
     );
   }

@@ -2,144 +2,180 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
 
-// GET - List purchase orders
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    if (!session?.user?.organizationId) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
     const supplierId = searchParams.get('supplierId');
+    const fromDate = searchParams.get('fromDate');
+    const toDate = searchParams.get('toDate');
 
     const where: any = {
       organizationId: session.user.organizationId,
     };
 
-    if (status) where.status = status;
-    if (supplierId) where.supplierId = supplierId;
+    if (status) {
+      where.status = status;
+    }
 
-    const purchaseOrders = await db.purchaseOrder.findMany({
-      where,
-      include: {
-        supplier: true,
-        items: {
-          include: {
-            product: true,
+    if (supplierId) {
+      where.supplierId = supplierId;
+    }
+
+    if (fromDate || toDate) {
+      where.orderDate = {};
+      if (fromDate) where.orderDate.gte = new Date(fromDate);
+      if (toDate) where.orderDate.lte = new Date(toDate);
+    }
+
+    const [purchaseOrders, total] = await Promise.all([
+      prisma.purchase_orders.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { orderDate: 'desc' },
+        include: {
+          suppliers: true,
+          purchase_order_items: {
+            include: {
+              products: true,
+            },
           },
         },
-        _count: {
-          select: {
-            items: true,
-            invoices: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+      }),
+      prisma.purchase_orders.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,
       data: purchaseOrders,
-      count: purchaseOrders.length,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
-    apiLogger.error('Error fetching purchase orders', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch purchase orders' }, { status: 500 });
+    console.error('Error fetching purchase orders:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch purchase orders' },
+      { status: 500 }
+    );
   }
 }
 
-// POST - Create purchase order
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    if (!session?.user?.organizationId) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const {
       supplierId,
-      expectedDate,
+      orderDate,
+      expectedDeliveryDate,
       items,
-      shippingAddress,
-      shippingMethod,
       notes,
+      terms,
+      shippingAddress,
     } = body;
 
-    if (!supplierId || !items || items.length === 0) {
+    // Validate required fields
+    if (!supplierId || !orderDate || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Supplier and items are required' },
+        { success: false, message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Generate PO number
-    const count = await db.purchaseOrder.count({
-      where: { organizationId: session.user.organizationId },
+    // Validate supplier exists
+    const supplier = await prisma.suppliers.findFirst({
+      where: {
+        id: supplierId,
+        organizationId: session.user.organizationId,
+      },
     });
-    const poNumber = `PO-${new Date().getFullYear()}-${(count + 1).toString().padStart(5, '0')}`;
+
+    if (!supplier) {
+      return NextResponse.json(
+        { success: false, message: 'Supplier not found' },
+        { status: 404 }
+      );
+    }
 
     // Calculate totals
-    let subtotal = 0;
-    let taxAmount = 0;
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    const tax = subtotal * 0.1; // 10% tax - should be configurable
+    const shipping = 0; // Should be calculated based on supplier/shipping method
+    const total = subtotal + tax + shipping;
 
-    const poItems = items.map((item: any) => {
-      const itemTotal = item.quantity * item.unitPrice;
-      const itemTax = itemTotal * (item.taxRate || 0) / 100;
-      subtotal += itemTotal;
-      taxAmount += itemTax;
+    // Generate PO number
+    const poNumber = `PO-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-      return {
-        productId: item.productId,
-        description: item.description,
-        sku: item.sku,
-        quantity: item.quantity,
-        unitPrice: parseFloat(item.unitPrice),
-        taxRate: item.taxRate || 0,
-        totalPrice: itemTotal + itemTax,
-      };
-    });
-
-    const totalAmount = subtotal + taxAmount;
-
-    const purchaseOrder = await db.purchaseOrder.create({
-      data: {
-        organizationId: session.user.organizationId,
-        poNumber,
-        supplierId,
-        expectedDate: expectedDate ? new Date(expectedDate) : null,
-        subtotal,
-        taxAmount,
-        totalAmount,
-        shippingAddress,
-        shippingMethod,
-        requestedBy: session.user.id,
-        notes,
-        items: {
-          create: poItems,
+    // Create purchase order with items in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const purchaseOrder = await tx.purchase_orders.create({
+        data: {
+          id: `po_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          organizationId: session.user.organizationId,
+          poNumber,
+          supplierId,
+          orderDate: new Date(orderDate),
+          expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : null,
+          status: 'DRAFT',
+          subtotal,
+          tax,
+          shipping,
+          total,
+          notes,
+          terms,
+          shippingAddress,
+          createdBy: session.user.id,
         },
-      },
-      include: {
-        supplier: true,
-        items: true,
-      },
-    });
+      });
 
-    apiLogger.info('Purchase order created', { poId: purchaseOrder.id, poNumber });
+      // Create purchase order items
+      const orderItems = await Promise.all(
+        items.map((item, index) =>
+          tx.purchase_order_items.create({
+            data: {
+              id: `poi_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
+              purchaseOrderId: purchaseOrder.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.quantity * item.unitPrice,
+              lineNumber: index + 1,
+            },
+          })
+        )
+      );
+
+      return { purchaseOrder, items: orderItems };
+    });
 
     return NextResponse.json({
       success: true,
-      data: purchaseOrder,
+      data: result.purchaseOrder,
+      message: 'Purchase order created successfully',
     });
   } catch (error) {
-    apiLogger.error('Error creating purchase order', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create purchase order' }, { status: 500 });
+    console.error('Error creating purchase order:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create purchase order' },
+      { status: 500 }
+    );
   }
 }
-

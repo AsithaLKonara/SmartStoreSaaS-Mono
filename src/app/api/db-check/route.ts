@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
     `;
 
     // Try to count existing records
-    const userCount = await prisma.user.count();
-    const orgCount = await prisma.organization.count();
+    const userCount = await prisma.users.count();
+    const orgCount = await prisma.organizations.count();
 
     return NextResponse.json({
       success: true,
