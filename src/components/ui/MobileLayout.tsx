@@ -6,7 +6,7 @@ interface MobileLayoutProps {
   children: ReactNode;
 }
 
-export default function MobileLayout({ children }: MobileLayoutProps) {
+function MobileLayout({ children }: MobileLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       {children}
@@ -14,5 +14,5 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
   );
 }
 
-export { MobileLayout };
+export default MobileLayout;
 

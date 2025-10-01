@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+
+// Force dynamic rendering to prevent static generation
+export const dynamic = 'force-dynamic';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -69,7 +72,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Redirect to sign in if not authenticated
+  // Handle loading and authentication states
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -78,7 +81,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (status === 'unauthenticated') {
+  if (status === 'unauthenticated' || !session) {
     router.replace('/login');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">

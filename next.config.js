@@ -8,14 +8,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Force all pages to be dynamic
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
-  // Disable static optimization completely
+  // Disable static optimization for authenticated pages
   experimental: {
     appDir: true,
   },
-  // Force dynamic rendering for all pages
+  // Skip static generation for dynamic routes
+  trailingSlash: false,
+  // Force dynamic rendering
   generateBuildId: async () => {
     return 'build-' + Date.now()
   },
