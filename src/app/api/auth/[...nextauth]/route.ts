@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/database';
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -18,7 +19,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await db.user.findUnique({
+          const user = await db.users.findUnique({
             where: { email: credentials.email },
             select: {
               id: true,
@@ -85,7 +86,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
 };
 
 const handler = NextAuth(authOptions);
