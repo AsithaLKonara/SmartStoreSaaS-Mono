@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import Link from 'next/link';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface DashboardData {
   revenue: {
@@ -100,9 +101,31 @@ export default function DashboardPage() {
       if (response.ok) {
         const data = await response.json();
         setDashboardData(data);
+      } else {
+        console.error('Failed to fetch dashboard data:', response.status, response.statusText);
+        // Set default data structure to prevent errors
+        setDashboardData({
+          revenue: { total: 0, change: 0, trend: 'up' },
+          orders: { total: 0, change: 0, trend: 'up' },
+          customers: { total: 0, change: 0, trend: 'up' },
+          products: { total: 0, change: 0, trend: 'up' },
+          topProducts: [],
+          recentOrders: [],
+          aiInsights: { demandForecasts: [], churnPredictions: [], aiEnabled: false }
+        });
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Set default data structure to prevent errors
+      setDashboardData({
+        revenue: { total: 0, change: 0, trend: 'up' },
+        orders: { total: 0, change: 0, trend: 'up' },
+        customers: { total: 0, change: 0, trend: 'up' },
+        products: { total: 0, change: 0, trend: 'up' },
+        topProducts: [],
+        recentOrders: [],
+        aiInsights: { demandForecasts: [], churnPredictions: [], aiEnabled: false }
+      });
     } finally {
       setLoading(false);
     }
@@ -139,7 +162,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <ErrorBoundary>
+      <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">Welcome back, {session?.user?.name || 'Admin'}!</h1>
@@ -448,6 +472,7 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

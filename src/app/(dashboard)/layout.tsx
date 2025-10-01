@@ -41,6 +41,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ThemeProvider, ThemeToggle } from '@/components/theme/ThemeProvider';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -95,8 +96,9 @@ export default function DashboardLayout({
   };
 
   return (
-    <ThemeProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <ErrorBoundary>
+      <ThemeProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Mobile sidebar */}
         <div className={cn(
           'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out md:hidden',
@@ -251,6 +253,7 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 } 
