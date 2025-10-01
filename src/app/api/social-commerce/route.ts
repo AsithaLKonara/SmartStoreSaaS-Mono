@@ -1,166 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAuthHandler, PERMISSIONS, ROLES, AuthRequest } from '@/lib/auth-middleware';
-import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { db } from '@/lib/database';
+import { apiLogger } from '@/lib/utils/logger';
 
-async function handler(request: AuthRequest) {
+// GET - List social commerce integrations
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = request.user!.organizationId;
-    const platform = searchParams.get('platform');
-    const status = searchParams.get('status');
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Get social commerce connections
-    const connections = await getSocialCommerceConnections(organizationId, platform, status);
-
-    return NextResponse.json({
-      success: true,
-      data: connections,
-      timestamp: new Date().toISOString()
+    const integrations = await db.socialCommerce.findMany({
+      where: { organizationId: session.user.organizationId },
+      include: {
+        _count: {
+          select: {
+            catalogItems: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
     });
 
+    return NextResponse.json({ success: true, data: integrations });
   } catch (error) {
-    console.error('Social commerce GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    apiLogger.error('Error fetching social commerce integrations', { error: error instanceof Error ? error.message : 'Unknown' });
+    return NextResponse.json({ success: false, message: 'Failed to fetch integrations' }, { status: 500 });
   }
 }
 
-async function handleSocialCommercePost(request: AuthRequest) {
+// POST - Create social commerce integration
+export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { action, data } = body;
-    const organizationId = request.user!.organizationId;
+    const {
+      platform,
+      accountName,
+      accountId,
+      accessToken,
+      pageId,
+      businessAccountId,
+    } = body;
 
-    switch (action) {
-      case 'connect-platform':
-        const connection = await connectPlatform(organizationId, data);
-        return NextResponse.json({
-          success: true,
-          data: connection,
-          message: 'Platform connected successfully'
-        });
+    const integration = await db.socialCommerce.create({
+      data: {
+        organizationId: session.user.organizationId,
+        platform,
+        accountName,
+        accountId,
+        accessToken,
+        pageId,
+        businessAccountId,
+      },
+    });
 
-      case 'sync-products':
-        const syncResult = await syncProducts(organizationId, data);
-        return NextResponse.json({
-          success: true,
-          data: syncResult,
-          message: 'Products synced successfully'
-        });
+    apiLogger.info('Social commerce integration created', { integrationId: integration.id, platform });
 
-      case 'create-post':
-        const post = await createSocialPost(organizationId, data);
-        return NextResponse.json({
-          success: true,
-          data: post,
-          message: 'Social post created successfully'
-        });
-
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
-    }
-
+    return NextResponse.json({ success: true, data: integration });
   } catch (error) {
-    console.error('Social commerce POST error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    apiLogger.error('Error creating social commerce integration', { error: error instanceof Error ? error.message : 'Unknown' });
+    return NextResponse.json({ success: false, message: 'Failed to create integration' }, { status: 500 });
   }
 }
 
-async function getSocialCommerceConnections(organizationId: string, platform?: string | null, status?: string | null) {
-  // Simplified social commerce connections
-  const connections = [
-    {
-      id: 'sc_001',
-      platform: 'facebook',
-      platformAccountId: 'fb_123456',
-      isConnected: true,
-      lastSync: new Date().toISOString(),
-      settings: {
-        autoSync: true,
-        syncFrequency: 'daily'
-      }
-    },
-    {
-      id: 'sc_002',
-      platform: 'instagram',
-      platformAccountId: 'ig_789012',
-      isConnected: false,
-      lastSync: null,
-      settings: {
-        autoSync: false,
-        syncFrequency: 'manual'
-      }
-    }
-  ];
-
-  // Filter by platform if specified
-  if (platform) {
-    return connections.filter(conn => conn.platform === platform);
-  }
-
-  // Filter by status if specified
-  if (status) {
-    return connections.filter(conn => 
-      status === 'connected' ? conn.isConnected : !conn.isConnected
-    );
-  }
-
-  return connections;
-}
-
-async function connectPlatform(organizationId: string, data: any) {
-  // Simplified platform connection
-  return {
-    id: `sc_${Date.now()}`,
-    organizationId,
-    platform: data.platform,
-    platformAccountId: data.accountId,
-    isConnected: true,
-    connectedAt: new Date().toISOString(),
-    settings: data.settings || {}
-  };
-}
-
-async function syncProducts(organizationId: string, data: any) {
-  // Simplified product sync
-  return {
-    organizationId,
-    platform: data.platform,
-    syncedProducts: 25,
-    failedProducts: 2,
-    syncedAt: new Date().toISOString(),
-    status: 'completed'
-  };
-}
-
-async function createSocialPost(organizationId: string, data: any) {
-  // Simplified social post creation
-  return {
-    id: `post_${Date.now()}`,
-    organizationId,
-    platform: data.platform,
-    type: data.type || 'product',
-    content: data.content,
-    productIds: data.productIds || [],
-    status: 'published',
-    publishedAt: new Date().toISOString()
-  };
-}
-
-export const GET = createAuthHandler(handler, {
-  requiredRole: ROLES.USER,
-  requiredPermissions: [PERMISSIONS.ANALYTICS_READ],
-});
-
-export const POST = createAuthHandler(handleSocialCommercePost, {
-  requiredRole: ROLES.USER,
-  requiredPermissions: [PERMISSIONS.ANALYTICS_WRITE],
-});

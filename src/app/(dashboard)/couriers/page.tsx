@@ -1,611 +1,619 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Truck, 
-  Package, 
   MapPin, 
-  Clock,
-  Search,
+  Phone, 
+  Mail, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle,
   Plus,
+  Search,
+  Filter,
+  Download,
   Eye,
   Edit,
   Trash2,
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
-  RefreshCw
+  User,
+  Package,
+  Calendar,
+  Star,
+  Navigation,
+  Users,
+  UserPlus,
+  RefreshCw,
+  UserCheck,
+  Loader2,
+  ArrowLeft,
+  Printer,
+  TrendingUp
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { formatDate } from '@/lib/utils';
 
-interface CourierService {
+export const dynamic = 'force-dynamic';
+
+interface Courier {
   id: string;
   name: string;
-  type: string;
-  price: number;
-  estimatedDays: number;
-  coverage: string[];
-  isActive: boolean;
-  description: string;
+  phone: string;
+  email: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  isOnline: boolean;
+  rating?: number;
+  totalDeliveries?: number;
 }
 
 interface Delivery {
   id: string;
-  orderId: string;
+  orderNumber: string;
   customerName: string;
+  customerPhone: string;
   address: string;
-  status: string;
-  courierService: string;
+  status: 'PENDING' | 'PROCESSING' | 'DISPATCHED' | 'DELIVERED' | 'RETURNED';
+  estimatedDeliveryTime: Date;
   trackingNumber: string;
-  estimatedDelivery: string;
-  actualDelivery?: string;
-  createdAt: string;
+  courierId?: string;
+  courierName?: string;
+  notes?: string;
+  createdAt: Date;
 }
 
 export default function CouriersPage() {
-  const [courierServices, setCourierServices] = useState<CourierService[]>([]);
+  const [couriers, setCouriers] = useState<Courier[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newService, setNewService] = useState({
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deliverySearchTerm, setDeliverySearchTerm] = useState('');
+  const [deliveryStatusFilter, setDeliveryStatusFilter] = useState<string>('all');
+  const [showAddCourier, setShowAddCourier] = useState(false);
+  const [editingCourier, setEditingCourier] = useState<Courier | null>(null);
+  const [selectedCourier, setSelectedCourier] = useState<Courier | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  const [updatingDelivery, setUpdatingDelivery] = useState<Delivery | null>(null);
+  const [courierForm, setCourierForm] = useState({
     name: '',
-    type: 'standard',
-    price: 0,
-    estimatedDays: 1,
-    coverage: [''],
-    description: ''
+    phone: '',
+    email: '',
+    status: 'ACTIVE' as const
+  });
+  const [deliveryStatusForm, setDeliveryStatusForm] = useState({
+    status: 'PENDING' as const,
+    notes: ''
   });
 
   useEffect(() => {
-    fetchCourierData();
+    loadCouriers();
+    loadDeliveries();
   }, []);
 
-  const fetchCourierData = async () => {
+  const loadCouriers = async () => {
     try {
       setLoading(true);
-      
-      // Fetch courier services
-      const servicesResponse = await fetch('/api/courier/services');
-      if (servicesResponse.ok) {
-        const servicesData = await servicesResponse.json();
-        if (servicesData.success) {
-          setCourierServices(servicesData.data || []);
+      // Mock data - replace with actual API call
+      const mockCouriers: Courier[] = [
+        {
+          id: '1',
+          name: 'John Silva',
+          phone: '+94771234567',
+          email: 'john@example.com',
+          status: 'ACTIVE',
+          isOnline: true,
+          rating: 4.8,
+          totalDeliveries: 150
+        },
+        {
+          id: '2',
+          name: 'Priya Fernando',
+          phone: '+94771234568',
+          email: 'priya@example.com',
+          status: 'ACTIVE',
+          isOnline: true,
+          rating: 4.6,
+          totalDeliveries: 120
         }
-      } else {
-        // Mock data for development
-        setCourierServices([
-          {
-            id: '1',
-            name: 'Standard Delivery',
-            type: 'standard',
-            price: 5.99,
-            estimatedDays: 3,
-            coverage: ['Colombo', 'Gampaha', 'Kalutara'],
-            isActive: true,
-            description: 'Standard delivery within 3 business days'
-          },
-          {
-            id: '2',
-            name: 'Express Delivery',
-            type: 'express',
-            price: 12.99,
-            estimatedDays: 1,
-            coverage: ['Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Galle'],
-            isActive: true,
-            description: 'Express delivery within 1 business day'
-          },
-          {
-            id: '3',
-            name: 'Same Day Delivery',
-            type: 'same-day',
-            price: 19.99,
-            estimatedDays: 0,
-            coverage: ['Colombo'],
-            isActive: true,
-            description: 'Same day delivery within Colombo'
-          }
-        ]);
-      }
-
-      // Fetch deliveries
-      const deliveriesResponse = await fetch('/api/courier/deliveries');
-      if (deliveriesResponse.ok) {
-        const deliveriesData = await deliveriesResponse.json();
-        if (deliveriesData.success) {
-          setDeliveries(deliveriesData.data || []);
-        }
-      } else {
-        // Mock data for development
-        setDeliveries([
-          {
-            id: '1',
-            orderId: 'ORD-001',
-            customerName: 'John Doe',
-            address: '123 Main St, Colombo 03',
-            status: 'delivered',
-            courierService: 'Standard Delivery',
-            trackingNumber: 'TRK-001',
-            estimatedDelivery: '2024-01-18',
-            actualDelivery: '2024-01-17',
-            createdAt: '2024-01-15'
-          },
-          {
-            id: '2',
-            orderId: 'ORD-002',
-            customerName: 'Jane Smith',
-            address: '456 Park Ave, Gampaha',
-            status: 'in-transit',
-            courierService: 'Express Delivery',
-            trackingNumber: 'TRK-002',
-            estimatedDelivery: '2024-01-19',
-            createdAt: '2024-01-18'
-          },
-          {
-            id: '3',
-            orderId: 'ORD-003',
-            customerName: 'Bob Johnson',
-            address: '789 Oak St, Kandy',
-            status: 'pending',
-            courierService: 'Standard Delivery',
-            trackingNumber: 'TRK-003',
-            estimatedDelivery: '2024-01-21',
-            createdAt: '2024-01-18'
-          }
-        ]);
-      }
+      ];
+      setCouriers(mockCouriers);
     } catch (error) {
-      console.error('Error fetching courier data:', error);
+      console.error('Error loading couriers:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateService = async () => {
+  const loadDeliveries = async () => {
     try {
-      const response = await fetch('/api/courier/services', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Mock data - replace with actual API call
+      const mockDeliveries: Delivery[] = [
+        {
+          id: '1',
+          orderNumber: 'ORD-001',
+          customerName: 'Alice Johnson',
+          customerPhone: '+94771234569',
+          address: '123 Main St, Colombo 03',
+          status: 'PENDING',
+          estimatedDeliveryTime: new Date(Date.now() + 3600000),
+          trackingNumber: 'TRK-001',
+          notes: 'Fragile items',
+          createdAt: new Date()
         },
-        body: JSON.stringify(newService),
-      });
-
-      if (response.ok) {
-        setShowCreateModal(false);
-        setNewService({
-          name: '',
-          type: 'standard',
-          price: 0,
-          estimatedDays: 1,
-          coverage: [''],
-          description: ''
-        });
-        fetchCourierData();
-      }
+        {
+          id: '2',
+          orderNumber: 'ORD-002',
+          customerName: 'Bob Smith',
+          customerPhone: '+94771234570',
+          address: '456 Oak Ave, Kandy',
+          status: 'PROCESSING',
+          estimatedDeliveryTime: new Date(Date.now() + 7200000),
+          trackingNumber: 'TRK-002',
+          courierId: '1',
+          courierName: 'John Silva',
+          createdAt: new Date()
+        }
+      ];
+      setDeliveries(mockDeliveries);
     } catch (error) {
-      console.error('Error creating service:', error);
+      console.error('Error loading deliveries:', error);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'delivered': return 'bg-green-100 text-green-800';
-      case 'in-transit': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleRefresh = () => {
+    loadCouriers();
+    loadDeliveries();
+  };
+
+  const handleViewCourier = (courier: Courier) => {
+    setSelectedCourier(courier);
+  };
+
+  const handleEditCourier = (courier: Courier) => {
+    setEditingCourier(courier);
+    setCourierForm({
+      name: courier.name,
+      phone: courier.phone,
+      email: courier.email,
+      status: courier.status
+    });
+    setShowAddCourier(true);
+  };
+
+  const handleDeleteCourier = async (courierId: string) => {
+    if (confirm('Are you sure you want to delete this courier?')) {
+      try {
+        // API call to delete courier
+        setCouriers(couriers.filter(c => c.id !== courierId));
+      } catch (error) {
+        console.error('Error deleting courier:', error);
+      }
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'delivered': return <CheckCircle className="h-4 w-4" />;
-      case 'in-transit': return <Truck className="h-4 w-4" />;
-      case 'pending': return <Clock className="h-4 w-4" />;
-      case 'failed': return <XCircle className="h-4 w-4" />;
-      default: return <AlertTriangle className="h-4 w-4" />;
+  const handleSubmitCourier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCourier) {
+        // Update existing courier
+        setCouriers(couriers.map(c => 
+          c.id === editingCourier.id 
+            ? { ...c, ...courierForm }
+            : c
+        ));
+      } else {
+        // Add new courier
+        const newCourier: Courier = {
+          id: Date.now().toString(),
+          ...courierForm,
+          isOnline: false,
+          rating: 0,
+          totalDeliveries: 0
+        };
+        setCouriers([...couriers, newCourier]);
+      }
+      
+      setShowAddCourier(false);
+      setEditingCourier(null);
+      setCourierForm({ name: '', phone: '', email: '', status: 'ACTIVE' });
+    } catch (error) {
+      console.error('Error saving courier:', error);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+  const handleViewDelivery = (delivery: Delivery) => {
+    setSelectedDelivery(delivery);
   };
 
-  const filteredDeliveries = deliveries.filter(delivery =>
-    delivery.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    delivery.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    delivery.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const deliveryStats = {
-    total: deliveries.length,
-    delivered: deliveries.filter(d => d.status === 'delivered').length,
-    inTransit: deliveries.filter(d => d.status === 'in-transit').length,
-    pending: deliveries.filter(d => d.status === 'pending').length
+  const handlePrintLabel = (delivery: Delivery) => {
+    // Print label functionality
+    console.log('Printing label for delivery:', delivery);
   };
+
+  const handleUpdateDeliveryStatus = (delivery: Delivery) => {
+    setUpdatingDelivery(delivery);
+    setDeliveryStatusForm({
+      status: delivery.status,
+      notes: delivery.notes || ''
+    });
+  };
+
+  const handleUpdateDeliveryStatusSubmit = async () => {
+    if (!updatingDelivery) return;
+    
+    try {
+      setDeliveries(deliveries.map(d => 
+        d.id === updatingDelivery.id 
+          ? { ...d, ...deliveryStatusForm }
+          : d
+      ));
+      setUpdatingDelivery(null);
+    } catch (error) {
+      console.error('Error updating delivery status:', error);
+    }
+  };
+
+  const filteredCouriers = couriers.filter(courier => {
+    const matchesSearch = courier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         courier.phone.includes(searchTerm);
+    const matchesStatus = statusFilter === 'all' || courier.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredDeliveries = deliveries.filter(delivery => {
+    const matchesSearch = delivery.orderNumber.toLowerCase().includes(deliverySearchTerm.toLowerCase()) ||
+                         delivery.customerName.toLowerCase().includes(deliverySearchTerm.toLowerCase());
+    const matchesStatus = deliveryStatusFilter === 'all' || delivery.status === deliveryStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStats = () => {
+    const totalCouriers = couriers.length;
+    const activeCouriers = couriers.filter(c => c.status === 'ACTIVE').length;
+    const onlineCouriers = couriers.filter(c => c.isOnline).length;
+    const totalDeliveries = deliveries.length;
+    const pendingDeliveries = deliveries.filter(d => d.status === 'PENDING').length;
+    const processingDeliveries = deliveries.filter(d => d.status === 'PROCESSING').length;
+    const dispatchedDeliveries = deliveries.filter(d => d.status === 'DISPATCHED').length;
+    const deliveredDeliveries = deliveries.filter(d => d.status === 'DELIVERED').length;
+    const returnedDeliveries = deliveries.filter(d => d.status === 'RETURNED').length;
+
+    return {
+      totalCouriers,
+      activeCouriers,
+      onlineCouriers,
+      totalDeliveries,
+      pendingDeliveries,
+      processingDeliveries,
+      dispatchedDeliveries,
+      deliveredDeliveries,
+      returnedDeliveries
+    };
+  };
+
+  const stats = getStats();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="loading-spinner w-8 h-8"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Courier Management</h1>
-          <p className="text-gray-600">Manage delivery services and track shipments</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Courier Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage couriers and track deliveries</p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={fetchCourierData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+        <div className="flex gap-2">
+          <Button onClick={() => setShowAddCourier(true)} className="bg-blue-600 hover:bg-blue-700">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add Courier
           </Button>
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Service
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{deliveryStats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              All deliveries
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Couriers</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalCouriers}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{deliveryStats.delivered}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully delivered
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                <UserCheck className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Couriers</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeCouriers}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-            <Truck className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{deliveryStats.inTransit}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently shipping
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                <MapPin className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Online Couriers</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.onlineCouriers}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{deliveryStats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting pickup
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                <Package className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Deliveries</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalDeliveries}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="deliveries" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="tracking">Tracking</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="deliveries" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Delivery Management</CardTitle>
-              <CardDescription>Track and manage all deliveries</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search deliveries..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+      {/* Couriers Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Couriers</CardTitle>
+          <CardDescription>Manage your courier team</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search couriers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
               </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="space-y-4">
-                {filteredDeliveries.map((delivery) => (
-                  <div key={delivery.id} className="flex items-center justify-between p-4 border rounded-lg">
+            {/* Couriers List */}
+            <div className="space-y-3">
+              {filteredCouriers.map((courier) => (
+                <div key={courier.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <p className="font-medium">{delivery.customerName}</p>
-                          <Badge className={getStatusColor(delivery.status)}>
-                            {getStatusIcon(delivery.status)}
-                            <span className="ml-1 capitalize">{delivery.status.replace('-', ' ')}</span>
-                          </Badge>
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                         </div>
-                        <p className="text-sm text-gray-500">Order: {delivery.orderId}</p>
-                        <p className="text-sm text-gray-500">Tracking: {delivery.trackingNumber}</p>
+                        {courier.isOnline && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{delivery.courierService}</p>
-                        <p className="text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 inline mr-1" />
-                          {delivery.address}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          <Clock className="h-4 w-4 inline mr-1" />
-                          Est: {delivery.estimatedDelivery}
-                        </p>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">{courier.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{courier.phone}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant={courier.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                            {courier.status}
+                          </Badge>
+                          {courier.isOnline && (
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              Online
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4" />
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewCourier(courier)}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
                       </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit className="h-4 w-4" />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditCourier(courier)}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteCourier(courier.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
                       </Button>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+
+            {filteredCouriers.length === 0 && (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400">No couriers found</p>
               </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-              {filteredDeliveries.length === 0 && (
-                <div className="text-center py-12">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No deliveries found</h3>
-                  <p className="text-gray-500">
-                    {searchTerm ? 'Try adjusting your search terms.' : 'No deliveries have been created yet.'}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="services" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Courier Services</CardTitle>
-              <CardDescription>Manage available delivery services</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {courierServices.map((service) => (
-                  <Card key={service.id} className="relative">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{service.name}</CardTitle>
-                        <Badge variant={service.isActive ? "default" : "secondary"}>
-                          {service.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <CardDescription>{service.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold">{formatCurrency(service.price)}</span>
-                          <span className="text-sm text-gray-500">
-                            {service.estimatedDays === 0 ? 'Same day' : `${service.estimatedDays} day${service.estimatedDays > 1 ? 's' : ''}`}
-                          </span>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h4 className="font-medium">Coverage Areas:</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {service.coverage.map((area, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {area}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex space-x-2 pt-4">
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {courierServices.length === 0 && (
-                <div className="text-center py-12">
-                  <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No courier services</h3>
-                  <p className="text-gray-500 mb-4">Get started by adding your first courier service.</p>
-                  <Button onClick={() => setShowCreateModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Service
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tracking" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Package Tracking</CardTitle>
-              <CardDescription>Track individual packages and shipments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <Input
-                    placeholder="Enter tracking number..."
-                    className="flex-1"
-                  />
-                  <Button>
-                    <Search className="h-4 w-4 mr-2" />
-                    Track
-                  </Button>
-                </div>
-
-                <div className="text-center py-12">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Enter tracking number</h3>
-                  <p className="text-gray-500">Enter a tracking number above to view package status and delivery timeline.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Create Service Modal */}
-      {showCreateModal && (
+      {/* Add/Edit Courier Modal */}
+      {showAddCourier && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Add Courier Service</CardTitle>
-              <CardDescription>Create a new delivery service</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              {editingCourier ? 'Edit Courier' : 'Add New Courier'}
+            </h2>
+            <form onSubmit={handleSubmitCourier}>
+              <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Service Name</label>
+                  <Label htmlFor="name">Name</Label>
                   <Input
-                    value={newService.name}
-                    onChange={(e) => setNewService({...newService, name: e.target.value})}
-                    placeholder="e.g., Standard Delivery"
+                    id="name"
+                    value={courierForm.name}
+                    onChange={(e) => setCourierForm({...courierForm, name: e.target.value})}
+                    required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Service Type</label>
-                  <select
-                    value={newService.type}
-                    onChange={(e) => setNewService({...newService, type: e.target.value})}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="express">Express</option>
-                    <option value="same-day">Same Day</option>
-                    <option value="overnight">Overnight</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Price</label>
+                  <Label htmlFor="phone">Phone</Label>
                   <Input
-                    type="number"
-                    value={newService.price}
-                    onChange={(e) => setNewService({...newService, price: parseFloat(e.target.value)})}
-                    placeholder="0.00"
+                    id="phone"
+                    value={courierForm.phone}
+                    onChange={(e) => setCourierForm({...courierForm, phone: e.target.value})}
+                    required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Estimated Days</label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    type="number"
-                    value={newService.estimatedDays}
-                    onChange={(e) => setNewService({...newService, estimatedDays: parseInt(e.target.value)})}
-                    placeholder="1"
+                    id="email"
+                    type="email"
+                    value={courierForm.email}
+                    onChange={(e) => setCourierForm({...courierForm, email: e.target.value})}
+                    required
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Coverage Areas</label>
-                <div className="space-y-2">
-                  {newService.coverage.map((area, index) => (
-                    <div key={index} className="flex space-x-2">
-                      <Input
-                        value={area}
-                        onChange={(e) => {
-                          const newCoverage = [...newService.coverage];
-                          newCoverage[index] = e.target.value;
-                          setNewService({...newService, coverage: newCoverage});
-                        }}
-                        placeholder="Enter coverage area"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const newCoverage = newService.coverage.filter((_, i) => i !== index);
-                          setNewService({...newService, coverage: newCoverage});
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setNewService({...newService, coverage: [...newService.coverage, '']})}
-                  >
-                    Add Area
-                  </Button>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={courierForm.status} onValueChange={(value) => setCourierForm({...courierForm, status: value as 'ACTIVE' | 'INACTIVE'})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">Active</SelectItem>
+                      <SelectItem value="INACTIVE">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Input
-                  value={newService.description}
-                  onChange={(e) => setNewService({...newService, description: e.target.value})}
-                  placeholder="Service description"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              <div className="flex justify-end space-x-2 mt-6">
+                <Button type="button" variant="outline" onClick={() => {
+                  setShowAddCourier(false);
+                  setEditingCourier(null);
+                  setCourierForm({name: '', phone: '', email: '', status: 'ACTIVE'});
+                }}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateService}>
-                  Create Service
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                  {editingCourier ? 'Update' : 'Add'} Courier
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Courier Modal */}
+      {selectedCourier && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg mx-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Courier Details</h2>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <User className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  {selectedCourier.isOnline && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{selectedCourier.name}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{selectedCourier.phone}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{selectedCourier.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Status</Label>
+                  <Badge variant={selectedCourier.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                    {selectedCourier.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label>Online Status</Label>
+                  <Badge variant={selectedCourier.isOnline ? 'default' : 'secondary'}>
+                    {selectedCourier.isOnline ? 'Online' : 'Offline'}
+                  </Badge>
+                </div>
+                <div>
+                  <Label>Rating</Label>
+                  <div className="flex items-center">
+                    <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                    <span>{selectedCourier.rating?.toFixed(1) || 'N/A'}</span>
+                  </div>
+                </div>
+                <div>
+                  <Label>Total Deliveries</Label>
+                  <p className="text-lg font-semibold">{selectedCourier.totalDeliveries || 0}</p>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-6">
+                <Button variant="outline" onClick={() => setSelectedCourier(null)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  setSelectedCourier(null);
+                  handleEditCourier(selectedCourier);
+                }} className="bg-blue-600 hover:bg-blue-700">
+                  Edit Courier
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

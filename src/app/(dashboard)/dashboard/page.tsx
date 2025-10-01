@@ -1,104 +1,105 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+export const dynamic = 'force-dynamic';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { 
-  BarChart3, 
   TrendingUp, 
-  Users, 
+  TrendingDown, 
+  Banknote, 
   ShoppingCart, 
-  Package, 
-  DollarSign,
-  Activity,
+  Users, 
+  Package,
+  MessageSquare,
+  Truck,
+  Brain,
+  Target,
   AlertTriangle,
   CheckCircle,
-  Clock
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import Link from 'next/link';
 
-interface DashboardStats {
-  totalRevenue: number;
-  totalOrders: number;
-  totalCustomers: number;
-  totalProducts: number;
-  revenueGrowth: number;
-  ordersGrowth: number;
-  customersGrowth: number;
-  productsGrowth: number;
-}
-
-interface RecentOrder {
-  id: string;
-  customerName: string;
-  amount: number;
-  status: string;
-  date: string;
-}
-
-interface LowStockProduct {
-  id: string;
-  name: string;
-  stock: number;
-  sku: string;
+interface DashboardData {
+  revenue: {
+    total: number;
+    change: number;
+    trend: 'up' | 'down';
+  };
+  orders: {
+    total: number;
+    change: number;
+    trend: 'up' | 'down';
+  };
+  customers: {
+    total: number;
+    change: number;
+    trend: 'up' | 'down';
+  };
+  products: {
+    total: number;
+    change: number;
+    trend: 'up' | 'down';
+  };
+  topProducts: Array<{
+    productId: string;
+    name: string;
+    revenue: number;
+    orders: number;
+  }>;
+  recentOrders: Array<{
+    id: string;
+    orderNumber: string;
+    customer: {
+      name: string;
+      email: string;
+    };
+    totalAmount: number;
+    status: string;
+    createdAt: string;
+  }>;
+  aiInsights: {
+    demandForecasts: Array<{
+      productId: string;
+      productName: string;
+      currentDemand: number;
+      predictedDemand: number;
+      confidence: number;
+    }>;
+    churnPredictions: Array<{
+      customerId: string;
+      customerName: string;
+      churnProbability: number;
+      riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    }>;
+    aiEnabled: boolean;
+  };
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalRevenue: 0,
-    totalOrders: 0,
-    totalCustomers: 0,
-    totalProducts: 0,
-    revenueGrowth: 0,
-    ordersGrowth: 0,
-    customersGrowth: 0,
-    productsGrowth: 0,
-  });
-
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
-  const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>([]);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
     fetchDashboardData();
-  }, []);
+  }, [session, status]);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true);
-      
-      // Fetch dashboard analytics
-      const response = await fetch('/api/analytics/dashboard');
+      const response = await fetch('/api/analytics/dashboard?organizationId=org-1&period=30');
       if (response.ok) {
         const data = await response.json();
-        
-        if (data.success) {
-          setStats({
-            totalRevenue: data.data.overview.totalRevenue || 0,
-            totalOrders: data.data.overview.totalOrders || 0,
-            totalCustomers: data.data.overview.totalCustomers || 0,
-            totalProducts: data.data.products.totalProducts || 0,
-            revenueGrowth: data.data.overview.growthRate || 0,
-            ordersGrowth: 0, // Calculate from data
-            customersGrowth: 0, // Calculate from data
-            productsGrowth: 0, // Calculate from data
-          });
-
-          // Set recent orders (mock data for now)
-          setRecentOrders([
-            { id: '1', customerName: 'John Doe', amount: 150.00, status: 'completed', date: '2024-01-15' },
-            { id: '2', customerName: 'Jane Smith', amount: 89.99, status: 'pending', date: '2024-01-14' },
-            { id: '3', customerName: 'Bob Johnson', amount: 245.50, status: 'processing', date: '2024-01-13' },
-          ]);
-
-          // Set low stock products (mock data for now)
-          setLowStockProducts([
-            { id: '1', name: 'Wireless Headphones', stock: 3, sku: 'WH-001' },
-            { id: '2', name: 'Smart Watch', stock: 1, sku: 'SW-002' },
-            { id: '3', name: 'Bluetooth Speaker', stock: 5, sku: 'BS-003' },
-          ]);
-        }
+        setDashboardData(data);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -107,224 +108,346 @@ export default function DashboardPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+  const getStatusColor = (status: string) => {
+    const colors = {
+      draft: 'bg-gray-100 text-gray-800',
+      confirmed: 'bg-blue-100 text-blue-800',
+      packed: 'bg-yellow-100 text-yellow-800',
+      out_for_delivery: 'bg-orange-100 text-orange-800',
+      delivered: 'bg-green-100 text-green-800',
+      completed: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800',
+    };
+    return colors[status as keyof typeof colors] || colors.draft;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'LOW': return 'text-green-600 bg-green-50';
+      case 'MEDIUM': return 'text-yellow-600 bg-yellow-50';
+      case 'HIGH': return 'text-red-600 bg-red-50';
+      default: return 'text-gray-600 bg-gray-50';
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="loading-spinner w-8 h-8" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your store.</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Activity className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button size="sm">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            View Reports
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Welcome Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">Welcome back, {session?.user?.name || 'Admin'}!</h1>
+        <p className="text-blue-100">Here's what's happening with your store today</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+{stats.revenueGrowth}%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {dashboardData ? formatCurrency(dashboardData.revenue.total) : 'රු0'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+              <Banknote className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+          {dashboardData && (
+            <div className="flex items-center mt-2">
+              {dashboardData.revenue.trend === 'up' ? (
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+              ) : (
+                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${
+                dashboardData.revenue.trend === 'up' ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {dashboardData.revenue.change}%
+              </span>
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalOrders.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+{stats.ordersGrowth}%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {dashboardData ? dashboardData.orders.total.toLocaleString() : '0'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+              <ShoppingCart className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+          {dashboardData && (
+            <div className="flex items-center mt-2">
+              {dashboardData.orders.trend === 'up' ? (
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+              ) : (
+                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${
+                dashboardData.orders.trend === 'up' ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {dashboardData.orders.change}%
+              </span>
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCustomers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+{stats.customersGrowth}%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {dashboardData ? dashboardData.customers.total.toLocaleString() : '0'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+          {dashboardData && (
+            <div className="flex items-center mt-2">
+              {dashboardData.customers.trend === 'up' ? (
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+              ) : (
+                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${
+                dashboardData.customers.trend === 'up' ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {dashboardData.customers.change}%
+              </span>
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+{stats.productsGrowth}%</span> from last month
-            </p>
-          </CardContent>
-        </Card>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Products</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {dashboardData ? dashboardData.products.total.toLocaleString() : '0'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+              <Package className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+          {dashboardData && (
+            <div className="flex items-center mt-2">
+              {dashboardData.products.trend === 'up' ? (
+                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+              ) : (
+                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+              )}
+              <span className={`text-sm font-medium ${
+                dashboardData.products.trend === 'up' ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {dashboardData.products.change}%
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="orders">Recent Orders</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory Alerts</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Sales Chart Placeholder */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Overview</CardTitle>
-                <CardDescription>Revenue trends for the last 30 days</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
-                  <div className="text-center">
-                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Sales chart will be displayed here</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Common tasks and shortcuts</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-                    <Package className="h-6 w-6 mb-2" />
-                    Add Product
-                  </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-                    <Users className="h-6 w-6 mb-2" />
-                    Add Customer
-                  </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-                    <ShoppingCart className="h-6 w-6 mb-2" />
-                    New Order
-                  </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-                    <BarChart3 className="h-6 w-6 mb-2" />
-                    View Reports
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+      {/* AI Insights Section */}
+      {dashboardData?.aiInsights?.aiEnabled && (
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-700">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">AI Insights</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Powered by machine learning</p>
+              </div>
+            </div>
+            <Link 
+              href="/ai-insights"
+              className="px-4 py-2 bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 rounded-lg border border-purple-200 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+            >
+              View All
+            </Link>
           </div>
-        </TabsContent>
 
-        <TabsContent value="orders" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Orders</CardTitle>
-              <CardDescription>Latest orders from your customers</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-1">
-                        <p className="font-medium">{order.customerName}</p>
-                        <p className="text-sm text-gray-500">Order #{order.id}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{formatCurrency(order.amount)}</p>
-                        <p className="text-sm text-gray-500">{order.date}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Demand Forecasts */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <TrendingUp className="w-4 h-4 mr-2 text-purple-600" />
+                Demand Predictions
+              </h3>
+              {dashboardData.aiInsights.demandForecasts?.length ? (
+                <div className="space-y-2">
+                  {dashboardData.aiInsights.demandForecasts.slice(0, 3).map((forecast, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400 truncate">{forecast.productName}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-500 dark:text-gray-400">{forecast.currentDemand}</span>
+                        <ArrowUpRight className="w-3 h-3 text-green-600" />
+                        <span className="text-green-600 font-medium">{forecast.predictedDemand}</span>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No predictions available</p>
+              )}
+            </div>
+
+            {/* Churn Predictions */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                <AlertTriangle className="w-4 h-4 mr-2 text-red-600" />
+                High Churn Risk
+              </h3>
+              {dashboardData.aiInsights.churnPredictions?.length ? (
+                <div className="space-y-2">
+                  {dashboardData.aiInsights.churnPredictions
+                    .filter(p => p.riskLevel === 'HIGH')
+                    .slice(0, 3)
+                    .map((prediction, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 truncate">{prediction.customerName}</span>
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          {prediction.churnProbability}%
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No high-risk customers</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top Products and Recent Orders */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Products */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Top Products</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Best performing products this month</p>
+          </div>
+          <div className="p-6">
+            {dashboardData?.topProducts?.length ? (
+              <div className="space-y-4">
+                {dashboardData.topProducts.slice(0, 5).map((product, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{index + 1}</span>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">{product.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{product.orders} orders</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(product.revenue)}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No product data available</p>
+              </div>
+            )}
+          </div>
+        </div>
 
-        <TabsContent value="inventory" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
-                Low Stock Alerts
-              </CardTitle>
-              <CardDescription>Products that need restocking</CardDescription>
-            </CardHeader>
-            <CardContent>
+        {/* Recent Orders */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Orders</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Latest customer orders</p>
+          </div>
+          <div className="p-6">
+            {dashboardData?.recentOrders?.length ? (
               <div className="space-y-4">
-                {lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-1">
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-500">SKU: {product.sku}</p>
+                {dashboardData.recentOrders.slice(0, 5).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                        <ShoppingCart className="w-4 h-4 text-blue-600" />
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-orange-600">{product.stock} left</p>
-                        <p className="text-sm text-gray-500">Low stock</p>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">{order.orderNumber}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{order.customer.name}</p>
                       </div>
                     </div>
-                    <Button size="sm" variant="outline">
-                      Restock
-                    </Button>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(order.totalAmount)}</p>
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        {order.status.replace('_', ' ')}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No recent orders</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link 
+            href="/products/new"
+            className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+          >
+            <Package className="w-6 h-6 text-blue-600 mb-2" />
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Add Product</span>
+          </Link>
+          
+          <Link 
+            href="/orders/new"
+            className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+          >
+            <ShoppingCart className="w-6 h-6 text-green-600 mb-2" />
+            <span className="text-sm font-medium text-green-900 dark:text-green-100">Create Order</span>
+          </Link>
+          
+          <Link 
+            href="/customers/new"
+            className="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+          >
+            <Users className="w-6 h-6 text-purple-600 mb-2" />
+            <span className="text-sm font-medium text-purple-900 dark:text-purple-100">Add Customer</span>
+          </Link>
+          
+          <Link 
+            href="/ai-insights"
+            className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/30 dark:hover:to-blue-900/30 transition-colors"
+          >
+            <Brain className="w-6 h-6 text-purple-600 mb-2" />
+            <span className="text-sm font-medium text-purple-900 dark:text-purple-100">AI Insights</span>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

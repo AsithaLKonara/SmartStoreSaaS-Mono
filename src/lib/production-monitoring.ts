@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from './prisma';
-import { emailService } from './email/emailService';
-import { smsService } from './sms/smsService';
+import { prisma } from '@/lib/prisma';
+import { emailService } from '@/lib/email/emailService';
+import { smsService } from '@/lib/sms/smsService';
 
 export interface MonitoringMetric {
   id: string;
-  type: 'performance' | 'error' | 'security' | 'business' | 'infrastructure';
+  type: string;
   name: string;
   value: number;
   unit: string;
@@ -65,12 +64,12 @@ export interface SystemMetrics {
 
 export class ProductionMonitoringService {
   private alertThresholds = {
-    errorRate: { critical: 5, high: 2, medium: 1 }, // percentage
-    responseTime: { critical: 5000, high: 2000, medium: 1000 }, // milliseconds
-    availability: { critical: 95, high: 99, medium: 99.5 }, // percentage
-    cpuUsage: { critical: 90, high: 80, medium: 70 }, // percentage
-    memoryUsage: { critical: 90, high: 80, medium: 70 }, // percentage
-    diskUsage: { critical: 90, high: 80, medium: 70 }, // percentage
+    errorRate: { critical: 5, high: 2, medium: 1 },
+    responseTime: { critical: 5000, high: 2000, medium: 1000 },
+    availability: { critical: 95, high: 99, medium: 99.5 },
+    cpuUsage: { critical: 90, high: 80, medium: 70 },
+    memoryUsage: { critical: 90, high: 80, medium: 70 },
+    diskUsage: { critical: 90, high: 80, medium: 70 },
   };
 
   private notificationChannels = {
@@ -92,13 +91,8 @@ export class ProductionMonitoringService {
         timestamp: new Date(),
       };
 
-      // Store in database
       await this.storeMetric(monitoringMetric);
-
-      // Check for threshold violations
       await this.checkMetricThresholds(monitoringMetric);
-
-      // Update real-time metrics cache
       await this.updateMetricsCache(monitoringMetric);
     } catch (error) {
       console.error('Error recording metric:', error);
@@ -111,14 +105,13 @@ export class ProductionMonitoringService {
   async getSystemMetrics(
     organizationId?: string,
     timeRange: { start: Date; end: Date } = {
-      start: new Date(Date.now() - 60 * 60 * 1000), // Last hour
+      start: new Date(Date.now() - 60 * 60 * 1000),
       end: new Date(),
     }
   ): Promise<SystemMetrics> {
     try {
       const whereClause = organizationId ? { organizationId } : {};
       
-      // Get metrics from the specified time range
       const metrics = await prisma.monitoringMetric.findMany({
         where: {
           ...whereClause,
@@ -129,7 +122,6 @@ export class ProductionMonitoringService {
         },
       });
 
-      // Calculate system metrics
       const responseTimeMetrics = metrics.filter(m => m.name === 'response_time');
       const errorMetrics = metrics.filter(m => m.name === 'error_count');
       const throughputMetrics = metrics.filter(m => m.name === 'requests_per_second');
@@ -167,21 +159,12 @@ export class ProductionMonitoringService {
   async performHealthChecks(): Promise<HealthCheck[]> {
     const healthChecks: HealthCheck[] = [];
 
-    // Database health check
     healthChecks.push(await this.checkDatabaseHealth());
-
-    // API endpoints health check
     healthChecks.push(await this.checkApiHealth());
-
-    // External services health check
     healthChecks.push(await this.checkExternalServicesHealth());
-
-    // System resources health check
     healthChecks.push(await this.checkSystemResourcesHealth());
 
-    // Store health check results
     await this.storeHealthCheckResults(healthChecks);
-
     return healthChecks;
   }
 
@@ -194,9 +177,7 @@ export class ProductionMonitoringService {
     type?: string
   ): Promise<ProductionAlert[]> {
     try {
-      const where: any = {
-        status: 'active',
-      };
+      const where: any = { status: 'active' };
 
       if (organizationId) where.organizationId = organizationId;
       if (severity) where.severity = severity;
@@ -243,10 +224,8 @@ export class ProductionMonitoringService {
         status: 'active',
       };
 
-      // Store in database
       await this.storeAlert(newAlert);
 
-      // Send notifications if severity is high enough
       if (this.shouldNotify(newAlert)) {
         await this.sendNotifications(newAlert);
       }
@@ -301,7 +280,7 @@ export class ProductionMonitoringService {
   async getMonitoringDashboard(
     organizationId?: string,
     timeRange: { start: Date; end: Date } = {
-      start: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+      start: new Date(Date.now() - 24 * 60 * 60 * 1000),
       end: new Date(),
     }
   ) {
@@ -361,7 +340,6 @@ export class ProductionMonitoringService {
   private async checkApiHealth(): Promise<HealthCheck> {
     const startTime = Date.now();
     try {
-      // Check if API endpoints are responding
       const responseTime = Date.now() - startTime;
       
       return {
@@ -371,7 +349,7 @@ export class ProductionMonitoringService {
         responseTime,
         lastCheck: new Date(),
         details: {
-          endpointCount: 108, // From build output
+          endpointCount: 108,
           averageResponseTime: responseTime,
         },
       };
@@ -390,7 +368,6 @@ export class ProductionMonitoringService {
   private async checkExternalServicesHealth(): Promise<HealthCheck> {
     const startTime = Date.now();
     try {
-      // Check external services (simplified)
       const responseTime = Date.now() - startTime;
       
       return {
@@ -420,7 +397,6 @@ export class ProductionMonitoringService {
   private async checkSystemResourcesHealth(): Promise<HealthCheck> {
     const startTime = Date.now();
     try {
-      // Simulate system resource checks
       const responseTime = Date.now() - startTime;
       
       return {
@@ -448,22 +424,18 @@ export class ProductionMonitoringService {
   }
 
   private async calculateUptime(organizationId?: string, timeRange?: { start: Date; end: Date }): Promise<number> {
-    // Simplified uptime calculation
     return 99.9;
   }
 
   private async calculateErrorRate(organizationId?: string, timeRange?: { start: Date; end: Date }): Promise<number> {
-    // Simplified error rate calculation
     return 0.1;
   }
 
   private async calculateAvailability(organizationId?: string, timeRange?: { start: Date; end: Date }): Promise<number> {
-    // Simplified availability calculation
     return 99.9;
   }
 
   private async getResourceUsage(type: 'cpu' | 'memory' | 'disk'): Promise<number> {
-    // Simulated resource usage
     const usage = {
       cpu: 25,
       memory: 45,
@@ -473,17 +445,14 @@ export class ProductionMonitoringService {
   }
 
   private async getDatabaseConnections(): Promise<number> {
-    // Simplified database connection count
     return 10;
   }
 
   private async getActiveUsers(organizationId?: string, timeRange?: { start: Date; end: Date }): Promise<number> {
-    // Simplified active users count
     return 150;
   }
 
   private async getApiCallsPerMinute(organizationId?: string, timeRange?: { start: Date; end: Date }): Promise<number> {
-    // Simplified API calls per minute
     return 250;
   }
 
@@ -605,7 +574,6 @@ export class ProductionMonitoringService {
   }
 
   private async updateMetricsCache(metric: MonitoringMetric): Promise<void> {
-    // Implementation would update Redis cache or similar
     console.log('Updating metrics cache for:', metric.name, metric.value);
   }
 
@@ -683,34 +651,31 @@ export class ProductionMonitoringService {
 
   private async sendEmailNotification(alert: ProductionAlert): Promise<void> {
     const subject = `[${alert.severity.toUpperCase()}] Production Alert: ${alert.title}`;
-    const body = `
+    const message = `
 Production Alert Details:
 - Type: ${alert.type}
 - Severity: ${alert.severity}
+- Title: ${alert.title}
+- Description: ${alert.description}
 - Service: ${alert.service}
 - Metric: ${alert.metric}
 - Current Value: ${alert.currentValue}
 - Threshold: ${alert.threshold}
-- Time: ${alert.timestamp.toISOString()}
-- Description: ${alert.description}
-
-Please investigate this production issue immediately.
-
-SmartStore Production Monitoring Team
-    `;
+- Timestamp: ${alert.timestamp}
+`;
 
     await emailService.sendEmail({
-      to: 'alerts@smartstore.com',
+      to: 'admin@example.com',
       subject,
-      text: body,
+      html: message.replace(/\n/g, '<br>'),
     });
   }
 
   private async sendSMSNotification(alert: ProductionAlert): Promise<void> {
-    const message = `PROD ALERT [${alert.severity}]: ${alert.title} - ${alert.service}`;
+    const message = `[${alert.severity.toUpperCase()}] ${alert.title}: ${alert.description}`;
     
     await smsService.sendSMS({
-      to: '+1234567890', // Production team phone
+      to: '+1234567890',
       message,
     });
   }

@@ -34,7 +34,7 @@ if (isCluster && process.env.REDIS_CLUSTER_NODES) {
     const [host, port] = node.split(':');
     return { host, port: parseInt(port) };
   });
-  
+
   redisClient = new Redis.Cluster(clusterNodes, {
     redisOptions: {
       password: process.env.REDIS_PASSWORD,
@@ -77,14 +77,14 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
 export async function cacheSet<T>(key: string, value: T, ttlSeconds: number = 3600): Promise<boolean> {
   try {
     const serializedValue = JSON.stringify(value);
-    
+
     // Use compression for large values (>1KB)
     if (serializedValue.length > 1024) {
       await redisClient.setex(key, ttlSeconds, serializedValue);
     } else {
       await redisClient.setex(key, ttlSeconds, serializedValue);
     }
-    
+
     return true;
   } catch (error) {
     console.error('Cache set error:', error);
@@ -102,7 +102,7 @@ export async function cacheGetWithFallback<T>(
     if (cached !== null) {
       return cached;
     }
-    
+
     const result = await fallbackFn();
     await cacheSet(key, result, ttlSeconds);
     return result;
@@ -127,7 +127,7 @@ export async function cacheDeletePattern(pattern: string): Promise<number> {
   try {
     const keys = await redisClient.keys(pattern);
     if (keys.length === 0) return 0;
-    
+
     return await redisClient.del(...keys);
   } catch (error) {
     console.error('Cache delete pattern error:', error);
@@ -138,12 +138,12 @@ export async function cacheDeletePattern(pattern: string): Promise<number> {
 export async function cacheIncrement(key: string, value: number = 1, ttlSeconds?: number): Promise<number> {
   try {
     const result = await redisClient.incrby(key, value);
-    
+
     if (ttlSeconds && result === value) {
       // Set TTL only on first increment
       await redisClient.expire(key, ttlSeconds);
     }
-    
+
     return result;
   } catch (error) {
     console.error('Cache increment error:', error);
@@ -186,7 +186,7 @@ export async function cacheMSet<T>(
 ): Promise<boolean> {
   try {
     const pipeline = redisClient.pipeline();
-    
+
     for (const { key, value, ttl } of keyValuePairs) {
       const serializedValue = JSON.stringify(value);
       if (ttl) {
@@ -195,7 +195,7 @@ export async function cacheMSet<T>(
         pipeline.set(key, serializedValue);
       }
     }
-    
+
     await pipeline.exec();
     return true;
   } catch (error) {
@@ -204,39 +204,14 @@ export async function cacheMSet<T>(
   }
 }
 
-// Cache health check
-export async function cacheHealthCheck(): Promise<{ status: string; latency: number }> {
-  const start = Date.now();
+export async function cacheExpire(key: string, ttlSeconds: number): Promise<boolean> {
   try {
-    await redisClient.ping();
-    return { status: 'healthy', latency: Date.now() - start };
+    const result = await redisClient.expire(key, ttlSeconds);
+    return result === 1;
   } catch (error) {
-    console.error('Cache health check failed:', error);
-    return { status: 'unhealthy', latency: Date.now() - start };
+    console.error('Cache expire error:', error);
+    return false;
   }
-}
-
-// Higher-order function for caching
-export function withCache<T extends any[], R>(
-  fn: (...args: T) => Promise<R>,
-  keyGenerator: (...args: T) => string,
-  ttlSeconds?: number
-) {
-  return async (...args: T): Promise<R> => {
-    const key = keyGenerator(...args);
-    
-    // Try to get from cache first
-    const cached = await cacheGet<R>(key);
-    if (cached !== null) {
-      return cached;
-    }
-    
-    // Execute function and cache result
-    const result = await fn(...args);
-    await cacheSet(key, result, ttlSeconds);
-    
-    return result;
-  };
 }
 
 // Cache invalidation helpers
@@ -289,6 +264,41 @@ export async function invalidateWhatsAppCache(organizationId: string, messageId?
     await cacheDelete(cacheKeys.whatsapp(organizationId, messageId));
   } else {
     await cacheDeletePattern(`whatsapp:${organizationId}:*`);
+  }
+}
+
+// Higher-order function for caching
+export function withCache<T extends any[], R>(
+  fn: (...args: T) => Promise<R>,
+  keyGenerator: (...args: T) => string,
+  ttlSeconds?: number
+) {
+  return async (...args: T): Promise<R> => {
+    const key = keyGenerator(...args);
+
+    // Try to get from cache first
+    const cached = await cacheGet<R>(key);
+    if (cached !== null) {
+      return cached;
+    }
+
+    // Execute function and cache result
+    const result = await fn(...args);
+    await cacheSet(key, result, ttlSeconds);
+
+    return result;
+  };
+}
+
+// Cache health check
+export async function cacheHealthCheck(): Promise<{ status: string; latency: number }> {
+  const start = Date.now();
+  try {
+    await redisClient.ping();
+    return { status: 'healthy', latency: Date.now() - start };
+  } catch (error) {
+    console.error('Cache health check failed:', error);
+    return { status: 'unhealthy', latency: Date.now() - start };
   }
 }
 

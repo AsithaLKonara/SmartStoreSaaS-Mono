@@ -1,341 +1,364 @@
-import { ROLES, PERMISSIONS } from './auth-middleware';
+export interface SecurityPolicy {
+  id: string;
+  name: string;
+  description: string;
+  category: 'authentication' | 'authorization' | 'data_protection' | 'network' | 'monitoring';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  rules: SecurityRule[];
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-/**
- * Security policies configuration for SmartStore SaaS
- */
-export const SECURITY_POLICIES = {
-  // Password policies
-  PASSWORD: {
-    minLength: 8,
-    maxLength: 128,
-    requireUppercase: true,
-    requireLowercase: true,
-    requireNumbers: true,
-    requireSpecialChars: true,
-    maxAge: 90, // days
-    historyCount: 5, // remember last 5 passwords
-    lockoutAttempts: 5,
-    lockoutDuration: 30, // minutes
+export interface SecurityRule {
+  id: string;
+  name: string;
+  condition: string;
+  action: 'allow' | 'deny' | 'log' | 'alert';
+  parameters: Record<string, any>;
+}
+
+// Core security policies
+export const SECURITY_POLICIES: Record<string, SecurityPolicy> = {
+  // Authentication policies
+  'strong_password_policy': {
+    id: 'strong_password_policy',
+    name: 'Strong Password Policy',
+    description: 'Enforce strong password requirements',
+    category: 'authentication',
+    severity: 'high',
+    enabled: true,
+    rules: [
+      {
+        id: 'min_length',
+        name: 'Minimum Length',
+        condition: 'password.length >= 8',
+        action: 'deny',
+        parameters: { minLength: 8 },
+      },
+      {
+        id: 'complexity',
+        name: 'Password Complexity',
+        condition: 'hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChars',
+        action: 'deny',
+        parameters: {},
+      },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 
-  // Session policies
-  SESSION: {
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-    sliding: true, // extend session on activity
-    secure: true, // HTTPS only
-    httpOnly: true,
-    sameSite: 'strict' as const,
-    maxConcurrentSessions: 3,
+  'mfa_required': {
+    id: 'mfa_required',
+    name: 'Multi-Factor Authentication Required',
+    description: 'Require MFA for all users',
+    category: 'authentication',
+    severity: 'critical',
+    enabled: true,
+    rules: [
+      {
+        id: 'mfa_enforcement',
+        name: 'MFA Enforcement',
+        condition: 'user.role === "admin" || user.permissions.includes("sensitive_data")',
+        action: 'deny',
+        parameters: { requiredMethods: ['sms', 'email', 'app'] },
+      },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 
-  // MFA policies
-  MFA: {
-    requiredForAdmins: true,
-    requiredForUsers: false,
-    backupCodesCount: 10,
-    totpIssuer: 'SmartStore SaaS',
-    recoveryCodesEnabled: true,
-  },
-
-  // API security policies
-  API: {
-    rateLimiting: {
-      default: {
-        maxRequests: 100,
-        windowMs: 60 * 1000, // 1 minute
+  // Authorization policies
+  'role_based_access': {
+    id: 'role_based_access',
+    name: 'Role-Based Access Control',
+    description: 'Enforce role-based permissions',
+    category: 'authorization',
+    severity: 'high',
+    enabled: true,
+    rules: [
+      {
+        id: 'permission_check',
+        name: 'Permission Validation',
+        condition: 'user.role && user.permissions.includes(requiredPermission)',
+        action: 'deny',
+        parameters: {},
       },
-      authenticated: {
-        maxRequests: 1000,
-        windowMs: 60 * 1000, // 1 minute
-      },
-      admin: {
-        maxRequests: 5000,
-        windowMs: 60 * 1000, // 1 minute
-      },
-    },
-    timeout: 30000, // 30 seconds
-    maxBodySize: 10 * 1024 * 1024, // 10MB
-    allowedOrigins: ['https://smartstore.com', 'https://app.smartstore.com'],
-    corsCredentials: true,
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 
   // Data protection policies
-  DATA_PROTECTION: {
-    encryption: {
-      algorithm: 'aes-256-gcm',
-      keyRotationDays: 90,
-    },
-    retention: {
-      auditLogs: 2555, // 7 years in days
-      userData: 1095, // 3 years in days
-      sessionData: 30, // 30 days
-      tempData: 7, // 7 days
-    },
-    anonymization: {
-      enabled: true,
-      delayDays: 365, // anonymize after 1 year of inactivity
-    },
-  },
-
-  // Threat detection policies
-  THREAT_DETECTION: {
-    bruteForce: {
-      maxAttempts: 5,
-      timeWindow: 15, // minutes
-      lockoutDuration: 30, // minutes
-      progressiveLockout: true,
-    },
-    suspiciousActivity: {
-      rapidRequests: 100, // requests per minute
-      unusualLocation: 1000, // km from usual location
-      deviceChange: 0.8, // similarity threshold
-      ipReputationThreshold: 30,
-    },
-    geoBlocking: {
-      enabled: false,
-      blockedCountries: [],
-      allowedCountries: [],
-    },
-  },
-
-  // Audit and logging policies
-  AUDIT: {
-    logLevel: 'info',
-    sensitiveDataFields: [
-      'password',
-      'token',
-      'secret',
-      'key',
-      'ssn',
-      'creditCard',
-      'bankAccount',
+  'data_encryption': {
+    id: 'data_encryption',
+    name: 'Data Encryption at Rest',
+    description: 'Encrypt sensitive data at rest',
+    category: 'data_protection',
+    severity: 'critical',
+    enabled: true,
+    rules: [
+      {
+        id: 'encryption_required',
+        name: 'Encryption Enforcement',
+        condition: 'data.type === "sensitive" && !data.encrypted',
+        action: 'deny',
+        parameters: { algorithm: 'AES-256' },
+      },
     ],
-    logRetention: 2555, // 7 years in days
-    realTimeAlerts: true,
-    alertThresholds: {
-      failedLogins: 10, // per hour
-      suspiciousActivity: 5, // per hour
-      dataBreach: 1, // immediate
-    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 
-  // File upload policies
-  FILE_UPLOAD: {
-    maxSize: 50 * 1024 * 1024, // 50MB
-    allowedTypes: [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'application/pdf',
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  // Network policies
+  'rate_limiting': {
+    id: 'rate_limiting',
+    name: 'API Rate Limiting',
+    description: 'Limit API requests per user/IP',
+    category: 'network',
+    severity: 'medium',
+    enabled: true,
+    rules: [
+      {
+        id: 'request_limit',
+        name: 'Request Rate Limit',
+        condition: 'requestsPerMinute > limit',
+        action: 'deny',
+        parameters: { maxRequests: 100, windowMinutes: 1 },
+      },
     ],
-    scanForMalware: true,
-    quarantineSuspicious: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 
-  // Email security policies
-  EMAIL: {
-    verificationRequired: true,
-    domainWhitelist: [],
-    domainBlacklist: ['tempmail.com', '10minutemail.com'],
-    maxEmailsPerHour: 100,
-    rateLimitWindow: 60 * 60 * 1000, // 1 hour
-  },
-
-  // Backup and recovery policies
-  BACKUP: {
-    frequency: 'daily',
-    retention: 30, // days
-    encryption: true,
-    compression: true,
-    offsiteStorage: true,
-    testRestore: 'monthly',
-  },
-};
-
-/**
- * Role-specific security policies
- */
-export const ROLE_SECURITY_POLICIES = {
-  [ROLES.SUPER_ADMIN]: {
-    sessionTimeout: 8 * 60 * 60 * 1000, // 8 hours
-    mfaRequired: true,
-    ipWhitelist: [],
-    ipBlacklist: [],
-    maxConcurrentSessions: 5,
-    sensitiveDataAccess: true,
-    auditLevel: 'detailed',
-  },
-  [ROLES.ADMIN]: {
-    sessionTimeout: 8 * 60 * 60 * 1000, // 8 hours
-    mfaRequired: true,
-    ipWhitelist: [],
-    ipBlacklist: [],
-    maxConcurrentSessions: 3,
-    sensitiveDataAccess: true,
-    auditLevel: 'standard',
-  },
-  [ROLES.MANAGER]: {
-    sessionTimeout: 12 * 60 * 60 * 1000, // 12 hours
-    mfaRequired: false,
-    ipWhitelist: [],
-    ipBlacklist: [],
-    maxConcurrentSessions: 3,
-    sensitiveDataAccess: false,
-    auditLevel: 'basic',
-  },
-  [ROLES.USER]: {
-    sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours
-    mfaRequired: false,
-    ipWhitelist: [],
-    ipBlacklist: [],
-    maxConcurrentSessions: 2,
-    sensitiveDataAccess: false,
-    auditLevel: 'basic',
-  },
-};
-
-/**
- * Feature-specific security policies
- */
-export const FEATURE_SECURITY_POLICIES = {
-  // AI and automation features
-  AI_FEATURES: {
-    dataProcessingConsent: true,
-    dataRetention: 365, // days
-    anonymizationRequired: true,
-    auditTrail: true,
-  },
-
-  // Payment processing
-  PAYMENT_PROCESSING: {
-    pciCompliance: true,
-    tokenizationRequired: true,
-    encryptionRequired: true,
-    auditLevel: 'detailed',
-  },
-
-  // Customer data handling
-  CUSTOMER_DATA: {
-    gdprCompliance: true,
-    consentManagement: true,
-    rightToBeForgotten: true,
-    dataPortability: true,
-  },
-
-  // Integration security
-  INTEGRATIONS: {
-    oauthRequired: true,
-    tokenRotation: true,
-    auditLogging: true,
-    sandboxMode: true,
-  },
-};
-
-/**
- * Environment-specific security policies
- */
-export const ENVIRONMENT_SECURITY_POLICIES = {
-  development: {
-    debugMode: true,
-    relaxedCors: true,
-    selfSignedCertificates: true,
-    auditLevel: 'basic',
-    rateLimitMultiplier: 0.1, // 10% of production limits
-  },
-  staging: {
-    debugMode: false,
-    relaxedCors: false,
-    selfSignedCertificates: false,
-    auditLevel: 'standard',
-    rateLimitMultiplier: 0.5, // 50% of production limits
-  },
-  production: {
-    debugMode: false,
-    relaxedCors: false,
-    selfSignedCertificates: false,
-    auditLevel: 'detailed',
-    rateLimitMultiplier: 1.0, // Full production limits
-    strictSecurity: true,
-  },
-};
-
-/**
- * Security compliance frameworks
- */
-export const COMPLIANCE_FRAMEWORKS = {
-  GDPR: {
+  // Monitoring policies
+  'security_monitoring': {
+    id: 'security_monitoring',
+    name: 'Security Event Monitoring',
+    description: 'Monitor and alert on security events',
+    category: 'monitoring',
+    severity: 'high',
     enabled: true,
-    dataProcessingBasis: 'consent',
-    consentWithdrawal: true,
-    dataPortability: true,
-    rightToBeForgotten: true,
-    breachNotification: 72, // hours
+    rules: [
+      {
+        id: 'failed_login_monitoring',
+        name: 'Failed Login Monitoring',
+        condition: 'failedLoginAttempts > 5',
+        action: 'alert',
+        parameters: { alertType: 'security_breach' },
+      },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
-  CCPA: {
-    enabled: true,
-    optOutMechanism: true,
-    dataDisclosure: true,
-    deletionRights: true,
+};
+
+// Role-specific security policies
+export const ROLE_SECURITY_POLICIES: Record<string, string[]> = {
+  'admin': [
+    'strong_password_policy',
+    'mfa_required',
+    'role_based_access',
+    'data_encryption',
+    'rate_limiting',
+    'security_monitoring',
+  ],
+  'manager': [
+    'strong_password_policy',
+    'mfa_required',
+    'role_based_access',
+    'data_encryption',
+    'rate_limiting',
+  ],
+  'user': [
+    'strong_password_policy',
+    'role_based_access',
+    'rate_limiting',
+  ],
+  'guest': [
+    'rate_limiting',
+  ],
+};
+
+// Feature-specific security policies
+export const FEATURE_SECURITY_POLICIES: Record<string, string[]> = {
+  'billing': [
+    'data_encryption',
+    'mfa_required',
+    'security_monitoring',
+  ],
+  'customer_data': [
+    'data_encryption',
+    'role_based_access',
+    'security_monitoring',
+  ],
+  'admin_panel': [
+    'mfa_required',
+    'role_based_access',
+    'security_monitoring',
+  ],
+  'api_access': [
+    'rate_limiting',
+    'role_based_access',
+    'security_monitoring',
+  ],
+};
+
+// Environment-specific security policies
+export const ENVIRONMENT_SECURITY_POLICIES: Record<string, string[]> = {
+  'production': [
+    'strong_password_policy',
+    'mfa_required',
+    'role_based_access',
+    'data_encryption',
+    'rate_limiting',
+    'security_monitoring',
+  ],
+  'staging': [
+    'strong_password_policy',
+    'role_based_access',
+    'data_encryption',
+    'rate_limiting',
+  ],
+  'development': [
+    'role_based_access',
+    'rate_limiting',
+  ],
+};
+
+// Compliance frameworks
+export const COMPLIANCE_FRAMEWORKS: Record<string, {
+  name: string;
+  description: string;
+  policies: string[];
+}> = {
+  'gdpr': {
+    name: 'General Data Protection Regulation',
+    description: 'EU data protection and privacy regulation',
+    policies: [
+      'data_encryption',
+      'role_based_access',
+      'security_monitoring',
+    ],
   },
-  HIPAA: {
-    enabled: false, // Enable if handling health data
-    businessAssociateAgreements: false,
-    minimumNecessaryStandard: false,
+  'ccpa': {
+    name: 'California Consumer Privacy Act',
+    description: 'California privacy protection regulation',
+    policies: [
+      'data_encryption',
+      'role_based_access',
+      'security_monitoring',
+    ],
   },
-  SOC2: {
-    enabled: true,
-    accessControls: true,
-    availabilityMonitoring: true,
-    confidentialityProtection: true,
-    integrityMonitoring: true,
+  'sox': {
+    name: 'Sarbanes-Oxley Act',
+    description: 'Financial reporting and auditing standards',
+    policies: [
+      'strong_password_policy',
+      'mfa_required',
+      'role_based_access',
+      'data_encryption',
+      'security_monitoring',
+    ],
   },
-  PCI_DSS: {
-    enabled: true,
-    cardDataEncryption: true,
-    secureTransmission: true,
-    accessRestriction: true,
-    monitoring: true,
+  'pci_dss': {
+    name: 'Payment Card Industry Data Security Standard',
+    description: 'Payment card data security requirements',
+    policies: [
+      'strong_password_policy',
+      'mfa_required',
+      'data_encryption',
+      'security_monitoring',
+      'rate_limiting',
+    ],
   },
 };
 
 /**
- * Get security policy for current environment
+ * Get security policy by ID
  */
-export function getSecurityPolicy(environment: string = 'production') {
-  const basePolicy = SECURITY_POLICIES;
-  const environmentPolicy = ENVIRONMENT_SECURITY_POLICIES[environment as keyof typeof ENVIRONMENT_SECURITY_POLICIES] || ENVIRONMENT_SECURITY_POLICIES.production;
-  
-  return {
-    ...basePolicy,
-    ...environmentPolicy,
-  };
+export function getSecurityPolicy(policyId: string): SecurityPolicy | undefined {
+  return SECURITY_POLICIES[policyId];
 }
 
 /**
- * Get role-specific security policy
+ * Get security policies for a role
  */
-export function getRoleSecurityPolicy(role: string) {
-  return ROLE_SECURITY_POLICIES[role as keyof typeof ROLE_SECURITY_POLICIES] || ROLE_SECURITY_POLICIES[ROLES.USER];
+export function getRoleSecurityPolicy(role: string): SecurityPolicy[] {
+  const policyIds = ROLE_SECURITY_POLICIES[role] || [];
+  return policyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
 }
 
 /**
- * Validate security policy compliance
+ * Validate security compliance
  */
-export function validateSecurityCompliance(policy: any, complianceFramework: string) {
-  const framework = COMPLIANCE_FRAMEWORKS[complianceFramework as keyof typeof COMPLIANCE_FRAMEWORKS];
+export function validateSecurityCompliance(
+  userRole: string,
+  environment: string,
+  features: string[],
+  complianceFrameworks: string[] = []
+): {
+  compliant: boolean;
+  violations: string[];
+  recommendations: string[];
+} {
+  const violations: string[] = [];
+  const recommendations: string[] = [];
+
+  // Check role-based policies
+  const rolePolicies = getRoleSecurityPolicy(userRole);
   
-  if (!framework) {
-    throw new Error(`Unknown compliance framework: ${complianceFramework}`);
+  // Check environment policies
+  const envPolicyIds = ENVIRONMENT_SECURITY_POLICIES[environment] || [];
+  const envPolicies = envPolicyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
+  
+  // Check feature policies
+  const featurePolicyIds = features.flatMap(feature => FEATURE_SECURITY_POLICIES[feature] || []);
+  const featurePolicies = featurePolicyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
+  
+  // Check compliance framework policies
+  const compliancePolicyIds = complianceFrameworks.flatMap(framework => 
+    COMPLIANCE_FRAMEWORKS[framework]?.policies || []
+  );
+  const compliancePolicies = compliancePolicyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
+
+  // Combine all required policies
+  const allRequiredPolicies = [
+    ...rolePolicies,
+    ...envPolicies,
+    ...featurePolicies,
+    ...compliancePolicies,
+  ];
+
+  // Check for disabled policies
+  const disabledPolicies = allRequiredPolicies.filter(policy => !policy.enabled);
+  if (disabledPolicies.length > 0) {
+    violations.push(`Disabled security policies: ${disabledPolicies.map(p => p.name).join(', ')}`);
   }
 
-  // Implementation would validate policy against framework requirements
+  // Check for missing critical policies
+  const criticalPolicies = allRequiredPolicies.filter(policy => policy.severity === 'critical');
+  const missingCritical = criticalPolicies.filter(policy => !policy.enabled);
+  if (missingCritical.length > 0) {
+    violations.push(`Missing critical security policies: ${missingCritical.map(p => p.name).join(', ')}`);
+  }
+
+  // Generate recommendations
+  if (userRole === 'admin' && !rolePolicies.some(p => p.id === 'mfa_required')) {
+    recommendations.push('Enable MFA for admin users');
+  }
+
+  if (environment === 'production' && !envPolicies.some(p => p.id === 'security_monitoring')) {
+    recommendations.push('Enable security monitoring for production environment');
+  }
+
+  if (features.includes('billing') && !featurePolicies.some(p => p.id === 'data_encryption')) {
+    recommendations.push('Enable data encryption for billing features');
+  }
+
   return {
-    compliant: true,
-    violations: [],
-    recommendations: [],
+    compliant: violations.length === 0,
+    violations,
+    recommendations,
   };
 }

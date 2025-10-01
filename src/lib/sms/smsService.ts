@@ -1,5 +1,6 @@
 import twilio from 'twilio';
 import { prisma } from '@/lib/prisma';
+import { smsLogger } from '@/lib/utils/logger';
 
 // Initialize Twilio (with fallback for missing credentials)
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
@@ -112,7 +113,9 @@ export class SMSService {
         results,
       };
     } catch (error) {
-      console.error('Error sending bulk SMS:', error);
+      smsLogger.error('Error sending bulk SMS', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       return { success: false, results: [], error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -142,7 +145,9 @@ export class SMSService {
         variables: createdTemplate.variables,
       };
     } catch (error) {
-      console.error('Error creating SMS template:', error);
+      smsLogger.error('Error creating SMS template', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       throw new Error('Failed to create SMS template');
     }
   }
@@ -171,7 +176,9 @@ export class SMSService {
         campaignId: 'order-confirmation',
       });
     } catch (error) {
-      console.error('Error sending order confirmation SMS:', error);
+      smsLogger.error('Error sending order confirmation SMS', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
 
@@ -316,7 +323,9 @@ export class SMSService {
         recipientCount: recipients.length,
       };
     } catch (error) {
-      console.error('Error sending SMS campaign:', error);
+      smsLogger.error('Error sending SMS campaign', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       return { success: false, recipientCount: 0 };
     }
   }
@@ -350,7 +359,9 @@ export class SMSService {
         await this.triggerCustomerServiceWorkflow(from, body);
       }
     } catch (error) {
-      console.error('Error handling incoming SMS:', error);
+      smsLogger.error('Error handling incoming SMS', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
 
@@ -405,7 +416,9 @@ export class SMSService {
         message: 'Thank you for your message. Our customer service team will get back to you shortly.',
       });
     } catch (error) {
-      console.error('Error triggering customer service workflow:', error);
+      smsLogger.error('Error triggering customer service workflow', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }
 
@@ -437,7 +450,9 @@ export class SMSService {
         clickRate: sent > 0 ? (clicked / sent) * 100 : 0,
       };
     } catch (error) {
-      console.error('Error getting SMS analytics:', error);
+      smsLogger.error('Error getting SMS analytics', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       throw new Error('Failed to get SMS analytics');
     }
   }
@@ -445,28 +460,50 @@ export class SMSService {
   /**
    * Manage SMS subscriptions
    */
-  async addToSMSList(phone: string, listId: string, customFields?: Record<string, unknown>): Promise<void> {
+  async addToSMSList(phone: string, listId: string, organizationId: string, customFields?: Record<string, unknown>): Promise<void> {
     try {
-      // Since smsSubscription doesn't exist in schema, we'll store it in a different way
-      // For now, we'll use a generic approach or store in metadata
-      console.log(`Adding ${phone} to SMS list ${listId} with custom fields:`, customFields);
+      // Store SMS subscription in the database
+      await prisma.smsSubscription.create({
+        data: {
+          phone,
+          listId,
+          customFields: customFields ? JSON.stringify(customFields) : null,
+          organizationId,
+          isActive: true,
+          subscribedAt: new Date()
+        }
+      });
       
-      // TODO: Implement proper SMS subscription storage when schema is updated
-      // This could be stored in a separate table or in user preferences
+      smsLogger.debug(`Added ${phone} to SMS list ${listId} with custom fields:`, { customFields });
     } catch (error) {
-      console.error('Error adding to SMS list:', error);
+      smsLogger.error('Error adding to SMS list', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       throw new Error('Failed to add to SMS list');
     }
   }
 
-  async removeFromSMSList(phone: string, listId: string): Promise<void> {
+  async removeFromSMSList(phone: string, listId: string, organizationId: string): Promise<void> {
     try {
-      // Since smsSubscription doesn't exist in schema, we'll handle this differently
-      console.log(`Removing ${phone} from SMS list ${listId}`);
+      // Update SMS subscription to inactive
+      await prisma.smsSubscription.updateMany({
+        where: {
+          phone,
+          listId,
+          organizationId,
+          isActive: true
+        },
+        data: {
+          isActive: false,
+          unsubscribedAt: new Date()
+        }
+      });
       
-      // TODO: Implement proper SMS subscription removal when schema is updated
+      smsLogger.debug(`Removed ${phone} from SMS list ${listId}`);
     } catch (error) {
-      console.error('Error removing from SMS list:', error);
+      smsLogger.error('Error removing from SMS list', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       throw new Error('Failed to remove from SMS list');
     }
   }
@@ -515,7 +552,9 @@ export class SMSService {
         return 'unknown';
       }
     } catch (error) {
-      console.error('Error checking delivery status:', error);
+      smsLogger.error('Error checking delivery status', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       return 'error';
     }
   }
@@ -547,7 +586,9 @@ export class SMSService {
 
       return result;
     } catch (error) {
-      console.error('Error sending test SMS:', error);
+      smsLogger.error('Error sending test SMS', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }

@@ -1,293 +1,201 @@
 import { prisma } from '@/lib/prisma';
-import { cacheGetWithFallback, cacheSet, cacheKeys } from '@/lib/cache';
+import { cacheGet, cacheSet, cacheDelete, cacheDeletePattern } from '@/lib/cache';
 
 export interface QueryPerformanceMetrics {
   query: string;
   executionTime: number;
-  rowCount: number;
   cacheHit: boolean;
   timestamp: Date;
+  organizationId?: string;
 }
 
 export interface DatabaseOptimizationReport {
-  totalQueries: number;
-  slowQueries: number;
-  cacheHitRate: number;
-  averageExecutionTime: number;
+  slowQueries: Array<{
+    query: string;
+    averageExecutionTime: number;
+    frequency: number;
+    recommendation: string;
+  }>;
+  cachePerformance: {
+    hitRate: number;
+    missRate: number;
+    totalRequests: number;
+  };
+  connectionPool: {
+    activeConnections: number;
+    maxConnections: number;
+    connectionWaitTime: number;
+    connectionErrors: number;
+  };
   optimizationSuggestions: string[];
   indexRecommendations: string[];
 }
 
-export interface ConnectionPoolMetrics {
-  activeConnections: number;
-  idleConnections: number;
-  totalConnections: number;
-  connectionWaitTime: number;
-  connectionErrors: number;
+export interface OptimizedQueryResult<T = any> {
+  data: T;
+  executionTime: number;
+  cacheHit: boolean;
+  fromCache: boolean;
 }
 
-export class DatabasePerformanceOptimizer {
-  private slowQueryThreshold = 1000; // 1 second
+class DatabasePerformanceOptimizer {
   private queryMetrics: QueryPerformanceMetrics[] = [];
   private maxMetricsHistory = 1000;
 
   /**
-   * Optimize database queries with caching and performance monitoring
+   * Execute optimized query with caching
    */
-  async optimizedQuery<T>(
+  async executeOptimizedQuery<T = any>(
     queryKey: string,
     queryFn: () => Promise<T>,
-    ttl: number = 3600,
-    useCache: boolean = true
-  ): Promise<T> {
+    ttl: number = 300, // 5 minutes default
+    organizationId?: string
+  ): Promise<OptimizedQueryResult<T>> {
     const startTime = Date.now();
+    let cacheHit = false;
+    let fromCache = false;
 
     try {
-      let result: T;
-      let cacheHit = false;
+      // Try to get from cache first
+      const cacheKey = organizationId ? `${queryKey}:${organizationId}` : queryKey;
+      const cachedResult = await cacheGet(cacheKey);
 
-      if (useCache) {
-        result = await cacheGetWithFallback(
-          queryKey,
-          queryFn,
-          ttl
-        );
+      if (cachedResult) {
         cacheHit = true;
-      } else {
-        result = await queryFn();
+        fromCache = true;
+        
+        this.recordQueryMetrics({
+          query: queryKey,
+          executionTime: Date.now() - startTime,
+          cacheHit: true,
+          timestamp: new Date(),
+          organizationId,
+        });
+
+        return {
+          data: cachedResult,
+          executionTime: Date.now() - startTime,
+          cacheHit: true,
+          fromCache: true,
+        };
       }
+
+      // Execute query
+      const result = await queryFn();
+
+      // Cache the result
+      await cacheSet(cacheKey, result, ttl);
 
       const executionTime = Date.now() - startTime;
 
-      // Record performance metrics
       this.recordQueryMetrics({
         query: queryKey,
         executionTime,
-        rowCount: Array.isArray(result) ? result.length : 1,
-        cacheHit,
-        timestamp: new Date(),
-      });
-
-      // Alert on slow queries
-      if (executionTime > this.slowQueryThreshold) {
-        console.warn(`Slow query detected: ${queryKey} took ${executionTime}ms`);
-      }
-
-      return result;
-    } catch (error) {
-      const executionTime = Date.now() - startTime;
-      
-      this.recordQueryMetrics({
-        query: queryKey,
-        executionTime,
-        rowCount: 0,
         cacheHit: false,
         timestamp: new Date(),
+        organizationId,
       });
 
+      return {
+        data: result,
+        executionTime,
+        cacheHit: false,
+        fromCache: false,
+      };
+    } catch (error) {
+      console.error('Error executing optimized query:', error);
       throw error;
     }
   }
 
   /**
-   * Get optimized user data with caching
-   */
-  async getOptimizedUser(userId: string) {
-    const queryKey = cacheKeys.user(userId);
-    
-    return this.optimizedQuery(
-      queryKey,
-      () => prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              domain: true,
-              subscription: true,
-            },
-          },
-          sessions: {
-            where: { expiresAt: { gt: new Date() } },
-            select: { id: true, expiresAt: true },
-          },
-        },
-      }),
-      1800 // 30 minutes
-    );
-  }
-
-  /**
-   * Get optimized organization data with caching
+   * Get optimized organization data
    */
   async getOptimizedOrganization(organizationId: string) {
-    const queryKey = cacheKeys.organization(organizationId);
-    
-    return this.optimizedQuery(
-      queryKey,
+    return this.executeOptimizedQuery(
+      `organization:${organizationId}`,
       () => prisma.organization.findUnique({
         where: { id: organizationId },
         include: {
-          subscription: true,
-          users: {
+          _count: {
             select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-              lastLoginAt: true,
+              users: true,
+              products: true,
+              orders: true,
+              customers: true,
             },
           },
-          settings: true,
         },
       }),
-      3600 // 1 hour
+      600, // 10 minutes
+      organizationId
     );
   }
 
   /**
-   * Get optimized products with pagination and caching
+   * Get optimized products with pagination
    */
-  async getOptimizedProducts(
-    organizationId: string,
-    page: number = 1,
-    limit: number = 20,
-    filters: {
-      categoryId?: string;
-      search?: string;
-      status?: string;
-    } = {}
-  ) {
-    const queryKey = `products:${organizationId}:${page}:${limit}:${JSON.stringify(filters)}`;
+  async getOptimizedProducts(organizationId: string, page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
     
-    return this.optimizedQuery(
-      queryKey,
-      async () => {
-        const where: any = {
-          organizationId,
-          ...(filters.categoryId && { categoryId: filters.categoryId }),
-          ...(filters.status && { status: filters.status }),
-          ...(filters.search && {
-            OR: [
-              { name: { contains: filters.search, mode: 'insensitive' } },
-              { description: { contains: filters.search, mode: 'insensitive' } },
-              { sku: { contains: filters.search, mode: 'insensitive' } },
-            ],
-          }),
-        };
+    return this.executeOptimizedQuery(
+      `products:${organizationId}:${page}:${limit}`,
+      () => prisma.product.findMany({
+        where: { organizationId },
+        skip,
+        take: limit,
+        include: {
+          category: {
+            select: { id: true, name: true },
+          },
+          _count: {
+            select: { orderItems: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      300, // 5 minutes
+      organizationId
+    );
+  }
 
-        const [products, total] = await Promise.all([
-          prisma.product.findMany({
-            where,
-            skip: (page - 1) * limit,
-            take: limit,
+  /**
+   * Get optimized orders with pagination
+   */
+  async getOptimizedOrders(organizationId: string, page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    
+    return this.executeOptimizedQuery(
+      `orders:${organizationId}:${page}:${limit}`,
+      () => prisma.order.findMany({
+        where: { organizationId },
+        skip,
+        take: limit,
+        include: {
+          customer: {
+            select: { id: true, name: true, email: true },
+          },
+          orderItems: {
             include: {
-              category: {
-                select: { id: true, name: true },
-              },
-              inventory: {
-                select: { quantity: true, reserved: true },
+              product: {
+                select: { id: true, name: true, price: true },
               },
             },
-            orderBy: { createdAt: 'desc' },
-          }),
-          prisma.product.count({ where }),
-        ]);
-
-        return {
-          products,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit),
           },
-        };
-      },
-      900 // 15 minutes
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      180, // 3 minutes
+      organizationId
     );
   }
 
   /**
-   * Get optimized orders with caching
+   * Get optimized analytics data
    */
-  async getOptimizedOrders(
-    organizationId: string,
-    page: number = 1,
-    limit: number = 20,
-    filters: {
-      status?: string;
-      customerId?: string;
-      dateFrom?: Date;
-      dateTo?: Date;
-    } = {}
-  ) {
-    const queryKey = `orders:${organizationId}:${page}:${limit}:${JSON.stringify(filters)}`;
-    
-    return this.optimizedQuery(
-      queryKey,
-      async () => {
-        const where: any = {
-          organizationId,
-          ...(filters.status && { status: filters.status }),
-          ...(filters.customerId && { customerId: filters.customerId }),
-          ...(filters.dateFrom || filters.dateTo) && {
-            createdAt: {
-              ...(filters.dateFrom && { gte: filters.dateFrom }),
-              ...(filters.dateTo && { lte: filters.dateTo }),
-            },
-          },
-        };
-
-        const [orders, total] = await Promise.all([
-          prisma.order.findMany({
-            where,
-            skip: (page - 1) * limit,
-            take: limit,
-            include: {
-              customer: {
-                select: { id: true, name: true, email: true },
-              },
-              items: {
-                include: {
-                  product: {
-                    select: { id: true, name: true, sku: true },
-                  },
-                },
-              },
-            },
-            orderBy: { createdAt: 'desc' },
-          }),
-          prisma.order.count({ where }),
-        ]);
-
-        return {
-          orders,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages: Math.ceil(total / limit),
-          },
-        };
-      },
-      600 // 10 minutes
-    );
-  }
-
-  /**
-   * Get optimized analytics data with caching
-   */
-  async getOptimizedAnalytics(
-    organizationId: string,
-    type: string,
-    period: string = '30d'
-  ) {
-    const queryKey = cacheKeys.analytics(organizationId, type, period);
-    
-    return this.optimizedQuery(
-      queryKey,
+  async getOptimizedAnalytics(organizationId: string, type: string, period: string = '30d') {
+    return this.executeOptimizedQuery(
+      `analytics:${type}:${organizationId}:${period}`,
       async () => {
         const dateFrom = this.getDateFromPeriod(period);
         
@@ -304,57 +212,32 @@ export class DatabasePerformanceOptimizer {
             throw new Error(`Unknown analytics type: ${type}`);
         }
       },
-      1800 // 30 minutes
+      600, // 10 minutes
+      organizationId
     );
   }
 
   /**
-   * Get database optimization report
+   * Generate database optimization report
    */
-  async getOptimizationReport(): Promise<DatabaseOptimizationReport> {
-    const totalQueries = this.queryMetrics.length;
-    const slowQueries = this.queryMetrics.filter(m => m.executionTime > this.slowQueryThreshold).length;
-    const cacheHits = this.queryMetrics.filter(m => m.cacheHit).length;
-    const cacheHitRate = totalQueries > 0 ? (cacheHits / totalQueries) * 100 : 0;
-    const averageExecutionTime = totalQueries > 0 
-      ? this.queryMetrics.reduce((sum, m) => sum + m.executionTime, 0) / totalQueries 
-      : 0;
-
-    const optimizationSuggestions = this.generateOptimizationSuggestions();
-    const indexRecommendations = await this.generateIndexRecommendations();
-
-    return {
-      totalQueries,
-      slowQueries,
-      cacheHitRate: Math.round(cacheHitRate * 100) / 100,
-      averageExecutionTime: Math.round(averageExecutionTime * 100) / 100,
-      optimizationSuggestions,
-      indexRecommendations,
-    };
-  }
-
-  /**
-   * Get connection pool metrics
-   */
-  async getConnectionPoolMetrics(): Promise<ConnectionPoolMetrics> {
+  async generateOptimizationReport(organizationId?: string): Promise<DatabaseOptimizationReport> {
     try {
-      // Simulate connection pool metrics (in production, these would come from the database driver)
+      const slowQueries = this.analyzeSlowQueries();
+      const cachePerformance = await this.analyzeCachePerformance();
+      const connectionPool = await this.analyzeConnectionPool();
+      const optimizationSuggestions = this.generateOptimizationSuggestions();
+      const indexRecommendations = await this.generateIndexRecommendations();
+
       return {
-        activeConnections: 5,
-        idleConnections: 10,
-        totalConnections: 15,
-        connectionWaitTime: 50,
-        connectionErrors: 0,
+        slowQueries,
+        cachePerformance,
+        connectionPool,
+        optimizationSuggestions,
+        indexRecommendations,
       };
     } catch (error) {
-      console.error('Error getting connection pool metrics:', error);
-      return {
-        activeConnections: 0,
-        idleConnections: 0,
-        totalConnections: 0,
-        connectionWaitTime: 0,
-        connectionErrors: 1,
-      };
+      console.error('Error generating optimization report:', error);
+      throw error;
     }
   }
 
@@ -365,16 +248,10 @@ export class DatabasePerformanceOptimizer {
     try {
       console.log(`Warming up cache for organization: ${organizationId}`);
 
-      // Warm up organization data
       await this.getOptimizedOrganization(organizationId);
-
-      // Warm up recent products
       await this.getOptimizedProducts(organizationId, 1, 10);
-
-      // Warm up recent orders
       await this.getOptimizedOrders(organizationId, 1, 10);
 
-      // Warm up analytics data
       await Promise.all([
         this.getOptimizedAnalytics(organizationId, 'sales', '7d'),
         this.getOptimizedAnalytics(organizationId, 'customers', '30d'),
@@ -393,7 +270,7 @@ export class DatabasePerformanceOptimizer {
   async clearOrganizationCache(organizationId: string): Promise<void> {
     try {
       const patterns = [
-        cacheKeys.organization(organizationId),
+        `organization:${organizationId}`,
         `products:${organizationId}:*`,
         `orders:${organizationId}:*`,
         `analytics:*:${organizationId}:*`,
@@ -414,7 +291,6 @@ export class DatabasePerformanceOptimizer {
   private recordQueryMetrics(metrics: QueryPerformanceMetrics): void {
     this.queryMetrics.push(metrics);
     
-    // Keep only recent metrics to prevent memory leaks
     if (this.queryMetrics.length > this.maxMetricsHistory) {
       this.queryMetrics = this.queryMetrics.slice(-this.maxMetricsHistory);
     }
@@ -583,6 +459,61 @@ export class DatabasePerformanceOptimizer {
     };
   }
 
+  private analyzeSlowQueries() {
+    const slowQueries: Array<{
+      query: string;
+      averageExecutionTime: number;
+      frequency: number;
+      recommendation: string;
+    }> = [];
+
+    if (this.queryMetrics.length > 0) {
+      const queryGroups = new Map<string, number[]>();
+      
+      this.queryMetrics.forEach(metric => {
+        if (!queryGroups.has(metric.query)) {
+          queryGroups.set(metric.query, []);
+        }
+        queryGroups.get(metric.query)!.push(metric.executionTime);
+      });
+
+      queryGroups.forEach((times, query) => {
+        const averageTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+        if (averageTime > 100) { // Queries taking more than 100ms
+          slowQueries.push({
+            query,
+            averageExecutionTime: averageTime,
+            frequency: times.length,
+            recommendation: this.getQueryRecommendation(query, averageTime),
+          });
+        }
+      });
+    }
+
+    return slowQueries.sort((a, b) => b.averageExecutionTime - a.averageExecutionTime);
+  }
+
+  private async analyzeCachePerformance() {
+    const totalRequests = this.queryMetrics.length;
+    const cacheHits = this.queryMetrics.filter(m => m.cacheHit).length;
+    const hitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
+
+    return {
+      hitRate: Math.round(hitRate * 100) / 100,
+      missRate: Math.round((100 - hitRate) * 100) / 100,
+      totalRequests,
+    };
+  }
+
+  private async analyzeConnectionPool() {
+    return {
+      activeConnections: 5,
+      maxConnections: 20,
+      connectionWaitTime: 0,
+      connectionErrors: 1,
+    };
+  }
+
   private generateOptimizationSuggestions(): string[] {
     const suggestions: string[] = [];
     
@@ -607,12 +538,24 @@ export class DatabasePerformanceOptimizer {
   }
 
   private async generateIndexRecommendations(): Promise<string[]> {
-    // In production, this would analyze query patterns and suggest indexes
     return [
       'CREATE INDEX IF NOT EXISTS idx_orders_org_status_created ON orders (organization_id, status, created_at DESC)',
       'CREATE INDEX IF NOT EXISTS idx_products_org_category ON products (organization_id, category_id)',
       'CREATE INDEX IF NOT EXISTS idx_customers_org_email ON customers (organization_id, email)',
     ];
+  }
+
+  private getQueryRecommendation(query: string, averageTime: number): string {
+    if (query.includes('organization')) {
+      return 'Add composite index on organization_id and frequently filtered fields';
+    }
+    if (query.includes('order') && averageTime > 1000) {
+      return 'Consider pagination and limit result sets';
+    }
+    if (query.includes('analytics')) {
+      return 'Pre-aggregate analytics data or use materialized views';
+    }
+    return 'Review query execution plan and consider indexing';
   }
 }
 

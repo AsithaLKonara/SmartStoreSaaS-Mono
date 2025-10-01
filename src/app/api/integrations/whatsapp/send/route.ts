@@ -32,8 +32,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Get organization ID from authenticated user
-    const organizationId = 'mock-org-id';
+    // Get organization ID from authenticated user
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authorization header required' },
+        { status: 401 }
+      );
+    }
+    
+    const token = authHeader.split(' ')[1];
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const organizationId = decoded.organizationId;
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: 'Organization ID not found in token' },
+        { status: 401 }
+      );
+    }
 
     const result = await whatsappService.sendMessage(
       organizationId,

@@ -134,15 +134,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Detailed health check error:', error);
-    
     return NextResponse.json(
-      {
-        status: 'unhealthy',
-        timestamp: new Date().toISOString(),
-        error: 'Detailed health check failed',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 503 }
+      { error: 'Health check failed', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
     );
   }
 }
