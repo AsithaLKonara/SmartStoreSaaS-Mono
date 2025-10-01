@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { wooCommerceService } from '@/lib/woocommerce/woocommerceService';
 import { realTimeSyncService, SyncEvent } from '@/lib/sync/realTimeSyncService';
