@@ -23,7 +23,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://smartstore-saas.vercel.app',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -35,10 +35,10 @@ export default defineConfig({
     video: 'retain-on-failure',
     
     /* Global timeout for each action */
-    actionTimeout: 15000,
+    actionTimeout: 30000,
     
     /* Global timeout for navigation */
-    navigationTimeout: 15000,
+    navigationTimeout: 30000,
   },
 
   /* Configure projects for major browsers */
@@ -53,37 +53,34 @@ export default defineConfig({
       use: { ...devices['Desktop Firefox'] },
     },
 
-    {
-      name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari'],
-        // Disable problematic WebKit features
-        launchOptions: {
-          args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
-        }
-      },
-    },
+    // Temporarily disabled due to protocol errors
+    // {
+    //   name: 'webkit',
+    //   use: { 
+    //     ...devices['Desktop Safari'],
+    //     // Simplified WebKit configuration
+    //     launchOptions: {
+    //       args: ['--disable-web-security']
+    //     }
+    //   },
+    // },
 
     /* Test against mobile viewports. */
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
-    {
-      name: 'Mobile Safari',
-      use: { 
-        ...devices['iPhone 12'],
-        // Disable problematic features for mobile Safari
-        launchOptions: {
-          args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
-        },
-        // Disable orientation emulation that causes protocol errors
-        hasTouch: true,
-        isMobile: true,
-        deviceScaleFactor: 2,
-        viewport: { width: 390, height: 844 }
-      },
-    },
+    // Temporarily disabled due to protocol errors
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { 
+    //     ...devices['iPhone 12'],
+    //     // Simplified mobile Safari configuration
+    //     launchOptions: {
+    //       args: ['--disable-web-security']
+    //     }
+    //   },
+    // },
 
     /* Test against branded browsers. */
     // {

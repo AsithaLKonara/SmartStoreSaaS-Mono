@@ -6,8 +6,17 @@ test.describe('Authentication Flow', () => {
   });
 
   test('should display login page correctly', async ({ page }) => {
+    // Navigate to login page
+    await page.goto('/login');
+    
+    // Wait for page to load completely
+    await page.waitForLoadState('networkidle');
+    
     // Check if login page loads
     await expect(page).toHaveTitle(/SmartStore SaaS/);
+    
+    // Wait for login form elements to be visible
+    await page.waitForSelector('[data-testid="login-page"]', { timeout: 10000 });
     
     // Check for login form elements using data-testid
     await expect(page.locator('[data-testid="login-page"]')).toBeVisible();
@@ -16,10 +25,10 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('[data-testid="password-input"]')).toBeVisible();
     await expect(page.locator('[data-testid="submit-button"]')).toBeVisible();
     
-    // Check for form labels
-    await expect(page.locator('text=Email')).toBeVisible();
-    await expect(page.locator('text=Password')).toBeVisible();
-    await expect(page.locator('text=Sign In')).toBeVisible();
+    // Check for form labels (use more specific selectors)
+    await expect(page.locator('label[for="email"]')).toBeVisible();
+    await expect(page.locator('label[for="password"]')).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
   });
 
   test('should navigate to login page from home', async ({ page }) => {
