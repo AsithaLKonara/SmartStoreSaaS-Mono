@@ -2,15 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Skip all static optimization to fix deployment
   experimental: {
-    optimizePackageImports: ['lucide-react'],
+    appDir: true,
   },
   async headers() {
     return [
