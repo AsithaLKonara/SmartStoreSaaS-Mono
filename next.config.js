@@ -8,10 +8,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Disable static optimization for authenticated pages
-  experimental: {
-    appDir: true,
-  },
+        // Disable static optimization for authenticated pages
+        experimental: {
+          // appDir is now default in Next.js 14
+        },
   // Skip static generation for dynamic routes
   trailingSlash: false,
   // Force dynamic rendering
