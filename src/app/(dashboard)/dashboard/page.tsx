@@ -164,11 +164,11 @@ export default function DashboardPage() {
   return (
     <ErrorBoundary>
       <div className="space-y-6" data-testid="dashboard-page">
-      {/* Page Title */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="dashboard-title">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">Overview of your business performance</p>
-      </div>
+        {/* Page Title */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="dashboard-title">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Overview of your business performance</p>
+        </div>
 
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
