@@ -162,8 +162,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <ErrorBoundary>
-      <div className="space-y-6" data-testid="dashboard-page">
+    <div className="space-y-6" data-testid="dashboard-page">
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="dashboard-title">Dashboard</h1>
@@ -477,7 +476,6 @@ export default function DashboardPage() {
             <span className="text-sm font-medium text-purple-900 dark:text-purple-100">AI Insights</span>
           </Link>
         </div>
-      </div>
-    </ErrorBoundary>
+    </div>
   );
 }
