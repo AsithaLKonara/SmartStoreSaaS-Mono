@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
     const sampleData = {
       organizations: await prisma.organizations.findMany({ take: 3 }),
       users: await prisma.users.findMany({ take: 3, select: { id: true, email: true, name: true, role: true } }),
-      products: await prisma.products.findMany({ take: 3, select: { id: true, name: true, price: true, status: true } }),
-      customers: await prisma.customers.findMany({ take: 3, select: { id: true, name: true, email: true, status: true } }),
+      products: await prisma.products.findMany({ take: 3, select: { id: true, name: true, price: true, isActive: true } }),
+      customers: await prisma.customers.findMany({ take: 3, select: { id: true, name: true, email: true, phone: true } }),
       orders: await prisma.orders.findMany({ take: 3, select: { id: true, orderNumber: true, status: true, total: true } })
     };
 

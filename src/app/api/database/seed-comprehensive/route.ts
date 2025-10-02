@@ -56,13 +56,15 @@ export async function POST(request: NextRequest) {
           id: `org-${i + 1}`,
           name: orgNames[i],
           domain: `${orgNames[i].toLowerCase().replace(/\s+/g, '')}.com`,
-          plan: i < 3 ? 'enterprise' : i < 7 ? 'professional' : 'starter',
           status: i < 8 ? 'ACTIVE' : 'INACTIVE',
+          description: `Leading ${orgNames[i].toLowerCase()} retailer`,
+          logo: `https://example.com/logos/${orgNames[i].toLowerCase().replace(/\s+/g, '-')}.png`,
           settings: JSON.stringify({
             currency: 'LKR',
             timezone: 'Asia/Colombo',
             language: 'en',
-            theme: 'light'
+            theme: 'light',
+            plan: i < 3 ? 'enterprise' : i < 7 ? 'professional' : 'starter'
           }),
           createdAt: randomDate(new Date(2020, 0, 1), new Date(2023, 11, 31)),
           updatedAt: new Date()
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
       const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
       const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
       const name = `${firstName} ${lastName}`;
-      const email = randomEmail(name);
+      const email = `user${i + 1}@smartstore${Math.floor(Math.random() * 10) + 1}.com`;
       const hashedPassword = await bcrypt.hash('password123', 10);
       
       const user = await prisma.users.create({
@@ -187,30 +189,19 @@ export async function POST(request: NextRequest) {
           description: `High-quality ${productName.toLowerCase()} with excellent features and durability.`,
           sku: `SKU-${String(i + 1).padStart(6, '0')}`,
           price: Math.floor(Math.random() * 10000) + 100, // 100 to 10100
-          currency: 'LKR',
+          cost: Math.floor(Math.random() * 5000) + 50,
           categoryId: category.id,
           organizationId: organization.id,
-          status: Math.random() > 0.1 ? 'ACTIVE' : 'INACTIVE',
-          inventory: JSON.stringify({
-            quantity: Math.floor(Math.random() * 1000) + 10,
-            lowStockThreshold: 20,
-            trackInventory: true
-          }),
-          images: JSON.stringify([
-            `https://example.com/images/${productName.toLowerCase().replace(/\s+/g, '-')}-1.jpg`,
-            `https://example.com/images/${productName.toLowerCase().replace(/\s+/g, '-')}-2.jpg`
-          ]),
-          tags: JSON.stringify([category.name, 'popular', 'trending']),
+          isActive: Math.random() > 0.1,
+          minStock: 20,
+          stock: Math.floor(Math.random() * 1000) + 10,
           weight: Math.floor(Math.random() * 5000) + 100, // 100g to 5kg
           dimensions: JSON.stringify({
             length: Math.floor(Math.random() * 50) + 10,
             width: Math.floor(Math.random() * 30) + 5,
             height: Math.floor(Math.random() * 20) + 2
           }),
-          seoTitle: `${productName} - Best Quality at Affordable Price`,
-          seoDescription: `Shop the best ${productName.toLowerCase()} with free shipping and warranty.`,
-          createdById: createdBy.id,
-          updatedById: createdBy.id,
+          tags: JSON.stringify([category.name, 'popular', 'trending']),
           createdAt: randomDate(new Date(2020, 0, 1), new Date()),
           updatedAt: new Date()
         }
@@ -229,7 +220,7 @@ export async function POST(request: NextRequest) {
       const firstName = customerFirstNames[Math.floor(Math.random() * customerFirstNames.length)];
       const lastName = customerLastNames[Math.floor(Math.random() * customerLastNames.length)];
       const name = `${firstName} ${lastName}`;
-      const email = randomEmail(name);
+      const email = `customer${i + 1}@smartstore${Math.floor(Math.random() * 10) + 1}.com`;
       const organization = organizations[Math.floor(Math.random() * organizations.length)];
 
       const customer = await prisma.customers.create({
@@ -246,9 +237,6 @@ export async function POST(request: NextRequest) {
             postalCode: `${Math.floor(Math.random() * 90000) + 10000}`
           }),
           organizationId: organization.id,
-          status: Math.random() > 0.15 ? 'ACTIVE' : 'INACTIVE',
-          totalOrders: Math.floor(Math.random() * 50),
-          totalSpent: Math.floor(Math.random() * 100000) + 1000,
           createdAt: randomDate(new Date(2020, 0, 1), new Date()),
           updatedAt: new Date()
         }
@@ -261,14 +249,19 @@ export async function POST(request: NextRequest) {
     console.log('📦 Creating orders...');
     const orders = [];
     const orderStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-    const paymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
+    const orderPaymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
 
     for (let i = 0; i < 500; i++) {
       const customer = customers[Math.floor(Math.random() * customers.length)];
       const organization = organizations.find(o => o.id === customer.organizationId);
       const createdBy = users.find(u => u.organizationId === organization?.id) || users[0];
       const orderStatus = orderStatuses[Math.floor(Math.random() * orderStatuses.length)];
-      const paymentStatus = paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
+      const paymentStatus = orderPaymentStatuses[Math.floor(Math.random() * orderPaymentStatuses.length)];
+
+      const subtotal = Math.floor(Math.random() * 50000) + 1000;
+      const tax = Math.floor(Math.random() * 5000) + 100;
+      const shipping = Math.floor(Math.random() * 2000) + 200;
+      const total = subtotal + tax + shipping;
 
       const order = await prisma.orders.create({
         data: {
@@ -277,17 +270,12 @@ export async function POST(request: NextRequest) {
           customerId: customer.id,
           organizationId: customer.organizationId,
           status: orderStatus,
-          paymentStatus: paymentStatus,
-          subtotal: Math.floor(Math.random() * 50000) + 1000,
-          tax: Math.floor(Math.random() * 5000) + 100,
-          shipping: Math.floor(Math.random() * 2000) + 200,
-          total: Math.floor(Math.random() * 60000) + 1500,
-          currency: 'LKR',
-          shippingAddress: customer.address,
-          billingAddress: customer.address,
+          subtotal: subtotal,
+          tax: tax,
+          shipping: shipping,
+          discount: 0,
+          total: total,
           notes: Math.random() > 0.7 ? 'Special delivery instructions' : null,
-          createdById: createdBy.id,
-          updatedById: createdBy.id,
           createdAt: randomDate(new Date(2020, 0, 1), new Date()),
           updatedAt: new Date()
         }
@@ -309,10 +297,8 @@ export async function POST(request: NextRequest) {
           orderId: order.id,
           productId: product.id,
           quantity,
-          unitPrice: product.price,
-          totalPrice: product.price * quantity,
-          createdAt: order.createdAt,
-          updatedAt: new Date()
+          price: product.price,
+          total: product.price * quantity,
         }
       });
     }
@@ -326,7 +312,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < 400; i++) {
       const order = orders[Math.floor(Math.random() * orders.length)];
       const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
-      const paymentStatus = paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
+      const paymentStatus = orderPaymentStatuses[Math.floor(Math.random() * orderPaymentStatuses.length)];
 
       await prisma.payments.create({
         data: {
@@ -339,7 +325,7 @@ export async function POST(request: NextRequest) {
           status: paymentStatus,
           transactionId: `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           gateway: paymentMethod === 'CREDIT_CARD' ? 'stripe' : 'bank',
-          gatewayResponse: JSON.stringify({ status: 'success', code: '200' }),
+          metadata: JSON.stringify({ status: 'success', code: '200' }),
           createdAt: randomDate(order.createdAt, new Date()),
           updatedAt: new Date()
         }
@@ -442,10 +428,10 @@ export async function POST(request: NextRequest) {
     }
     console.log('✅ Created 500 warehouse inventory records');
 
-    // 13. WhatsApp Integrations (5 integrations)
+    // 13. WhatsApp Integrations (5 integrations - one per organization)
     console.log('📱 Creating WhatsApp integrations...');
     for (let i = 0; i < 5; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
+      const organization = organizations[i]; // Use first 5 organizations to avoid duplicates
 
       await prisma.whatsapp_integrations.create({
         data: {

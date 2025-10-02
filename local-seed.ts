@@ -1,7 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// Use local SQLite database
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "file:./dev.db"
+    }
+  }
+});
 
 // Helper function to generate random IDs
 const generateId = (prefix: string) => `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
@@ -18,55 +25,19 @@ const randomPhone = () => `+94${Math.floor(Math.random() * 900000000) + 10000000
 const randomEmail = (name: string) => `${name.toLowerCase().replace(/\s+/g, '.')}@${['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'][Math.floor(Math.random() * 4)]}`;
 
 async function main() {
-  console.log('🌱 Starting comprehensive database seeding...\n');
+  console.log('🌱 Starting local database seeding...\n');
 
   try {
-    // Clear existing data (in reverse order of dependencies)
+    // Clear existing data
     console.log('🗑️  Clearing existing data...');
-    await prisma.whatsapp_messages.deleteMany();
-    await prisma.whatsapp_integrations.deleteMany();
-    await prisma.warehouse_inventory.deleteMany();
-    await prisma.warehouses.deleteMany();
-    await prisma.iot_devices.deleteMany();
-    await prisma.tax_transactions.deleteMany();
-    await prisma.tax_rates.deleteMany();
-    await prisma.reports.deleteMany();
-    await prisma.activities.deleteMany();
-    await prisma.ai_analytics.deleteMany();
-    await prisma.ai_conversations.deleteMany();
-    await prisma.analytics.deleteMany();
-    await prisma.channel_integrations.deleteMany();
-    await prisma.courier_deliveries.deleteMany();
-    await prisma.courier_services.deleteMany();
-    await prisma.courier_integrations.deleteMany();
-    await prisma.customer_loyalty_programs.deleteMany();
-    await prisma.customer_loyalty_points.deleteMany();
-    await prisma.customer_segments.deleteMany();
-    await prisma.customer_segment_memberships.deleteMany();
-    await prisma.customers.deleteMany();
-    await prisma.delivery_tracking.deleteMany();
-    await prisma.deliveries.deleteMany();
-    await prisma.discount_coupons.deleteMany();
-    await prisma.employee_performance.deleteMany();
-    await prisma.employees.deleteMany();
-    await prisma.expense_categories.deleteMany();
-    await prisma.expenses.deleteMany();
-    await prisma.inventory_movements.deleteMany();
-    await prisma.inventory_alerts.deleteMany();
-    await prisma.marketing_campaigns.deleteMany();
-    await prisma.marketing_automations.deleteMany();
-    await prisma.marketing_segments.deleteMany();
-    await prisma.marketing_templates.deleteMany();
-    await prisma.notifications.deleteMany();
-    await prisma.order_items.deleteMany();
-    await prisma.orders.deleteMany();
-    await prisma.payment_methods.deleteMany();
-    await prisma.payments.deleteMany();
-    await prisma.product_variants.deleteMany();
-    await prisma.products.deleteMany();
-    await prisma.categories.deleteMany();
-    await prisma.users.deleteMany();
-    await prisma.organizations.deleteMany();
+    await prisma.payment.deleteMany();
+    await prisma.orderItem.deleteMany();
+    await prisma.order.deleteMany();
+    await prisma.customer.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.category.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.organization.deleteMany();
     console.log('✅ Data cleared\n');
 
     // 1. Organizations (10 organizations)
@@ -79,21 +50,22 @@ async function main() {
     ];
     
     for (let i = 0; i < 10; i++) {
-      const org = await prisma.organizations.create({
+      const org = await prisma.organization.create({
         data: {
           id: `org-${i + 1}`,
           name: orgNames[i],
-          domain: `${orgNames[i].toLowerCase().replace(/\s+/g, '')}.com`,
-          plan: i < 3 ? 'enterprise' : i < 7 ? 'professional' : 'starter',
-          status: i < 8 ? 'ACTIVE' : 'INACTIVE',
-          settings: JSON.stringify({
-            currency: 'LKR',
-            timezone: 'Asia/Colombo',
-            language: 'en',
-            theme: 'light'
-          }),
-          createdAt: randomDate(new Date(2020, 0, 1), new Date(2023, 11, 31)),
-          updatedAt: new Date()
+          slug: `smartstore-${i + 1}`,
+          email: `contact@${orgNames[i].toLowerCase().replace(/\s+/g, '')}.com`,
+          phone: `+1555000${String(i + 1).padStart(4, '0')}`,
+          address: `${100 + i} Commerce Street`,
+          city: 'San Francisco',
+          state: 'CA',
+          country: 'USA',
+          postalCode: `9410${i + 1}`,
+          timezone: 'America/Los_Angeles',
+          currency: 'USD',
+          plan: i <= 3 ? 'enterprise' : i <= 7 ? 'professional' : 'starter',
+          isActive: true,
         }
       });
       organizations.push(org);
@@ -114,9 +86,8 @@ async function main() {
       const email = randomEmail(name);
       const hashedPassword = await bcrypt.hash('password123', 10);
       
-      const user = await prisma.users.create({
+      const user = await prisma.user.create({
         data: {
-          id: generateId('user'),
           email,
           name,
           password: hashedPassword,
@@ -124,10 +95,6 @@ async function main() {
           organizationId: organizations[Math.floor(Math.random() * organizations.length)].id,
           isActive: Math.random() > 0.1, // 90% active
           emailVerified: Math.random() > 0.2 ? new Date() : null,
-          phone: randomPhone(),
-          mfaEnabled: Math.random() > 0.7, // 30% have MFA enabled
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
         }
       });
       users.push(user);
@@ -171,15 +138,12 @@ async function main() {
     ];
 
     for (const catData of categoryData) {
-      const category = await prisma.categories.create({
+      const category = await prisma.category.create({
         data: {
-          id: generateId('cat'),
           name: catData.name,
           description: catData.description,
           parentId: catData.parent ? categories.find(c => c.name === catData.parent)?.id : null,
           isActive: true,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
         }
       });
       categories.push(category);
@@ -208,14 +172,13 @@ async function main() {
       const organization = organizations[Math.floor(Math.random() * organizations.length)];
       const createdBy = users.find(u => u.organizationId === organization.id) || users[0];
 
-      const product = await prisma.products.create({
+      const product = await prisma.product.create({
         data: {
-          id: generateId('prod'),
           name: `${productName} ${i + 1}`,
           description: `High-quality ${productName.toLowerCase()} with excellent features and durability.`,
           sku: `SKU-${String(i + 1).padStart(6, '0')}`,
           price: Math.floor(Math.random() * 10000) + 100, // 100 to 10100
-          currency: 'LKR',
+          currency: 'USD',
           categoryId: category.id,
           organizationId: organization.id,
           status: Math.random() > 0.1 ? 'ACTIVE' : 'INACTIVE',
@@ -239,8 +202,6 @@ async function main() {
           seoDescription: `Shop the best ${productName.toLowerCase()} with free shipping and warranty.`,
           createdById: createdBy.id,
           updatedById: createdBy.id,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
         }
       });
       products.push(product);
@@ -260,9 +221,8 @@ async function main() {
       const email = randomEmail(name);
       const organization = organizations[Math.floor(Math.random() * organizations.length)];
 
-      const customer = await prisma.customers.create({
+      const customer = await prisma.customer.create({
         data: {
-          id: generateId('cust'),
           email,
           name,
           phone: randomPhone(),
@@ -277,8 +237,6 @@ async function main() {
           status: Math.random() > 0.15 ? 'ACTIVE' : 'INACTIVE',
           totalOrders: Math.floor(Math.random() * 50),
           totalSpent: Math.floor(Math.random() * 100000) + 1000,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
         }
       });
       customers.push(customer);
@@ -289,18 +247,17 @@ async function main() {
     console.log('📦 Creating orders...');
     const orders = [];
     const orderStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-    const paymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
+    const orderPaymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
 
     for (let i = 0; i < 500; i++) {
       const customer = customers[Math.floor(Math.random() * customers.length)];
       const organization = organizations.find(o => o.id === customer.organizationId);
       const createdBy = users.find(u => u.organizationId === organization?.id) || users[0];
       const orderStatus = orderStatuses[Math.floor(Math.random() * orderStatuses.length)];
-      const paymentStatus = paymentStatusesList[Math.floor(Math.random() * paymentStatusesList.length)];
+      const paymentStatus = orderPaymentStatuses[Math.floor(Math.random() * orderPaymentStatuses.length)];
 
-      const order = await prisma.orders.create({
+      const order = await prisma.order.create({
         data: {
-          id: generateId('order'),
           orderNumber: `ORD-${String(i + 1).padStart(6, '0')}`,
           customerId: customer.id,
           organizationId: customer.organizationId,
@@ -310,14 +267,12 @@ async function main() {
           tax: Math.floor(Math.random() * 5000) + 100,
           shipping: Math.floor(Math.random() * 2000) + 200,
           total: Math.floor(Math.random() * 60000) + 1500,
-          currency: 'LKR',
+          currency: 'USD',
           shippingAddress: customer.address,
           billingAddress: customer.address,
           notes: Math.random() > 0.7 ? 'Special delivery instructions' : null,
           createdById: createdBy.id,
           updatedById: createdBy.id,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
         }
       });
       orders.push(order);
@@ -331,16 +286,13 @@ async function main() {
       const product = products[Math.floor(Math.random() * products.length)];
       const quantity = Math.floor(Math.random() * 5) + 1;
 
-      await prisma.order_items.create({
+      await prisma.orderItem.create({
         data: {
-          id: generateId('item'),
           orderId: order.id,
           productId: product.id,
           quantity,
           unitPrice: product.price,
           totalPrice: product.price * quantity,
-          createdAt: order.createdAt,
-          updatedAt: new Date()
         }
       });
     }
@@ -356,213 +308,23 @@ async function main() {
       const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
       const paymentStatus = paymentStatusesList[Math.floor(Math.random() * paymentStatusesList.length)];
 
-      await prisma.payments.create({
+      await prisma.payment.create({
         data: {
-          id: generateId('pay'),
           orderId: order.id,
           organizationId: order.organizationId,
           amount: order.total,
-          currency: 'LKR',
+          currency: 'USD',
           method: paymentMethod,
           status: paymentStatus,
           transactionId: `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           gateway: paymentMethod === 'CREDIT_CARD' ? 'stripe' : 'bank',
           gatewayResponse: JSON.stringify({ status: 'success', code: '200' }),
-          createdAt: randomDate(order.createdAt, new Date()),
-          updatedAt: new Date()
         }
       });
     }
     console.log('✅ Created 400 payments\n');
 
-    // 9. Analytics (200 analytics records)
-    console.log('📊 Creating analytics...');
-    const analyticsTypes = ['page_view', 'product_view', 'add_to_cart', 'purchase', 'user_registration', 'email_click'];
-
-    for (let i = 0; i < 200; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
-      const analyticsType = analyticsTypes[Math.floor(Math.random() * analyticsTypes.length)];
-
-      await prisma.analytics.create({
-        data: {
-          id: generateId('analytics'),
-          type: analyticsType,
-          value: Math.floor(Math.random() * 1000) + 1,
-          metadata: JSON.stringify({
-            page: '/products',
-            userAgent: 'Mozilla/5.0...',
-            referrer: 'https://google.com'
-          }),
-          organizationId: organization.id,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date())
-        }
-      });
-    }
-    console.log('✅ Created 200 analytics records\n');
-
-    // 10. Activities (150 activities)
-    console.log('📝 Creating activities...');
-    const activityTypes = ['user_login', 'product_created', 'order_placed', 'payment_received', 'customer_registered'];
-
-    for (let i = 0; i < 150; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
-      const user = users.find(u => u.organizationId === organization.id) || users[0];
-      const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
-
-      await prisma.activities.create({
-        data: {
-          id: generateId('activity'),
-          type: activityType,
-          description: `${activityType.replace(/_/g, ' ')} activity performed`,
-          userId: user.id,
-          organizationId: organization.id,
-          metadata: JSON.stringify({
-            ip: '192.168.1.1',
-            userAgent: 'Mozilla/5.0...',
-            timestamp: new Date().toISOString()
-          }),
-          createdAt: randomDate(new Date(2020, 0, 1), new Date())
-        }
-      });
-    }
-    console.log('✅ Created 150 activities\n');
-
-    // 11. Warehouses (20 warehouses)
-    console.log('🏭 Creating warehouses...');
-    const warehouses = [];
-    const warehouseNames = ['Main Warehouse', 'Secondary Storage', 'Cold Storage', 'Electronics Hub', 'Fashion Center'];
-
-    for (let i = 0; i < 20; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
-      const warehouseName = `${warehouseNames[Math.floor(Math.random() * warehouseNames.length)]} ${i + 1}`;
-
-      const warehouse = await prisma.warehouses.create({
-        data: {
-          id: generateId('warehouse'),
-          name: warehouseName,
-          address: `${Math.floor(Math.random() * 999) + 1} Industrial Road, Colombo ${Math.floor(Math.random() * 15) + 1}`,
-          organizationId: organization.id,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
-        }
-      });
-      warehouses.push(warehouse);
-    }
-    console.log(`✅ Created ${warehouses.length} warehouses\n`);
-
-    // 12. Warehouse Inventory (500 inventory records)
-    console.log('📦 Creating warehouse inventory...');
-    for (let i = 0; i < 500; i++) {
-      const warehouse = warehouses[Math.floor(Math.random() * warehouses.length)];
-      const product = products[Math.floor(Math.random() * products.length)];
-
-      await prisma.warehouse_inventory.create({
-        data: {
-          id: generateId('inv'),
-          warehouseId: warehouse.id,
-          productId: product.id,
-          quantity: Math.floor(Math.random() * 1000) + 10,
-          reservedQuantity: Math.floor(Math.random() * 50),
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
-        }
-      });
-    }
-    console.log('✅ Created 500 warehouse inventory records\n');
-
-    // 13. WhatsApp Integrations (5 integrations)
-    console.log('📱 Creating WhatsApp integrations...');
-    for (let i = 0; i < 5; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
-
-      await prisma.whatsapp_integrations.create({
-        data: {
-          id: generateId('whatsapp'),
-          organizationId: organization.id,
-          phoneNumber: `+9477${Math.floor(Math.random() * 9000000) + 1000000}`,
-          accessToken: `token_${Math.random().toString(36).substr(2, 20)}`,
-          isActive: Math.random() > 0.2,
-          lastSync: randomDate(new Date(2020, 0, 1), new Date()),
-          syncSettings: JSON.stringify({
-            autoReply: true,
-            businessHours: '9:00-17:00',
-            timezone: 'Asia/Colombo'
-          }),
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
-        }
-      });
-    }
-    console.log('✅ Created 5 WhatsApp integrations\n');
-
-    // 14. WhatsApp Messages (100 messages)
-    console.log('💬 Creating WhatsApp messages...');
-    for (let i = 0; i < 100; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
-      const customer = customers.find(c => c.organizationId === organization.id) || customers[0];
-      const messageTypes = ['text', 'image', 'document', 'audio'];
-      const directions = ['INBOUND', 'OUTBOUND'];
-      const statuses = ['PENDING', 'SENT', 'DELIVERED', 'READ', 'FAILED'];
-
-      await prisma.whatsapp_messages.create({
-        data: {
-          id: generateId('msg'),
-          organizationId: organization.id,
-          customerId: customer.id,
-          phoneNumber: customer.phone,
-          message: `Sample message ${i + 1}: Hello, how can I help you today?`,
-          type: messageTypes[Math.floor(Math.random() * messageTypes.length)],
-          mediaUrl: Math.random() > 0.7 ? `https://example.com/media/${i + 1}.jpg` : null,
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          direction: directions[Math.floor(Math.random() * directions.length)],
-          externalId: `ext_${Math.random().toString(36).substr(2, 15)}`,
-          isAutoReply: Math.random() > 0.6,
-          receivedAt: randomDate(new Date(2020, 0, 1), new Date()),
-          sentAt: randomDate(new Date(2020, 0, 1), new Date()),
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
-        }
-      });
-    }
-    console.log('✅ Created 100 WhatsApp messages\n');
-
-    // 15. Reports (50 reports)
-    console.log('📊 Creating reports...');
-    const reportTypes = ['sales', 'inventory', 'customer', 'financial', 'marketing'];
-    const reportStatuses = ['DRAFT', 'GENERATING', 'COMPLETED', 'FAILED'];
-
-    for (let i = 0; i < 50; i++) {
-      const organization = organizations[Math.floor(Math.random() * organizations.length)];
-      const user = users.find(u => u.organizationId === organization.id) || users[0];
-      const reportType = reportTypes[Math.floor(Math.random() * reportTypes.length)];
-      const reportStatus = reportStatuses[Math.floor(Math.random() * reportStatuses.length)];
-
-      await prisma.reports.create({
-        data: {
-          id: generateId('report'),
-          name: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report ${i + 1}`,
-          type: reportType,
-          status: reportStatus,
-          organizationId: organization.id,
-          userId: user.id,
-          parameters: JSON.stringify({
-            dateRange: 'last_30_days',
-            filters: { category: 'all' }
-          }),
-          data: reportStatus === 'COMPLETED' ? JSON.stringify({
-            totalSales: Math.floor(Math.random() * 100000),
-            totalOrders: Math.floor(Math.random() * 1000),
-            topProducts: ['Product A', 'Product B', 'Product C']
-          }) : null,
-          fileUrl: reportStatus === 'COMPLETED' ? `https://reports.example.com/report_${i + 1}.pdf` : null,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
-        }
-      });
-    }
-    console.log('✅ Created 50 reports\n');
-
-    console.log('🎉 Database seeding completed successfully!');
+    console.log('🎉 Local database seeding completed successfully!');
     console.log('\n📊 Summary:');
     console.log(`- Organizations: ${organizations.length}`);
     console.log(`- Users: ${users.length}`);
@@ -572,13 +334,6 @@ async function main() {
     console.log(`- Orders: ${orders.length}`);
     console.log(`- Order Items: 1000`);
     console.log(`- Payments: 400`);
-    console.log(`- Analytics: 200`);
-    console.log(`- Activities: 150`);
-    console.log(`- Warehouses: ${warehouses.length}`);
-    console.log(`- Warehouse Inventory: 500`);
-    console.log(`- WhatsApp Integrations: 5`);
-    console.log(`- WhatsApp Messages: 100`);
-    console.log(`- Reports: 50`);
 
   } catch (error) {
     console.error('❌ Error during seeding:', error);
