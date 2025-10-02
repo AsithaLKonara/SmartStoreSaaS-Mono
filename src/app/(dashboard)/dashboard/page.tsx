@@ -163,8 +163,7 @@ export default function DashboardPage() {
 
   return (
     <ErrorBoundary>
-      <React.Fragment>
-        <div className="space-y-6" data-testid="dashboard-page">
+      <div className="space-y-6" data-testid="dashboard-page">
       {/* Page Title */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="dashboard-title">Dashboard</h1>
@@ -479,8 +478,6 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-        </div>
-      </React.Fragment>
     </ErrorBoundary>
   );
 }
