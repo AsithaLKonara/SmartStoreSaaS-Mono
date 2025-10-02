@@ -34,37 +34,37 @@ export async function GET(request: NextRequest) {
       
       // Active suppliers (with orders in period)
       prisma.suppliers.count({
-        where: {
-          organizationId: session.user.organizationId,
+      where: {
+        organizationId: session.user.organizationId,
           purchase_orders: {
             some: {
               orderDate: { gte: startDate, lte: endDate },
             },
-          },
-        },
+      },
+      },
       }),
-      
+
       // Total purchase orders in period
       prisma.purchase_orders.count({
-        where: {
-          organizationId: session.user.organizationId,
+      where: {
+        organizationId: session.user.organizationId,
           orderDate: { gte: startDate, lte: endDate },
         },
       }),
       
       // Total value in period
       prisma.purchase_orders.aggregate({
-        where: {
-          organizationId: session.user.organizationId,
+      where: {
+        organizationId: session.user.organizationId,
           orderDate: { gte: startDate, lte: endDate },
-        },
+      },
         _sum: { total: true },
       }),
-      
+
       // Average order value
       prisma.purchase_orders.aggregate({
-        where: {
-          organizationId: session.user.organizationId,
+      where: {
+        organizationId: session.user.organizationId,
           orderDate: { gte: startDate, lte: endDate },
         },
         _avg: { total: true },
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         where: { organizationId: session.user.organizationId },
         include: {
           purchase_orders: {
-            where: {
+      where: {
               orderDate: { gte: startDate, lte: endDate },
             },
             select: { total: true },

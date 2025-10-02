@@ -24,22 +24,27 @@ export async function POST(request: NextRequest) {
 
     // Clear existing data (in reverse order of dependencies)
     console.log('🗑️  Clearing existing data...');
-    await prisma.whatsapp_messages.deleteMany();
-    await prisma.whatsapp_integrations.deleteMany();
-    await prisma.warehouse_inventory.deleteMany();
-    await prisma.warehouses.deleteMany();
-    await prisma.activities.deleteMany();
-    await prisma.analytics.deleteMany();
-    await prisma.reports.deleteMany();
-    await prisma.payments.deleteMany();
-    await prisma.order_items.deleteMany();
-    await prisma.orders.deleteMany();
-    await prisma.customers.deleteMany();
-    await prisma.products.deleteMany();
-    await prisma.categories.deleteMany();
-    await prisma.users.deleteMany();
-    await prisma.organizations.deleteMany();
-    console.log('✅ Data cleared');
+    try {
+      await prisma.whatsapp_messages.deleteMany();
+      await prisma.whatsapp_integrations.deleteMany();
+      await prisma.warehouse_inventory.deleteMany();
+      await prisma.warehouses.deleteMany();
+      await prisma.activities.deleteMany();
+      await prisma.analytics.deleteMany();
+      await prisma.reports.deleteMany();
+      await prisma.payments.deleteMany();
+      await prisma.order_items.deleteMany();
+      await prisma.orders.deleteMany();
+      await prisma.customers.deleteMany();
+      await prisma.products.deleteMany();
+      await prisma.categories.deleteMany();
+      await prisma.users.deleteMany();
+      await prisma.organizations.deleteMany();
+      console.log('✅ Data cleared');
+    } catch (error) {
+      console.log('⚠️ Some data could not be cleared, continuing with seeding...');
+      console.log('Error:', error.message);
+    }
 
     // 1. Organizations (10 organizations)
     console.log('📊 Creating organizations...');
@@ -53,9 +58,9 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < 10; i++) {
       const org = await prisma.organizations.create({
         data: {
-          id: `org-${i + 1}`,
+          id: `seed-org-${i + 1}-${Date.now()}`,
           name: orgNames[i],
-          domain: `${orgNames[i].toLowerCase().replace(/\s+/g, '')}.com`,
+          domain: `${orgNames[i].toLowerCase().replace(/\s+/g, '')}-${i + 1}.com`,
           status: i < 8 ? 'ACTIVE' : 'INACTIVE',
           description: `Leading ${orgNames[i].toLowerCase()} retailer`,
           logo: `https://example.com/logos/${orgNames[i].toLowerCase().replace(/\s+/g, '-')}.png`,
@@ -487,34 +492,26 @@ export async function POST(request: NextRequest) {
     // 15. Reports (50 reports)
     console.log('📊 Creating reports...');
     const reportTypes = ['sales', 'inventory', 'customer', 'financial', 'marketing'];
-    const reportStatuses = ['DRAFT', 'GENERATING', 'COMPLETED', 'FAILED'];
 
     for (let i = 0; i < 50; i++) {
       const organization = organizations[Math.floor(Math.random() * organizations.length)];
       const user = users.find(u => u.organizationId === organization.id) || users[0];
       const reportType = reportTypes[Math.floor(Math.random() * reportTypes.length)];
-      const reportStatus = reportStatuses[Math.floor(Math.random() * reportStatuses.length)];
 
       await prisma.reports.create({
         data: {
           id: generateId('report'),
           name: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report ${i + 1}`,
           type: reportType,
-          status: reportStatus,
           organizationId: organization.id,
-          userId: user.id,
-          parameters: JSON.stringify({
-            dateRange: 'last_30_days',
-            filters: { category: 'all' }
-          }),
-          data: reportStatus === 'COMPLETED' ? JSON.stringify({
+          createdById: user.id,
+          data: JSON.stringify({
             totalSales: Math.floor(Math.random() * 100000),
             totalOrders: Math.floor(Math.random() * 1000),
             topProducts: ['Product A', 'Product B', 'Product C']
-          }) : null,
-          fileUrl: reportStatus === 'COMPLETED' ? `https://reports.example.com/report_${i + 1}.pdf` : null,
-          createdAt: randomDate(new Date(2020, 0, 1), new Date()),
-          updatedAt: new Date()
+          }),
+          schedule: Math.random() > 0.5 ? 'daily' : 'weekly',
+          createdAt: randomDate(new Date(2020, 0, 1), new Date())
         }
       });
     }
