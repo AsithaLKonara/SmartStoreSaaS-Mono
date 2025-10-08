@@ -2,12 +2,20 @@ import { Page } from '@playwright/test';
 
 export async function loginAsTestUser(page: Page) {
   try {
-    // Navigate to login page
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
     
-    // Wait for login form to be visible
-    await page.waitForSelector('[data-testid="login-form"]', { timeout: 15000 });
+    // Fill in login form
+    await page.fill('[data-testid="email-input"]', 'admin@example.com');
+    await page.fill('[data-testid="password-input"]', 'password123');
     
+    // Click login button
+    await page.click('button[type="submit"]');
+    
+    // Wait for navigation
+    await page.waitForURL('/dashboard', { timeout: 10000 });
+    
+    console.log('✅ Successfully logged in as test user');
     // Fill in test credentials
     await page.fill('[data-testid="email-input"]', 'admin@techhub.lk');
     await page.fill('[data-testid="password-input"]', 'demo123');

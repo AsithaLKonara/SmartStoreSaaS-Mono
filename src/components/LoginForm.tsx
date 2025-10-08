@@ -7,17 +7,44 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FormErrorMessage } from '@/components/ui/ErrorBoundary';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('admin@techhub.lk');
-  const [password, setPassword] = useState('demo123');
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('password123');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string } = {};
+    
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
     setMessage('');
+    setErrors({});
 
     try {
       const result = await signIn('credentials', {
@@ -64,8 +91,11 @@ export default function LoginForm() {
                 required
                 disabled={isLoading}
                 data-testid="email-input"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                }`}
               />
+              <FormErrorMessage message={errors.email} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
@@ -77,8 +107,11 @@ export default function LoginForm() {
                 required
                 disabled={isLoading}
                 data-testid="password-input"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                }`}
               />
+              <FormErrorMessage message={errors.password} />
             </div>
             <Button 
               type="submit" 
@@ -91,18 +124,15 @@ export default function LoginForm() {
           </form>
           
           {message && (
-            <div className="mt-4 p-3 rounded-md bg-gray-100 text-sm">
+            <div className="mt-4 p-3 rounded-md bg-gray-100 text-sm" data-testid="error-message">
               {message}
             </div>
           )}
           
           <div className="mt-4 text-center text-sm text-gray-600">
             <p><strong>Demo Credentials:</strong></p>
-            <p>Email: admin@techhub.lk</p>
-            <p>Password: demo123</p>
-            <p className="mt-2 text-xs text-gray-500">
-              Alternative: manager@colombofashion.lk / admin@freshmart.lk
-            </p>
+            <p>Email: admin@example.com</p>
+            <p>Password: password123</p>
           </div>
         </CardContent>
       </Card>

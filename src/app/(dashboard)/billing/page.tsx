@@ -20,7 +20,6 @@ import {
   Loader2
 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
 
 interface BillingDashboard {
   totalRevenue: number;

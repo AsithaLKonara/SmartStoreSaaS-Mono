@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import mobile-specific styles */
+@import '../styles/mobile.css';
+
 /* Performance optimizations */
 @layer base {
   * {
@@ -543,4 +546,4 @@
   .grid-auto-fill {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
-} 
+}

@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { db } from '@/lib/database';
+import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await db.users.findUnique({
+          const user = await prisma.user.findUnique({
             where: { email: credentials.email },
             select: {
               id: true,
@@ -91,3 +91,4 @@ export const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
+

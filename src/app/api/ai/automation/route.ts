@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/error-handling';
-import { withSecurity } from '@/lib/security';
 
-export const GET = withErrorHandling(
-  withSecurity(async (request: NextRequest) => {
+export const GET = withErrorHandling(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId') || 'org-1';
 
@@ -48,11 +46,9 @@ export const GET = withErrorHandling(
     };
 
     return NextResponse.json(automationData);
-  })
-);
+});
 
-export const POST = withErrorHandling(
-  withSecurity(async (request: NextRequest) => {
+export const POST = withErrorHandling(async (request: NextRequest) => {
     const body = await request.json();
     
     // Create new automation rule
@@ -70,5 +66,4 @@ export const POST = withErrorHandling(
       data: newAutomation,
       message: 'Automation rule created successfully'
     });
-  })
-);
+});

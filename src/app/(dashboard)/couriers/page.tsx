@@ -40,7 +40,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/lib/utils';
 
-export const dynamic = 'force-dynamic';
 
 interface Courier {
   id: string;

@@ -39,14 +39,14 @@ export async function GET(request: NextRequest) {
 
     const [purchaseOrders, total] = await Promise.all([
       prisma.purchase_orders.findMany({
-        where,
+      where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { orderDate: 'desc' },
-        include: {
+      include: {
           suppliers: true,
           purchase_order_items: {
-            include: {
+          include: {
               products: true,
             },
           },
@@ -127,21 +127,21 @@ export async function POST(request: NextRequest) {
     // Create purchase order with items in a transaction
     const result = await prisma.$transaction(async (tx) => {
       const purchaseOrder = await tx.purchase_orders.create({
-        data: {
+      data: {
           id: `po_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          organizationId: session.user.organizationId,
-          poNumber,
-          supplierId,
+        organizationId: session.user.organizationId,
+        poNumber,
+        supplierId,
           orderDate: new Date(orderDate),
           expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : null,
           status: 'DRAFT',
-          subtotal,
+        subtotal,
           tax,
           shipping,
           total,
           notes,
           terms,
-          shippingAddress,
+        shippingAddress,
           createdBy: session.user.id,
         },
       });

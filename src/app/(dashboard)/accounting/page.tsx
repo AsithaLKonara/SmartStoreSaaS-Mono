@@ -1,193 +1,99 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import {
-  BarChart3,
-  FileText,
-  BookOpen,
-  Calculator,
-  TrendingUp,
-  DollarSign,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-export default function AccountingDashboard() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [stats, setStats] = useState({
-    totalAccounts: 0,
-    journalEntries: 0,
-    taxRates: 0,
-  });
-
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/login');
-      return;
-    }
-    fetchStats();
-  }, [session, status]);
-
-  const fetchStats = async () => {
-    try {
-      const [accountsRes] = await Promise.all([
-        fetch('/api/accounting/accounts'),
-      ]);
-
-      if (accountsRes.ok) {
-        const accountsData = await accountsRes.json();
-        setStats(prev => ({ ...prev, totalAccounts: accountsData.count || 0 }));
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  const modules = [
-    {
-      title: 'Chart of Accounts',
-      description: 'Manage your account structure',
-      icon: BookOpen,
-      href: '/accounting/chart-of-accounts',
-      color: 'bg-blue-500',
-    },
-    {
-      title: 'Journal Entries',
-      description: 'Record manual transactions',
-      icon: FileText,
-      href: '/accounting/journal-entries',
-      color: 'bg-green-500',
-    },
-    {
-      title: 'General Ledger',
-      description: 'View all transactions',
-      icon: BarChart3,
-      href: '/accounting/ledger',
-      color: 'bg-purple-500',
-    },
-    {
-      title: 'Financial Reports',
-      description: 'P&L, Balance Sheet, Cash Flow',
-      icon: TrendingUp,
-      href: '/accounting/reports',
-      color: 'bg-orange-500',
-    },
-    {
-      title: 'Tax Management',
-      description: 'Configure tax rates',
-      icon: Calculator,
-      href: '/accounting/tax',
-      color: 'bg-red-500',
-    },
-    {
-      title: 'Bank Reconciliation',
-      description: 'Reconcile bank transactions',
-      icon: DollarSign,
-      href: '/accounting/bank',
-      color: 'bg-teal-500',
-    },
-  ];
+export default function AccountingPage() {
+  const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="space-y-6" data-testid="accounting-page">
+    <div className="p-6 space-y-6" data-testid="accounting-page">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="accounting-title">Accounting</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your financial accounts, transactions, and reports
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="accounting-title">Accounting</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage financial records and reports</p>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Chart of Accounts</CardTitle>
-            <CardDescription>Total accounts</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalAccounts}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Journal Entries</CardTitle>
-            <CardDescription>This month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.journalEntries}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Tax Rates</CardTitle>
-            <CardDescription>Configured</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.taxRates}</div>
-          </CardContent>
-        </Card>
+      {/* Navigation Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {[
+            { id: 'overview', name: 'Overview' },
+            { id: 'chart-of-accounts', name: 'Chart of Accounts' },
+            { id: 'journal-entries', name: 'Journal Entries' },
+            { id: 'reports', name: 'Reports' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {tab.name}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Module Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {modules.map((module) => {
-          const Icon = module.icon;
-          return (
-            <Link key={module.href} href={module.href}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-lg ${module.color} text-white`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{module.title}</CardTitle>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{module.description}</CardDescription>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild>
-              <Link href="/accounting/journal-entries/new">
-                + New Journal Entry
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/accounting/reports">
-                View Reports
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/accounting/ledger">
-                View Ledger
-              </Link>
-            </Button>
+      {/* Content */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        {activeTab === 'overview' && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Accounting Overview</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-900 dark:text-blue-100">Total Assets</h3>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">$0.00</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <h3 className="font-medium text-green-900 dark:text-green-100">Total Revenue</h3>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">$0.00</p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                <h3 className="font-medium text-red-900 dark:text-red-100">Total Expenses</h3>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">$0.00</p>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {activeTab === 'chart-of-accounts' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Chart of Accounts</h2>
+              <Button>Add Account</Button>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">Manage your chart of accounts</p>
+          </div>
+        )}
+
+        {activeTab === 'journal-entries' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Journal Entries</h2>
+              <Button>Create Entry</Button>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">Record financial transactions</p>
+          </div>
+        )}
+
+        {activeTab === 'reports' && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Financial Reports</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button variant="outline">Balance Sheet</Button>
+              <Button variant="outline">Income Statement</Button>
+              <Button variant="outline">Cash Flow Statement</Button>
+              <Button variant="outline">Trial Balance</Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

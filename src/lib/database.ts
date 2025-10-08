@@ -26,7 +26,14 @@ class DatabaseManager {
   private client: PrismaClient;
 
   constructor() {
-    this.client = db;
+    this.client = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
   }
 
   // Health check method
@@ -116,6 +123,7 @@ class DatabaseManager {
 
 // Create and export the database manager instance
 const dbManager = new DatabaseManager();
+export { dbManager };
 export default dbManager;
 
 // Export a function to get a fresh connection when needed

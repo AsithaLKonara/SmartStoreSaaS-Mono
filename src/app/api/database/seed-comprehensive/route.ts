@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
       await prisma.reports.deleteMany();
       await prisma.payments.deleteMany();
       await prisma.order_items.deleteMany();
-      await prisma.orders.deleteMany();
+      await prisma.order.deleteMany();
       await prisma.customers.deleteMany();
-      await prisma.products.deleteMany();
+      await prisma.product.deleteMany();
       await prisma.categories.deleteMany();
-      await prisma.users.deleteMany();
-      await prisma.organizations.deleteMany();
+      await prisma.user.deleteMany();
+      await prisma.organization.deleteMany();
       console.log('✅ Data cleared');
     } catch (error) {
       console.log('⚠️ Some data could not be cleared, continuing with seeding...');
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     ];
     
     for (let i = 0; i < 10; i++) {
-      const org = await prisma.organizations.create({
+      const org = await prisma.organization.create({
         data: {
           id: `seed-org-${i + 1}-${Date.now()}`,
           name: orgNames[i],
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       const email = `user${i + 1}@smartstore${Math.floor(Math.random() * 10) + 1}.com`;
       const hashedPassword = await bcrypt.hash('password123', 10);
       
-      const user = await prisma.users.create({
+      const user = await prisma.user.create({
         data: {
           id: generateId('user'),
           email,
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
       const organization = organizations[Math.floor(Math.random() * organizations.length)];
       const createdBy = users.find(u => u.organizationId === organization.id) || users[0];
 
-      const product = await prisma.products.create({
+      const product = await prisma.product.create({
         data: {
           id: generateId('prod'),
           name: `${productName} ${i + 1}`,
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
       const shipping = Math.floor(Math.random() * 2000) + 200;
       const total = subtotal + tax + shipping;
 
-      const order = await prisma.orders.create({
+      const order = await prisma.order.create({
         data: {
           id: generateId('order'),
           orderNumber: `ORD-${String(i + 1).padStart(6, '0')}`,

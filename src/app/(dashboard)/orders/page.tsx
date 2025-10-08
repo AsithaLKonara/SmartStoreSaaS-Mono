@@ -1,7 +1,7 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -199,7 +199,16 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6" data-testid="orders-page">
+    <>
+      <Head>
+        <title>Orders - SmartStore SaaS</title>
+        <meta name="description" content="Manage your orders and track order status with SmartStore SaaS. View, process, and fulfill customer orders efficiently." />
+        <meta name="keywords" content="orders, order management, fulfillment, tracking, smartstore, saas" />
+        <meta property="og:title" content="Orders - SmartStore SaaS" />
+        <meta property="og:description" content="Manage your orders and track order status with SmartStore SaaS." />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div className="p-6 space-y-6" data-testid="orders-page">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -216,6 +225,7 @@ export default function OrdersPage() {
           </Button>
           <Button
             onClick={() => router.push('/orders/new')}
+            data-testid="create-order-button"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Order

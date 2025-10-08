@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
     
     // Check table counts
     const counts = {
-      organizations: await prisma.organizations.count(),
-      users: await prisma.users.count(),
+      organizations: await prisma.organization.count(),
+      users: await prisma.user.count(),
       categories: await prisma.categories.count(),
-      products: await prisma.products.count(),
+      products: await prisma.product.count(),
       customers: await prisma.customers.count(),
-      orders: await prisma.orders.count(),
+      orders: await prisma.order.count(),
       orderItems: await prisma.order_items.count(),
       payments: await prisma.payments.count(),
       analytics: await prisma.analytics.count(),
@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
     
     // Get sample data for verification
     const sampleData = {
-      organizations: await prisma.organizations.findMany({ take: 3 }),
-      users: await prisma.users.findMany({ take: 3, select: { id: true, email: true, name: true, role: true } }),
-      products: await prisma.products.findMany({ take: 3, select: { id: true, name: true, price: true, isActive: true } }),
+      organizations: await prisma.organization.findMany({ take: 3 }),
+      users: await prisma.user.findMany({ take: 3, select: { id: true, email: true, name: true, role: true } }),
+      products: await prisma.product.findMany({ take: 3, select: { id: true, name: true, price: true, isActive: true } }),
       customers: await prisma.customers.findMany({ take: 3, select: { id: true, name: true, email: true, phone: true } }),
-      orders: await prisma.orders.findMany({ take: 3, select: { id: true, orderNumber: true, status: true, total: true } })
+      orders: await prisma.order.findMany({ take: 3, select: { id: true, orderNumber: true, status: true, total: true } })
     };
 
     console.log('📊 Database status check completed');

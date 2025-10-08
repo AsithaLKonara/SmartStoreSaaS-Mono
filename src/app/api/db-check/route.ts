@@ -1,47 +1,44 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Checking database structure...');
-
-    // Try to get table info
-    const result = await prisma.$queryRaw`
-      SELECT table_name, column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_schema = 'public' 
-      AND table_name = 'organizations'
-      ORDER BY ordinal_position;
-    `;
-
-    // Try to count existing records
-    const userCount = await prisma.users.count();
-    const orgCount = await prisma.organizations.count();
-
+    const startTime = Date.now();
+    
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    // Get basic counts
+    const userCount = await prisma.user.count();
+    const productCount = await prisma.product.count();
+    const orderCount = await prisma.order.count();
+    const customerCount = await prisma.customer.count();
+    
+    const responseTime = Date.now() - startTime;
+    
     return NextResponse.json({
-      success: true,
-      data: {
-        databaseInfo: result,
-        counts: {
-          users: userCount,
-          organizations: orgCount,
-        },
-        message: 'Database structure checked successfully',
+      status: 'ok',
+      database: 'connected',
+      responseTime: `${responseTime}ms`,
+      counts: {
+        users: userCount,
+        products: productCount,
+        orders: orderCount,
+        customers: customerCount
       },
+      timestamp: new Date().toISOString()
     });
-
+    
   } catch (error) {
-    console.error('❌ Database check error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to check database',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    console.error('Database check failed:', error);
+    
+    return NextResponse.json({
+      status: 'error',
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }

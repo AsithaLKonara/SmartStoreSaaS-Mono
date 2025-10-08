@@ -1,6 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -8,58 +7,398 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String?
+  password       String?
+  role           String        @default("USER")
+  organizationId String?
+  isActive       Boolean       @default(true)
+  emailVerified  DateTime?
+  image          String?
+  phone          String?
+  mfaEnabled     Boolean       @default(false)
+  mfaSecret      String?
+  mfaBackupCodes String?
+  deletedAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  reports        Report[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("users")
+}
+
+model Organization {
+  id                      String                   @id @default(cuid())
+  name                    String
+  domain                  String?                  @unique
+  description             String?
+  logo                    String?
+  status                  String                   @default("ACTIVE")
+  settings                String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  activities              activities[]
+  ai_analytics            ai_analytics[]
+  ai_conversations        ai_conversations[]
+  analytics               Analytics[]
+  channel_integrations    channel_integrations[]
+  chart_of_accounts       chart_of_accounts[]
+  couriers                Courier[]
+  customer_segments       customer_segments[]
+  customers               Customer[]
+  deliveries              Delivery[]
+  iot_devices             iot_devices[]
+  journal_entries         journal_entries[]
+  ledger                  ledger[]
+  orders                  Order[]
+  payments                Payment[]
+  performance_metrics     performance_metrics[]
+  products                Product[]
+  reports                 Report[]
+  sms_campaigns           sms_campaigns[]
+  sms_logs                sms_logs[]
+  sms_subscriptions       sms_subscriptions[]
+  sms_templates           sms_templates[]
+  social_commerce         social_commerce[]
+  support_tickets         support_tickets[]
+  tax_rates               tax_rates[]
+  tax_transactions        tax_transactions[]
+  users                   User[]
+  warehouses              Warehouse[]
+  whatsappIntegrations    WhatsAppIntegration?
+  whatsapp_messages       whatsapp_messages[]
+  woocommerceIntegrations WooCommerceIntegration[]
+
+  @@map("organizations")
+}
+
+model Customer {
+  id                         String                       @id @default(cuid())
+  name                       String
+  email                      String
+  phone                      String?
+  address                    String?
+  organizationId             String
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  loyalty                    CustomerLoyalty[]
+  customer_segment_customers customer_segment_customers[]
+  organization               Organization                 @relation(fields: [organizationId], references: [id])
+  orders                     Order[]
+  whatsapp_messages          whatsapp_messages[]
+  wishlists                  wishlists[]
+
+  @@map("customers")
+}
+
+model Product {
+  id                 String               @id @default(cuid())
+  name               String
+  description        String?
+  sku                String               @unique
+  price              Decimal
+  cost               Decimal?
+  stock              Int                  @default(0)
+  minStock           Int                  @default(0)
+  weight             Float?
+  dimensions         String?
+  tags               String?
+  isVariant          Boolean              @default(false)
+  parentProductId    String?
+  organizationId     String
+  categoryId         String?
+  isActive           Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  inventoryMovements InventoryMovement[]
+  orderItems         OrderItem[]
+  product_activities product_activities[]
+  variants           ProductVariant[]
+  category           Category?            @relation(fields: [categoryId], references: [id])
+  organization       Organization         @relation(fields: [organizationId], references: [id])
+  social_products    social_products[]
+  wishlist_items     wishlist_items[]
+
+  @@map("products")
+}
+
+model Category {
+  id               String     @id @default(cuid())
+  name             String
+  description      String?
+  parentId         String?
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  categories       Category?  @relation("categoriesTocategories", fields: [parentId], references: [id])
+  other_categories Category[] @relation("categoriesTocategories")
+  products         Product[]
+
+  @@map("categories")
+}
+
+model Order {
+  id             String               @id @default(cuid())
+  orderNumber    String               @unique
+  customerId     String
+  organizationId String
+  status         String               @default("PENDING")
+  total          Decimal
+  subtotal       Decimal
+  tax            Decimal              @default(0)
+  shipping       Decimal              @default(0)
+  discount       Decimal              @default(0)
+  notes          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deliveries     Delivery[]
+  orderItems     OrderItem[]
+  statusHistory  OrderStatusHistory[]
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  customer       Customer             @relation(fields: [customerId], references: [id])
+  payments       Payment[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String          @id @default(cuid())
+  orderId          String
+  productId        String
+  variantId        String?
+  quantity         Int
+  price            Decimal
+  total            Decimal
+  createdAt        DateTime        @default(now())
+  product_variants ProductVariant? @relation(fields: [variantId], references: [id])
+  product          Product         @relation(fields: [productId], references: [id])
+  order            Order           @relation(fields: [orderId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id             String       @id @default(cuid())
+  orderId        String
+  organizationId String
+  amount         Decimal
+  currency       String       @default("LKR")
+  method         String
+  status         String       @default("PENDING")
+  transactionId  String?
+  gateway        String?
+  metadata       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  order          Order        @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+model Delivery {
+  id                      String                    @id @default(cuid())
+  orderId                 String
+  organizationId          String
+  courierId               String?
+  status                  String                    @default("PENDING")
+  trackingNumber          String?
+  estimatedDelivery       DateTime?
+  actualDelivery          DateTime?
+  customerId              String?
+  address                 String?
+  notes                   String?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  courier                 Courier?                  @relation(fields: [courierId], references: [id])
+  organization            Organization              @relation(fields: [organizationId], references: [id])
+  order                   Order                     @relation(fields: [orderId], references: [id])
+  delivery_status_history delivery_status_history[]
+
+  @@map("deliveries")
+}
+
+model Courier {
+  id             String       @id @default(cuid())
+  name           String
+  phone          String?
+  email          String?
+  organizationId String
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  deliveries     Delivery[]
+
+  @@map("couriers")
+}
+
+model ProductVariant {
+  id                  String              @id @default(cuid())
+  name                String
+  sku                 String              @unique
+  price               Decimal
+  cost                Decimal?
+  stock               Int                 @default(0)
+  weight              Float?
+  dimensions          String?
+  isActive            Boolean             @default(true)
+  productId           String
+  organizationId      String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  inventory_movements InventoryMovement[]
+  order_items         OrderItem[]
+  product             Product             @relation(fields: [productId], references: [id])
+
+  @@map("product_variants")
+}
+
+model InventoryMovement {
+  id               String          @id @default(cuid())
+  productId        String
+  variantId        String?
+  type             String
+  quantity         Int
+  reason           String?
+  reference        String?
+  createdAt        DateTime        @default(now())
+  product_variants ProductVariant? @relation(fields: [variantId], references: [id])
+  product          Product         @relation(fields: [productId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model OrderStatusHistory {
+  id        String   @id @default(cuid())
+  orderId   String
+  status    String
+  notes     String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id])
+
+  @@map("order_status_history")
+}
+
+model CustomerLoyalty {
+  id                   String                 @id @default(cuid())
+  customerId           String
+  points               Int                    @default(0)
+  tier                 String                 @default("BRONZE")
+  totalSpent           Decimal                @default(0)
+  lastActivity         DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  customer             Customer               @relation(fields: [customerId], references: [id])
+  loyalty_transactions loyalty_transactions[]
+
+  @@map("customer_loyalty")
+}
+
+model Analytics {
+  id             String       @id @default(cuid())
+  type           String
+  value          Int
+  metadata       String?
+  organizationId String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("analytics")
+}
+
+model Report {
+  id             String       @id @default(cuid())
+  name           String
+  type           String
+  data           String?
+  schedule       String?
+  organizationId String
+  createdById    String?
+  createdAt      DateTime     @default(now())
+  users          User?        @relation(fields: [createdById], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("reports")
+}
+
+model Warehouse {
+  id                  String                @id @default(cuid())
+  name                String
+  address             String?
+  organizationId      String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  iot_devices         iot_devices[]
+  warehouse_inventory warehouse_inventory[]
+  organization        Organization          @relation(fields: [organizationId], references: [id])
+
+  @@map("warehouses")
+}
+
+model WooCommerceIntegration {
+  id             String       @id @default(cuid())
+  organizationId String
+  storeUrl       String
+  consumerKey    String
+  consumerSecret String
+  isActive       Boolean      @default(true)
+  lastSync       DateTime?
+  syncSettings   String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("woocommerce_integrations")
+}
+
+model WhatsAppIntegration {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  phoneNumber    String
+  accessToken    String
+  isActive       Boolean      @default(true)
+  lastSync       DateTime?
+  syncSettings   String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}
+
 model activities {
-  id             String        @id
+  id             String       @id
   type           String
   description    String
   userId         String?
   organizationId String
   metadata       String?
-  createdAt      DateTime      @default(now())
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model ai_analytics {
-  id             String        @id
+  id             String       @id
   organizationId String
   query          String
   insights       String
   dataContext    String?
   filters        String?
-  createdAt      DateTime      @default(now())
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model ai_conversations {
-  id             String        @id
+  id             String       @id
   organizationId String
   messages       String
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  organizations  organizations @relation(fields: [organizationId], references: [id])
-}
-
-model analytics {
-  id             String        @id
-  type           String
-  value          Int
-  metadata       String?
-  organizationId String
-  createdAt      DateTime      @default(now())
-  organizations  organizations @relation(fields: [organizationId], references: [id])
-}
-
-model categories {
-  id               String       @id
-  name             String
-  description      String?
-  parentId         String?
-  isActive         Boolean      @default(true)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime
-  categories       categories?  @relation("categoriesTocategories", fields: [parentId], references: [id])
-  other_categories categories[] @relation("categoriesTocategories")
-  products         products[]
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model channel_integrations {
@@ -77,7 +416,7 @@ model channel_integrations {
   organizationId   String
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
-  organizations    organizations      @relation(fields: [organizationId], references: [id])
+  organizations    Organization       @relation(fields: [organizationId], references: [id])
   integration_logs integration_logs[]
 }
 
@@ -87,8 +426,8 @@ model chart_of_accounts {
   code                    String
   name                    String
   description             String?
-  accountType             AccountType
-  accountSubType          AccountSubType
+  accountType             String
+  accountSubType          String
   parentId                String?
   isActive                Boolean               @default(true)
   balance                 Float                 @default(0)
@@ -97,43 +436,17 @@ model chart_of_accounts {
   taxRateId               String?
   createdAt               DateTime              @default(now())
   updatedAt               DateTime
-  organizations           organizations         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tax_rates               tax_rates?            @relation(fields: [taxRateId], references: [id])
   chart_of_accounts       chart_of_accounts?    @relation("chart_of_accountsTochart_of_accounts", fields: [parentId], references: [id])
   other_chart_of_accounts chart_of_accounts[]   @relation("chart_of_accountsTochart_of_accounts")
-  tax_rates               tax_rates?            @relation(fields: [taxRateId], references: [id])
+  organizations           Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   journal_entry_lines     journal_entry_lines[]
   ledger                  ledger[]
 
   @@unique([organizationId, code])
-  @@index([accountType])
-  @@index([organizationId])
   @@index([parentId])
-}
-
-model couriers {
-  id             String        @id
-  name           String
-  email          String?
-  phone          String?
-  organizationId String
-  isActive       Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime
-  organizations  organizations @relation(fields: [organizationId], references: [id])
-  deliveries     deliveries[]
-}
-
-model customer_loyalty {
-  id                   String                 @id
-  customerId           String
-  points               Int                    @default(0)
-  tier                 String                 @default("BRONZE")
-  totalSpent           Decimal                @default(0)
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime
-  lastActivity         DateTime?
-  customers            customers              @relation(fields: [customerId], references: [id])
-  loyalty_transactions loyalty_transactions[]
+  @@index([organizationId])
+  @@index([accountType])
 }
 
 model customer_segment_customers {
@@ -141,8 +454,8 @@ model customer_segment_customers {
   segmentId         String
   customerId        String
   createdAt         DateTime          @default(now())
-  customers         customers         @relation(fields: [customerId], references: [id])
   customer_segments customer_segments @relation(fields: [segmentId], references: [id])
+  customers         Customer          @relation(fields: [customerId], references: [id])
 }
 
 model customer_segments {
@@ -155,54 +468,17 @@ model customer_segments {
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime
   customer_segment_customers customer_segment_customers[]
-  organizations              organizations                @relation(fields: [organizationId], references: [id])
+  organizations              Organization                 @relation(fields: [organizationId], references: [id])
   sms_campaign_segments      sms_campaign_segments[]
 }
 
-model customers {
-  id                         String                       @id
-  email                      String
-  name                       String
-  phone                      String?
-  address                    String?
-  organizationId             String
-  createdAt                  DateTime                     @default(now())
-  updatedAt                  DateTime
-  customer_loyalty           customer_loyalty[]
-  customer_segment_customers customer_segment_customers[]
-  organizations              organizations                @relation(fields: [organizationId], references: [id])
-  orders                     orders[]
-  whatsapp_messages          whatsapp_messages[]
-  wishlists                  wishlists[]
-}
-
-model deliveries {
-  id                      String                    @id
-  trackingNumber          String?
-  status                  String                    @default("PENDING")
-  estimatedDelivery       DateTime?
-  actualDelivery          DateTime?
-  organizationId          String
-  orderId                 String
-  courierId               String?
-  customerId              String?
-  address                 String?
-  notes                   String?
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime
-  couriers                couriers?                 @relation(fields: [courierId], references: [id])
-  orders                  orders                    @relation(fields: [orderId], references: [id])
-  organizations           organizations             @relation(fields: [organizationId], references: [id])
-  delivery_status_history delivery_status_history[]
-}
-
 model delivery_status_history {
-  id         String     @id
+  id         String   @id
   deliveryId String
   status     String
   notes      String?
-  createdAt  DateTime   @default(now())
-  deliveries deliveries @relation(fields: [deliveryId], references: [id])
+  createdAt  DateTime @default(now())
+  deliveries Delivery @relation(fields: [deliveryId], references: [id])
 }
 
 model integration_logs {
@@ -213,19 +489,6 @@ model integration_logs {
   data                 String?
   timestamp            DateTime             @default(now())
   channel_integrations channel_integrations @relation(fields: [integrationId], references: [id])
-}
-
-model inventory_movements {
-  id               String            @id
-  type             String
-  quantity         Int
-  reason           String?
-  productId        String
-  createdAt        DateTime          @default(now())
-  reference        String?
-  variantId        String?
-  products         products          @relation(fields: [productId], references: [id])
-  product_variants product_variants? @relation(fields: [variantId], references: [id])
 }
 
 model iot_alerts {
@@ -263,8 +526,8 @@ model iot_devices {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime
   iot_alerts      iot_alerts[]
-  organizations   organizations     @relation(fields: [organizationId], references: [id])
-  warehouses      warehouses?       @relation(fields: [warehouseId], references: [id])
+  warehouses      Warehouse?        @relation(fields: [warehouseId], references: [id])
+  organizations   Organization      @relation(fields: [organizationId], references: [id])
   sensor_readings sensor_readings[]
 }
 
@@ -275,7 +538,7 @@ model journal_entries {
   entryDate             DateTime
   description           String
   reference             String?
-  status                JournalEntryStatus    @default(DRAFT)
+  status                String                @default("DRAFT")
   postedAt              DateTime?
   postedBy              String?
   reversedAt            DateTime?
@@ -286,15 +549,15 @@ model journal_entries {
   createdBy             String
   createdAt             DateTime              @default(now())
   updatedAt             DateTime
-  organizations         organizations         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   journal_entries       journal_entries?      @relation("journal_entriesTojournal_entries", fields: [reversalOfId], references: [id])
   other_journal_entries journal_entries[]     @relation("journal_entriesTojournal_entries")
+  organizations         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   journal_entry_lines   journal_entry_lines[]
 
   @@unique([organizationId, entryNumber])
-  @@index([entryDate])
-  @@index([organizationId])
   @@index([status])
+  @@index([organizationId])
+  @@index([entryDate])
 }
 
 model journal_entry_lines {
@@ -306,11 +569,11 @@ model journal_entry_lines {
   credit            Float             @default(0)
   lineNumber        Int
   createdAt         DateTime          @default(now())
-  chart_of_accounts chart_of_accounts @relation(fields: [accountId], references: [id])
   journal_entries   journal_entries   @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  chart_of_accounts chart_of_accounts @relation(fields: [accountId], references: [id])
 
-  @@index([accountId])
   @@index([journalEntryId])
+  @@index([accountId])
 }
 
 model ledger {
@@ -326,142 +589,37 @@ model ledger {
   credit            Float             @default(0)
   balance           Float
   createdAt         DateTime          @default(now())
+  organizations     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   chart_of_accounts chart_of_accounts @relation(fields: [accountId], references: [id])
-  organizations     organizations     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@index([accountId])
-  @@index([organizationId])
-  @@index([referenceType, referenceId])
   @@index([transactionDate])
+  @@index([referenceType, referenceId])
+  @@index([organizationId])
+  @@index([accountId])
 }
 
 model loyalty_transactions {
-  id               String           @id
+  id               String          @id
   customerId       String
   loyaltyId        String
   type             String
   points           Int
   description      String?
-  createdAt        DateTime         @default(now())
-  customer_loyalty customer_loyalty @relation(fields: [loyaltyId], references: [id])
-}
-
-model order_items {
-  id               String            @id
-  quantity         Int
-  price            Decimal
-  total            Decimal
-  orderId          String
-  productId        String
-  createdAt        DateTime          @default(now())
-  variantId        String?
-  orders           orders            @relation(fields: [orderId], references: [id])
-  products         products          @relation(fields: [productId], references: [id])
-  product_variants product_variants? @relation(fields: [variantId], references: [id])
-}
-
-model order_status_history {
-  id        String   @id
-  orderId   String
-  status    String
-  notes     String?
-  createdAt DateTime @default(now())
-  orders    orders   @relation(fields: [orderId], references: [id])
-}
-
-model orders {
-  id                   String                 @id
-  orderNumber          String                 @unique
-  status               String                 @default("PENDING")
-  total                Decimal
-  subtotal             Decimal
-  tax                  Decimal                @default(0)
-  shipping             Decimal                @default(0)
-  discount             Decimal                @default(0)
-  organizationId       String
-  customerId           String
-  notes                String?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime
-  deliveries           deliveries[]
-  order_items          order_items[]
-  order_status_history order_status_history[]
-  customers            customers              @relation(fields: [customerId], references: [id])
-  organizations        organizations          @relation(fields: [organizationId], references: [id])
-  payments             payments[]
-}
-
-model organizations {
-  id                       String                     @id
-  name                     String
-  domain                   String?                    @unique
-  status                   String                     @default("ACTIVE")
-  settings                 String?
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime
-  description              String?
-  logo                     String?
-  activities               activities[]
-  ai_analytics             ai_analytics[]
-  ai_conversations         ai_conversations[]
-  analytics                analytics[]
-  channel_integrations     channel_integrations[]
-  chart_of_accounts        chart_of_accounts[]
-  couriers                 couriers[]
-  customer_segments        customer_segments[]
-  customers                customers[]
-  deliveries               deliveries[]
-  iot_devices              iot_devices[]
-  journal_entries          journal_entries[]
-  ledger                   ledger[]
-  orders                   orders[]
-  payments                 payments[]
-  performance_metrics      performance_metrics[]
-  products                 products[]
-  reports                  reports[]
-  sms_campaigns            sms_campaigns[]
-  sms_logs                 sms_logs[]
-  sms_subscriptions        sms_subscriptions[]
-  sms_templates            sms_templates[]
-  social_commerce          social_commerce[]
-  support_tickets          support_tickets[]
-  tax_rates                tax_rates[]
-  tax_transactions         tax_transactions[]
-  users                    users[]
-  warehouses               warehouses[]
-  whatsapp_integrations    whatsapp_integrations?
-  whatsapp_messages        whatsapp_messages[]
-  woocommerce_integrations woocommerce_integrations[]
-}
-
-model payments {
-  id             String        @id
-  amount         Decimal
-  currency       String        @default("LKR")
-  status         String        @default("PENDING")
-  method         String
-  organizationId String
-  orderId        String
-  transactionId  String?
-  gateway        String?
-  metadata       String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime
-  orders         orders        @relation(fields: [orderId], references: [id])
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  createdAt        DateTime        @default(now())
+  customer_loyalty CustomerLoyalty @relation(fields: [loyaltyId], references: [id])
 }
 
 model performance_metrics {
-  id             String        @id
+  id             String       @id
   organizationId String
   endpoint       String
   method         String
   responseTime   Float
-  statusCode     Int           @default(200)
+  statusCode     Int          @default(200)
   errorMessage   String?
   metadata       String?
-  createdAt      DateTime      @default(now())
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model product_activities {
@@ -471,68 +629,7 @@ model product_activities {
   description String
   metadata    String?
   createdAt   DateTime @default(now())
-  products    products @relation(fields: [productId], references: [id])
-}
-
-model product_variants {
-  id                  String                @id
-  productId           String
-  name                String
-  sku                 String                @unique
-  price               Decimal
-  cost                Decimal?
-  weight              Float?
-  dimensions          String?
-  isActive            Boolean               @default(true)
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime
-  organizationId      String
-  stock               Int                   @default(0)
-  inventory_movements inventory_movements[]
-  order_items         order_items[]
-  products            products              @relation(fields: [productId], references: [id])
-}
-
-model products {
-  id                  String                @id
-  name                String
-  description         String?
-  sku                 String                @unique
-  price               Decimal
-  cost                Decimal?
-  organizationId      String
-  categoryId          String?
-  weight              Float?
-  dimensions          String?
-  tags                String?
-  isVariant           Boolean               @default(false)
-  parentProductId     String?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime
-  isActive            Boolean               @default(true)
-  minStock            Int                   @default(0)
-  stock               Int                   @default(0)
-  inventory_movements inventory_movements[]
-  order_items         order_items[]
-  product_activities  product_activities[]
-  product_variants    product_variants[]
-  categories          categories?           @relation(fields: [categoryId], references: [id])
-  organizations       organizations         @relation(fields: [organizationId], references: [id])
-  social_products     social_products[]
-  wishlist_items      wishlist_items[]
-}
-
-model reports {
-  id             String        @id
-  name           String
-  type           String
-  organizationId String
-  createdById    String?
-  data           String?
-  schedule       String?
-  createdAt      DateTime      @default(now())
-  users          users?        @relation(fields: [createdById], references: [id])
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  products    Product  @relation(fields: [productId], references: [id])
 }
 
 model sensor_readings {
@@ -552,8 +649,8 @@ model sms_campaign_segments {
   campaignId        String
   customerSegmentId String
   createdAt         DateTime          @default(now())
-  sms_campaigns     sms_campaigns     @relation(fields: [campaignId], references: [id])
   customer_segments customer_segments @relation(fields: [customerSegmentId], references: [id])
+  sms_campaigns     sms_campaigns     @relation(fields: [campaignId], references: [id])
 }
 
 model sms_campaigns {
@@ -568,36 +665,36 @@ model sms_campaigns {
   createdAt             DateTime                @default(now())
   updatedAt             DateTime
   sms_campaign_segments sms_campaign_segments[]
-  organizations         organizations           @relation(fields: [organizationId], references: [id])
   sms_templates         sms_templates           @relation(fields: [templateId], references: [id])
+  organizations         Organization            @relation(fields: [organizationId], references: [id])
 }
 
 model sms_logs {
-  id             String        @id
+  id             String       @id
   phone          String
   message        String
-  status         String        @default("pending")
-  provider       String        @default("twilio")
+  status         String       @default("pending")
+  provider       String       @default("twilio")
   messageId      String?
   organizationId String
   sentAt         DateTime?
   deliveredAt    DateTime?
-  clicked        Boolean       @default(false)
+  clicked        Boolean      @default(false)
   clickedAt      DateTime?
-  createdAt      DateTime      @default(now())
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model sms_subscriptions {
-  id             String        @id
+  id             String       @id
   phone          String
   listId         String
   customFields   String?
-  isActive       Boolean       @default(true)
+  isActive       Boolean      @default(true)
   organizationId String
-  subscribedAt   DateTime      @default(now())
+  subscribedAt   DateTime     @default(now())
   unsubscribedAt DateTime?
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model sms_templates {
@@ -610,7 +707,7 @@ model sms_templates {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime
   sms_campaigns  sms_campaigns[]
-  organizations  organizations   @relation(fields: [organizationId], references: [id])
+  organizations  Organization    @relation(fields: [organizationId], references: [id])
 }
 
 model social_commerce {
@@ -625,7 +722,7 @@ model social_commerce {
   settings        String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime
-  organizations   organizations     @relation(fields: [organizationId], references: [id])
+  organizations   Organization      @relation(fields: [organizationId], references: [id])
   social_posts    social_posts[]
   social_products social_products[]
 }
@@ -656,23 +753,23 @@ model social_products {
   platformProductId String
   isActive          Boolean         @default(true)
   createdAt         DateTime        @default(now())
-  products          products        @relation(fields: [productId], references: [id])
+  products          Product         @relation(fields: [productId], references: [id])
   social_commerce   social_commerce @relation(fields: [socialCommerceId], references: [id])
 }
 
 model support_tickets {
-  id             String        @id
+  id             String       @id
   title          String
   description    String
-  priority       String        @default("medium")
-  status         String        @default("open")
+  priority       String       @default("medium")
+  status         String       @default("open")
   phone          String?
   email          String?
   organizationId String
   assignedTo     String?
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model tax_rates {
@@ -691,16 +788,16 @@ model tax_rates {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime
   chart_of_accounts chart_of_accounts[]
-  organizations     organizations       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizations     Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   tax_transactions  tax_transactions[]
 
   @@unique([organizationId, code])
-  @@index([isActive])
   @@index([organizationId])
+  @@index([isActive])
 }
 
 model tax_transactions {
-  id              String        @id
+  id              String       @id
   organizationId  String
   taxRateId       String
   transactionDate DateTime
@@ -712,92 +809,46 @@ model tax_transactions {
   referenceType   String?
   referenceId     String?
   description     String?
-  createdAt       DateTime      @default(now())
-  organizations   organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tax_rates       tax_rates     @relation(fields: [taxRateId], references: [id])
+  createdAt       DateTime     @default(now())
+  tax_rates       tax_rates    @relation(fields: [taxRateId], references: [id])
+  organizations   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@index([organizationId])
-  @@index([referenceType, referenceId])
-  @@index([taxRateId])
   @@index([transactionDate])
-}
-
-model users {
-  id             String         @id
-  email          String         @unique
-  name           String?
-  password       String?
-  image          String?
-  role           String         @default("USER")
-  isActive       Boolean        @default(true)
-  emailVerified  DateTime?
-  mfaEnabled     Boolean        @default(false)
-  mfaSecret      String?
-  mfaBackupCodes String?
-  deletedAt      DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime
-  organizationId String?
-  phone          String?
-  reports        reports[]
-  organizations  organizations? @relation(fields: [organizationId], references: [id])
+  @@index([taxRateId])
+  @@index([referenceType, referenceId])
+  @@index([organizationId])
 }
 
 model warehouse_inventory {
-  id               String     @id
+  id               String    @id
   warehouseId      String
   productId        String
   variantId        String?
-  quantity         Int        @default(0)
-  reservedQuantity Int        @default(0)
-  createdAt        DateTime   @default(now())
+  quantity         Int       @default(0)
+  reservedQuantity Int       @default(0)
+  createdAt        DateTime  @default(now())
   updatedAt        DateTime
-  warehouses       warehouses @relation(fields: [warehouseId], references: [id])
-}
-
-model warehouses {
-  id                  String                @id
-  name                String
-  address             String?
-  organizationId      String
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime
-  iot_devices         iot_devices[]
-  warehouse_inventory warehouse_inventory[]
-  organizations       organizations         @relation(fields: [organizationId], references: [id])
-}
-
-model whatsapp_integrations {
-  id             String        @id
-  organizationId String        @unique
-  phoneNumber    String
-  accessToken    String
-  isActive       Boolean       @default(true)
-  lastSync       DateTime?
-  syncSettings   String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  warehouses       Warehouse @relation(fields: [warehouseId], references: [id])
 }
 
 model whatsapp_messages {
-  id             String        @id
+  id             String       @id
   organizationId String
   customerId     String?
   phoneNumber    String
   message        String
-  type           String        @default("text")
+  type           String       @default("text")
   mediaUrl       String?
-  status         String        @default("PENDING")
-  direction      String        @default("OUTBOUND")
+  status         String       @default("PENDING")
+  direction      String       @default("OUTBOUND")
   externalId     String?
-  isAutoReply    Boolean       @default(false)
+  isAutoReply    Boolean      @default(false)
   receivedAt     DateTime?
   sentAt         DateTime?
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  customers      customers?    @relation(fields: [customerId], references: [id])
-  organizations  organizations @relation(fields: [organizationId], references: [id])
+  customers      Customer?    @relation(fields: [customerId], references: [id])
+  organizations  Organization @relation(fields: [organizationId], references: [id])
 }
 
 model wishlist_items {
@@ -806,7 +857,7 @@ model wishlist_items {
   productId  String
   quantity   Int       @default(1)
   createdAt  DateTime  @default(now())
-  products   products  @relation(fields: [productId], references: [id])
+  products   Product   @relation(fields: [productId], references: [id])
   wishlists  wishlists @relation(fields: [wishlistId], references: [id])
 }
 
@@ -818,48 +869,5 @@ model wishlists {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime
   wishlist_items wishlist_items[]
-  customers      customers        @relation(fields: [customerId], references: [id])
-}
-
-model woocommerce_integrations {
-  id             String        @id
-  organizationId String
-  consumerKey    String
-  consumerSecret String
-  isActive       Boolean       @default(true)
-  lastSync       DateTime?
-  syncSettings   String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime
-  storeUrl       String
-  organizations  organizations @relation(fields: [organizationId], references: [id])
-}
-
-enum AccountSubType {
-  CURRENT_ASSET
-  FIXED_ASSET
-  OTHER_ASSET
-  CURRENT_LIABILITY
-  LONG_TERM_LIABILITY
-  OWNERS_EQUITY
-  RETAINED_EARNINGS
-  OPERATING_REVENUE
-  OTHER_REVENUE
-  OPERATING_EXPENSE
-  COST_OF_GOODS_SOLD
-  OTHER_EXPENSE
-}
-
-enum AccountType {
-  ASSET
-  LIABILITY
-  EQUITY
-  REVENUE
-  EXPENSE
-}
-
-enum JournalEntryStatus {
-  DRAFT
-  POSTED
-  REVERSED
+  customers      Customer         @relation(fields: [customerId], references: [id])
 }

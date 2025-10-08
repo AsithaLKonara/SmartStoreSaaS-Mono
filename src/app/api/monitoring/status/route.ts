@@ -1,6 +1,7 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/database';
+
+export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,8 +9,8 @@ export async function GET(request: NextRequest) {
     
     // Check database connectivity
     const dbStart = Date.now();
-    const userCount = await db.users.count();
-    const orgCount = await db.organizations.count();
+    const userCount = await prisma.user.count();
+    const orgCount = await prisma.organization.count();
     const dbTime = Date.now() - dbStart;
     
     // Check memory usage

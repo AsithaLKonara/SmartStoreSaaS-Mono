@@ -1,0 +1,3657 @@
+<testsuites id="" name="" tests="88" failures="72" skipped="0" errors="0" time="513.701179">
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="2" failures="1" skipped="0" time="5.684" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="3.125">
+<failure message="00-setup.spec.ts:4:7 should verify test environment" type="FAILURE">
+<![CDATA[  [chromium] › 00-setup.spec.ts:4:7 › Test Setup and Environment › should verify test environment ──
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+       7 |     
+       8 |     // Test basic connectivity
+    >  9 |     await page.goto('/');
+         |                ^
+      10 |     const currentUrl = page.url();
+      11 |     
+      12 |     if (currentUrl.includes('smartstore-saas.vercel.app')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/00-setup.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[🚀 Starting SmartStore SaaS E2E Tests
+=====================================
+
+[[ATTACHMENT|00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:62133) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="2.559">
+<system-out>
+<![CDATA[Testing on chromium browser
+JavaScript enabled: ✅
+Viewport size: 1280x720
+User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:62134) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="5" failures="5" skipped="0" time="12.281" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="1.316">
+<failure message="01-authentication.spec.ts:4:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:4:7 › Authentication Flow › should display login page correctly 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      4 |   test('should display login page correctly', async ({ page }) => {
+      5 |     // Navigate to login page
+    > 6 |     await page.goto('/login');
+        |                ^
+      7 |     
+      8 |     // Wait for page to load completely
+      9 |     await page.waitForLoadState('networkidle', { timeout: 60000 });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:6:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="2.603">
+<failure message="01-authentication.spec.ts:23:7 should navigate to login page from home" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:23:7 › Authentication Flow › should navigate to login page from home 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      22 |
+      23 |   test('should navigate to login page from home', async ({ page }) => {
+    > 24 |     await page.goto('/');
+         |                ^
+      25 |     await page.waitForLoadState('networkidle');
+      26 |     
+      27 |     // Click on login button if present
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:24:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-8f96c-ate-to-login-page-from-home-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-8f96c-ate-to-login-page-from-home-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-8f96c-ate-to-login-page-from-home-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-8f96c-ate-to-login-page-from-home-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="1.656">
+<failure message="01-authentication.spec.ts:38:7 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:38:7 › Authentication Flow › should show error for invalid credentials 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      38 |   test('should show error for invalid credentials', async ({ page }) => {
+      39 |     // Navigate to login page
+    > 40 |     await page.goto('/login');
+         |                ^
+      41 |     await page.waitForLoadState('networkidle');
+      42 |
+      43 |     await page.fill('[data-testid="email-input"]', 'invalid@example.com');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:40:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-d94d9-ror-for-invalid-credentials-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-d94d9-ror-for-invalid-credentials-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-d94d9-ror-for-invalid-credentials-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-d94d9-ror-for-invalid-credentials-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="3.42">
+<failure message="01-authentication.spec.ts:51:7 should have working social login buttons" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:51:7 › Authentication Flow › should have working social login buttons 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      51 |   test('should have working social login buttons', async ({ page }) => {
+      52 |     // Navigate to login page
+    > 53 |     await page.goto('/login');
+         |                ^
+      54 |     await page.waitForLoadState('networkidle');
+      55 |
+      56 |     // Check Google login button
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:53:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-6d4fd-orking-social-login-buttons-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-6d4fd-orking-social-login-buttons-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-6d4fd-orking-social-login-buttons-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-6d4fd-orking-social-login-buttons-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="3.286">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [chromium] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      69 |   test('should redirect to dashboard after successful login', async ({ page }) => {
+      70 |     // With mock authentication, we should be able to access dashboard
+    > 71 |     await page.goto('/dashboard');
+         |                ^
+      72 |     
+      73 |     // Wait for the page to load
+      74 |     await page.waitForLoadState('networkidle');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:71:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="4" failures="3" skipped="0" time="7.605" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="1.486">
+<failure message="02-dashboard.spec.ts:4:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [chromium] › 02-dashboard.spec.ts:4:7 › Dashboard Functionality › should load dashboard page ─────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      4 |   test('should load dashboard page', async ({ page }) => {
+      5 |     // Navigate to dashboard
+    > 6 |     await page.goto('/dashboard');
+        |                ^
+      7 |     await page.waitForLoadState('networkidle');
+      8 |     
+      9 |     // Check if dashboard loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:6:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="1.615">
+<failure message="02-dashboard.spec.ts:20:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [chromium] › 02-dashboard.spec.ts:20:7 › Dashboard Functionality › should display navigation menu 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      19 |
+      20 |   test('should display navigation menu', async ({ page }) => {
+    > 21 |     await page.goto('/dashboard');
+         |                ^
+      22 |     await page.waitForLoadState('networkidle');
+      23 |     
+      24 |     // Check for navigation elements
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:21:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="2.787">
+<system-out>
+<![CDATA[Testing page: /dashboard
+❌ /dashboard failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+Call log:
+[2m  - navigating to "http://localhost:3001/dashboard", waiting until "load"[22m
+
+Testing page: /products
+❌ /products failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+Call log:
+[2m  - navigating to "http://localhost:3001/products", waiting until "load"[22m
+
+Testing page: /orders
+❌ /orders failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/orders
+Call log:
+[2m  - navigating to "http://localhost:3001/orders", waiting until "load"[22m
+
+Testing page: /customers
+❌ /customers failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/customers
+Call log:
+[2m  - navigating to "http://localhost:3001/customers", waiting until "load"[22m
+
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:63769) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="1.717">
+<failure message="02-dashboard.spec.ts:67:7 should have responsive design" type="FAILURE">
+<![CDATA[  [chromium] › 02-dashboard.spec.ts:67:7 › Dashboard Functionality › should have responsive design ─
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      68 |     // Test mobile viewport
+      69 |     await page.setViewportSize({ width: 375, height: 667 });
+    > 70 |     await page.goto('/dashboard');
+         |                ^
+      71 |     
+      72 |     // Check if page loads on mobile
+      73 |     await page.waitForLoadState('networkidle');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:70:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="6" failures="6" skipped="0" time="11.873" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="1.532">
+<failure message="03-crud-operations.spec.ts:12:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:12:7 › CRUD Operations › should test products page functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+    Call log:
+      - navigating to "http://localhost:3001/products", waiting until "load"
+
+
+      11 |
+      12 |   test('should test products page functionality', async ({ page }) => {
+    > 13 |     await page.goto('/products');
+         |                ^
+      14 |     
+      15 |     // Check if products page loads
+      16 |     const currentUrl = page.url();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:13:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@27'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@27'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891426803[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="1.413">
+<failure message="03-crud-operations.spec.ts:41:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:41:7 › CRUD Operations › should test orders page functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/orders
+    Call log:
+      - navigating to "http://localhost:3001/orders", waiting until "load"
+
+
+      40 |
+      41 |   test('should test orders page functionality', async ({ page }) => {
+    > 42 |     await page.goto('/orders');
+         |                ^
+      43 |     
+      44 |     const currentUrl = page.url();
+      45 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:42:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891437564[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:64157) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="1.348">
+<failure message="03-crud-operations.spec.ts:62:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:62:7 › CRUD Operations › should test customers page functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/customers
+    Call log:
+      - navigating to "http://localhost:3001/customers", waiting until "load"
+
+
+      61 |
+      62 |   test('should test customers page functionality', async ({ page }) => {
+    > 63 |     await page.goto('/customers');
+         |                ^
+      64 |     
+      65 |     const currentUrl = page.url();
+      66 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:63:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891440527[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:64315) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="3.32">
+<failure message="03-crud-operations.spec.ts:83:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:83:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/accounting
+    Call log:
+      - navigating to "http://localhost:3001/accounting", waiting until "load"
+
+
+      82 |
+      83 |   test('should test accounting module functionality', async ({ page }) => {
+    > 84 |     await page.goto('/accounting');
+         |                ^
+      85 |     
+      86 |     const currentUrl = page.url();
+      87 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:84:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891448316[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:64481) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="2.652">
+<failure message="03-crud-operations.spec.ts:119:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:119:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/procurement
+    Call log:
+      - navigating to "http://localhost:3001/procurement", waiting until "load"
+
+
+      118 |
+      119 |   test('should test procurement module functionality', async ({ page }) => {
+    > 120 |     await page.goto('/procurement');
+          |                ^
+      121 |     
+      122 |     const currentUrl = page.url();
+      123 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:120:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891448391[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:64490) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="1.608">
+<failure message="03-crud-operations.spec.ts:154:7 should test form interactions" type="FAILURE">
+<![CDATA[  [chromium] › 03-crud-operations.spec.ts:154:7 › CRUD Operations › should test form interactions ──
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+    Call log:
+      - navigating to "http://localhost:3001/products", waiting until "load"
+
+
+      164 |     for (const formPage of formPages) {
+      165 |       console.log(`Testing forms on ${formPage}...`);
+    > 166 |       await page.goto(formPage, { timeout: 10000 });
+          |                  ^
+      167 |       
+      168 |       const currentUrl = page.url();
+      169 |       if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:166:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891458695[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+Testing forms on /products...
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:64800) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="4" failures="0" skipped="0" time="19.012" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="9.355">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:65094) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="6.262">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:65344) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="3.226">
+<system-out>
+<![CDATA[/api/health: 200 (438ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (1309ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (594ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (850ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.169">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="7" failures="7" skipped="0" time="14.539" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="1.507">
+<failure message="05-ui-components.spec.ts:9:7 should test responsive navigation" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:9:7 › UI Components › should test responsive navigation ────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="1.849">
+<failure message="05-ui-components.spec.ts:44:7 should test theme toggle functionality" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:44:7 › UI Components › should test theme toggle functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-b4963--theme-toggle-functionality-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-b4963--theme-toggle-functionality-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-b4963--theme-toggle-functionality-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-b4963--theme-toggle-functionality-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="2.864">
+<failure message="05-ui-components.spec.ts:78:7 should test form validation" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:78:7 › UI Components › should test form validation ─────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-form-validation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-form-validation-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-form-validation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-form-validation-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="1.717">
+<failure message="05-ui-components.spec.ts:101:7 should test loading states" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:101:7 › UI Components › should test loading states ─────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-loading-states-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-loading-states-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-loading-states-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-loading-states-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="2.315">
+<failure message="05-ui-components.spec.ts:118:7 should test error boundaries" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:118:7 › UI Components › should test error boundaries ───────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-error-boundaries-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-error-boundaries-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-error-boundaries-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-error-boundaries-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="2.134">
+<failure message="05-ui-components.spec.ts:134:7 should test accessibility features" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:134:7 › UI Components › should test accessibility features ─
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-61407-test-accessibility-features-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-61407-test-accessibility-features-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-61407-test-accessibility-features-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-61407-test-accessibility-features-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="2.153">
+<failure message="05-ui-components.spec.ts:179:7 should test keyboard navigation" type="FAILURE">
+<![CDATA[  [chromium] › 05-ui-components.spec.ts:179:7 › UI Components › should test keyboard navigation ────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="6" failures="4" skipped="0" time="16.517" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="2.754">
+<system-out>
+<![CDATA[Testing performance for Home...
+⚠️ Home failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+Call log:
+[2m  - navigating to "http://localhost:3001/", waiting until "load"[22m
+
+Testing performance for Login...
+⚠️ Login failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+Testing performance for Products...
+⚠️ Products failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+Call log:
+[2m  - navigating to "http://localhost:3001/products", waiting until "load"[22m
+
+Testing performance for Orders...
+⚠️ Orders failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/orders
+Call log:
+[2m  - navigating to "http://localhost:3001/orders", waiting until "load"[22m
+
+Testing performance for Customers...
+⚠️ Customers failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/customers
+Call log:
+[2m  - navigating to "http://localhost:3001/customers", waiting until "load"[22m
+
+Testing performance for Analytics...
+⚠️ Analytics failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/analytics
+Call log:
+[2m  - navigating to "http://localhost:3001/analytics", waiting until "load"[22m
+
+Testing performance for Accounting...
+⚠️ Accounting failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/accounting
+Call log:
+[2m  - navigating to "http://localhost:3001/accounting", waiting until "load"[22m
+
+Testing performance for Procurement...
+⚠️ Procurement failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/procurement
+Call log:
+[2m  - navigating to "http://localhost:3001/procurement", waiting until "load"[22m
+
+Testing performance for Monitoring...
+⚠️ Monitoring failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/monitoring
+Call log:
+[2m  - navigating to "http://localhost:3001/monitoring", waiting until "load"[22m
+
+Testing performance for Documentation...
+⚠️ Documentation failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/docs
+Call log:
+[2m  - navigating to "http://localhost:3001/docs", waiting until "load"[22m
+
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:66736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="2.41">
+<failure message="06-performance.spec.ts:43:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [chromium] › 06-performance.spec.ts:43:7 › Performance Tests › should test Core Web Vitals ───────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      42 |
+      43 |   test('should test Core Web Vitals', async ({ page }) => {
+    > 44 |     await page.goto('/');
+         |                ^
+      45 |     await page.waitForLoadState('networkidle');
+      46 |     
+      47 |     // Simplified performance measurement
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:44:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="2.149">
+<failure message="06-performance.spec.ts:65:7 should test memory usage" type="FAILURE">
+<![CDATA[  [chromium] › 06-performance.spec.ts:65:7 › Performance Tests › should test memory usage ──────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      64 |
+      65 |   test('should test memory usage', async ({ page }) => {
+    > 66 |     await page.goto('/');
+         |                ^
+      67 |     
+      68 |     // Get memory usage
+      69 |     const memoryInfo = await page.evaluate(() => {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:66:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-memory-usage-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-memory-usage-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-memory-usage-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-memory-usage-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="2.542">
+<failure message="06-performance.spec.ts:97:7 should test network requests" type="FAILURE">
+<![CDATA[  [chromium] › 06-performance.spec.ts:97:7 › Performance Tests › should test network requests ──────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      102 |     });
+      103 |     
+    > 104 |     await page.goto('/');
+          |                ^
+      105 |     await page.waitForLoadState('networkidle');
+      106 |     
+      107 |     console.log(`Total network requests: ${requests.length}`);
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:104:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-f7bbc-hould-test-network-requests-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-f7bbc-hould-test-network-requests-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-f7bbc-hould-test-network-requests-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-f7bbc-hould-test-network-requests-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="2.778">
+<failure message="06-performance.spec.ts:125:7 should test mobile performance" type="FAILURE">
+<![CDATA[  [chromium] › 06-performance.spec.ts:125:7 › Performance Tests › should test mobile performance ───
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      128 |     
+      129 |     const startTime = Date.now();
+    > 130 |     await page.goto('/');
+          |                ^
+      131 |     await page.waitForLoadState('networkidle');
+      132 |     const endTime = Date.now();
+      133 |     
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:130:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-ce12a-uld-test-mobile-performance-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-ce12a-uld-test-mobile-performance-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-ce12a-uld-test-mobile-performance-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-ce12a-uld-test-mobile-performance-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="3.884">
+<system-out>
+<![CDATA[❌ /api/health failed to respond
+❌ /api/db-check failed to respond
+❌ /api/auth/providers failed to respond
+❌ /api/monitoring/status failed to respond
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:67509) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="07-simple-tests.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="5" failures="5" skipped="0" time="8.965" errors="0">
+<testcase name="Simple Tests (No Authentication) › should load login page" classname="07-simple-tests.spec.ts" time="2.248">
+<failure message="07-simple-tests.spec.ts:4:7 should load login page" type="FAILURE">
+<![CDATA[  [chromium] › 07-simple-tests.spec.ts:4:7 › Simple Tests (No Authentication) › should load login page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      3 | test.describe('Simple Tests (No Authentication)', () => {
+      4 |   test('should load login page', async ({ page }) => {
+    > 5 |     await page.goto('/login');
+        |                ^
+      6 |     await page.waitForLoadState('networkidle');
+      7 |     
+      8 |     // Check if login page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:5:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should load home page" classname="07-simple-tests.spec.ts" time="1.264">
+<failure message="07-simple-tests.spec.ts:17:7 should load home page" type="FAILURE">
+<![CDATA[  [chromium] › 07-simple-tests.spec.ts:17:7 › Simple Tests (No Authentication) › should load home page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      16 |
+      17 |   test('should load home page', async ({ page }) => {
+    > 18 |     await page.goto('/');
+         |                ^
+      19 |     await page.waitForLoadState('networkidle');
+      20 |     
+      21 |     // Check if home page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:18:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should test login form interaction" classname="07-simple-tests.spec.ts" time="1.566">
+<failure message="07-simple-tests.spec.ts:29:7 should test login form interaction" type="FAILURE">
+<![CDATA[  [chromium] › 07-simple-tests.spec.ts:29:7 › Simple Tests (No Authentication) › should test login form interaction 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      28 |
+      29 |   test('should test login form interaction', async ({ page }) => {
+    > 30 |     await page.goto('/login');
+         |                ^
+      31 |     await page.waitForLoadState('networkidle');
+      32 |     
+      33 |     // Test form interaction
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:30:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should test page navigation" classname="07-simple-tests.spec.ts" time="1.886">
+<failure message="07-simple-tests.spec.ts:45:7 should test page navigation" type="FAILURE">
+<![CDATA[  [chromium] › 07-simple-tests.spec.ts:45:7 › Simple Tests (No Authentication) › should test page navigation 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      45 |   test('should test page navigation', async ({ page }) => {
+      46 |     // Test navigation between pages
+    > 47 |     await page.goto('/');
+         |                ^
+      48 |     await page.waitForLoadState('networkidle');
+      49 |     
+      50 |     await page.goto('/login');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:47:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should test responsive design" classname="07-simple-tests.spec.ts" time="2.001">
+<failure message="07-simple-tests.spec.ts:60:7 should test responsive design" type="FAILURE">
+<![CDATA[  [chromium] › 07-simple-tests.spec.ts:60:7 › Simple Tests (No Authentication) › should test responsive design 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      61 |     // Test desktop view
+      62 |     await page.setViewportSize({ width: 1920, height: 1080 });
+    > 63 |     await page.goto('/login');
+         |                ^
+      64 |     await page.waitForLoadState('networkidle');
+      65 |     
+      66 |     await expect(page.locator('[data-testid="login-page"]')).toBeVisible();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:63:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-d8e64-ould-test-responsive-design-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-d8e64-ould-test-responsive-design-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-d8e64-ould-test-responsive-design-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-d8e64-ould-test-responsive-design-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="08-simple-dashboard.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="chromium" tests="5" failures="5" skipped="0" time="53.939" errors="0">
+<testcase name="Simple Dashboard Tests › should load login page" classname="08-simple-dashboard.spec.ts" time="2.132">
+<failure message="08-simple-dashboard.spec.ts:4:7 should load login page" type="FAILURE">
+<![CDATA[  [chromium] › 08-simple-dashboard.spec.ts:4:7 › Simple Dashboard Tests › should load login page ───
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      3 | test.describe('Simple Dashboard Tests', () => {
+      4 |   test('should load login page', async ({ page }) => {
+    > 5 |     await page.goto('/login');
+        |                ^
+      6 |     await page.waitForLoadState('networkidle');
+      7 |     
+      8 |     // Check if login page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:5:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-1926c-ests-should-load-login-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-1926c-ests-should-load-login-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-simple-dashboard-Simple-1926c-ests-should-load-login-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-1926c-ests-should-load-login-page-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Dashboard Tests › should load home page" classname="08-simple-dashboard.spec.ts" time="2.01">
+<failure message="08-simple-dashboard.spec.ts:32:7 should load home page" type="FAILURE">
+<![CDATA[  [chromium] › 08-simple-dashboard.spec.ts:32:7 › Simple Dashboard Tests › should load home page ───
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      31 |
+      32 |   test('should load home page', async ({ page }) => {
+    > 33 |     await page.goto('/');
+         |                ^
+      34 |     await page.waitForLoadState('networkidle');
+      35 |     
+      36 |     // Check if home page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:33:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Dashboard Tests › should test API endpoints" classname="08-simple-dashboard.spec.ts" time="46.994">
+<failure message="08-simple-dashboard.spec.ts:45:7 should test API endpoints" type="FAILURE">
+<![CDATA[  [chromium] › 08-simple-dashboard.spec.ts:45:7 › Simple Dashboard Tests › should test API endpoints 
+
+    Test timeout of 30000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing /api/health...
+❌ /api/health failed: apiRequestContext.get: Target page, context or browser has been closed
+Call log:
+[2m  - → GET http://localhost:3000/api/health[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.186 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+Testing /api/monitoring/status...
+❌ /api/monitoring/status failed: apiRequestContext.get: Test timeout of 30000ms exceeded.
+
+[[ATTACHMENT|08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:68990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Simple Dashboard Tests › should test page structure" classname="08-simple-dashboard.spec.ts" time="1.724">
+<failure message="08-simple-dashboard.spec.ts:65:7 should test page structure" type="FAILURE">
+<![CDATA[  [chromium] › 08-simple-dashboard.spec.ts:65:7 › Simple Dashboard Tests › should test page structure 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      72 |       console.log(`Testing ${pageInfo.name} page structure...`);
+      73 |       
+    > 74 |       await page.goto(pageInfo.path);
+         |                  ^
+      75 |       await page.waitForLoadState('networkidle');
+      76 |       
+      77 |       // Check for basic HTML structure
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:74:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-5f1d1--should-test-page-structure-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-5f1d1--should-test-page-structure-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing Home page structure...
+
+[[ATTACHMENT|08-simple-dashboard-Simple-5f1d1--should-test-page-structure-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-5f1d1--should-test-page-structure-chromium/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:69286) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Simple Dashboard Tests › should test responsive design" classname="08-simple-dashboard.spec.ts" time="1.079">
+<failure message="08-simple-dashboard.spec.ts:88:7 should test responsive design" type="FAILURE">
+<![CDATA[  [chromium] › 08-simple-dashboard.spec.ts:88:7 › Simple Dashboard Tests › should test responsive design 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      89 |     // Test mobile viewport
+      90 |     await page.setViewportSize({ width: 375, height: 667 });
+    > 91 |     await page.goto('/');
+         |                ^
+      92 |     
+      93 |     // Check if page loads on mobile
+      94 |     await page.waitForLoadState('networkidle');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:91:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-d3999-ould-test-responsive-design-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-d3999-ould-test-responsive-design-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-simple-dashboard-Simple-d3999-ould-test-responsive-design-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-d3999-ould-test-responsive-design-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="00-setup.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="2" failures="1" skipped="0" time="3.109" errors="0">
+<testcase name="Test Setup and Environment › should verify test environment" classname="00-setup.spec.ts" time="1.857">
+<failure message="00-setup.spec.ts:4:7 should verify test environment" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 00-setup.spec.ts:4:7 › Test Setup and Environment › should verify test environment 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+       7 |     
+       8 |     // Test basic connectivity
+    >  9 |     await page.goto('/');
+         |                ^
+      10 |     const currentUrl = page.url();
+      11 |     
+      12 |     if (currentUrl.includes('smartstore-saas.vercel.app')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/00-setup.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[🚀 Starting SmartStore SaaS E2E Tests
+=====================================
+
+[[ATTACHMENT|00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|00-setup-Test-Setup-and-En-cc614-uld-verify-test-environment-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:69627) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Setup and Environment › should check browser capabilities" classname="00-setup.spec.ts" time="1.252">
+<system-out>
+<![CDATA[Testing on chromium browser
+JavaScript enabled: ✅
+Viewport size: 393x727
+User agent: Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebK...
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:69958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="01-authentication.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="5" failures="5" skipped="0" time="9.398" errors="0">
+<testcase name="Authentication Flow › should display login page correctly" classname="01-authentication.spec.ts" time="0.948">
+<failure message="01-authentication.spec.ts:4:7 should display login page correctly" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:4:7 › Authentication Flow › should display login page correctly 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      4 |   test('should display login page correctly', async ({ page }) => {
+      5 |     // Navigate to login page
+    > 6 |     await page.goto('/login');
+        |                ^
+      7 |     
+      8 |     // Wait for page to load completely
+      9 |     await page.waitForLoadState('networkidle', { timeout: 60000 });
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:6:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-698e2-isplay-login-page-correctly-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should navigate to login page from home" classname="01-authentication.spec.ts" time="1.795">
+<failure message="01-authentication.spec.ts:23:7 should navigate to login page from home" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:23:7 › Authentication Flow › should navigate to login page from home 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      22 |
+      23 |   test('should navigate to login page from home', async ({ page }) => {
+    > 24 |     await page.goto('/');
+         |                ^
+      25 |     await page.waitForLoadState('networkidle');
+      26 |     
+      27 |     // Click on login button if present
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:24:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-8f96c-ate-to-login-page-from-home-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-8f96c-ate-to-login-page-from-home-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-8f96c-ate-to-login-page-from-home-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-8f96c-ate-to-login-page-from-home-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should show error for invalid credentials" classname="01-authentication.spec.ts" time="1.522">
+<failure message="01-authentication.spec.ts:38:7 should show error for invalid credentials" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:38:7 › Authentication Flow › should show error for invalid credentials 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      38 |   test('should show error for invalid credentials', async ({ page }) => {
+      39 |     // Navigate to login page
+    > 40 |     await page.goto('/login');
+         |                ^
+      41 |     await page.waitForLoadState('networkidle');
+      42 |
+      43 |     await page.fill('[data-testid="email-input"]', 'invalid@example.com');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:40:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-d94d9-ror-for-invalid-credentials-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-d94d9-ror-for-invalid-credentials-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-d94d9-ror-for-invalid-credentials-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-d94d9-ror-for-invalid-credentials-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should have working social login buttons" classname="01-authentication.spec.ts" time="1.419">
+<failure message="01-authentication.spec.ts:51:7 should have working social login buttons" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:51:7 › Authentication Flow › should have working social login buttons 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      51 |   test('should have working social login buttons', async ({ page }) => {
+      52 |     // Navigate to login page
+    > 53 |     await page.goto('/login');
+         |                ^
+      54 |     await page.waitForLoadState('networkidle');
+      55 |
+      56 |     // Check Google login button
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:53:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-6d4fd-orking-social-login-buttons-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-6d4fd-orking-social-login-buttons-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-6d4fd-orking-social-login-buttons-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-6d4fd-orking-social-login-buttons-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Authentication Flow › should redirect to dashboard after successful login" classname="01-authentication.spec.ts" time="3.714">
+<failure message="01-authentication.spec.ts:69:7 should redirect to dashboard after successful login" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 01-authentication.spec.ts:69:7 › Authentication Flow › should redirect to dashboard after successful login 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      69 |   test('should redirect to dashboard after successful login', async ({ page }) => {
+      70 |     // With mock authentication, we should be able to access dashboard
+    > 71 |     await page.goto('/dashboard');
+         |                ^
+      72 |     
+      73 |     // Wait for the page to load
+      74 |     await page.waitForLoadState('networkidle');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/01-authentication.spec.ts:71:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|01-authentication-Authenti-05128-oard-after-successful-login-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="02-dashboard.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="4" failures="3" skipped="0" time="8.97" errors="0">
+<testcase name="Dashboard Functionality › should load dashboard page" classname="02-dashboard.spec.ts" time="3.039">
+<failure message="02-dashboard.spec.ts:4:7 should load dashboard page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 02-dashboard.spec.ts:4:7 › Dashboard Functionality › should load dashboard page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      4 |   test('should load dashboard page', async ({ page }) => {
+      5 |     // Navigate to dashboard
+    > 6 |     await page.goto('/dashboard');
+        |                ^
+      7 |     await page.waitForLoadState('networkidle');
+      8 |     
+      9 |     // Check if dashboard loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:6:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1cb37--should-load-dashboard-page-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should display navigation menu" classname="02-dashboard.spec.ts" time="1.817">
+<failure message="02-dashboard.spec.ts:20:7 should display navigation menu" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 02-dashboard.spec.ts:20:7 › Dashboard Functionality › should display navigation menu 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      19 |
+      20 |   test('should display navigation menu', async ({ page }) => {
+    > 21 |     await page.goto('/dashboard');
+         |                ^
+      22 |     await page.waitForLoadState('networkidle');
+      23 |     
+      24 |     // Check for navigation elements
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:21:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-26d2e-uld-display-navigation-menu-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard Functionality › should load all main pages" classname="02-dashboard.spec.ts" time="2.378">
+<system-out>
+<![CDATA[Testing page: /dashboard
+❌ /dashboard failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+Call log:
+[2m  - navigating to "http://localhost:3001/dashboard", waiting until "load"[22m
+
+Testing page: /products
+❌ /products failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+Call log:
+[2m  - navigating to "http://localhost:3001/products", waiting until "load"[22m
+
+Testing page: /orders
+❌ /orders failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/orders
+Call log:
+[2m  - navigating to "http://localhost:3001/orders", waiting until "load"[22m
+
+Testing page: /customers
+❌ /customers failed to load: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/customers
+Call log:
+[2m  - navigating to "http://localhost:3001/customers", waiting until "load"[22m
+
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:71557) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Dashboard Functionality › should have responsive design" classname="02-dashboard.spec.ts" time="1.736">
+<failure message="02-dashboard.spec.ts:67:7 should have responsive design" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 02-dashboard.spec.ts:67:7 › Dashboard Functionality › should have responsive design 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+      68 |     // Test mobile viewport
+      69 |     await page.setViewportSize({ width: 375, height: 667 });
+    > 70 |     await page.goto('/dashboard');
+         |                ^
+      71 |     
+      72 |     // Check if page loads on mobile
+      73 |     await page.waitForLoadState('networkidle');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/02-dashboard.spec.ts:70:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|02-dashboard-Dashboard-Fun-1db5e-ould-have-responsive-design-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="03-crud-operations.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="6" failures="6" skipped="0" time="11.889" errors="0">
+<testcase name="CRUD Operations › should test products page functionality" classname="03-crud-operations.spec.ts" time="2.189">
+<failure message="03-crud-operations.spec.ts:12:7 should test products page functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:12:7 › CRUD Operations › should test products page functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+    Call log:
+      - navigating to "http://localhost:3001/products", waiting until "load"
+
+
+      11 |
+      12 |   test('should test products page functionality', async ({ page }) => {
+    > 13 |     await page.goto('/products');
+         |                ^
+      14 |     
+      15 |     // Check if products page loads
+      16 |     const currentUrl = page.url();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:13:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891680555[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-eed61-products-page-functionality-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:71680) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test orders page functionality" classname="03-crud-operations.spec.ts" time="2.067">
+<failure message="03-crud-operations.spec.ts:41:7 should test orders page functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:41:7 › CRUD Operations › should test orders page functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/orders
+    Call log:
+      - navigating to "http://localhost:3001/orders", waiting until "load"
+
+
+      40 |
+      41 |   test('should test orders page functionality', async ({ page }) => {
+    > 42 |     await page.goto('/orders');
+         |                ^
+      43 |     
+      44 |     const currentUrl = page.url();
+      45 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:42:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891684070[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-b38ed-t-orders-page-functionality-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:71851) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test customers page functionality" classname="03-crud-operations.spec.ts" time="1.674">
+<failure message="03-crud-operations.spec.ts:62:7 should test customers page functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:62:7 › CRUD Operations › should test customers page functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/customers
+    Call log:
+      - navigating to "http://localhost:3001/customers", waiting until "load"
+
+
+      61 |
+      62 |   test('should test customers page functionality', async ({ page }) => {
+    > 63 |     await page.goto('/customers');
+         |                ^
+      64 |     
+      65 |     const currentUrl = page.url();
+      66 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:63:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891695920[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-ce9e2-ustomers-page-functionality-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:72228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test accounting module functionality" classname="03-crud-operations.spec.ts" time="1.597">
+<failure message="03-crud-operations.spec.ts:83:7 should test accounting module functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:83:7 › CRUD Operations › should test accounting module functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/accounting
+    Call log:
+      - navigating to "http://localhost:3001/accounting", waiting until "load"
+
+
+      82 |
+      83 |   test('should test accounting module functionality', async ({ page }) => {
+    > 84 |     await page.goto('/accounting');
+         |                ^
+      85 |     
+      86 |     const currentUrl = page.url();
+      87 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:84:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891698793[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-a2605-unting-module-functionality-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:72255) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test procurement module functionality" classname="03-crud-operations.spec.ts" time="1.986">
+<failure message="03-crud-operations.spec.ts:119:7 should test procurement module functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:119:7 › CRUD Operations › should test procurement module functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/procurement
+    Call log:
+      - navigating to "http://localhost:3001/procurement", waiting until "load"
+
+
+      118 |
+      119 |   test('should test procurement module functionality', async ({ page }) => {
+    > 120 |     await page.goto('/procurement');
+          |                ^
+      121 |     
+      122 |     const currentUrl = page.url();
+      123 |     if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:120:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891703633[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-0188b-rement-module-functionality-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:72451) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="CRUD Operations › should test form interactions" classname="03-crud-operations.spec.ts" time="2.376">
+<failure message="03-crud-operations.spec.ts:154:7 should test form interactions" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 03-crud-operations.spec.ts:154:7 › CRUD Operations › should test form interactions 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+    Call log:
+      - navigating to "http://localhost:3001/products", waiting until "load"
+
+
+      164 |     for (const formPage of formPages) {
+      165 |       console.log(`Testing forms on ${formPage}...`);
+    > 166 |       await page.goto(formPage, { timeout: 10000 });
+          |                  ^
+      167 |       
+      168 |       const currentUrl = page.url();
+      169 |       if (currentUrl.includes('/login')) {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:166:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Authentication failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+    at ensureSimpleAuth [90m(/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/simple-auth-helper.ts:12:16[90m)[39m
+    at [90m/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/[39mtests/03-crud-operations.spec.ts:6:47 {
+  name: [32m'Error'[39m,
+  [[32mSymbol(step)[39m]: {
+    location: {
+      file: [32m'/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts'[39m,
+      line: [33m12[39m,
+      column: [33m16[39m,
+      function: [32m'ensureSimpleAuth'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'Navigate to "/login"'[39m,
+    apiName: [32m'page.goto'[39m,
+    params: { url: [32m'/login'[39m, waitUntil: [32m'load'[39m, timeout: [33m30000[39m },
+    group: [90mundefined[39m,
+    stepId: [32m'pw:api@36'[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@36'[39m,
+      _title: [32m'Navigate to "/login"'[39m,
+      _parentStep: [36m[TestStepInfoImpl][39m,
+      skip: [36m[Function (anonymous)][39m
+    },
+    recoverFromStepError: [36m[AsyncFunction: recoverFromStepError][39m,
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1759891708762[39m,
+    error: {
+      message: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m,
+      stack: [32m'Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login\n'[39m +
+        [32m'Call log:\n'[39m +
+        [32m'\x1B[2m  - navigating to "http://localhost:3001/login", waiting until "load"\x1B[22m\n'[39m +
+        [32m'\n'[39m +
+        [32m'    at ensureSimpleAuth (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/simple-auth-helper.ts:12:16)\n'[39m +
+        [32m'    at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/03-crud-operations.spec.ts:6:47'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+Authentication failed, continuing with current page state
+Testing forms on /products...
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|03-crud-operations-CRUD-Op-c99c5-ould-test-form-interactions-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:72556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="04-api-endpoints.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="4" failures="0" skipped="0" time="12.259" errors="0">
+<testcase name="API Endpoints › should test public API endpoints" classname="04-api-endpoints.spec.ts" time="4.078">
+<system-out>
+<![CDATA[Testing Health Check...
+✅ Health Check: 200
+✅ Health Check returns valid JSON
+Testing DB Check...
+✅ DB Check: 200
+✅ DB Check returns valid JSON
+Testing Auth Providers...
+✅ Auth Providers: 200
+✅ Auth Providers returns valid JSON
+Testing System Status...
+✅ System Status: 200
+✅ System Status returns valid JSON
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:72885) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test protected API endpoints (should return 401)" classname="04-api-endpoints.spec.ts" time="5.36">
+<system-out>
+<![CDATA[Testing Products GET...
+✅ Products GET: Correctly returns 401 (Unauthorized)
+Testing Products POST...
+✅ Products POST: Correctly returns 401 (Unauthorized)
+Testing Orders GET...
+✅ Orders GET: Correctly returns 401 (Unauthorized)
+Testing Orders POST...
+✅ Orders POST: Correctly returns 401 (Unauthorized)
+Testing Customers GET...
+✅ Customers GET: Correctly returns 401 (Unauthorized)
+Testing Customers POST...
+✅ Customers POST: Correctly returns 401 (Unauthorized)
+Testing Accounts GET...
+✅ Accounts GET: Correctly returns 401 (Unauthorized)
+Testing Accounts POST...
+✅ Accounts POST: Correctly returns 401 (Unauthorized)
+Testing Suppliers GET...
+✅ Suppliers GET: Correctly returns 401 (Unauthorized)
+Testing Suppliers POST...
+✅ Suppliers POST: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders GET...
+✅ Purchase Orders GET: Correctly returns 401 (Unauthorized)
+Testing Purchase Orders POST...
+✅ Purchase Orders POST: Correctly returns 401 (Unauthorized)
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:72923) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="API Endpoints › should test API response times" classname="04-api-endpoints.spec.ts" time="2.64">
+<system-out>
+<![CDATA[/api/health: 200 (368ms)
+✅ /api/health response time is acceptable
+/api/db-check: 200 (1044ms)
+✅ /api/db-check response time is acceptable
+/api/auth/providers: 200 (388ms)
+✅ /api/auth/providers response time is acceptable
+/api/monitoring/status: 200 (795ms)
+✅ /api/monitoring/status response time is acceptable
+]]>
+</system-out>
+</testcase>
+<testcase name="API Endpoints › should test API error handling" classname="04-api-endpoints.spec.ts" time="0.181">
+<system-out>
+<![CDATA[✅ Non-existent endpoint correctly returns 404
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="05-ui-components.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="7" failures="7" skipped="0" time="16.256" errors="0">
+<testcase name="UI Components › should test responsive navigation" classname="05-ui-components.spec.ts" time="2.041">
+<failure message="05-ui-components.spec.ts:9:7 should test responsive navigation" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:9:7 › UI Components › should test responsive navigation 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-ad4ce--test-responsive-navigation-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test theme toggle functionality" classname="05-ui-components.spec.ts" time="2.212">
+<failure message="05-ui-components.spec.ts:44:7 should test theme toggle functionality" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:44:7 › UI Components › should test theme toggle functionality 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-b4963--theme-toggle-functionality-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-b4963--theme-toggle-functionality-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-b4963--theme-toggle-functionality-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-b4963--theme-toggle-functionality-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test form validation" classname="05-ui-components.spec.ts" time="1.938">
+<failure message="05-ui-components.spec.ts:78:7 should test form validation" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:78:7 › UI Components › should test form validation ────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-form-validation-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-form-validation-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-form-validation-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-form-validation-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test loading states" classname="05-ui-components.spec.ts" time="2.319">
+<failure message="05-ui-components.spec.ts:101:7 should test loading states" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:101:7 › UI Components › should test loading states ────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-loading-states-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-loading-states-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-loading-states-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-loading-states-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test error boundaries" classname="05-ui-components.spec.ts" time="2.13">
+<failure message="05-ui-components.spec.ts:118:7 should test error boundaries" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:118:7 › UI Components › should test error boundaries ──
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-error-boundaries-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Components-should-test-error-boundaries-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-error-boundaries-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Components-should-test-error-boundaries-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test accessibility features" classname="05-ui-components.spec.ts" time="2.081">
+<failure message="05-ui-components.spec.ts:134:7 should test accessibility features" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:134:7 › UI Components › should test accessibility features 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-61407-test-accessibility-features-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-61407-test-accessibility-features-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-61407-test-accessibility-features-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-61407-test-accessibility-features-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="UI Components › should test keyboard navigation" classname="05-ui-components.spec.ts" time="3.535">
+<failure message="05-ui-components.spec.ts:179:7 should test keyboard navigation" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 05-ui-components.spec.ts:179:7 › UI Components › should test keyboard navigation 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/dashboard
+    Call log:
+      - navigating to "http://localhost:3001/dashboard", waiting until "load"
+
+
+       at auth-helper.ts:59
+
+      57 |   } else if (!currentUrl.includes('/dashboard')) {
+      58 |     // If not on dashboard, navigate there and handle auth
+    > 59 |     await page.goto('/dashboard');
+         |                ^
+      60 |     await page.waitForLoadState('networkidle');
+      61 |     
+      62 |     if (page.url().includes('/login')) {
+        at ensureAuthenticated (/Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/auth-helper.ts:59:16)
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/05-ui-components.spec.ts:6:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|05-ui-components-UI-Compon-85489-ld-test-keyboard-navigation-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="06-performance.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="6" failures="4" skipped="0" time="14.836" errors="0">
+<testcase name="Performance Tests › should test page load performance" classname="06-performance.spec.ts" time="3.134">
+<system-out>
+<![CDATA[Testing performance for Home...
+⚠️ Home failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+Call log:
+[2m  - navigating to "http://localhost:3001/", waiting until "load"[22m
+
+Testing performance for Login...
+⚠️ Login failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+Call log:
+[2m  - navigating to "http://localhost:3001/login", waiting until "load"[22m
+
+Testing performance for Products...
+⚠️ Products failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/products
+Call log:
+[2m  - navigating to "http://localhost:3001/products", waiting until "load"[22m
+
+Testing performance for Orders...
+⚠️ Orders failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/orders
+Call log:
+[2m  - navigating to "http://localhost:3001/orders", waiting until "load"[22m
+
+Testing performance for Customers...
+⚠️ Customers failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/customers
+Call log:
+[2m  - navigating to "http://localhost:3001/customers", waiting until "load"[22m
+
+Testing performance for Analytics...
+⚠️ Analytics failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/analytics
+Call log:
+[2m  - navigating to "http://localhost:3001/analytics", waiting until "load"[22m
+
+Testing performance for Accounting...
+⚠️ Accounting failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/accounting
+Call log:
+[2m  - navigating to "http://localhost:3001/accounting", waiting until "load"[22m
+
+Testing performance for Procurement...
+⚠️ Procurement failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/procurement
+Call log:
+[2m  - navigating to "http://localhost:3001/procurement", waiting until "load"[22m
+
+Testing performance for Monitoring...
+⚠️ Monitoring failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/monitoring
+Call log:
+[2m  - navigating to "http://localhost:3001/monitoring", waiting until "load"[22m
+
+Testing performance for Documentation...
+⚠️ Documentation failed to load: Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/docs
+Call log:
+[2m  - navigating to "http://localhost:3001/docs", waiting until "load"[22m
+
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:74205) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Performance Tests › should test Core Web Vitals" classname="06-performance.spec.ts" time="1.902">
+<failure message="06-performance.spec.ts:43:7 should test Core Web Vitals" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 06-performance.spec.ts:43:7 › Performance Tests › should test Core Web Vitals ──
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      42 |
+      43 |   test('should test Core Web Vitals', async ({ page }) => {
+    > 44 |     await page.goto('/');
+         |                ^
+      45 |     await page.waitForLoadState('networkidle');
+      46 |     
+      47 |     // Simplified performance measurement
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:44:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-Core-Web-Vitals-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test memory usage" classname="06-performance.spec.ts" time="2.285">
+<failure message="06-performance.spec.ts:65:7 should test memory usage" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 06-performance.spec.ts:65:7 › Performance Tests › should test memory usage ─────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      64 |
+      65 |   test('should test memory usage', async ({ page }) => {
+    > 66 |     await page.goto('/');
+         |                ^
+      67 |     
+      68 |     // Get memory usage
+      69 |     const memoryInfo = await page.evaluate(() => {
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:66:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-memory-usage-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-Tests-should-test-memory-usage-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-memory-usage-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-Tests-should-test-memory-usage-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test network requests" classname="06-performance.spec.ts" time="2.61">
+<failure message="06-performance.spec.ts:97:7 should test network requests" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 06-performance.spec.ts:97:7 › Performance Tests › should test network requests ─
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      102 |     });
+      103 |     
+    > 104 |     await page.goto('/');
+          |                ^
+      105 |     await page.waitForLoadState('networkidle');
+      106 |     
+      107 |     console.log(`Total network requests: ${requests.length}`);
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:104:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-f7bbc-hould-test-network-requests-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-f7bbc-hould-test-network-requests-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-f7bbc-hould-test-network-requests-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-f7bbc-hould-test-network-requests-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test mobile performance" classname="06-performance.spec.ts" time="2.112">
+<failure message="06-performance.spec.ts:125:7 should test mobile performance" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 06-performance.spec.ts:125:7 › Performance Tests › should test mobile performance 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      128 |     
+      129 |     const startTime = Date.now();
+    > 130 |     await page.goto('/');
+          |                ^
+      131 |     await page.waitForLoadState('networkidle');
+      132 |     const endTime = Date.now();
+      133 |     
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/06-performance.spec.ts:130:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-ce12a-uld-test-mobile-performance-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/06-performance-Performance-ce12a-uld-test-mobile-performance-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|06-performance-Performance-ce12a-uld-test-mobile-performance-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|06-performance-Performance-ce12a-uld-test-mobile-performance-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Performance Tests › should test API response times" classname="06-performance.spec.ts" time="2.793">
+<system-out>
+<![CDATA[❌ /api/health failed to respond
+❌ /api/db-check failed to respond
+❌ /api/auth/providers failed to respond
+❌ /api/monitoring/status failed to respond
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:75192) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="07-simple-tests.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="5" failures="5" skipped="0" time="17.39" errors="0">
+<testcase name="Simple Tests (No Authentication) › should load login page" classname="07-simple-tests.spec.ts" time="1.813">
+<failure message="07-simple-tests.spec.ts:4:7 should load login page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 07-simple-tests.spec.ts:4:7 › Simple Tests (No Authentication) › should load login page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      3 | test.describe('Simple Tests (No Authentication)', () => {
+      4 |   test('should load login page', async ({ page }) => {
+    > 5 |     await page.goto('/login');
+        |                ^
+      6 |     await page.waitForLoadState('networkidle');
+      7 |     
+      8 |     // Check if login page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:5:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-47d03-tion-should-load-login-page-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should load home page" classname="07-simple-tests.spec.ts" time="0.947">
+<failure message="07-simple-tests.spec.ts:17:7 should load home page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 07-simple-tests.spec.ts:17:7 › Simple Tests (No Authentication) › should load home page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      16 |
+      17 |   test('should load home page', async ({ page }) => {
+    > 18 |     await page.goto('/');
+         |                ^
+      19 |     await page.waitForLoadState('networkidle');
+      20 |     
+      21 |     // Check if home page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:18:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-79afe-ation-should-load-home-page-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should test login form interaction" classname="07-simple-tests.spec.ts" time="1.863">
+<failure message="07-simple-tests.spec.ts:29:7 should test login form interaction" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 07-simple-tests.spec.ts:29:7 › Simple Tests (No Authentication) › should test login form interaction 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      28 |
+      29 |   test('should test login form interaction', async ({ page }) => {
+    > 30 |     await page.goto('/login');
+         |                ^
+      31 |     await page.waitForLoadState('networkidle');
+      32 |     
+      33 |     // Test form interaction
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:30:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-44f9d-test-login-form-interaction-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should test page navigation" classname="07-simple-tests.spec.ts" time="3.375">
+<failure message="07-simple-tests.spec.ts:45:7 should test page navigation" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 07-simple-tests.spec.ts:45:7 › Simple Tests (No Authentication) › should test page navigation 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      45 |   test('should test page navigation', async ({ page }) => {
+      46 |     // Test navigation between pages
+    > 47 |     await page.goto('/');
+         |                ^
+      48 |     await page.waitForLoadState('networkidle');
+      49 |     
+      50 |     await page.goto('/login');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:47:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|07-simple-tests-Simple-Tes-7a04c-should-test-page-navigation-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Tests (No Authentication) › should test responsive design" classname="07-simple-tests.spec.ts" time="9.392">
+<failure message="07-simple-tests.spec.ts:60:7 should test responsive design" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 07-simple-tests.spec.ts:60:7 › Simple Tests (No Authentication) › should test responsive design 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      61 |     // Test desktop view
+      62 |     await page.setViewportSize({ width: 1920, height: 1080 });
+    > 63 |     await page.goto('/login');
+         |                ^
+      64 |     await page.waitForLoadState('networkidle');
+      65 |     
+      66 |     await expect(page.locator('[data-testid="login-page"]')).toBeVisible();
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/07-simple-tests.spec.ts:63:16
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-simple-tests-Simple-Tes-d8e64-ould-test-responsive-design-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|07-simple-tests-Simple-Tes-d8e64-ould-test-responsive-design-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="08-simple-dashboard.spec.ts" timestamp="2025-10-08T02:42:43.578Z" hostname="Mobile Chrome" tests="5" failures="5" skipped="0" time="43.662" errors="0">
+<testcase name="Simple Dashboard Tests › should load login page" classname="08-simple-dashboard.spec.ts" time="2.176">
+<failure message="08-simple-dashboard.spec.ts:4:7 should load login page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 08-simple-dashboard.spec.ts:4:7 › Simple Dashboard Tests › should load login page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/login
+    Call log:
+      - navigating to "http://localhost:3001/login", waiting until "load"
+
+
+      3 | test.describe('Simple Dashboard Tests', () => {
+      4 |   test('should load login page', async ({ page }) => {
+    > 5 |     await page.goto('/login');
+        |                ^
+      6 |     await page.waitForLoadState('networkidle');
+      7 |     
+      8 |     // Check if login page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:5:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-1926c-ests-should-load-login-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-1926c-ests-should-load-login-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-simple-dashboard-Simple-1926c-ests-should-load-login-page-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-1926c-ests-should-load-login-page-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Dashboard Tests › should load home page" classname="08-simple-dashboard.spec.ts" time="2.339">
+<failure message="08-simple-dashboard.spec.ts:32:7 should load home page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 08-simple-dashboard.spec.ts:32:7 › Simple Dashboard Tests › should load home page 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      31 |
+      32 |   test('should load home page', async ({ page }) => {
+    > 33 |     await page.goto('/');
+         |                ^
+      34 |     await page.waitForLoadState('networkidle');
+      35 |     
+      36 |     // Check if home page loads
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:33:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-db25a-Tests-should-load-home-page-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple Dashboard Tests › should test API endpoints" classname="08-simple-dashboard.spec.ts" time="35.998">
+<failure message="08-simple-dashboard.spec.ts:45:7 should test API endpoints" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 08-simple-dashboard.spec.ts:45:7 › Simple Dashboard Tests › should test API endpoints 
+
+    Test timeout of 30000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing /api/health...
+❌ /api/health failed: apiRequestContext.get: Target page, context or browser has been closed
+Call log:
+[2m  - → GET http://localhost:3000/api/health[22m
+[2m    - user-agent: Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.186 Mobile Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+Testing /api/monitoring/status...
+❌ /api/monitoring/status failed: apiRequestContext.get: Test timeout of 30000ms exceeded.
+
+[[ATTACHMENT|08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-4bcac-s-should-test-API-endpoints-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:76591) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Simple Dashboard Tests › should test page structure" classname="08-simple-dashboard.spec.ts" time="1.456">
+<failure message="08-simple-dashboard.spec.ts:65:7 should test page structure" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 08-simple-dashboard.spec.ts:65:7 › Simple Dashboard Tests › should test page structure 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      72 |       console.log(`Testing ${pageInfo.name} page structure...`);
+      73 |       
+    > 74 |       await page.goto(pageInfo.path);
+         |                  ^
+      75 |       await page.waitForLoadState('networkidle');
+      76 |       
+      77 |       // Check for basic HTML structure
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:74:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-5f1d1--should-test-page-structure-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-5f1d1--should-test-page-structure-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Testing Home page structure...
+
+[[ATTACHMENT|08-simple-dashboard-Simple-5f1d1--should-test-page-structure-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-5f1d1--should-test-page-structure-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[(node:77052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+]]>
+</system-err>
+</testcase>
+<testcase name="Simple Dashboard Tests › should test responsive design" classname="08-simple-dashboard.spec.ts" time="1.693">
+<failure message="08-simple-dashboard.spec.ts:88:7 should test responsive design" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 08-simple-dashboard.spec.ts:88:7 › Simple Dashboard Tests › should test responsive design 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3001/
+    Call log:
+      - navigating to "http://localhost:3001/", waiting until "load"
+
+
+      89 |     // Test mobile viewport
+      90 |     await page.setViewportSize({ width: 375, height: 667 });
+    > 91 |     await page.goto('/');
+         |                ^
+      92 |     
+      93 |     // Check if page loads on mobile
+      94 |     await page.waitForLoadState('networkidle');
+        at /Users/asithalakmal/Documents/web/untitled folder/SmartStoreSaaS-Mono/tests/08-simple-dashboard.spec.ts:91:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-d3999-ould-test-responsive-design-Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/08-simple-dashboard-Simple-d3999-ould-test-responsive-design-Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|08-simple-dashboard-Simple-d3999-ould-test-responsive-design-Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|08-simple-dashboard-Simple-d3999-ould-test-responsive-design-Mobile-Chrome/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

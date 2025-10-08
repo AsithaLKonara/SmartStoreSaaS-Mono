@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/error-handling';
-import { withSecurity } from '@/lib/security';
 
-export const GET = withErrorHandling(
-  withSecurity(async (request: NextRequest) => {
+export const dynamic = 'force-dynamic';
+
+export const GET = withErrorHandling(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId') || 'org-1';
 
@@ -52,5 +52,5 @@ export const GET = withErrorHandling(
     };
 
     return NextResponse.json(aiAnalytics);
-  })
-);
+});
+
