@@ -274,7 +274,7 @@ export default function ProductsPage() {
           {
             key: 'price',
             label: 'Price',
-            render: (value) => `$${value.toFixed(2)}`
+            render: (value) => `LKR ${value.toFixed(2)}`
           },
           {
             key: 'isActive',

@@ -103,7 +103,7 @@ export default function CustomersPage() {
       customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.phone.includes(searchTerm);
     
-    const matchesTag = !tagFilter || customer.tags.includes(tagFilter);
+    const matchesTag = !tagFilter || (customer.tags && customer.tags.includes(tagFilter));
     
     let matchesSpending = true;
     if (spendingFilter) {
@@ -132,7 +132,7 @@ export default function CustomersPage() {
       customer.totalSpent,
       customer.orderCount,
       customer.lastOrderDate ? formatDate(customer.lastOrderDate) : 'Never',
-      customer.tags.join(', ')
+      customer.tags && customer.tags.length > 0 ? customer.tags.join(', ') : ''
     ]);
 
     const csvContent = [headers, ...csvData]
@@ -167,7 +167,9 @@ export default function CustomersPage() {
   const getAllTags = () => {
     const tags = new Set<string>();
     customers.forEach(customer => {
-      customer.tags.forEach(tag => tags.add(tag));
+      if (customer.tags && Array.isArray(customer.tags)) {
+        customer.tags.forEach(tag => tags.add(tag));
+      }
     });
     return Array.from(tags);
   };
@@ -411,7 +413,7 @@ export default function CustomersPage() {
             </div>
 
             {/* Tags */}
-            {customer.tags.length > 0 && (
+            {customer.tags && customer.tags.length > 0 && (
               <div className="mb-4">
                 <div className="flex flex-wrap gap-1">
                   {customer.tags.map(tag => (

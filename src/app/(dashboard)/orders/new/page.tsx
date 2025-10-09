@@ -84,10 +84,11 @@ export default function NewOrderPage() {
       const response = await fetch('/api/customers');
       if (response.ok) {
         const data = await response.json();
-        setCustomers(data.customers);
+        setCustomers(data.customers || data.data || []);
       }
     } catch (error) {
       console.error('Error fetching customers:', error);
+      toast.error('Failed to load customers');
     }
   };
 
@@ -96,10 +97,11 @@ export default function NewOrderPage() {
       const response = await fetch('/api/products');
       if (response.ok) {
         const data = await response.json();
-        setProducts(data.products);
+        setProducts(data.products || data.data || []);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
+      toast.error('Failed to load products');
     }
   };
 
@@ -205,10 +207,10 @@ export default function NewOrderPage() {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = Array.isArray(products) ? products.filter(product =>
+    product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
   if (status === 'loading') {
     return (
@@ -256,10 +258,10 @@ export default function NewOrderPage() {
               </div>
 
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {customers.filter(customer => 
-                  customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  customer.phone.includes(searchTerm)
+                {Array.isArray(customers) && customers.filter(customer => 
+                  customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  customer.phone?.includes(searchTerm)
                 ).map((customer) => (
                   <div
                     key={customer.id}
@@ -308,7 +310,7 @@ export default function NewOrderPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-              {filteredProducts.map((product) => (
+              {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                 <div
                   key={product.id}
                   className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 transition-colors"

@@ -145,15 +145,15 @@ export default function DashboardLayout({
           </nav>
           
           {/* User info at bottom */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="text-sm text-gray-300">
+          <div className="absolute bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
+            <div className="text-sm text-gray-300 truncate">
               Welcome, {session.user?.name || session.user?.email}
             </div>
             <button
               onClick={() => {
                 window.location.href = '/api/auth/signout';
               }}
-              className="text-sm text-gray-400 hover:text-white mt-2"
+              className="text-sm text-gray-400 hover:text-white mt-2 w-full text-left"
               data-testid="logout-button"
             >
               Sign Out

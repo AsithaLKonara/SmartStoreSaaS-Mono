@@ -28,8 +28,8 @@ export function formatDateTime(date: string | Date): string {
 }
 
 // Currency formatting utilities
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatCurrency(amount: number, currency: string = 'LKR'): string {
+  return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency,
   }).format(amount);
