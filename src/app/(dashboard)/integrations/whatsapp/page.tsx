@@ -19,11 +19,19 @@ export default function WhatsAppIntegrationPage() {
   const handleConnect = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsConnected(true);
+      // Call real API to verify WhatsApp connection
+      const response = await fetch('/api/integrations/whatsapp/verify');
+      const data = await response.json();
+      
+      if (data.success && data.connected) {
+        setIsConnected(true);
+      } else {
+        console.error('WhatsApp connection failed:', data.error);
+        alert('Failed to connect WhatsApp. Please check your credentials.');
+      }
     } catch (error) {
       console.error('Failed to connect WhatsApp:', error);
+      alert('Failed to connect WhatsApp. Please check your configuration.');
     } finally {
       setIsLoading(false);
     }

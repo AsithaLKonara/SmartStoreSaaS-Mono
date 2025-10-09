@@ -1,85 +1,143 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import {
+  createReturnRequest,
+  approveReturnRequest,
+  rejectReturnRequest,
+  markReturnReceived,
+  processRefund,
+  getReturnRequests,
+} from '@/lib/returns/manager';
 
-// GET - List return requests
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+// Get returns
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+    const { searchParams } = new URL(request.url);
+    const organizationId = searchParams.get('organizationId');
+    const customerId = searchParams.get('customerId');
+    const status = searchParams.get('status');
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50;
 
-    const returns = await db.returnRequest.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        customer: true,
-        order: true,
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-      orderBy: { requestedAt: 'desc' },
+    const returns = await getReturnRequests({
+      organizationId: organizationId || undefined,
+      customerId: customerId || undefined,
+      status: status as any,
+      limit,
     });
 
-    return NextResponse.json({ success: true, data: returns });
-  } catch (error) {
-    apiLogger.error('Error fetching returns', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch returns' }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      data: returns,
+    });
+  } catch (error: any) {
+    console.error('Get returns error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch returns' },
+      { status: 500 }
+    );
   }
 }
 
-// POST - Create return request
+// Create return request
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const body = await request.json();
+    const { orderId, items, notes, refundMethod } = body;
+
+    if (!orderId || !items || !Array.isArray(items)) {
+      return NextResponse.json(
+        { error: 'Order ID and items are required' },
+        { status: 400 }
+      );
     }
 
-    const body = await request.json();
-    const { orderId, customerId, reason, items, refundMethod } = body;
-
-    // Generate return number
-    const count = await db.returnRequest.count({
-      where: { organizationId: session.user.organizationId },
-    });
-    const returnNumber = `RET-${new Date().getFullYear()}-${(count + 1).toString().padStart(5, '0')}`;
-
-    const returnRequest = await db.returnRequest.create({
-      data: {
-        organizationId: session.user.organizationId,
-        orderId,
-        customerId,
-        returnNumber,
-        reason,
-        refundMethod,
-        items: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.quantity,
-            refundAmount: parseFloat(item.refundAmount),
-            condition: item.condition,
-          })),
-        },
-      },
-      include: {
-        items: true,
-      },
+    const result = await createReturnRequest({
+      orderId,
+      items,
+      notes,
+      refundMethod,
     });
 
-    apiLogger.info('Return request created', { returnId: returnRequest.id, returnNumber });
-
-    return NextResponse.json({ success: true, data: returnRequest });
-  } catch (error) {
-    apiLogger.error('Error creating return request', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create return request' }, { status: 500 });
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        data: result.returnRequest,
+        message: 'Return request created successfully',
+      });
+    } else {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Create return error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Return request creation failed' },
+      { status: 500 }
+    );
   }
 }
 
+// Update return status
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { returnId, action, notes, reason } = body;
+
+    if (!returnId || !action) {
+      return NextResponse.json(
+        { error: 'Return ID and action are required' },
+        { status: 400 }
+      );
+    }
+
+    let result;
+
+    switch (action) {
+      case 'approve':
+        result = await approveReturnRequest(returnId, notes);
+        break;
+      case 'reject':
+        if (!reason) {
+          return NextResponse.json(
+            { error: 'Reason is required for rejection' },
+            { status: 400 }
+          );
+        }
+        result = await rejectReturnRequest(returnId, reason);
+        break;
+      case 'received':
+        result = await markReturnReceived(returnId);
+        break;
+      case 'refund':
+        result = await processRefund(returnId);
+        break;
+      default:
+        return NextResponse.json(
+          { error: 'Invalid action' },
+          { status: 400 }
+        );
+    }
+
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        data: result,
+        message: `Return ${action} processed successfully`,
+      });
+    } else {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Update return error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Return update failed' },
+      { status: 500 }
+    );
+  }
+}

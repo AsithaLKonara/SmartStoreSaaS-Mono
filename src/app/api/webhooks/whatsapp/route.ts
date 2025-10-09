@@ -202,3 +202,4 @@ async function handleSupportQuery(message: unknown, customer: unknown): Promise<
     'Our support team is here to help! Please provide your order number or describe your issue, and we\'ll get back to you soon.',
     message.organizationId
   );
+}

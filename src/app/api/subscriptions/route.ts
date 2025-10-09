@@ -1,77 +1,141 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import {
+  createSubscription,
+  cancelSubscription,
+  pauseSubscription,
+  resumeSubscription,
+  changeSubscriptionPlan,
+  getCustomerSubscriptions,
+} from '@/lib/subscriptions/manager';
 
-// GET - List subscriptions
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+// Get subscriptions
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const customerId = searchParams.get('customerId');
+
+    if (!customerId) {
+      return NextResponse.json(
+        { error: 'Customer ID is required' },
+        { status: 400 }
+      );
     }
 
-    const subscriptions = await db.subscription.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        customer: true,
-        invoices: {
-          orderBy: { billingDate: 'desc' },
-          take: 5,
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const subscriptions = await getCustomerSubscriptions(customerId);
 
-    return NextResponse.json({ success: true, data: subscriptions });
-  } catch (error) {
-    apiLogger.error('Error fetching subscriptions', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch subscriptions' }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      data: subscriptions,
+    });
+  } catch (error: any) {
+    console.error('Get subscriptions error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch subscriptions' },
+      { status: 500 }
+    );
   }
 }
 
-// POST - Create subscription
+// Create subscription
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { customerId, planName, planType, amount, billingInterval, paymentMethod } = body;
+    const { customerId, planId, startDate, trialEndDate } = body;
 
-    const now = new Date();
-    const nextBilling = new Date(now);
-    if (billingInterval === 'month') {
-      nextBilling.setMonth(nextBilling.getMonth() + 1);
-    } else {
-      nextBilling.setFullYear(nextBilling.getFullYear() + 1);
+    if (!customerId || !planId) {
+      return NextResponse.json(
+        { error: 'Customer ID and plan ID are required' },
+        { status: 400 }
+      );
     }
 
-    const subscription = await db.subscription.create({
-      data: {
-        organizationId: session.user.organizationId,
-        customerId,
-        planName,
-        planType,
-        amount: parseFloat(amount),
-        billingInterval,
-        paymentMethod,
-        currentPeriodStart: now,
-        currentPeriodEnd: nextBilling,
-        nextBillingDate: nextBilling,
-      },
+    const result = await createSubscription({
+      customerId,
+      planId,
+      startDate: startDate ? new Date(startDate) : undefined,
+      trialEndDate: trialEndDate ? new Date(trialEndDate) : undefined,
     });
 
-    apiLogger.info('Subscription created', { subscriptionId: subscription.id });
-
-    return NextResponse.json({ success: true, data: subscription });
-  } catch (error) {
-    apiLogger.error('Error creating subscription', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create subscription' }, { status: 500 });
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        data: result.subscription,
+        message: 'Subscription created successfully',
+      });
+    } else {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Create subscription error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Subscription creation failed' },
+      { status: 500 }
+    );
   }
 }
 
+// Update subscription
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { subscriptionId, action, newPlanId, immediately } = body;
+
+    if (!subscriptionId || !action) {
+      return NextResponse.json(
+        { error: 'Subscription ID and action are required' },
+        { status: 400 }
+      );
+    }
+
+    let result;
+
+    switch (action) {
+      case 'cancel':
+        result = await cancelSubscription(subscriptionId, immediately);
+        break;
+      case 'pause':
+        result = await pauseSubscription(subscriptionId);
+        break;
+      case 'resume':
+        result = await resumeSubscription(subscriptionId);
+        break;
+      case 'change-plan':
+        if (!newPlanId) {
+          return NextResponse.json(
+            { error: 'New plan ID is required' },
+            { status: 400 }
+          );
+        }
+        result = await changeSubscriptionPlan(subscriptionId, newPlanId);
+        break;
+      default:
+        return NextResponse.json(
+          { error: 'Invalid action' },
+          { status: 400 }
+        );
+    }
+
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        message: `Subscription ${action}ed successfully`,
+      });
+    } else {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Update subscription error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Subscription update failed' },
+      { status: 500 }
+    );
+  }
+}

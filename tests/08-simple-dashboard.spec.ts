@@ -53,7 +53,7 @@ test.describe('Simple Dashboard Tests', () => {
       console.log(`Testing ${endpoint}...`);
       
       try {
-        const response = await page.request.get(`http://localhost:3000${endpoint}`);
+        const response = await page.request.get(`http://localhost:3001${endpoint}`);
         expect(response.status()).toBeLessThan(500);
         console.log(`✅ ${endpoint} returns ${response.status()}`);
       } catch (error) {

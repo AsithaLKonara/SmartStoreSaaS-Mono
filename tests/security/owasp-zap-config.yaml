@@ -3,8 +3,8 @@
 
 # Target application
 target:
-  url: "http://localhost:3000"
-  scope: "http://localhost:3000/*"
+  url: "http://localhost:3001"
+  scope: "http://localhost:3001/*"
 
 # Scan policies
 policies:
@@ -32,7 +32,7 @@ scan_types:
 # Authentication
 authentication:
   method: "form"
-  login_url: "http://localhost:3000/auth/signin"
+  login_url: "http://localhost:3001/auth/signin"
   login_data:
     username_field: "email"
     password_field: "password"
@@ -63,10 +63,10 @@ alerts:
 
 # Exclusions (safe to ignore)
 exclusions:
-  - "http://localhost:3000/api/health"  # Health check endpoint
-  - "http://localhost:3000/api/readyz"  # Readiness check endpoint
-  - "http://localhost:3000/_next/*"     # Next.js static files
-  - "http://localhost:3000/favicon.ico" # Favicon
+  - "http://localhost:3001/api/health"  # Health check endpoint
+  - "http://localhost:3001/api/readyz"  # Readiness check endpoint
+  - "http://localhost:3001/_next/*"     # Next.js static files
+  - "http://localhost:3001/favicon.ico" # Favicon
 
 # Performance settings
 performance:

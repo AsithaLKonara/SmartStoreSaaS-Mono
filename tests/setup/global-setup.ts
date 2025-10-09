@@ -5,7 +5,7 @@ async function globalSetup(config: FullConfig) {
   const page = await browser.newPage()
 
   // Set up test environment
-  await page.goto('http://localhost:3000')
+  await page.goto('http://localhost:3001')
   
   // Wait for the app to be ready
   await page.waitForLoadState('networkidle')

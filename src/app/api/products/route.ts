@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 import { withErrorHandling } from '@/lib/error-handling';
-import { cache, cacheKeys, invalidateCache } from '@/lib/cache';
+// import { cache, cacheKeys, invalidateCache } from '@/lib/cache'; // Temporarily disabled for build
 import { withSecurity } from '@/lib/security-middleware';
 import { prisma } from '@/lib/prisma';
 import { DatabaseOptimizer } from '@/lib/database-optimization';

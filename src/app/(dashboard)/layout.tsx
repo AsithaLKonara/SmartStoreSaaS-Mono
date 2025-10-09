@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/lib/monitoring/error-tracking';
 import { RealtimeNotifications, RealtimeToastNotifications } from '@/components/RealtimeNotifications';
 import { MobileMenu } from '@/components/MobileMenu';
 
@@ -162,7 +162,7 @@ export default function DashboardLayout({
         </aside>
         
         {/* Main content */}
-        <main className="flex-1 p-4 lg:p-8 bg-gray-100 relative pt-20 lg:pt-8">
+        <main className="flex-1 p-4 lg:p-8 bg-gray-900 relative pt-20 lg:pt-8">
           {/* Real-time notifications */}
           <div className="fixed top-16 right-4 lg:absolute lg:top-4 lg:right-4 z-40">
             <RealtimeNotifications />
@@ -183,43 +183,3 @@ export default function DashboardLayout({
     </ErrorBoundary>
   );
 }
-
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-800 text-white p-4" data-testid="sidebar">
-        <h2 className="text-2xl font-bold mb-6">SmartStore</h2>
-        <nav>
-          <ul className="space-y-2">
-            <li>
-              <a href="/dashboard" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a href="/products" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                Products
-              </a>
-            </li>
-            <li>
-              <a href="/orders" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                Orders
-              </a>
-            </li>
-            <li>
-              <a href="/customers" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                Customers
-              </a>
-            </li>
-            <li>
-              <a href="/accounting" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                Accounting
-              </a>
-            </li>
-            <li>
-              <a href="/procurement" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                Procurement
-              </a>
-            </li>
-          </ul>
-        </nav>
-        

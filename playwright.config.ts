@@ -20,6 +20,9 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }],
     ['junit', { outputFile: 'test-results/results.xml' }]
   ],
+  /* Global timeout for each test */
+  timeout: 90000, // 90 seconds per test
+  
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -35,10 +38,10 @@ export default defineConfig({
     video: 'retain-on-failure',
     
     /* Global timeout for each action */
-    actionTimeout: 30000,
+    actionTimeout: 45000, // Increased to 45 seconds
     
     /* Global timeout for navigation */
-    navigationTimeout: 30000,
+    navigationTimeout: 90000, // Increased to 90 seconds for slow initial loads
   },
 
   /* Configure projects for major browsers */
@@ -110,9 +113,12 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    command: 'PORT=3001 npm run dev',
+    url: 'http://localhost:3001',
+    timeout: 180000, // 3 minutes for initial build
+    reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
 });

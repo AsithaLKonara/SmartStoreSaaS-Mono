@@ -220,3 +220,4 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 **SmartStore SaaS** - The complete e-commerce solution for modern businesses.
 
 For more information, visit [https://smartstore-saas.com](https://smartstore-saas.com)
+

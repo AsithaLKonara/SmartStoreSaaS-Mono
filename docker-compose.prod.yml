@@ -145,3 +145,4 @@ volumes:
 networks:
   smartstore-network:
     driver: bridge
+

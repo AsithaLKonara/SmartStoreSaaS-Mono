@@ -54,7 +54,7 @@ test.describe('Simple Tests (No Authentication)', () => {
     await page.waitForLoadState('networkidle');
     
     // Should be able to navigate without errors
-    expect(page.url()).toContain('localhost:3000');
+    expect(page.url()).toContain('localhost');
   });
 
   test('should test responsive design', async ({ page }) => {

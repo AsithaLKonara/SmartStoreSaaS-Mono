@@ -168,3 +168,4 @@ function mapWooCommerceStatus(wooStatus: string): string {
   };
 
   return statusMap[wooStatus] || 'pending';
+}

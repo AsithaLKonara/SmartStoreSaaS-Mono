@@ -158,16 +158,38 @@ export class EmailService {
         return { success: true, messageId: `sg_mock_${Date.now()}` };
       }
 
-      // Mock SendGrid implementation for build compatibility
-      console.log('SendGrid email would be sent:', {
+      // Import SendGrid dynamically
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+      const from = options.from || process.env.SENDGRID_FROM_EMAIL || 'noreply@smartstore.lk';
+      const fromName = process.env.SENDGRID_FROM_NAME || 'SmartStore SaaS';
+
+      // Prepare message
+      const msg = {
         to: options.to,
+        from: {
+          email: from,
+          name: fromName,
+        },
         subject: options.subject,
-        from: options.from || process.env.FROM_EMAIL || 'noreply@smartstore.lk'
-      });
+        text: options.textContent,
+        html: options.htmlContent,
+        replyTo: options.replyTo,
+        attachments: options.attachments?.map(att => ({
+          filename: att.filename,
+          content: att.content,
+          type: att.type,
+          disposition: att.disposition || 'attachment',
+        })),
+      };
+
+      // Send email
+      const response = await sgMail.send(msg);
 
       return {
         success: true,
-        messageId: `sg_mock_${Date.now()}`,
+        messageId: response[0].headers['x-message-id'] || `sg_${Date.now()}`,
       };
     } catch (error: any) {
       console.error('SendGrid email error:', error);

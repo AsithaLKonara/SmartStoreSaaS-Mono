@@ -1,7 +1,22 @@
 import { prisma } from '../prisma';
-import { WebSocket, WebSocketServer } from 'ws';
 import { EventEmitter } from 'events';
-import { Redis } from 'ioredis';
+import type { WebSocket } from 'ws';
+
+// Conditional imports for server-side only
+let WebSocketServer: any;
+let Redis: any;
+
+if (typeof window === 'undefined') {
+  try {
+    const ws = require('ws');
+    WebSocketServer = ws.WebSocketServer;
+    const ioredis = require('ioredis');
+    Redis = ioredis.Redis || ioredis.default;
+  } catch (e) {
+    // Fallback if modules not available
+    console.warn('WebSocket or Redis not available:', e);
+  }
+}
 
 export interface SyncEvent {
   id: string;

@@ -41,3 +41,4 @@ echo "🧹 Cleaning up old backups (older than $RETENTION_DAYS days)..."
 find $BACKUP_DIR -name "smartstore_backup_*.sql.gz" -mtime +$RETENTION_DAYS -delete
 
 echo "✅ Backup process completed successfully!"
+

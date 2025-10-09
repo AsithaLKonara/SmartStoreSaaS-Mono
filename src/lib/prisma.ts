@@ -10,7 +10,7 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     datasources: {
       db: {
-        url: process.env.NODE_ENV === 'development' ? 'file:./dev.db' : process.env.DATABASE_URL,
+        url: process.env.DATABASE_URL,
       },
     },
     // Fix connection pooling issues

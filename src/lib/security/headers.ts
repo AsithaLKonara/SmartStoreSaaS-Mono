@@ -240,3 +240,4 @@ export function logSecurityEvent(
     console.error('CRITICAL SECURITY EVENT:', logEntry);
   }
 }
+

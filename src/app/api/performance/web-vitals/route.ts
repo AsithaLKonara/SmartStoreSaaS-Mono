@@ -22,3 +22,4 @@ const handleWebVitals = async (request: NextRequest) => {
 };
 
 export const POST = withErrorHandling(handleWebVitals);
+

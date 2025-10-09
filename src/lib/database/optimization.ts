@@ -209,7 +209,7 @@ class DatabaseOptimizer {
       }
       
       if (segment) {
-        where.customer_segments: {
+        where.customer_segments = {
           some: {
             segment: segment,
           },
