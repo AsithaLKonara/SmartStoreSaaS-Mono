@@ -7,6 +7,7 @@ import { withSecurity } from '@/lib/security-middleware';
 import { prisma } from '@/lib/prisma';
 import { DatabaseOptimizer } from '@/lib/database-optimization';
 import { productCreateSchema, productUpdateSchema, productQuerySchema, validateRequestBody, validateQueryParams, createValidationErrorResponse } from '@/lib/validation/schemas';
+import { addTenantFilter, ensureTenantOwnership } from '@/lib/tenant/isolation';
 
 // Helper function to fetch products
 async function getProducts(request: NextRequest) {
@@ -42,10 +43,11 @@ async function getProducts(request: NextRequest) {
   const orderBy: any = {};
   orderBy[sortBy] = sortOrder;
 
-  // Fetch products using connection pool with optimized query
+  // Fetch products using connection pool with optimized query (tenant-isolated)
+  const tenantWhere = await addTenantFilter(where);
   const [products, total] = await Promise.all([
     prisma.product.findMany({
-      where,
+      where: tenantWhere,
       skip: (page - 1) * limit,
       take: limit,
       orderBy,
@@ -63,7 +65,7 @@ async function getProducts(request: NextRequest) {
         // Removed _count to improve performance
       }
     }),
-    prisma.product.count({ where })
+    prisma.product.count({ where: tenantWhere })
   ]);
 
   const totalPages = Math.ceil(total / limit);

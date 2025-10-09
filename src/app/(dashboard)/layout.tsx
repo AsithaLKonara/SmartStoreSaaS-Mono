@@ -61,39 +61,95 @@ export default function DashboardLayout({
           <h2 className="text-2xl font-bold mb-6">SmartStore</h2>
           <nav>
             <ul className="space-y-2">
+              {/* Everyone */}
               <li>
                 <a href="/dashboard" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
                   Dashboard
                 </a>
               </li>
+              
+              {/* Tenant Admin & Staff */}
+              {(session.user?.role === 'SUPER_ADMIN' || session.user?.role === 'TENANT_ADMIN' || session.user?.role === 'STAFF') && (
+                <>
+                  <li>
+                    <a href="/products" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Products
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/orders" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Orders
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/customers" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Customers
+                    </a>
+                  </li>
+                </>
+              )}
+              
+              {/* Tenant Admin Only */}
+              {(session.user?.role === 'SUPER_ADMIN' || session.user?.role === 'TENANT_ADMIN') && (
+                <>
+                  <li>
+                    <a href="/accounting" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Accounting
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/procurement" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Procurement
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/analytics" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Analytics
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/inventory" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Inventory
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/shipping" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Shipping
+                    </a>
+                  </li>
+                </>
+              )}
+              
+              {/* Super Admin Only */}
+              {session.user?.role === 'SUPER_ADMIN' && (
+                <>
+                  <li>
+                    <a href="/tenants" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Organizations
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/admin/billing" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Billing
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/audit" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Audit Logs
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/backup" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                      Backup & Recovery
+                    </a>
+                  </li>
+                </>
+              )}
+              
+              {/* Shared */}
               <li>
-                <a href="/products" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Products
-                </a>
-              </li>
-              <li>
-                <a href="/orders" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Orders
-                </a>
-              </li>
-              <li>
-                <a href="/customers" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Customers
-                </a>
-              </li>
-              <li>
-                <a href="/accounting" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Accounting
-                </a>
-              </li>
-              <li>
-                <a href="/procurement" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Procurement
-                </a>
-              </li>
-              <li>
-                <a href="/analytics" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Analytics
+                <a href="/payments" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
+                  Payments
                 </a>
               </li>
               <li>
@@ -102,43 +158,8 @@ export default function DashboardLayout({
                 </a>
               </li>
               <li>
-                <a href="/audit" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Audit Logs
-                </a>
-              </li>
-              <li>
-                <a href="/backup" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Backup & Recovery
-                </a>
-              </li>
-              <li>
                 <a href="/docs" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
                   API Documentation
-                </a>
-              </li>
-              <li>
-                <a href="/tenants" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Organizations
-                </a>
-              </li>
-              <li>
-                <a href="/payments" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Payments
-                </a>
-              </li>
-              <li>
-                <a href="/inventory" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Inventory
-                </a>
-              </li>
-              <li>
-                <a href="/shipping" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Shipping
-                </a>
-              </li>
-              <li>
-                <a href="/customer-portal" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                  Customer Portal
                 </a>
               </li>
             </ul>

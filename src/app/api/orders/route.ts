@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from '@/lib/error-handling';
 import { withCache } from '@/lib/cache';
 import { prisma } from '@/lib/prisma';
+import { addTenantFilter, ensureTenantOwnership } from '@/lib/tenant/isolation';
 
 export const dynamic = 'force-dynamic';
 // Helper function to fetch orders
@@ -26,10 +27,11 @@ async function getOrders(request: NextRequest) {
     where.status = status;
   }
 
-  // Fetch orders using connection pool with optimized query
+  // Fetch orders using connection pool with optimized query (tenant-isolated)
+  const tenantWhere = await addTenantFilter(where);
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
-      where,
+      where: tenantWhere,
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -68,7 +70,7 @@ async function getOrders(request: NextRequest) {
         }
       }
     }),
-    prisma.order.count({ where })
+    prisma.order.count({ where: tenantWhere })
   ]);
 
   const totalPages = Math.ceil(total / limit);

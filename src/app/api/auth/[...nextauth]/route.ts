@@ -1,12 +1,17 @@
 export const dynamic = 'force-dynamic';
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || 'dummy',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy',
+    }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {

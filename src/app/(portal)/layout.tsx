@@ -37,9 +37,9 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             
             <nav className="hidden md:flex items-center gap-6">
               <Link href="/portal/shop" className="text-gray-600 hover:text-primary">Shop</Link>
-              <Link href="/portal/orders" className="text-gray-600 hover:text-primary">My Orders</Link>
+              <Link href="/portal/my-orders" className="text-gray-600 hover:text-primary">My Orders</Link>
               <Link href="/portal/wishlist" className="text-gray-600 hover:text-primary">Wishlist</Link>
-              <Link href="/portal/profile" className="text-gray-600 hover:text-primary">Profile</Link>
+              <Link href="/portal/my-profile" className="text-gray-600 hover:text-primary">Profile</Link>
             </nav>
 
             <div className="flex items-center gap-4">
@@ -49,7 +49,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                   0
                 </span>
               </Link>
-              <Link href="/portal/profile">
+              <Link href="/portal/my-profile">
                 <User className="w-6 h-6 text-gray-600" />
               </Link>
               <button onClick={() => router.push('/api/auth/signout')}>
