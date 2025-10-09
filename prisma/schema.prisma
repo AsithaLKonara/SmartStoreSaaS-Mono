@@ -12,7 +12,8 @@ model User {
   email          String        @unique
   name           String?
   password       String?
-  role           String        @default("USER")
+  role           UserRole      @default(TENANT_ADMIN)
+  roleTag        String?       // For STAFF: inventory_manager, sales_executive, finance_officer, etc.
   organizationId String?
   isActive       Boolean       @default(true)
   emailVerified  DateTime?
@@ -30,6 +31,13 @@ model User {
   @@map("users")
 }
 
+enum UserRole {
+  SUPER_ADMIN
+  TENANT_ADMIN
+  STAFF
+  CUSTOMER
+}
+
 model Organization {
   id                      String                   @id @default(cuid())
   name                    String
@@ -37,9 +45,11 @@ model Organization {
   description             String?
   logo                    String?
   status                  String                   @default("ACTIVE")
+  plan                    PlanType                 @default(FREE)
   settings                String?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
+  subscription            Subscription?
   activities              activities[]
   ai_analytics            ai_analytics[]
   ai_conversations        ai_conversations[]
@@ -870,4 +880,37 @@ model wishlists {
   updatedAt      DateTime
   wishlist_items wishlist_items[]
   customers      Customer         @relation(fields: [customerId], references: [id])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  organizationId       String             @unique
+  plan                 PlanType           @default(FREE)
+  status               SubscriptionStatus @default(TRIAL)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodStart   DateTime           @default(now())
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  trialEndsAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  organization         Organization       @relation(fields: [organizationId], references: [id])
+
+  @@map("subscriptions")
+}
+
+enum PlanType {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
 }

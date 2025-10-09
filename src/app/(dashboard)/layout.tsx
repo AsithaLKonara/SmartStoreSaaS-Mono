@@ -145,7 +145,7 @@ export default function DashboardLayout({
           </nav>
           
           {/* User info at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
+          <div className="bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4">
             <div className="text-sm text-gray-300 truncate">
               Welcome, {session.user?.name || session.user?.email}
             </div>
