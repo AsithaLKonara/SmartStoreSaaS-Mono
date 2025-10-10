@@ -7,11 +7,12 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 // Helper function to fetch orders
 async function getOrders(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '10');
-  const search = searchParams.get('search') || '';
-  const status = searchParams.get('status') || '';
+  try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
 
   // Build where clause
   const where: any = {};
@@ -87,6 +88,14 @@ async function getOrders(request: NextRequest) {
     },
     message: 'Orders fetched successfully'
   });
+  } catch (error: any) {
+    console.error('Error fetching orders:', error);
+    return NextResponse.json({
+      success: false,
+      message: 'Failed to fetch orders',
+      error: error.message || 'Unknown error'
+    }, { status: 500 });
+  }
 }
 
 // GET /api/orders - Fetch all orders with pagination and filtering

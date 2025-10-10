@@ -12,8 +12,14 @@ import { productCreateSchema, productUpdateSchema, productQuerySchema, validateR
 // Helper function to fetch products
 async function getProducts(request: NextRequest) {
   try {
-    const queryParams = validateQueryParams(request, productQuerySchema);
-    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', q: search, category } = queryParams;
+    // Simplified query params (no validation for now)
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const search = searchParams.get('search') || searchParams.get('q') || '';
+    const category = searchParams.get('category') || '';
 
     // Cache temporarily disabled for stability
     // const cacheKey = cacheKeys.products(page, limit, JSON.stringify({ search, category, sortBy, sortOrder }));
