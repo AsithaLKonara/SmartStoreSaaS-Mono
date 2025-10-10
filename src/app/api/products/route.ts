@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
           price: true,
           cost: true,
           categoryId: true,
-          isActive: true,
           createdAt: true,
           updatedAt: true
         }

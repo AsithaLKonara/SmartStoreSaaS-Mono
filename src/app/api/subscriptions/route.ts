@@ -1,141 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  createSubscription,
-  cancelSubscription,
-  pauseSubscription,
-  resumeSubscription,
-  changeSubscriptionPlan,
-  getCustomerSubscriptions,
-} from '@/lib/subscriptions/manager';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// Get subscriptions
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId');
+    const organizationId = searchParams.get('organizationId');
 
-    if (!customerId) {
-      return NextResponse.json(
-        { error: 'Customer ID is required' },
-        { status: 400 }
-      );
-    }
+    const where = organizationId ? { organizationId } : {};
 
-    const subscriptions = await getCustomerSubscriptions(customerId);
+    const subscriptions = await prisma.subscription.findMany({
+      where,
+      include: {
+        organization: {
+          select: { name: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
 
     return NextResponse.json({
       success: true,
-      data: subscriptions,
+      subscriptions,
+      data: subscriptions
     });
   } catch (error: any) {
-    console.error('Get subscriptions error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch subscriptions' },
-      { status: 500 }
-    );
+    console.error('Subscriptions API error:', error);
+    return NextResponse.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
   }
 }
 
-// Create subscription
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { customerId, planId, startDate, trialEndDate } = body;
+    const { organizationId, planType, status, startDate, endDate } = body;
 
-    if (!customerId || !planId) {
-      return NextResponse.json(
-        { error: 'Customer ID and plan ID are required' },
-        { status: 400 }
-      );
-    }
-
-    const result = await createSubscription({
-      customerId,
-      planId,
-      startDate: startDate ? new Date(startDate) : undefined,
-      trialEndDate: trialEndDate ? new Date(trialEndDate) : undefined,
+    const subscription = await prisma.subscription.create({
+      data: {
+        organizationId,
+        planType: planType || 'FREE',
+        status: status || 'ACTIVE',
+        startDate: startDate ? new Date(startDate) : new Date(),
+        endDate: endDate ? new Date(endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      },
+      include: {
+        organization: {
+          select: { name: true }
+        }
+      }
     });
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        data: result.subscription,
-        message: 'Subscription created successfully',
-      });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      subscription,
+      data: subscription
+    });
   } catch (error: any) {
     console.error('Create subscription error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Subscription creation failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
   }
 }
 
-// Update subscription
-export async function PATCH(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { subscriptionId, action, newPlanId, immediately } = body;
+    const { id, status, planType, endDate } = body;
 
-    if (!subscriptionId || !action) {
-      return NextResponse.json(
-        { error: 'Subscription ID and action are required' },
-        { status: 400 }
-      );
-    }
+    const subscription = await prisma.subscription.update({
+      where: { id },
+      data: {
+        ...(status && { status }),
+        ...(planType && { planType }),
+        ...(endDate && { endDate: new Date(endDate) })
+      }
+    });
 
-    let result;
-
-    switch (action) {
-      case 'cancel':
-        result = await cancelSubscription(subscriptionId, immediately);
-        break;
-      case 'pause':
-        result = await pauseSubscription(subscriptionId);
-        break;
-      case 'resume':
-        result = await resumeSubscription(subscriptionId);
-        break;
-      case 'change-plan':
-        if (!newPlanId) {
-          return NextResponse.json(
-            { error: 'New plan ID is required' },
-            { status: 400 }
-          );
-        }
-        result = await changeSubscriptionPlan(subscriptionId, newPlanId);
-        break;
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
-    }
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: `Subscription ${action}ed successfully`,
-      });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      subscription,
+      data: subscription
+    });
   } catch (error: any) {
     console.error('Update subscription error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Subscription update failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
   }
 }
