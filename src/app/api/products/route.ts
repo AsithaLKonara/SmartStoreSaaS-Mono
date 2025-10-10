@@ -14,7 +14,19 @@ export async function GET(request: NextRequest) {
       prisma.product.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          sku: true,
+          price: true,
+          cost: true,
+          categoryId: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true
+        }
       }),
       prisma.product.count()
     ]);
