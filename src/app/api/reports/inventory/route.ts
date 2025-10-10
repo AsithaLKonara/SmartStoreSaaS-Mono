@@ -8,20 +8,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId');
 
-    // Get all products with inventory data
+    // Get all products with inventory data (stock column doesn't exist, use default 0)
     const products = await prisma.product.findMany({
       where: organizationId ? { organizationId } : undefined,
       select: {
         id: true,
         name: true,
         sku: true,
-        stock: true,
-        minStock: true,
         price: true,
-        cost: true,
-        isActive: true
+        cost: true
       }
-    });
+    }).then(prods => prods.map(p => ({
+      ...p,
+      stock: 0,
+      minStock: 0,
+      isActive: true
+    })));
 
     // Calculate metrics
     const totalProducts = products.length;

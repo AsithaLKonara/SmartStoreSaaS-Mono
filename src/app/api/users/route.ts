@@ -6,17 +6,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    // Use raw query to handle role enum mismatch
+    const users = await prisma.$queryRaw`
+      SELECT id, name, email, role, "createdAt", "updatedAt"
+      FROM users
+      ORDER BY "createdAt" DESC
+    ` as any[];
 
     return NextResponse.json({
       success: true,
