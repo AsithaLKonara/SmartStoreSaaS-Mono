@@ -15,14 +15,12 @@ async function getProducts(request: NextRequest) {
     const queryParams = validateQueryParams(request, productQuerySchema);
     const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', q: search, category } = queryParams;
 
-    // Create cache key
-    const cacheKey = cacheKeys.products(page, limit, JSON.stringify({ search, category, sortBy, sortOrder }));
-    
-    // Try to get from cache first
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached);
-    }
+    // Cache temporarily disabled for stability
+    // const cacheKey = cacheKeys.products(page, limit, JSON.stringify({ search, category, sortBy, sortOrder }));
+    // const cached = await cache.get(cacheKey);
+    // if (cached) {
+    //   return NextResponse.json(cached);
+    // }
 
     // Build where clause
   const where: any = {};
@@ -83,8 +81,8 @@ async function getProducts(request: NextRequest) {
       message: 'Products fetched successfully'
     };
 
-    // Cache the response for 5 minutes
-    await cache.set(cacheKey, response, 300);
+    // Cache temporarily disabled
+    // await cache.set(cacheKey, response, 300);
 
     return NextResponse.json(response);
   } catch (error: any) {
