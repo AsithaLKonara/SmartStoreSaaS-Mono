@@ -37,20 +37,30 @@ export async function GET(request: NextRequest) {
       0
     );
 
-    // Stock movement for the last 30 days
+    // Stock movement for the last 30 days (simplified - no variantId issues)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const movements = await prisma.inventoryMovement.findMany({
       where: {
         ...(organizationId && { organizationId }),
         createdAt: { gte: thirtyDaysAgo }
       },
-      include: {
-        product: {
-          select: { name: true }
-        }
+      select: {
+        id: true,
+        type: true,
+        quantity: true,
+        createdAt: true,
+        productId: true
       },
       orderBy: { createdAt: 'desc' }
     });
+
+    // Fetch product names separately
+    const productIds = [...new Set(movements.map(m => m.productId))];
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true }
+    });
+    const productMap = Object.fromEntries(products.map(p => [p.id, p.name]));
 
     return NextResponse.json({
       success: true,
@@ -78,7 +88,7 @@ export async function GET(request: NextRequest) {
         })),
         recentMovements: movements.slice(0, 50).map(m => ({
           id: m.id,
-          product: m.product.name,
+          product: productMap[m.productId] || 'Unknown',
           type: m.type,
           quantity: m.quantity,
           createdAt: m.createdAt
