@@ -52,15 +52,6 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
               email: true,
             },
           },
-          orderItems: {
-            include: {
-              product: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
         },
         orderBy: { createdAt: 'desc' },
         take: 5,

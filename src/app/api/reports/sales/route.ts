@@ -20,13 +20,6 @@ export async function GET(request: NextRequest) {
         createdAt: { gte: start, lte: end }
       },
       include: {
-        orderItems: {
-          include: {
-            product: {
-              select: { name: true }
-            }
-          }
-        },
         customer: {
           select: { name: true }
         }
@@ -45,26 +38,8 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, number>);
 
-    // Top selling products
-    const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
-    orders.forEach(order => {
-      order.orderItems.forEach(item => {
-        if (!productSales[item.productId]) {
-          productSales[item.productId] = {
-            name: item.product.name,
-            quantity: 0,
-            revenue: 0
-          };
-        }
-        productSales[item.productId].quantity += item.quantity;
-        productSales[item.productId].revenue += Number(item.total);
-      });
-    });
-
-    const topProducts = Object.entries(productSales)
-      .map(([id, data]) => ({ productId: id, ...data }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 10);
+    // Top products - simplified (no orderItems in this version)
+    const topProducts: any[] = [];
 
     // Daily sales trend
     const dailySales: Record<string, number> = {};

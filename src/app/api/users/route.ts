@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true,
         role: true,
-        roleTag: true,
         createdAt: true,
         updatedAt: true
       },
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password, role, roleTag } = body;
+    const { name, email, password, role } = body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -45,15 +44,13 @@ export async function POST(request: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role: role || 'TENANT_ADMIN',
-        roleTag: roleTag || null
+        role: role || 'TENANT_ADMIN'
       },
       select: {
         id: true,
         name: true,
         email: true,
-        role: true,
-        roleTag: true
+        role: true
       }
     });
 
