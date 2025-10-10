@@ -69,7 +69,7 @@ export default function DashboardLayout({
               </li>
               
               {/* Tenant Admin & Staff */}
-              {(session.user?.role === 'SUPER_ADMIN' || session.user?.role === 'TENANT_ADMIN' || session.user?.role === 'STAFF') && (
+              {((session.user as any)?.role === 'SUPER_ADMIN' || (session.user as any)?.role === 'TENANT_ADMIN' || (session.user as any)?.role === 'STAFF') && (
                 <>
                   <li>
                     <a href="/products" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
@@ -90,7 +90,7 @@ export default function DashboardLayout({
               )}
               
               {/* Tenant Admin Only */}
-              {(session.user?.role === 'SUPER_ADMIN' || session.user?.role === 'TENANT_ADMIN') && (
+              {((session.user as any)?.role === 'SUPER_ADMIN' || (session.user as any)?.role === 'TENANT_ADMIN') && (
                 <>
                   <li>
                     <a href="/accounting" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
@@ -121,7 +121,7 @@ export default function DashboardLayout({
               )}
               
               {/* Super Admin Only */}
-              {session.user?.role === 'SUPER_ADMIN' && (
+              {(session.user as any)?.role === 'SUPER_ADMIN' && (
                 <>
                   <li>
                     <a href="/tenants" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition-colors">
