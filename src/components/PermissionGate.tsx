@@ -1,5 +1,7 @@
+'use client';
+
 import { ReactNode } from 'react';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSession } from 'next-auth/react';
 
 interface PermissionGateProps {
   permission: string;
@@ -8,9 +10,13 @@ interface PermissionGateProps {
 }
 
 export const PermissionGate = ({ permission, children, fallback = null }: PermissionGateProps) => {
-  const { can } = usePermissions();
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
 
-  if (!can(permission)) {
+  // Simple permission check - Super Admin and Tenant Admin can do most things
+  const canAccess = userRole === 'SUPER_ADMIN' || userRole === 'TENANT_ADMIN';
+
+  if (!canAccess) {
     return <>{fallback}</>;
   }
 
@@ -26,15 +32,10 @@ export const RoleGate = ({
   children: ReactNode; 
   fallback?: ReactNode;
 }) => {
-  const { isSuperAdmin, isTenantAdmin, isStaff, isCustomer } = usePermissions();
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
 
-  const hasRole = roles.some(role => {
-    if (role === 'SUPER_ADMIN') return isSuperAdmin;
-    if (role === 'TENANT_ADMIN') return isTenantAdmin;
-    if (role === 'STAFF') return isStaff;
-    if (role === 'CUSTOMER') return isCustomer;
-    return false;
-  });
+  const hasRole = roles.includes(userRole);
 
   if (!hasRole) {
     return <>{fallback}</>;
