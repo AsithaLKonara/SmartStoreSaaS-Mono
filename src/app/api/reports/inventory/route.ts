@@ -37,30 +37,39 @@ export async function GET(request: NextRequest) {
       0
     );
 
-    // Stock movement for the last 30 days (simplified - no variantId issues)
+    // Stock movement for the last 30 days - using raw query to avoid schema issues
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const movements = await prisma.inventoryMovement.findMany({
-      where: {
-        ...(organizationId && { organizationId }),
-        createdAt: { gte: thirtyDaysAgo }
-      },
-      select: {
-        id: true,
-        type: true,
-        quantity: true,
-        createdAt: true,
-        productId: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    // Fetch product names separately
-    const productIds = [...new Set(movements.map(m => m.productId))];
-    const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      select: { id: true, name: true }
-    });
-    const productMap = Object.fromEntries(products.map(p => [p.id, p.name]));
+    
+    let movements: any[] = [];
+    let productMap: Record<string, string> = {};
+    
+    try {
+      // Use raw query to avoid variantId column issues
+      const rawMovements = await prisma.$queryRaw`
+        SELECT id, type, quantity, "createdAt", "productId"
+        FROM inventory_movements
+        WHERE "createdAt" >= ${thirtyDaysAgo}
+        ${organizationId ? prisma.$queryRaw`AND "organizationId" = ${organizationId}` : prisma.$queryRaw``}
+        ORDER BY "createdAt" DESC
+        LIMIT 50
+      ` as any[];
+      
+      movements = rawMovements || [];
+      
+      // Fetch product names if we have movements
+      if (movements.length > 0) {
+        const productIds = [...new Set(movements.map(m => m.productId))];
+        const productData = await prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true }
+        });
+        productMap = Object.fromEntries(productData.map(p => [p.id, p.name]));
+      }
+    } catch (movementError) {
+      console.error('Error fetching movements:', movementError);
+      // Continue without movements data
+      movements = [];
+    }
 
     return NextResponse.json({
       success: true,
