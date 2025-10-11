@@ -1,8 +1,12 @@
 /**
  * ML Prediction Service
  * 
- * Note: This is a placeholder implementation.
- * In production, integrate with TensorFlow, Scikit-learn, or cloud ML services.
+ * DEPRECATED: Use the following production services instead:
+ * - demandForecasting.ts for demand predictions
+ * - churnPrediction.ts for churn analysis
+ * - recommendationEngine.ts for product recommendations
+ * 
+ * This file is kept for backward compatibility only.
  */
 
 export interface DemandForecast {
@@ -32,7 +36,7 @@ export interface ProductRecommendation {
 export class MLPredictionService {
   /**
    * Predict product demand for next period
-   * TODO: Implement real ML model (ARIMA, Prophet, or LSTM)
+   * DEPRECATED: Use demandForecastingService from demandForecasting.ts instead
    */
   async predictDemand(
     productId: string,
@@ -55,7 +59,7 @@ export class MLPredictionService {
 
   /**
    * Predict customer churn probability
-   * TODO: Implement real ML model (Random Forest, XGBoost)
+   * DEPRECATED: Use churnPredictionModel from churnPrediction.ts instead
    */
   async predictChurn(
     customerId: string,
@@ -102,7 +106,7 @@ export class MLPredictionService {
 
   /**
    * Generate product recommendations
-   * TODO: Implement collaborative filtering or content-based filtering
+   * DEPRECATED: Use recommendationEngine from recommendationEngine.ts instead
    */
   async getRecommendations(
     customerId: string,
@@ -127,7 +131,7 @@ export class MLPredictionService {
 
   /**
    * Analyze sentiment from customer reviews
-   * TODO: Implement NLP sentiment analysis
+   * Simple keyword-based sentiment analysis
    */
   async analyzeSentiment(text: string): Promise<{
     score: number;
@@ -160,7 +164,7 @@ export class MLPredictionService {
 
   /**
    * Detect anomalies in sales data
-   * TODO: Implement anomaly detection algorithm
+   * Uses statistical method (mean + standard deviation)
    */
   async detectAnomalies(salesData: number[]): Promise<{
     hasAnomaly: boolean;

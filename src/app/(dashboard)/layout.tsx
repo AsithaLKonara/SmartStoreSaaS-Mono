@@ -18,7 +18,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (status === 'loading') return; // Still loading
-
+    
     if (!session) {
       router.push('/login');
       return;
