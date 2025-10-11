@@ -271,7 +271,6 @@ async function main() {
       status: 'PENDING',
       rewardType: 'DISCOUNT',
       rewardValue: 10,
-      notes: 'First referral program participant',
     },
   });
   console.log(`✅ Created 1 referral\n`);
