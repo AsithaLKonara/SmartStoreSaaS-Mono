@@ -42,3 +42,4 @@ find $BACKUP_DIR -name "smartstore_backup_*.sql.gz" -mtime +$RETENTION_DAYS -del
 
 echo "✅ Backup process completed successfully!"
 
+

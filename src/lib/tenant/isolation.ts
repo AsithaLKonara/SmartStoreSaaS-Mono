@@ -1,65 +1,151 @@
 /**
- * Get organization ID from session for tenant isolation
- * Returns null if no session (allows APIs to work without breaking)
+ * Multi-Tenant Data Isolation
+ * Ensures all database queries are scoped to the user's organization
  */
-export async function getOrganizationId(): Promise<string | null> {
+
+import { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { UserRole } from '@/lib/rbac/roles';
+
+export interface TenantContext {
+  organizationId: string;
+  userId: string;
+  role: UserRole;
+  isSuperAdmin: boolean;
+}
+
+/**
+ * Get tenant context from request
+ */
+export async function getTenantContext(request: NextRequest): Promise<TenantContext | null> {
   try {
-    // For now, return null to allow APIs to work without tenant filtering
-    // In production, this would check the session
-    // const session = await getServerSession(authOptions);
-    // return session?.user?.organizationId || null;
-    return null;
+    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+    
+    if (!token) {
+      return null;
+    }
+    
+    const role = (token.role as UserRole) || UserRole.TENANT_ADMIN;
+    const isSuperAdmin = role === UserRole.SUPER_ADMIN;
+    
+    return {
+      organizationId: token.organizationId as string,
+      userId: token.sub as string,
+      role,
+      isSuperAdmin
+    };
   } catch (error) {
-    console.error('Error getting organization ID:', error);
+    console.error('Error getting tenant context:', error);
     return null;
   }
 }
 
 /**
  * Add tenant filter to Prisma where clause
- * 
- * Usage:
- * const products = await prisma.product.findMany({
- *   where: await addTenantFilter({ isActive: true })
- * });
+ * Super Admin can access all organizations
  */
-export async function addTenantFilter(where: any = {}): Promise<any> {
-  const organizationId = await getOrganizationId();
-  
-  if (!organizationId) {
-    return where; // No tenant filtering if no org ID
+export function addTenantFilter<T extends Record<string, any>>(
+  where: T,
+  organizationId: string | null,
+  isSuperAdmin: boolean = false
+): T {
+  // Super Admin can see all data (no filter)
+  if (isSuperAdmin) {
+    return where;
   }
   
-  return {
-    ...where,
-    organizationId
+  // Regular users can only see their organization's data
+  if (organizationId) {
+    return {
+      ...where,
+      organizationId
+    };
+  }
+  
+  return where;
+}
+
+/**
+ * Ensure user owns/has access to a resource
+ */
+export async function ensureTenantOwnership(
+  request: NextRequest,
+  resourceOrganizationId: string
+): Promise<boolean> {
+  const context = await getTenantContext(request);
+  
+  if (!context) {
+    return false;
+  }
+  
+  // Super Admin can access all resources
+  if (context.isSuperAdmin) {
+    return true;
+  }
+  
+  // Regular users can only access their own organization's resources
+  return context.organizationId === resourceOrganizationId;
+}
+
+/**
+ * Get organization ID for creating new resources
+ */
+export async function getOrganizationIdForCreate(request: NextRequest): Promise<string | null> {
+  const context = await getTenantContext(request);
+  return context?.organizationId || null;
+}
+
+/**
+ * Middleware wrapper for tenant-isolated API routes
+ */
+export function withTenantIsolation(handler: Function) {
+  return async function (request: NextRequest, ...args: any[]) {
+    const context = await getTenantContext(request);
+    
+    if (!context) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Not authenticated' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Add context to request for use in handler
+    (request as any).tenantContext = context;
+    
+    return handler(request, ...args);
   };
 }
 
 /**
- * Check if user has access to resource in their tenant
+ * Filter query results to only include user's organization
  */
-export async function canAccessResource(resourceOrganizationId: string): Promise<boolean> {
-  const userOrganizationId = await getOrganizationId();
+export function filterByOrganization<T extends { organizationId: string }>(
+  items: T[],
+  organizationId: string | null,
+  isSuperAdmin: boolean = false
+): T[] {
+  if (isSuperAdmin) {
+    return items;
+  }
   
-  // Allow access if no tenant filtering (for now)
-  if (!userOrganizationId) return true;
+  if (!organizationId) {
+    return [];
+  }
+  
+  return items.filter(item => item.organizationId === organizationId);
+}
+
+/**
+ * Validate that organization ID matches user's organization
+ */
+export function validateOrganizationAccess(
+  userOrganizationId: string,
+  resourceOrganizationId: string,
+  isSuperAdmin: boolean = false
+): boolean {
+  if (isSuperAdmin) {
+    return true;
+  }
   
   return userOrganizationId === resourceOrganizationId;
 }
-
-/**
- * Ensure user can only create resources in their tenant
- */
-export async function ensureTenantOwnership(data: any): Promise<any> {
-  const organizationId = await getOrganizationId();
-  
-  // If no organization ID, use the default seeded org (fallback for now)
-  const finalOrgId = organizationId || 'seed-org-1-1759434570099';
-  
-  return {
-    ...data,
-    organizationId: finalOrgId
-  };
-}
-

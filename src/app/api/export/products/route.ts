@@ -29,9 +29,7 @@ export async function GET(request: NextRequest) {
       Category: p.category?.name || '',
       Price: Number(p.price),
       Cost: Number(p.cost || 0),
-      Stock: p.stock,
-      'Min Stock': p.minStock,
-      Active: p.isActive ? 'Yes' : 'No',
+      // Stock fields removed (managed via InventoryMovement/ProductVariant)
     }));
 
     if (format === 'csv') {

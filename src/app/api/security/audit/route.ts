@@ -68,3 +68,4 @@ const securityAudit = async (request: NextRequest) => {
 
 export const GET = withErrorHandling(securityAudit);
 
+

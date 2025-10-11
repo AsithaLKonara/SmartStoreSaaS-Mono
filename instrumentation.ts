@@ -14,3 +14,4 @@ export async function register() {
   console.log('✅ Server polyfill applied: self is now defined');
 }
 
+
