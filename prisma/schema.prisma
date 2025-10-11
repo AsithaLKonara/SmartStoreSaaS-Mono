@@ -8,25 +8,28 @@ datasource db {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  name           String?
-  password       String?
-  role           UserRole      @default(TENANT_ADMIN)
-  roleTag        String?       // For STAFF: inventory_manager, sales_executive, finance_officer, etc.
-  organizationId String?
-  isActive       Boolean       @default(true)
-  emailVerified  DateTime?
-  image          String?
-  phone          String?
-  mfaEnabled     Boolean       @default(false)
-  mfaSecret      String?
-  mfaBackupCodes String?
-  deletedAt      DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  reports        Report[]
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+  id                    String          @id @default(cuid())
+  email                 String          @unique
+  name                  String?
+  password              String?
+  role                  UserRole        @default(TENANT_ADMIN)
+  roleTag               String? // For STAFF: inventory_manager, sales_executive, finance_officer, etc.
+  organizationId        String?
+  isActive              Boolean         @default(true)
+  emailVerified         DateTime?
+  image                 String?
+  phone                 String?
+  mfaEnabled            Boolean         @default(false)
+  mfaSecret             String?
+  mfaBackupCodes        String?
+  deletedAt             DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  reports               Report[]
+  organization          Organization?   @relation(fields: [organizationId], references: [id])
+  purchaseOrdersCreated PurchaseOrder[]
+  returnsApproved       Return[]
+  giftCardsIssued       GiftCard[]
 
   @@map("users")
 }
@@ -81,6 +84,12 @@ model Organization {
   whatsappIntegrations    WhatsAppIntegration?
   whatsapp_messages       whatsapp_messages[]
   woocommerceIntegrations WooCommerceIntegration[]
+  suppliers               Supplier[]
+  purchaseOrders          PurchaseOrder[]
+  returns                 Return[]
+  giftCards               GiftCard[]
+  affiliates              Affiliate[]
+  referrals               Referral[]
 
   @@map("organizations")
 }
@@ -100,6 +109,9 @@ model Customer {
   orders                     Order[]
   whatsapp_messages          whatsapp_messages[]
   wishlists                  wishlists[]
+  returns                    Return[]
+  referralsGiven             Referral[]                   @relation("Referrer")
+  referralsReceived          Referral[]                   @relation("Referred")
 
   @@map("customers")
 }
@@ -131,6 +143,8 @@ model Product {
   organization       Organization         @relation(fields: [organizationId], references: [id])
   social_products    social_products[]
   wishlist_items     wishlist_items[]
+  purchaseOrderItems PurchaseOrderItem[]
+  returnItems        ReturnItem[]
 
   @@map("products")
 }
@@ -151,25 +165,28 @@ model Category {
 }
 
 model Order {
-  id             String               @id @default(cuid())
-  orderNumber    String               @unique
-  customerId     String
-  organizationId String
-  status         String               @default("PENDING")
-  total          Decimal
-  subtotal       Decimal
-  tax            Decimal              @default(0)
-  shipping       Decimal              @default(0)
-  discount       Decimal              @default(0)
-  notes          String?
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-  deliveries     Delivery[]
-  orderItems     OrderItem[]
-  statusHistory  OrderStatusHistory[]
-  organization   Organization         @relation(fields: [organizationId], references: [id])
-  customer       Customer             @relation(fields: [customerId], references: [id])
-  payments       Payment[]
+  id                   String                @id @default(cuid())
+  orderNumber          String                @unique
+  customerId           String
+  organizationId       String
+  status               String                @default("PENDING")
+  total                Decimal
+  subtotal             Decimal
+  tax                  Decimal               @default(0)
+  shipping             Decimal               @default(0)
+  discount             Decimal               @default(0)
+  notes                String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  deliveries           Delivery[]
+  orderItems           OrderItem[]
+  statusHistory        OrderStatusHistory[]
+  organization         Organization          @relation(fields: [organizationId], references: [id])
+  customer             Customer              @relation(fields: [customerId], references: [id])
+  payments             Payment[]
+  returns              Return[]
+  giftCardTransactions GiftCardTransaction[]
+  affiliateCommissions AffiliateCommission[]
 
   @@map("orders")
 }
@@ -913,4 +930,305 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELLED
   EXPIRED
+}
+
+// ============================================================================
+// PROCUREMENT MODELS (v1.2)
+// ============================================================================
+
+model Supplier {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  code           String
+  name           String
+  contactName    String?
+  email          String?
+  phone          String?
+  address        Json?
+  paymentTerms   String?
+  currency       String         @default("LKR")
+  taxId          String?
+  status         SupplierStatus @default(ACTIVE)
+  rating         Float?
+  totalOrders    Int            @default(0)
+  totalSpent     Decimal        @default(0)
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+
+  @@unique([organizationId, code])
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id             String              @id @default(cuid())
+  orderNumber    String              @unique
+  organizationId String
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplierId     String
+  supplier       Supplier            @relation(fields: [supplierId], references: [id])
+  status         PurchaseOrderStatus @default(DRAFT)
+  orderDate      DateTime            @default(now())
+  expectedDate   DateTime?
+  receivedDate   DateTime?
+  subtotal       Decimal
+  tax            Decimal             @default(0)
+  shipping       Decimal             @default(0)
+  total          Decimal
+  currency       String              @default("LKR")
+  notes          String?
+  createdById    String
+  createdBy      User                @relation(fields: [createdById], references: [id])
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  items PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               String        @id @default(cuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId        String
+  product          Product       @relation(fields: [productId], references: [id])
+  quantity         Int
+  receivedQuantity Int           @default(0)
+  unitPrice        Decimal
+  tax              Decimal       @default(0)
+  total            Decimal
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@map("purchase_order_items")
+}
+
+// ============================================================================
+// RETURNS & REFUNDS MODELS (v1.4)
+// ============================================================================
+
+model Return {
+  id             String        @id @default(cuid())
+  returnNumber   String        @unique
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orderId        String
+  order          Order         @relation(fields: [orderId], references: [id])
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  reason         String
+  status         ReturnStatus  @default(PENDING)
+  refundMethod   RefundMethod?
+  refundAmount   Decimal?
+  restockFee     Decimal       @default(0)
+  notes          String?
+  approvedAt     DateTime?
+  approvedById   String?
+  approvedBy     User?         @relation(fields: [approvedById], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  items ReturnItem[]
+
+  @@map("returns")
+}
+
+model ReturnItem {
+  id           String   @id @default(cuid())
+  returnId     String
+  return       Return   @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItemId  String?
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  quantity     Int
+  reason       String?
+  condition    String?
+  refundAmount Decimal?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("return_items")
+}
+
+model GiftCard {
+  id             String         @id @default(cuid())
+  code           String         @unique
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  initialValue   Decimal
+  currentValue   Decimal
+  currency       String         @default("LKR")
+  status         GiftCardStatus @default(ACTIVE)
+  expiresAt      DateTime?
+  issuedTo       String?
+  issuedToEmail  String?
+  issuedById     String?
+  issuedBy       User?          @relation(fields: [issuedById], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  transactions GiftCardTransaction[]
+
+  @@map("gift_cards")
+}
+
+model GiftCardTransaction {
+  id         String                  @id @default(cuid())
+  giftCardId String
+  giftCard   GiftCard                @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?                  @relation(fields: [orderId], references: [id])
+  amount     Decimal
+  type       GiftCardTransactionType
+  balance    Decimal
+  notes      String?
+  createdAt  DateTime                @default(now())
+
+  @@map("gift_card_transactions")
+}
+
+// ============================================================================
+// AFFILIATE & REFERRAL MODELS (v1.5)
+// ============================================================================
+
+model Affiliate {
+  id              String          @id @default(cuid())
+  organizationId  String
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  code            String
+  name            String
+  email           String
+  phone           String?
+  commissionRate  Decimal         @default(10)
+  status          AffiliateStatus @default(PENDING)
+  totalSales      Decimal         @default(0)
+  totalCommission Decimal         @default(0)
+  paymentDetails  Json?
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  commissions AffiliateCommission[]
+  referrals   Referral[]
+
+  @@unique([organizationId, code])
+  @@map("affiliates")
+}
+
+model AffiliateCommission {
+  id          String           @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  orderId     String
+  order       Order            @relation(fields: [orderId], references: [id])
+  saleAmount  Decimal
+  commission  Decimal
+  status      CommissionStatus @default(PENDING)
+  paidAt      DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("affiliate_commissions")
+}
+
+model Referral {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  referrerId     String
+  referrer       Customer       @relation("Referrer", fields: [referrerId], references: [id])
+  referredId     String?
+  referred       Customer?      @relation("Referred", fields: [referredId], references: [id])
+  affiliateId    String?
+  affiliate      Affiliate?     @relation(fields: [affiliateId], references: [id])
+  code           String         @unique
+  status         ReferralStatus @default(PENDING)
+  rewardType     String?
+  rewardValue    Decimal?
+  rewardedAt     DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@map("referrals")
+}
+
+// ============================================================================
+// ENUMS FOR NEW MODELS
+// ============================================================================
+
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RECEIVED
+  REFUNDED
+  COMPLETED
+  CANCELLED
+}
+
+enum RefundMethod {
+  ORIGINAL_PAYMENT
+  STORE_CREDIT
+  GIFT_CARD
+  BANK_TRANSFER
+}
+
+enum GiftCardStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
+enum GiftCardTransactionType {
+  PURCHASE
+  REDEMPTION
+  REFUND
+  ADJUSTMENT
+  EXPIRY
+}
+
+enum AffiliateStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  REWARDED
+  EXPIRED
+  CANCELLED
 }
