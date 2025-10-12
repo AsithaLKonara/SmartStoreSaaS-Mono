@@ -72,7 +72,7 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" data-testid="login-page">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">SmartStore SaaS</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -129,10 +129,141 @@ export default function LoginForm() {
             </div>
           )}
           
-          <div className="mt-4 text-center text-sm text-gray-600">
-            <p><strong>Demo Credentials:</strong></p>
-            <p>Email: admin@techhub.lk</p>
-            <p>Password: password123</p>
+          {/* Comprehensive Role-Based Test Credentials */}
+          <div className="mt-6 border-t pt-4">
+            <div className="text-center mb-3">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                🔐 Test Credentials by Role
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Click on any credential to auto-fill the form
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              {/* SUPER ADMIN */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('superadmin@smartstore.com');
+                  setPassword('admin123');
+                }}
+                className="w-full text-left p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-600 text-white">
+                        SUPER ADMIN
+                      </span>
+                      <span className="text-xs text-red-700 dark:text-red-400">
+                        Full System Access
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      superadmin@smartstore.com / admin123
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      ✓ All 72 pages • System admin • Multi-tenant management
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* TENANT ADMIN */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin@techhub.lk');
+                  setPassword('password123');
+                }}
+                className="w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-600 text-white">
+                        TENANT ADMIN
+                      </span>
+                      <span className="text-xs text-blue-700 dark:text-blue-400">
+                        Full Organization Access
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      admin@techhub.lk / password123
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      ✓ 63 pages • All business ops • User management • Integrations
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* STAFF */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('staff@techhub.lk');
+                  setPassword('staff123');
+                }}
+                className="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-green-600 text-white">
+                        STAFF
+                      </span>
+                      <span className="text-xs text-green-700 dark:text-green-400">
+                        Limited Operations
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      staff@techhub.lk / staff123
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      ✓ 15-30 pages • Role-based access • Orders & Products
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* CUSTOMER */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('customer@example.com');
+                  setPassword('customer123');
+                }}
+                className="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-purple-600 text-white">
+                        CUSTOMER
+                      </span>
+                      <span className="text-xs text-purple-700 dark:text-purple-400">
+                        Customer Portal
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      customer@example.com / customer123
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      ✓ 6 pages • My orders • Profile • Shop • Support
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Quick Info */}
+            <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded text-center">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                💡 <strong>Tip:</strong> Each role has different page access and permissions
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
