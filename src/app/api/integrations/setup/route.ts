@@ -13,6 +13,51 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId') || session.user.organizationId;
+    const type = searchParams.get('type');
+
+    // If type specified, return specific integration status
+    if (type) {
+      let integration;
+      
+      switch (type) {
+        case 'whatsapp':
+          integration = await prisma.whatsapp_integrations.findFirst({ where: { organizationId } });
+          return NextResponse.json({
+            success: true,
+            connected: !!integration?.isActive,
+            data: integration || {}
+          });
+        
+        case 'woocommerce':
+          const wc = await prisma.woocommerce_integrations.findFirst({ where: { organizationId } });
+          return NextResponse.json({
+            success: true,
+            connected: !!wc?.isActive,
+            data: wc || {}
+          });
+        
+        case 'shopify':
+        case 'stripe':
+        case 'payhere':
+        case 'email':
+        case 'sms':
+          integration = await prisma.channel_integrations.findFirst({
+            where: { organizationId, channel: type }
+          });
+          return NextResponse.json({
+            success: true,
+            connected: !!integration?.isActive,
+            data: integration || {}
+          });
+        
+        default:
+          return NextResponse.json({
+            success: true,
+            connected: false,
+            data: {}
+          });
+      }
+    }
 
     // Get all integrations for the organization
     const integrations = await prisma.channel_integrations.findMany({
@@ -62,7 +107,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching integration status:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch integration status' },
+      { success: false, message: 'Failed to fetch integration status', error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

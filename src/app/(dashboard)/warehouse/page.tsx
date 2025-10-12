@@ -136,7 +136,7 @@ export default function WarehousePage() {
     }
   };
 
-  const filteredInventory = inventory.filter(item => {
+  const filteredInventory = (inventory || []).filter(item => {
     const matchesSearch = item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
@@ -144,11 +144,12 @@ export default function WarehousePage() {
   });
 
   const getInventoryStats = () => {
-    const totalItems = inventory.length;
-    const inStock = inventory.filter(item => item.status === 'in_stock').length;
-    const lowStock = inventory.filter(item => item.status === 'low_stock').length;
-    const outOfStock = inventory.filter(item => item.status === 'out_of_stock').length;
-    const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * 0), 0); // Add price calculation
+    const safeInventory = inventory || [];
+    const totalItems = safeInventory.length;
+    const inStock = safeInventory.filter(item => item.status === 'in_stock').length;
+    const lowStock = safeInventory.filter(item => item.status === 'low_stock').length;
+    const outOfStock = safeInventory.filter(item => item.status === 'out_of_stock').length;
+    const totalValue = safeInventory.reduce((sum, item) => sum + (item.quantity * 0), 0); // Add price calculation
 
     return { totalItems, inStock, lowStock, outOfStock, totalValue };
   };
