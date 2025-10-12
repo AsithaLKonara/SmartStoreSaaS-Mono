@@ -26,6 +26,7 @@
     "test:deployment-all": "npm run test:custom-domain && npm run test:deployment-comprehensive && npm run test:db-integration",
     "seed:comprehensive": "ts-node prisma/seed-comprehensive.ts",
     "seed:database": "ts-node comprehensive-database-seed.ts",
+    "seed:roles": "ts-node prisma/seed-role-based-users.ts",
     "db:test": "ts-node test-database-connection.ts",
     "db:seed": "prisma db seed",
     "deploy:custom-domain": "./scripts/deploy-custom-domain.sh",
