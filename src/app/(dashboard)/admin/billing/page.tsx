@@ -5,6 +5,7 @@ import { DollarSign, Users, TrendingUp, CreditCard, Download, Eye } from 'lucide
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
 interface BillingData {
   totalRevenue: number;
@@ -20,7 +21,7 @@ interface BillingData {
   }>;
 }
 
-export default function BillingDashboard() {
+function BillingDashboardContent() {
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -149,6 +150,14 @@ export default function BillingDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BillingDashboard() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <BillingDashboardContent />
+    </SuperAdminOnly>
   );
 }
 

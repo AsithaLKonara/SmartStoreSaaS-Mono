@@ -7,6 +7,7 @@ import { Database, Download, Upload, RefreshCw, Clock, HardDrive, AlertCircle, C
 import { Button } from '@/components/ui/button';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
 interface Backup {
   id: string;
@@ -17,7 +18,7 @@ interface Backup {
   status: string;
 }
 
-export default function BackupPage() {
+function BackupPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [backups, setBackups] = useState<Backup[]>([]);
@@ -270,5 +271,13 @@ export default function BackupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BackupPage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <BackupPageContent />
+    </SuperAdminOnly>
   );
 }

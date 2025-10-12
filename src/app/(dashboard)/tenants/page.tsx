@@ -7,6 +7,7 @@ import { Building2, Plus, Users, DollarSign, Calendar, CheckCircle, XCircle } fr
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
 interface Tenant {
   id: string;
@@ -18,7 +19,7 @@ interface Tenant {
   createdAt: string;
 }
 
-export default function TenantsPage() {
+function TenantsPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -159,5 +160,13 @@ export default function TenantsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TenantsPage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <TenantsPageContent />
+    </SuperAdminOnly>
   );
 }

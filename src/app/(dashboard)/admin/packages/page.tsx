@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
 
 interface Package {
@@ -40,7 +41,7 @@ interface Package {
   updatedAt: string;
 }
 
-export default function AdminPackagesPage() {
+function AdminPackagesPageContent() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -454,5 +455,13 @@ export default function AdminPackagesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminPackagesPage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <AdminPackagesPageContent />
+    </SuperAdminOnly>
   );
 }

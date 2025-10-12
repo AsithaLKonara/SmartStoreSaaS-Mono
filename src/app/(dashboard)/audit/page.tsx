@@ -7,6 +7,7 @@ import { Search, Download, Filter, Eye, Shield, Clock, User, FileText } from 'lu
 import { Button } from '@/components/ui/button';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
 interface AuditLog {
   id: string;
@@ -20,7 +21,7 @@ interface AuditLog {
   createdAt: string;
 }
 
-export default function AuditPage() {
+function AuditPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -242,5 +243,13 @@ export default function AuditPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuditPage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <AuditPageContent />
+    </SuperAdminOnly>
   );
 }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Activity, Database, Users, ShoppingCart, DollarSign, AlertTriangle, CheckCircle } from 'lucide-react';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
 interface SystemStatus {
   status: string;
@@ -60,7 +61,7 @@ interface Metrics {
   };
 }
 
-export default function MonitoringPage() {
+function MonitoringPageContent() {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -329,5 +330,13 @@ export default function MonitoringPage() {
         Last refreshed: {lastRefresh.toLocaleTimeString()}
       </div>
     </div>
+  );
+}
+
+export default function MonitoringPage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <MonitoringPageContent />
+    </SuperAdminOnly>
   );
 }

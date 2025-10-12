@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
-export default function CompliancePage() {
+function CompliancePageContent() {
   const { data: session } = useSession();
   const [customerEmail, setCustomerEmail] = useState('');
   const [exporting, setExporting] = useState(false);
@@ -164,6 +165,14 @@ export default function CompliancePage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function CompliancePage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <CompliancePageContent />
+    </SuperAdminOnly>
   );
 }
 

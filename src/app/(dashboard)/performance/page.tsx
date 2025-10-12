@@ -6,8 +6,9 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Activity, Zap, Clock, Server, Database, AlertCircle } from 'lucide-react';
+import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
 
-export default function PerformancePage() {
+function PerformancePageContent() {
   const [metrics, setMetrics] = useState({
     responseTime: 145,
     uptime: 99.98,
@@ -134,5 +135,13 @@ export default function PerformancePage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function PerformancePage() {
+  return (
+    <SuperAdminOnly showUnauthorized={true}>
+      <PerformancePageContent />
+    </SuperAdminOnly>
   );
 }
