@@ -1,0 +1,6 @@
+  22 src/lib/monitoring/error-tracking.ts
+  16 src/app/
+   3 src/lib/database/optimization.ts
+   3 src/app/api/analytics/dashboard/route.ts
+   1 src/app/api/webhooks/woocommerce/[organizationId]/route.ts
+   1 src/app/api/webhooks/whatsapp/route.ts

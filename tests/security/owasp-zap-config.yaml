@@ -1,0 +1,75 @@
+# OWASP ZAP Security Testing Configuration
+# This file configures automated security scanning for SmartStore SaaS
+
+# Target application
+target:
+  url: "http://localhost:3001"
+  scope: "http://localhost:3001/*"
+
+# Scan policies
+policies:
+  - name: "OWASP Top 10 2021"
+    description: "Comprehensive security scan covering OWASP Top 10 vulnerabilities"
+    
+  - name: "SmartStore SaaS Specific"
+    description: "Custom security policies for e-commerce application"
+    rules:
+      - "SQL Injection Detection"
+      - "XSS Prevention"
+      - "CSRF Protection"
+      - "Authentication Bypass"
+      - "Session Management"
+      - "Input Validation"
+      - "Output Encoding"
+
+# Scan types
+scan_types:
+  - "Spider Scan"  # Crawl application to discover endpoints
+  - "Active Scan"  # Actively test for vulnerabilities
+  - "Passive Scan" # Monitor traffic for security issues
+  - "API Scan"     # Test API endpoints specifically
+
+# Authentication
+authentication:
+  method: "form"
+  login_url: "http://localhost:3001/auth/signin"
+  login_data:
+    username_field: "email"
+    password_field: "password"
+    username: "test@example.com"
+    password: "password123"
+
+# Scan depth and coverage
+scan_settings:
+  max_depth: 10
+  max_children: 100
+  max_time: 3600  # 1 hour
+  
+# Reporting
+reports:
+  - format: "HTML"
+    output: "test-results/security/owasp-zap-report.html"
+  - format: "JSON"
+    output: "test-results/security/owasp-zap-results.json"
+  - format: "XML"
+    output: "test-results/security/owasp-zap-results.xml"
+
+# Alert thresholds
+alerts:
+  high: "FAIL"
+  medium: "WARN"
+  low: "INFO"
+  info: "PASS"
+
+# Exclusions (safe to ignore)
+exclusions:
+  - "http://localhost:3001/api/health"  # Health check endpoint
+  - "http://localhost:3001/api/readyz"  # Readiness check endpoint
+  - "http://localhost:3001/_next/*"     # Next.js static files
+  - "http://localhost:3001/favicon.ico" # Favicon
+
+# Performance settings
+performance:
+  threads: 4
+  delay: 1000  # 1 second between requests
+  timeout: 30000  # 30 seconds timeout

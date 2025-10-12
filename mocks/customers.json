@@ -1,0 +1,90 @@
+[
+  {
+    "id": "cust_john_doe",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "+94-77-123-4567",
+    "organizationId": "org_demo_store",
+    "totalSpent": 31000.00,
+    "orders": ["order_001"],
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "cust_jane_smith",
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "phone": "+94-77-234-5678",
+    "organizationId": "org_demo_store",
+    "totalSpent": 0,
+    "orders": [],
+    "createdAt": "2024-01-02T00:00:00.000Z",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "cust_mike_wilson",
+    "name": "Mike Wilson",
+    "email": "mike.wilson@example.com",
+    "phone": "+94-77-345-6789",
+    "organizationId": "org_tech_gadgets",
+    "totalSpent": 125000.00,
+    "orders": ["order_002"],
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "cust_sarah_jones",
+    "name": "Sarah Jones",
+    "email": "sarah.jones@example.com",
+    "phone": "+44-20-7946-0959",
+    "organizationId": "org_fashion_boutique",
+    "totalSpent": 0,
+    "orders": [],
+    "createdAt": "2024-02-01T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "id": "cust_david_brown",
+    "name": "David Brown",
+    "email": "david.brown@example.com",
+    "phone": "+1-555-0125",
+    "organizationId": "org_demo_store",
+    "totalSpent": 0,
+    "orders": [],
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z"
+  },
+  {
+    "id": "cust_emma_davis",
+    "name": "Emma Davis",
+    "email": "emma.davis@example.com",
+    "phone": "+44-20-7946-0960",
+    "organizationId": "org_tech_gadgets",
+    "totalSpent": 0,
+    "orders": [],
+    "createdAt": "2024-01-20T00:00:00.000Z",
+    "updatedAt": "2024-01-20T00:00:00.000Z"
+  },
+  {
+    "id": "cust_alex_taylor",
+    "name": "Alex Taylor",
+    "email": "alex.taylor@example.com",
+    "phone": "+44-20-7946-0961",
+    "organizationId": "org_fashion_boutique",
+    "totalSpent": 0,
+    "orders": [],
+    "createdAt": "2024-02-05T00:00:00.000Z",
+    "updatedAt": "2024-02-05T00:00:00.000Z"
+  },
+  {
+    "id": "cust_lisa_garcia",
+    "name": "Lisa Garcia",
+    "email": "lisa.garcia@example.com",
+    "phone": "+1-555-0126",
+    "organizationId": "org_demo_store",
+    "totalSpent": 0,
+    "orders": [],
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-01-05T00:00:00.000Z"
+  }
+]

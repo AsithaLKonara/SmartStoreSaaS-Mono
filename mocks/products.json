@@ -1,0 +1,143 @@
+[
+  {
+    "id": "prod_wood_watch",
+    "name": "Premium Wood Watch",
+    "sku": "WW-001",
+    "description": "Handcrafted wooden watch with genuine leather strap. Perfect for both casual and formal occasions.",
+    "price": 12500.00,
+    "stock": 25,
+    "images": [
+      "/images/products/wood-watch-1.jpg",
+      "/images/products/wood-watch-2.jpg",
+      "/images/products/wood-watch-3.jpg"
+    ],
+    "categoryId": "cat_watches",
+    "organizationId": "org_demo_store",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod_led_board",
+    "name": "LED Name Board",
+    "sku": "LED-NB-001",
+    "description": "Customizable LED name board with remote control. Perfect for home decoration and special occasions.",
+    "price": 18500.00,
+    "stock": 15,
+    "images": [
+      "/images/products/led-board-1.jpg",
+      "/images/products/led-board-2.jpg"
+    ],
+    "categoryId": "cat_electronics",
+    "organizationId": "org_demo_store",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod_smartphone",
+    "name": "SmartPhone Pro Max",
+    "sku": "SP-PRO-001",
+    "description": "Latest smartphone with 6.7-inch display, 256GB storage, and advanced camera system.",
+    "price": 125000.00,
+    "stock": 50,
+    "images": [
+      "/images/products/smartphone-1.jpg",
+      "/images/products/smartphone-2.jpg",
+      "/images/products/smartphone-3.jpg",
+      "/images/products/smartphone-4.jpg"
+    ],
+    "categoryId": "cat_mobile",
+    "organizationId": "org_tech_gadgets",
+    "isActive": true,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "prod_laptop",
+    "name": "UltraBook Laptop",
+    "sku": "UB-001",
+    "description": "Lightweight laptop with 13-inch display, 16GB RAM, and 512GB SSD. Perfect for professionals.",
+    "price": 185000.00,
+    "stock": 30,
+    "images": [
+      "/images/products/laptop-1.jpg",
+      "/images/products/laptop-2.jpg"
+    ],
+    "categoryId": "cat_computers",
+    "organizationId": "org_tech_gadgets",
+    "isActive": true,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "prod_dress",
+    "name": "Elegant Evening Dress",
+    "sku": "ED-001",
+    "description": "Beautiful evening dress perfect for special occasions. Available in multiple colors and sizes.",
+    "price": 25000.00,
+    "stock": 20,
+    "images": [
+      "/images/products/dress-1.jpg",
+      "/images/products/dress-2.jpg",
+      "/images/products/dress-3.jpg"
+    ],
+    "categoryId": "cat_women",
+    "organizationId": "org_fashion_boutique",
+    "isActive": true,
+    "createdAt": "2024-02-01T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod_sneakers",
+    "name": "Comfort Sneakers",
+    "sku": "CS-001",
+    "description": "Comfortable sneakers with memory foam insole. Perfect for daily wear and casual outings.",
+    "price": 8500.00,
+    "stock": 40,
+    "images": [
+      "/images/products/sneakers-1.jpg",
+      "/images/products/sneakers-2.jpg"
+    ],
+    "categoryId": "cat_footwear",
+    "organizationId": "org_fashion_boutique",
+    "isActive": true,
+    "createdAt": "2024-02-01T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "id": "prod_headphones",
+    "name": "Wireless Noise-Canceling Headphones",
+    "sku": "WH-001",
+    "description": "Premium wireless headphones with active noise cancellation and 30-hour battery life.",
+    "price": 35000.00,
+    "stock": 35,
+    "images": [
+      "/images/products/headphones-1.jpg",
+      "/images/products/headphones-2.jpg"
+    ],
+    "categoryId": "cat_audio",
+    "organizationId": "org_tech_gadgets",
+    "isActive": true,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "prod_tablet",
+    "name": "Pro Tablet",
+    "sku": "PT-001",
+    "description": "10.9-inch tablet with Apple Pencil support, perfect for artists and professionals.",
+    "price": 95000.00,
+    "stock": 25,
+    "images": [
+      "/images/products/tablet-1.jpg",
+      "/images/products/tablet-2.jpg"
+    ],
+    "categoryId": "cat_tablets",
+    "organizationId": "org_tech_gadgets",
+    "isActive": true,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  }
+]
+

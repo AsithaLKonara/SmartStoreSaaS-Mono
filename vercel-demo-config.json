@@ -1,0 +1,37 @@
+{
+  "env": {
+    "NEXTAUTH_URL": "https://smart-store-saas-demo.vercel.app",
+    "NEXT_PUBLIC_APP_URL": "https://smart-store-saas-demo.vercel.app",
+    "NEXTAUTH_SECRET": "smartstore-demo-secret-key-2024-production-ready",
+    "JWT_SECRET": "smartstore-jwt-secret-demo-2024",
+    "JWT_REFRESH_SECRET": "smartstore-jwt-refresh-secret-demo-2024",
+    "ENCRYPTION_KEY": "smartstore-encryption-key-demo-2024",
+    "SESSION_SECRET": "smartstore-session-secret-demo-2024",
+    "MFA_ENCRYPTION_KEY": "smartstore-mfa-encryption-key-demo-2024",
+    "NODE_ENV": "production"
+  }
+}
+  "env": {
+    "NEXTAUTH_URL": "https://smart-store-saas-demo.vercel.app",
+    "NEXT_PUBLIC_APP_URL": "https://smart-store-saas-demo.vercel.app",
+    "NEXTAUTH_SECRET": "smartstore-demo-secret-key-2024-production-ready",
+    "JWT_SECRET": "smartstore-jwt-secret-demo-2024",
+    "JWT_REFRESH_SECRET": "smartstore-jwt-refresh-secret-demo-2024",
+    "ENCRYPTION_KEY": "smartstore-encryption-key-demo-2024",
+    "SESSION_SECRET": "smartstore-session-secret-demo-2024",
+    "MFA_ENCRYPTION_KEY": "smartstore-mfa-encryption-key-demo-2024",
+    "NODE_ENV": "production"
+  }
+}
+  "env": {
+    "NEXTAUTH_URL": "https://smart-store-saas-demo.vercel.app",
+    "NEXT_PUBLIC_APP_URL": "https://smart-store-saas-demo.vercel.app",
+    "NEXTAUTH_SECRET": "smartstore-demo-secret-key-2024-production-ready",
+    "JWT_SECRET": "smartstore-jwt-secret-demo-2024",
+    "JWT_REFRESH_SECRET": "smartstore-jwt-refresh-secret-demo-2024",
+    "ENCRYPTION_KEY": "smartstore-encryption-key-demo-2024",
+    "SESSION_SECRET": "smartstore-session-secret-demo-2024",
+    "MFA_ENCRYPTION_KEY": "smartstore-mfa-encryption-key-demo-2024",
+    "NODE_ENV": "production"
+  }
+}
