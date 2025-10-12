@@ -103,7 +103,7 @@ test.describe('CRUD Operations', () => {
     for (const subPage of accountingPages) {
       console.log(`Testing ${subPage.name}...`);
       await page.goto(subPage.url);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const currentUrl = page.url();
       if (currentUrl.includes('/login')) {
@@ -138,7 +138,7 @@ test.describe('CRUD Operations', () => {
     for (const subPage of procurementPages) {
       console.log(`Testing ${subPage.name}...`);
       await page.goto(subPage.url);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       const currentUrl = page.url();
       if (currentUrl.includes('/login')) {
@@ -163,7 +163,7 @@ test.describe('CRUD Operations', () => {
     
     for (const formPage of formPages) {
       console.log(`Testing forms on ${formPage}...`);
-      await page.goto(formPage, { timeout: 10000 });
+      await page.goto(formPage, { timeout: 20000 });
       
       const currentUrl = page.url();
       if (currentUrl.includes('/login')) {

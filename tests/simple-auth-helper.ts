@@ -10,20 +10,20 @@ export async function ensureSimpleAuth(page: Page): Promise<boolean> {
 
     // Navigate to login page
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if login form is present
     const loginForm = page.locator('form');
     if (await loginForm.isVisible()) {
-      // Fill in test credentials
-      await page.fill('input[type="email"]', 'admin@example.com');
+      // Fill in test credentials (using valid test user)
+      await page.fill('input[type="email"]', 'admin@techhub.lk');
       await page.fill('input[type="password"]', 'password123');
       
       // Submit the form
       await page.click('button[type="submit"]');
       
       // Wait for navigation
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Check if we're redirected to dashboard
       const newUrl = page.url();

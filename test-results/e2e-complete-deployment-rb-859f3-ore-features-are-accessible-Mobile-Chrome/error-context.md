@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "SmartStore SaaS" [level=3] [ref=e5]
+      - paragraph [ref=e6]: Sign in to your account
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: Email
+          - textbox "Email" [ref=e11]: admin@techhub.lk
+        - generic [ref=e12]:
+          - generic [ref=e13]: Password
+          - textbox "Password" [ref=e14]: password123
+        - button "Sign In" [ref=e15] [cursor=pointer]
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - paragraph [ref=e18]: 🔐 Test Credentials by Role
+          - paragraph [ref=e19]: Click on any credential to auto-fill the form
+        - generic [ref=e20]:
+          - button "SUPER ADMIN Full System Access superadmin@smartstore.com / admin123 ✓ All 72 pages • System admin • Multi-tenant management" [ref=e21] [cursor=pointer]:
+            - generic [ref=e23] [cursor=pointer]:
+              - generic [ref=e24] [cursor=pointer]:
+                - generic [ref=e25] [cursor=pointer]: SUPER ADMIN
+                - generic [ref=e26] [cursor=pointer]: Full System Access
+              - paragraph [ref=e27] [cursor=pointer]: superadmin@smartstore.com / admin123
+              - paragraph [ref=e28] [cursor=pointer]: ✓ All 72 pages • System admin • Multi-tenant management
+          - button "TENANT ADMIN Full Organization Access admin@techhub.lk / password123 ✓ 63 pages • All business ops • User management • Integrations" [ref=e29] [cursor=pointer]:
+            - generic [ref=e31] [cursor=pointer]:
+              - generic [ref=e32] [cursor=pointer]:
+                - generic [ref=e33] [cursor=pointer]: TENANT ADMIN
+                - generic [ref=e34] [cursor=pointer]: Full Organization Access
+              - paragraph [ref=e35] [cursor=pointer]: admin@techhub.lk / password123
+              - paragraph [ref=e36] [cursor=pointer]: ✓ 63 pages • All business ops • User management • Integrations
+          - button "STAFF Limited Operations staff@techhub.lk / staff123 ✓ 15-30 pages • Role-based access • Orders & Products" [ref=e37] [cursor=pointer]:
+            - generic [ref=e39] [cursor=pointer]:
+              - generic [ref=e40] [cursor=pointer]:
+                - generic [ref=e41] [cursor=pointer]: STAFF
+                - generic [ref=e42] [cursor=pointer]: Limited Operations
+              - paragraph [ref=e43] [cursor=pointer]: staff@techhub.lk / staff123
+              - paragraph [ref=e44] [cursor=pointer]: ✓ 15-30 pages • Role-based access • Orders & Products
+          - button "CUSTOMER Customer Portal customer@example.com / customer123 ✓ 6 pages • My orders • Profile • Shop • Support" [ref=e45] [cursor=pointer]:
+            - generic [ref=e47] [cursor=pointer]:
+              - generic [ref=e48] [cursor=pointer]:
+                - generic [ref=e49] [cursor=pointer]: CUSTOMER
+                - generic [ref=e50] [cursor=pointer]: Customer Portal
+              - paragraph [ref=e51] [cursor=pointer]: customer@example.com / customer123
+              - paragraph [ref=e52] [cursor=pointer]: ✓ 6 pages • My orders • Profile • Shop • Support
+        - paragraph [ref=e54]:
+          - text: 💡
+          - strong [ref=e55]: "Tip:"
+          - text: Each role has different page access and permissions
+  - alert [ref=e56]
+```

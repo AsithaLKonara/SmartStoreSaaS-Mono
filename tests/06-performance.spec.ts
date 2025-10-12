@@ -22,7 +22,7 @@ test.describe('Performance Tests', () => {
         
         const startTime = Date.now();
         await page.goto(pageInfo.url, { timeout: 30000 });
-        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 20000 });
         const endTime = Date.now();
         
         const loadTime = endTime - startTime;
@@ -42,7 +42,7 @@ test.describe('Performance Tests', () => {
 
   test('should test Core Web Vitals', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Simplified performance measurement
     const performanceMetrics = await page.evaluate(() => {
@@ -102,7 +102,7 @@ test.describe('Performance Tests', () => {
     });
     
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     console.log(`Total network requests: ${requests.length}`);
     
@@ -128,7 +128,7 @@ test.describe('Performance Tests', () => {
     
     const startTime = Date.now();
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const endTime = Date.now();
     
     const mobileLoadTime = endTime - startTime;

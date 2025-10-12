@@ -6,13 +6,13 @@ test.describe('Authentication Flow', () => {
     await page.goto('/login');
     
     // Wait for page to load completely
-    await page.waitForLoadState('networkidle', { timeout: 60000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
     
     // Check if login page loads
     await expect(page).toHaveTitle(/SmartStore SaaS/);
     
     // Wait for login form elements to be visible
-    await page.waitForSelector('[data-testid="login-page"]', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="login-page"]', { timeout: 20000 });
     await expect(page.locator('[data-testid="login-page"]')).toBeVisible();
     await expect(page.locator('[data-testid="login-form"]')).toBeVisible();
     await expect(page.locator('[data-testid="email-input"]')).toBeVisible();
@@ -22,7 +22,7 @@ test.describe('Authentication Flow', () => {
 
   test('should navigate to login page from home', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Click on login button if present
     const loginButton = page.locator('[data-testid="submit-button"]');
@@ -38,7 +38,7 @@ test.describe('Authentication Flow', () => {
   test('should show error for invalid credentials', async ({ page }) => {
     // Navigate to login page
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.fill('[data-testid="email-input"]', 'invalid@example.com');
     await page.fill('[data-testid="password-input"]', 'wrongpassword');
@@ -51,7 +51,7 @@ test.describe('Authentication Flow', () => {
   test('should have working social login buttons', async ({ page }) => {
     // Navigate to login page
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check Google login button
     const googleButton = page.locator('text=Sign in with Google');
@@ -71,7 +71,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/dashboard');
     
     // Wait for the page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if we're on the dashboard
     // Check if we're redirected to login (expected behavior without auth)

@@ -1,0 +1,93 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - link "S SmartStore SaaS Platform" [ref=e7] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e9] [cursor=pointer]: S
+          - generic [ref=e10] [cursor=pointer]:
+            - heading "SmartStore" [level=2] [ref=e11] [cursor=pointer]
+            - paragraph [ref=e12] [cursor=pointer]: SaaS Platform
+        - navigation [ref=e13]:
+          - link "Dashboard" [ref=e14] [cursor=pointer]:
+            - /url: /dashboard
+            - generic [ref=e15] [cursor=pointer]:
+              - img [ref=e16] [cursor=pointer]
+              - generic [ref=e21] [cursor=pointer]: Dashboard
+          - link "Products" [ref=e22] [cursor=pointer]:
+            - /url: /products
+            - generic [ref=e23] [cursor=pointer]:
+              - img [ref=e24] [cursor=pointer]
+              - generic [ref=e28] [cursor=pointer]: Products
+          - link "Orders" [ref=e29] [cursor=pointer]:
+            - /url: /orders
+            - generic [ref=e30] [cursor=pointer]:
+              - img [ref=e31] [cursor=pointer]
+              - generic [ref=e35] [cursor=pointer]: Orders
+          - link "Customers" [ref=e36] [cursor=pointer]:
+            - /url: /customers
+            - generic [ref=e37] [cursor=pointer]:
+              - img [ref=e38] [cursor=pointer]
+              - generic [ref=e43] [cursor=pointer]: Customers
+          - button "Operations" [ref=e45] [cursor=pointer]:
+            - generic [ref=e46] [cursor=pointer]:
+              - img [ref=e47] [cursor=pointer]
+              - generic [ref=e57] [cursor=pointer]: Operations
+            - img [ref=e58] [cursor=pointer]
+          - button "Integrations 7" [ref=e61] [cursor=pointer]:
+            - generic [ref=e62] [cursor=pointer]:
+              - img [ref=e63] [cursor=pointer]
+              - generic [ref=e65] [cursor=pointer]: Integrations
+              - generic [ref=e66] [cursor=pointer]: "7"
+            - img [ref=e67] [cursor=pointer]
+          - button "Financial" [ref=e70] [cursor=pointer]:
+            - generic [ref=e71] [cursor=pointer]:
+              - img [ref=e72] [cursor=pointer]
+              - generic [ref=e74] [cursor=pointer]: Financial
+            - img [ref=e75] [cursor=pointer]
+          - button "Analytics & AI" [ref=e78] [cursor=pointer]:
+            - generic [ref=e79] [cursor=pointer]:
+              - img [ref=e80] [cursor=pointer]
+              - generic [ref=e88] [cursor=pointer]: Analytics & AI
+            - img [ref=e89] [cursor=pointer]
+          - button "Marketing" [ref=e92] [cursor=pointer]:
+            - generic [ref=e93] [cursor=pointer]:
+              - img [ref=e94] [cursor=pointer]
+              - generic [ref=e98] [cursor=pointer]: Marketing
+            - img [ref=e99] [cursor=pointer]
+          - button "Support" [ref=e102] [cursor=pointer]:
+            - generic [ref=e103] [cursor=pointer]:
+              - img [ref=e104] [cursor=pointer]
+              - generic [ref=e106] [cursor=pointer]: Support
+            - img [ref=e107] [cursor=pointer]
+          - button "System" [ref=e110] [cursor=pointer]:
+            - generic [ref=e111] [cursor=pointer]:
+              - img [ref=e112] [cursor=pointer]
+              - generic [ref=e115] [cursor=pointer]: System
+            - img [ref=e116] [cursor=pointer]
+          - button "Developer" [ref=e119] [cursor=pointer]:
+            - generic [ref=e120] [cursor=pointer]:
+              - img [ref=e121] [cursor=pointer]
+              - generic [ref=e126] [cursor=pointer]: Developer
+            - img [ref=e127] [cursor=pointer]
+        - textbox "Search... (Ctrl+K)" [ref=e131]
+    - generic [ref=e132]:
+      - banner [ref=e133]:
+        - generic [ref=e135]:
+          - img [ref=e136]
+          - textbox "Search anything... (Ctrl+K)" [ref=e139]
+        - generic [ref=e140]:
+          - button [ref=e141] [cursor=pointer]:
+            - img [ref=e142] [cursor=pointer]
+          - generic [ref=e146] [cursor=pointer]:
+            - img [ref=e148] [cursor=pointer]
+            - generic [ref=e151] [cursor=pointer]:
+              - paragraph [ref=e152] [cursor=pointer]: Admin TechHub Electronics
+              - paragraph [ref=e153] [cursor=pointer]: TENANT_ADMIN
+          - button "Sign Out" [ref=e154] [cursor=pointer]
+      - main [ref=e155]
+```

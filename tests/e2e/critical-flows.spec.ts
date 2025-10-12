@@ -7,7 +7,21 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://smartstore-demo.vercel.app';
 
+// Helper to login before tests
+async function loginAsAdmin(page: any) {
+  await page.goto('/login');
+  await page.waitForLoadState('domcontentloaded');
+  await page.fill('[data-testid="email-input"]', 'admin@techhub.lk');
+  await page.fill('[data-testid="password-input"]', 'password123');
+  await page.click('button[type="submit"]');
+  await page.waitForURL('**/dashboard', { timeout: 30000 });
+  await page.waitForLoadState('domcontentloaded');
+}
+
 test.describe('Critical User Flows', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
   test('Complete Product Lifecycle', async ({ page }) => {
     await page.goto(`${BASE_URL}/products`);
     
@@ -135,6 +149,10 @@ test.describe('Performance Tests', () => {
 });
 
 test.describe('Accessibility Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdmin(page);
+  });
+
   test('Dashboard is accessible', async ({ page }) => {
     await page.goto(`${BASE_URL}/dashboard`);
     

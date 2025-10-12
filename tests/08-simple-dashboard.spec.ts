@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Simple Dashboard Tests', () => {
   test('should load login page', async ({ page }) => {
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if login page loads
     await expect(page).toHaveTitle(/SmartStore SaaS/);
@@ -31,7 +31,7 @@ test.describe('Simple Dashboard Tests', () => {
 
   test('should load home page', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if home page loads
     await expect(page).toHaveTitle(/SmartStore SaaS/);
@@ -72,7 +72,7 @@ test.describe('Simple Dashboard Tests', () => {
       console.log(`Testing ${pageInfo.name} page structure...`);
       
       await page.goto(pageInfo.path);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Check for basic HTML structure
       const html = page.locator('html');
@@ -91,7 +91,7 @@ test.describe('Simple Dashboard Tests', () => {
     await page.goto('/');
     
     // Check if page loads on mobile
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const body = page.locator('body');
     await expect(body).toBeVisible();
     console.log('✅ Mobile viewport works');
@@ -101,7 +101,7 @@ test.describe('Simple Dashboard Tests', () => {
     await page.goto('/');
     
     // Check if page loads on desktop
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(body).toBeVisible();
     console.log('✅ Desktop viewport works');
   });

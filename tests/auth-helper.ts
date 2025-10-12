@@ -16,9 +16,9 @@ export async function loginAsTestUser(page: Page) {
       state: 'visible'
     });
     
-    // Fill in test credentials
-    await page.fill('[data-testid="email-input"]', 'admin@smartstore.com');
-    await page.fill('[data-testid="password-input"]', 'admin123');
+    // Fill in test credentials (using valid test user)
+    await page.fill('[data-testid="email-input"]', 'admin@techhub.lk');
+    await page.fill('[data-testid="password-input"]', 'password123');
     
     // Submit the form and wait for navigation
     await Promise.all([
@@ -32,7 +32,7 @@ export async function loginAsTestUser(page: Page) {
     ]);
     
     // Wait for dashboard to load
-    await page.waitForLoadState('networkidle', { timeout: 90000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 90000 });
     
     // Verify we're on dashboard
     const currentUrl = page.url();
@@ -76,7 +76,7 @@ export async function ensureAuthenticated(page: Page) {
       waitUntil: 'domcontentloaded'
     });
     
-    await page.waitForLoadState('networkidle', { timeout: 90000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 90000 });
     
     // Check if we got redirected to login
     if (page.url().includes('/login')) {

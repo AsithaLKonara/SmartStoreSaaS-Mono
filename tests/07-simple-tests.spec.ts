@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Simple Tests (No Authentication)', () => {
   test('should load login page', async ({ page }) => {
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if login page loads
     await expect(page).toHaveTitle(/SmartStore SaaS/);
@@ -16,7 +16,7 @@ test.describe('Simple Tests (No Authentication)', () => {
 
   test('should load home page', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Check if home page loads
     await expect(page).toHaveTitle(/SmartStore SaaS/);
@@ -28,7 +28,7 @@ test.describe('Simple Tests (No Authentication)', () => {
 
   test('should test login form interaction', async ({ page }) => {
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Test form interaction
     await page.fill('[data-testid="email-input"]', 'test@example.com');
@@ -45,13 +45,13 @@ test.describe('Simple Tests (No Authentication)', () => {
   test('should test page navigation', async ({ page }) => {
     // Test navigation between pages
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Should be able to navigate without errors
     expect(page.url()).toContain('localhost');
@@ -61,14 +61,14 @@ test.describe('Simple Tests (No Authentication)', () => {
     // Test desktop view
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(page.locator('[data-testid="login-page"]')).toBeVisible();
     
     // Test mobile view
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     await expect(page.locator('[data-testid="login-page"]')).toBeVisible();
   });

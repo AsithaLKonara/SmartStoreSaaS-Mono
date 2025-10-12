@@ -44,7 +44,10 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:seed": "ts-node tests/setup/test-seed.ts",
+    "test:seed:clean": "ts-node -e \"require('./tests/setup/test-seed').cleanupTestData().then(() => process.exit(0))\"",
+    "test:env": "cp .env.test .env.local && echo '✅ Test environment configured'"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
@@ -91,6 +94,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@jest/globals": "^29.7.0",
     "@next/bundle-analyzer": "^15.5.4",
     "@playwright/test": "^1.55.1",

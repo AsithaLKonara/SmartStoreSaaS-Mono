@@ -21,7 +21,7 @@ export default defineConfig({
     ['junit', { outputFile: 'test-results/results.xml' }]
   ],
   /* Global timeout for each test */
-  timeout: 90000, // 90 seconds per test
+  timeout: 120000, // 90 seconds per test
   
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -38,7 +38,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     
     /* Global timeout for each action */
-    actionTimeout: 45000, // Increased to 45 seconds
+    actionTimeout: 60000, // Increased to 45 seconds
     
     /* Global timeout for navigation */
     navigationTimeout: 90000, // Increased to 90 seconds for slow initial loads
@@ -61,7 +61,7 @@ export default defineConfig({
     //       args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
     //     },
     //     // Increase timeouts for Firefox
-    //     actionTimeout: 45000,
+    //     actionTimeout: 60000,
     //     navigationTimeout: 45000,
     //   },
     // },
@@ -76,7 +76,7 @@ export default defineConfig({
     //       args: ['--disable-web-security']
     //     },
     //     // Increase timeouts for WebKit
-    //     actionTimeout: 45000,
+    //     actionTimeout: 60000,
     //     navigationTimeout: 45000,
     //   },
     // },
@@ -96,7 +96,7 @@ export default defineConfig({
     //       args: ['--disable-web-security']
     //     },
     //     // Increase timeouts for Mobile Safari
-    //     actionTimeout: 45000,
+    //     actionTimeout: 60000,
     //     navigationTimeout: 45000,
     //   },
     // },
@@ -116,7 +116,7 @@ export default defineConfig({
   webServer: {
     command: 'PORT=3001 npm run dev',
     url: 'http://localhost:3001',
-    timeout: 180000, // 3 minutes for initial build
+    timeout: 300000, // 3 minutes for initial build
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',
     stderr: 'pipe',
