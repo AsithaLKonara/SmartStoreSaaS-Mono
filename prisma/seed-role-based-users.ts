@@ -7,61 +7,73 @@ async function main() {
   console.log('🌱 Starting role-based user seeding...\n');
 
   try {
-    // Create test organization
-    console.log('📊 Creating TechHub organization...');
-    const techHubOrg = await prisma.organization.upsert({
-      where: { id: 'org-techhub' },
-      update: {},
-      create: {
-        id: 'org-techhub',
-        name: 'TechHub Solutions',
-        domain: 'techhub.lk',
-        description: 'Technology solutions and e-commerce platform',
-        status: 'ACTIVE',
-        plan: 'ENTERPRISE',
-        settings: {
-          theme: 'dark',
-          currency: 'LKR',
-          timezone: 'Asia/Colombo',
-          features: {
-            analytics: true,
-            aiInsights: true,
-            multiChannel: true,
-            whatsapp: true,
-            courierManagement: true,
-            loyaltyProgram: true,
-            socialCommerce: true,
-            notifications: true,
-            wishlist: true,
-            coupons: true,
-            bulkOperations: true,
-            multiLanguage: true,
-          }
-        }
-      }
+    // Create or find TechHub organization
+    console.log('📊 Finding or creating TechHub organization...');
+    let techHubOrg = await prisma.organization.findFirst({
+      where: { domain: 'techhub.lk' }
     });
-    console.log(`✅ Created organization: ${techHubOrg.name}\n`);
+    
+    if (!techHubOrg) {
+      techHubOrg = await prisma.organization.create({
+        data: {
+          id: 'org-techhub',
+          name: 'TechHub Solutions',
+          domain: 'techhub.lk',
+          description: 'Technology solutions and e-commerce platform',
+          status: 'ACTIVE',
+          plan: 'ENTERPRISE',
+          settings: JSON.stringify({
+            theme: 'dark',
+            currency: 'LKR',
+            timezone: 'Asia/Colombo',
+            features: {
+              analytics: true,
+              aiInsights: true,
+              multiChannel: true,
+              whatsapp: true,
+              courierManagement: true,
+              loyaltyProgram: true,
+              socialCommerce: true,
+              notifications: true,
+              wishlist: true,
+              coupons: true,
+              bulkOperations: true,
+              multiLanguage: true,
+            }
+          })
+        }
+      });
+      console.log(`✅ Created organization: ${techHubOrg.name}\n`);
+    } else {
+      console.log(`✅ Found existing organization: ${techHubOrg.name}\n`);
+    }
 
-    // Create SmartStore organization (for super admin)
-    console.log('📊 Creating SmartStore system organization...');
-    const smartStoreOrg = await prisma.organization.upsert({
-      where: { id: 'org-smartstore' },
-      update: {},
-      create: {
-        id: 'org-smartstore',
-        name: 'SmartStore System',
-        domain: 'smartstore.com',
-        description: 'System administration organization',
-        status: 'ACTIVE',
-        plan: 'ENTERPRISE',
-        settings: {
-          theme: 'dark',
-          currency: 'USD',
-          timezone: 'UTC',
-        }
-      }
+    // Create or find SmartStore organization (for super admin)
+    console.log('📊 Finding or creating SmartStore system organization...');
+    let smartStoreOrg = await prisma.organization.findFirst({
+      where: { domain: 'smartstore.com' }
     });
-    console.log(`✅ Created organization: ${smartStoreOrg.name}\n`);
+    
+    if (!smartStoreOrg) {
+      smartStoreOrg = await prisma.organization.create({
+        data: {
+          id: 'org-smartstore',
+          name: 'SmartStore System',
+          domain: 'smartstore.com',
+          description: 'System administration organization',
+          status: 'ACTIVE',
+          plan: 'ENTERPRISE',
+          settings: JSON.stringify({
+            theme: 'dark',
+            currency: 'USD',
+            timezone: 'UTC',
+          })
+        }
+      });
+      console.log(`✅ Created organization: ${smartStoreOrg.name}\n`);
+    } else {
+      console.log(`✅ Found existing organization: ${smartStoreOrg.name}\n`);
+    }
 
     // Hash passwords
     const adminPassword = await bcrypt.hash('admin123', 10);
