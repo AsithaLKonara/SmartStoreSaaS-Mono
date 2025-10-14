@@ -9,12 +9,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandler, successResponse } from '@/lib/middleware/withErrorHandler';
+import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = withErrorHandler(
+export const GET = withErrorHandlerApp(
   async (req: NextRequest) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -41,7 +41,7 @@ export const GET = withErrorHandler(
   }
 );
 
-export const POST = withErrorHandler(
+export const POST = withErrorHandlerApp(
   async (req: NextRequest) => {
     try {
       const body = await req.json();

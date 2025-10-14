@@ -9,23 +9,23 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withErrorHandler, successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = withErrorHandler(
+export const POST = withErrorHandlerApp(
   async (req: NextRequest) => {
     try {
       const body = await req.json();
       const { token, password } = body;
 
       if (!token || !password) {
-        throw new ValidationError('Token and password are required');
+        return NextResponse.json({ success: false, code: 'ERR_VALIDATION', message: 'Token and password are required' }, { status: 400 });
       }
 
       if (password.length < 8) {
-        throw new ValidationError('Password must be at least 8 characters');
+        return NextResponse.json({ success: false, code: 'ERR_VALIDATION', message: 'Password must be at least 8 characters' }, { status: 400 });
       }
 
       logger.info({

@@ -9,11 +9,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withErrorHandler, successResponse } from '@/lib/middleware/withErrorHandler';
+import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = withErrorHandler(
+export const GET = withErrorHandlerApp(
   async (req: NextRequest) => {
     try {
       // Check database connectivity

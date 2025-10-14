@@ -134,7 +134,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         <div className="text-center max-w-md mx-auto">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Order Not Found</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            The order you're looking for doesn't exist or you don't have permission to view it.
+            The order you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
           </p>
           <Button onClick={() => router.push('/dashboard/orders')}>
             <ArrowLeft className="w-4 h-4 mr-2" />

@@ -75,3 +75,4 @@ test.describe('NextAuth Login Tests', () => {
     expect(page.url()).not.toContain('/login');
   });
 });
+

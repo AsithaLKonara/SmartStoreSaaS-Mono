@@ -8,19 +8,23 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandler, successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = withErrorHandler(
+export const POST = withErrorHandlerApp(
   async (req: NextRequest) => {
     try {
       const body = await req.json();
       const { organizationName, adminEmail, adminName, plan } = body;
 
       if (!organizationName || !adminEmail || !adminName) {
-        throw new ValidationError('Organization name, admin email, and name are required');
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_VALIDATION',
+          message: 'Organization name, admin email, and name are required'
+        }, { status: 400 });
       }
 
       logger.info({

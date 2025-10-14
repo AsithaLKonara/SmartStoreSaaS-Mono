@@ -131,7 +131,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         <div className="text-center max-w-md mx-auto">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Product Not Found</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            The product you're looking for doesn't exist or you don't have permission to view it.
+            The product you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
           </p>
           <Button onClick={() => router.push('/dashboard/products')}>
             <ArrowLeft className="w-4 h-4 mr-2" />

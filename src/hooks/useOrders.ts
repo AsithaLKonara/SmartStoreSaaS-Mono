@@ -5,8 +5,8 @@
 
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tantml:invoke>
-<parameter name="queryKeys, invalidateOrders } from '@/lib/query-client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys, invalidateOrders } from '@/lib/query-client';
 
 export interface Order {
   id: string;
@@ -98,5 +98,6 @@ export function useUpdateOrderStatus() {
     },
   });
 }
+
 
 

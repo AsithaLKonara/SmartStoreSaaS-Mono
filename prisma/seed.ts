@@ -16,8 +16,8 @@ async function main() {
       domain: 'smartstore-demo.com',
       plan: 'PRO',
       status: 'ACTIVE',
-      settings: {
         description: 'Demo organization for SmartStore SaaS platform',
+      settings: JSON.stringify({
         website: 'https://smartstore-demo.com',
         logo: 'https://via.placeholder.com/150x150/4F46E5/FFFFFF?text=SS',
         address: {
@@ -43,7 +43,7 @@ async function main() {
           bulkOperations: true,
           multiLanguage: true,
         },
-      },
+      }),
     },
   });
 
@@ -56,8 +56,8 @@ async function main() {
       domain: 'techsolutions.lk',
       plan: 'BASIC',
       status: 'ACTIVE',
-      settings: {
         description: 'Technology solutions provider',
+      settings: JSON.stringify({
         website: 'https://techsolutions.lk',
         logo: 'https://via.placeholder.com/150x150/10B981/FFFFFF?text=TS',
         address: {
@@ -83,7 +83,7 @@ async function main() {
           bulkOperations: false,
           multiLanguage: false,
         },
-      },
+      }),
     },
   });
 
@@ -97,7 +97,7 @@ async function main() {
       email: 'admin@smartstore.com',
       name: 'Admin User',
       password: hashedPassword,
-      role: 'ADMIN',
+      role: 'TENANT_ADMIN',
       organizationId: organization1.id,
       isActive: true,
       emailVerified: new Date(),
@@ -111,7 +111,8 @@ async function main() {
       email: 'manager@smartstore.com',
       name: 'Manager User',
       password: hashedPassword,
-      role: 'MANAGER',
+      role: 'STAFF',
+      roleTag: 'manager',
       organizationId: organization1.id,
       isActive: true,
       emailVerified: new Date(),
@@ -126,6 +127,7 @@ async function main() {
       name: 'Staff User',
       password: hashedPassword,
       role: 'STAFF',
+      roleTag: 'staff',
       organizationId: organization1.id,
       isActive: true,
       emailVerified: new Date(),
@@ -142,14 +144,13 @@ async function main() {
       name: 'John Doe',
       phone: '+94 77 123 4567',
       organizationId: organization1.id,
-      address: {
+      address: JSON.stringify({
         street: '789 Customer Street',
         city: 'Colombo',
         state: 'Western Province',
         country: 'Sri Lanka',
         postalCode: '00200',
-      },
-      status: 'ACTIVE',
+      }),
     },
   });
 
@@ -162,14 +163,13 @@ async function main() {
       name: 'Jane Smith',
       phone: '+94 77 234 5678',
       organizationId: organization1.id,
-      address: {
+      address: JSON.stringify({
         street: '321 Customer Avenue',
         city: 'Galle',
         state: 'Southern Province',
         country: 'Sri Lanka',
         postalCode: '80000',
-      },
-      status: 'ACTIVE',
+      }),
     },
   });
 
@@ -181,7 +181,6 @@ async function main() {
       id: 'cat-1',
       name: 'Electronics',
       description: 'Electronic devices and accessories',
-      organizationId: organization1.id,
         isActive: true,
     },
   });
@@ -193,7 +192,6 @@ async function main() {
       id: 'cat-2',
       name: 'Clothing',
       description: 'Fashion and apparel',
-      organizationId: organization1.id,
         isActive: true,
     },
   });
@@ -205,7 +203,6 @@ async function main() {
       id: 'cat-3',
       name: 'Home & Garden',
       description: 'Home improvement and garden supplies',
-      organizationId: organization1.id,
         isActive: true,
     },
   });
@@ -220,16 +217,15 @@ async function main() {
       description: 'Latest smartphone with advanced features',
       sku: 'SPM-001',
       price: 125000,
-      comparePrice: 150000,
       cost: 100000,
+      stock: 50,
+      minStock: 5,
+      weight: 0.2,
+      dimensions: '15x7x0.8',
+      tags: 'smartphone,mobile,electronics',
       organizationId: organization1.id,
       categoryId: category1.id,
-      createdById: adminUser.id,
-      status: 'ACTIVE',
-      inventoryQuantity: 50,
-      weight: 0.2,
-      dimensions: { length: 15, width: 7, height: 0.8 },
-      tags: ['smartphone', 'mobile', 'electronics'],
+      isActive: true,
     },
   });
 
@@ -242,16 +238,15 @@ async function main() {
       description: 'High-quality wireless headphones with noise cancellation',
       sku: 'WH-001',
       price: 25000,
-      comparePrice: 30000,
       cost: 18000,
+      stock: 100,
+      minStock: 10,
+      weight: 0.3,
+      dimensions: '20x18x8',
+      tags: 'headphones,wireless,audio',
       organizationId: organization1.id,
       categoryId: category1.id,
-      createdById: adminUser.id,
-      status: 'ACTIVE',
-      inventoryQuantity: 100,
-      weight: 0.3,
-      dimensions: { length: 20, width: 18, height: 8 },
-      tags: ['headphones', 'wireless', 'audio'],
+      isActive: true,
     },
   });
 
@@ -264,16 +259,15 @@ async function main() {
       description: 'Comfortable cotton t-shirt in various sizes',
       sku: 'CTS-001',
       price: 2500,
-      comparePrice: 3000,
       cost: 1500,
+      stock: 200,
+      minStock: 20,
+      weight: 0.2,
+      dimensions: '30x25x1',
+      tags: 'clothing,t-shirt,cotton',
       organizationId: organization1.id,
       categoryId: category2.id,
-      createdById: adminUser.id,
-      status: 'ACTIVE',
-      inventoryQuantity: 200,
-      weight: 0.2,
-      dimensions: { length: 30, width: 25, height: 1 },
-      tags: ['clothing', 't-shirt', 'cotton'],
+      isActive: true,
     },
   });
 
@@ -287,11 +281,6 @@ async function main() {
       phone: '+94 11 500 5000',
       email: 'support@domex.lk',
       organizationId: organization1.id,
-      status: 'ACTIVE',
-      vehicleType: 'MOTORCYCLE',
-      vehicleNumber: 'ABC-1234',
-      rating: 4.5,
-      totalDeliveries: 150,
         isActive: true,
     },
   });
@@ -305,11 +294,6 @@ async function main() {
       phone: '+94 11 400 4000',
       email: 'info@prontolanka.lk',
       organizationId: organization1.id,
-      status: 'ACTIVE',
-      vehicleType: 'CAR',
-      vehicleNumber: 'XYZ-5678',
-      rating: 4.2,
-      totalDeliveries: 200,
         isActive: true,
     },
   });
@@ -323,15 +307,12 @@ async function main() {
       orderNumber: 'ORD001',
       customerId: customer1.id,
       organizationId: organization1.id,
-      createdById: adminUser.id,
       status: 'CONFIRMED',
-      shippingStatus: 'PENDING',
       total: 150000,
       subtotal: 140000,
       tax: 10000,
       shipping: 0,
       discount: 0,
-      paymentStatus: 'PAID',
     },
   });
 
@@ -343,15 +324,12 @@ async function main() {
       orderNumber: 'ORD002',
       customerId: customer2.id,
       organizationId: organization1.id,
-      createdById: adminUser.id,
       status: 'SHIPPED',
-      shippingStatus: 'SHIPPED',
       total: 27500,
       subtotal: 25000,
       tax: 2500,
       shipping: 0,
       discount: 0,
-      paymentStatus: 'PENDING',
     },
   });
 
@@ -422,7 +400,6 @@ async function main() {
       gateway: 'STRIPE',
         status: 'COMPLETED',
       transactionId: 'txn_123456789',
-      processedAt: new Date(),
     },
   });
 
@@ -453,7 +430,7 @@ async function main() {
       organizationId: organization1.id,
       status: 'PENDING',
       trackingNumber: 'TRK12345678',
-      estimatedDeliveryTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
+      estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
     },
   });
 
@@ -467,164 +444,34 @@ async function main() {
       organizationId: organization1.id,
       status: 'DISPATCHED',
       trackingNumber: 'TRK87654321',
-      estimatedDeliveryTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
+      estimatedDelivery: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
     },
   });
 
-  // Create wishlists
-  await prisma.wishlist.upsert({
-    where: { id: 'wishlist-1' },
+  // Create customer loyalty records
+  await prisma.customerLoyalty.upsert({
+    where: { id: 'loyalty-1' },
     update: {},
     create: {
-      id: 'wishlist-1',
-      name: 'My Favorites',
+      id: 'loyalty-1',
       customerId: customer1.id,
-      organizationId: organization1.id,
-      isPublic: false,
+      points: 1000,
+      tier: 'SILVER',
+      totalSpent: 500,
+      lastActivity: new Date(),
     },
   });
 
-  // Create wishlist items
-  await prisma.wishlistItem.upsert({
-    where: { id: 'wishlist-item-1' },
+  await prisma.customerLoyalty.upsert({
+    where: { id: 'loyalty-2' },
     update: {},
     create: {
-      id: 'wishlist-item-1',
-      wishlistId: 'wishlist-1',
-      productId: product2.id,
-      addedAt: new Date(),
-    },
-  });
-
-  // Create coupons
-  await prisma.coupon.upsert({
-    where: { id: 'coupon-1' },
-    update: {},
-    create: {
-      id: 'coupon-1',
-      code: 'WELCOME10',
-      name: 'Welcome Discount',
-      description: '10% off for new customers',
-      type: 'PERCENTAGE',
-      value: 10,
-      minOrderAmount: 5000,
-      maxDiscountAmount: 5000,
-      usageLimit: 100,
-      usedCount: 5,
-      organizationId: organization1.id,
-      isActive: true,
-      validFrom: new Date(),
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    },
-  });
-
-  // Create loyalty rewards
-  await prisma.loyaltyReward.upsert({
-    where: { id: 'reward-1' },
-    update: {},
-    create: {
-      id: 'reward-1',
-      name: 'Free Shipping',
-      description: 'Free shipping on orders over Rs. 10,000',
-      type: 'SHIPPING',
-      value: 0,
-      minOrderAmount: 10000,
-      organizationId: organization1.id,
-      isActive: true,
-    },
-  });
-
-  // Create notifications
-  await prisma.notification.upsert({
-    where: { id: 'notif-1' },
-    update: {},
-    create: {
-      id: 'notif-1',
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      title: 'New Order Received',
-      message: 'Order ORD001 has been placed by John Doe',
-      type: 'ORDER',
-      isRead: false,
-    },
-  });
-
-  // Create notification settings
-  await prisma.notificationSetting.upsert({
-    where: { 
-      userId_organizationId: {
-        userId: adminUser.id,
-        organizationId: organization1.id,
-      }
-    },
-    update: {},
-    create: {
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      emailNotifications: true,
-      smsNotifications: false,
-      pushNotifications: true,
-      orderUpdates: true,
-      paymentUpdates: true,
-      marketingEmails: false,
-    },
-  });
-
-  // Create audit logs
-  await prisma.auditLog.upsert({
-    where: { id: 'audit-1' },
-    update: {},
-    create: {
-      id: 'audit-1',
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      action: 'CREATE',
-      resource: 'ORDER',
-      resourceId: order1.id,
-      details: { orderNumber: 'ORD001', customerName: 'John Doe' },
-      ipAddress: '192.168.1.1',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    },
-  });
-
-  // Create translations
-  await prisma.translation.upsert({
-    where: { id: 'trans-1' },
-    update: {},
-    create: {
-      id: 'trans-1',
-      organizationId: organization1.id,
-      key: 'welcome_message',
-      language: 'en',
-      value: 'Welcome to SmartStore',
-      context: 'homepage',
-    },
-  });
-
-  await prisma.translation.upsert({
-    where: { id: 'trans-2' },
-    update: {},
-    create: {
-      id: 'trans-2',
-      organizationId: organization1.id,
-      key: 'welcome_message',
-      language: 'si',
-      value: 'SmartStore වෙත සාදරයෙන් පිළිගනිමු',
-      context: 'homepage',
-    },
-  });
-
-  // Create currency exchange rates
-  await prisma.currencyExchangeRate.upsert({
-    where: { id: 'rate-1' },
-    update: {},
-    create: {
-      id: 'rate-1',
-      fromCurrency: 'USD',
-      toCurrency: 'LKR',
-      rate: 320.50,
-      organizationId: organization1.id,
-      effectiveDate: new Date(),
+      id: 'loyalty-2',
+      customerId: customer2.id,
+      points: 500,
+      tier: 'BRONZE',
+      totalSpent: 250,
+      lastActivity: new Date(),
     },
   });
 
@@ -639,480 +486,7 @@ async function main() {
   console.log('  - 2 Orders with items');
   console.log('  - 2 Payments');
   console.log('  - 2 Deliveries');
-  console.log('  - 1 Wishlist with items');
-  console.log('  - 1 Coupon');
-  console.log('  - 1 Loyalty reward');
-  console.log('  - 1 Notification');
-  console.log('  - 1 Notification setting');
-  console.log('  - 1 Audit log');
-  console.log('  - 2 Translations');
-  console.log('  - 1 Currency exchange rate');
-}
-
-main()
-  .catch((e) => {
-    console.error('❌ Error during seeding:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  }); 
-  });
-
-  await prisma.payment.upsert({
-    where: { id: 'payment-2' },
-    update: {},
-    create: {
-      id: 'payment-2',
-        orderId: order2.id,
-      organizationId: organization1.id,
-      amount: 27500,
-        currency: 'LKR',
-      method: 'COD',
-      gateway: 'CASH',
-      status: 'PENDING',
-      transactionId: 'cod_987654321',
-    },
-  });
-
-  // Create deliveries
-  await prisma.delivery.upsert({
-    where: { id: 'delivery-1' },
-    update: {},
-    create: {
-      id: 'delivery-1',
-      orderId: order1.id,
-      courierId: courier1.id,
-      organizationId: organization1.id,
-      status: 'PENDING',
-      trackingNumber: 'TRK12345678',
-      estimatedDeliveryTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
-    },
-  });
-
-  await prisma.delivery.upsert({
-    where: { id: 'delivery-2' },
-    update: {},
-    create: {
-      id: 'delivery-2',
-      orderId: order2.id,
-      courierId: courier2.id,
-      organizationId: organization1.id,
-      status: 'DISPATCHED',
-      trackingNumber: 'TRK87654321',
-      estimatedDeliveryTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
-    },
-  });
-
-  // Create wishlists
-  await prisma.wishlist.upsert({
-    where: { id: 'wishlist-1' },
-    update: {},
-    create: {
-      id: 'wishlist-1',
-      name: 'My Favorites',
-      customerId: customer1.id,
-      organizationId: organization1.id,
-      isPublic: false,
-    },
-  });
-
-  // Create wishlist items
-  await prisma.wishlistItem.upsert({
-    where: { id: 'wishlist-item-1' },
-    update: {},
-    create: {
-      id: 'wishlist-item-1',
-      wishlistId: 'wishlist-1',
-      productId: product2.id,
-      addedAt: new Date(),
-    },
-  });
-
-  // Create coupons
-  await prisma.coupon.upsert({
-    where: { id: 'coupon-1' },
-    update: {},
-    create: {
-      id: 'coupon-1',
-      code: 'WELCOME10',
-      name: 'Welcome Discount',
-      description: '10% off for new customers',
-      type: 'PERCENTAGE',
-      value: 10,
-      minOrderAmount: 5000,
-      maxDiscountAmount: 5000,
-      usageLimit: 100,
-      usedCount: 5,
-      organizationId: organization1.id,
-      isActive: true,
-      validFrom: new Date(),
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    },
-  });
-
-  // Create loyalty rewards
-  await prisma.loyaltyReward.upsert({
-    where: { id: 'reward-1' },
-    update: {},
-    create: {
-      id: 'reward-1',
-      name: 'Free Shipping',
-      description: 'Free shipping on orders over Rs. 10,000',
-      type: 'SHIPPING',
-      value: 0,
-      minOrderAmount: 10000,
-      organizationId: organization1.id,
-      isActive: true,
-    },
-  });
-
-  // Create notifications
-  await prisma.notification.upsert({
-    where: { id: 'notif-1' },
-    update: {},
-    create: {
-      id: 'notif-1',
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      title: 'New Order Received',
-      message: 'Order ORD001 has been placed by John Doe',
-      type: 'ORDER',
-      isRead: false,
-    },
-  });
-
-  // Create notification settings
-  await prisma.notificationSetting.upsert({
-    where: { 
-      userId_organizationId: {
-        userId: adminUser.id,
-        organizationId: organization1.id,
-      }
-    },
-    update: {},
-    create: {
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      emailNotifications: true,
-      smsNotifications: false,
-      pushNotifications: true,
-      orderUpdates: true,
-      paymentUpdates: true,
-      marketingEmails: false,
-    },
-  });
-
-  // Create audit logs
-  await prisma.auditLog.upsert({
-    where: { id: 'audit-1' },
-    update: {},
-    create: {
-      id: 'audit-1',
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      action: 'CREATE',
-      resource: 'ORDER',
-      resourceId: order1.id,
-      details: { orderNumber: 'ORD001', customerName: 'John Doe' },
-      ipAddress: '192.168.1.1',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    },
-  });
-
-  // Create translations
-  await prisma.translation.upsert({
-    where: { id: 'trans-1' },
-    update: {},
-    create: {
-      id: 'trans-1',
-      organizationId: organization1.id,
-      key: 'welcome_message',
-      language: 'en',
-      value: 'Welcome to SmartStore',
-      context: 'homepage',
-    },
-  });
-
-  await prisma.translation.upsert({
-    where: { id: 'trans-2' },
-    update: {},
-    create: {
-      id: 'trans-2',
-      organizationId: organization1.id,
-      key: 'welcome_message',
-      language: 'si',
-      value: 'SmartStore වෙත සාදරයෙන් පිළිගනිමු',
-      context: 'homepage',
-    },
-  });
-
-  // Create currency exchange rates
-  await prisma.currencyExchangeRate.upsert({
-    where: { id: 'rate-1' },
-    update: {},
-    create: {
-      id: 'rate-1',
-      fromCurrency: 'USD',
-      toCurrency: 'LKR',
-      rate: 320.50,
-      organizationId: organization1.id,
-      effectiveDate: new Date(),
-    },
-  });
-
-  console.log('✅ Database seeding completed successfully!');
-  console.log('📊 Created:');
-  console.log('  - 2 Organizations');
-  console.log('  - 3 Users (Admin, Manager, Staff)');
-  console.log('  - 2 Customers');
-  console.log('  - 3 Categories');
-  console.log('  - 3 Products');
-  console.log('  - 2 Couriers');
-  console.log('  - 2 Orders with items');
-  console.log('  - 2 Payments');
-  console.log('  - 2 Deliveries');
-  console.log('  - 1 Wishlist with items');
-  console.log('  - 1 Coupon');
-  console.log('  - 1 Loyalty reward');
-  console.log('  - 1 Notification');
-  console.log('  - 1 Notification setting');
-  console.log('  - 1 Audit log');
-  console.log('  - 2 Translations');
-  console.log('  - 1 Currency exchange rate');
-}
-
-main()
-  .catch((e) => {
-    console.error('❌ Error during seeding:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  }); 
-  });
-
-  await prisma.payment.upsert({
-    where: { id: 'payment-2' },
-    update: {},
-    create: {
-      id: 'payment-2',
-        orderId: order2.id,
-      organizationId: organization1.id,
-      amount: 27500,
-        currency: 'LKR',
-      method: 'COD',
-      gateway: 'CASH',
-      status: 'PENDING',
-      transactionId: 'cod_987654321',
-    },
-  });
-
-  // Create deliveries
-  await prisma.delivery.upsert({
-    where: { id: 'delivery-1' },
-    update: {},
-    create: {
-      id: 'delivery-1',
-      orderId: order1.id,
-      courierId: courier1.id,
-      organizationId: organization1.id,
-      status: 'PENDING',
-      trackingNumber: 'TRK12345678',
-      estimatedDeliveryTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
-    },
-  });
-
-  await prisma.delivery.upsert({
-    where: { id: 'delivery-2' },
-    update: {},
-    create: {
-      id: 'delivery-2',
-      orderId: order2.id,
-      courierId: courier2.id,
-      organizationId: organization1.id,
-      status: 'DISPATCHED',
-      trackingNumber: 'TRK87654321',
-      estimatedDeliveryTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
-    },
-  });
-
-  // Create wishlists
-  await prisma.wishlist.upsert({
-    where: { id: 'wishlist-1' },
-    update: {},
-    create: {
-      id: 'wishlist-1',
-      name: 'My Favorites',
-      customerId: customer1.id,
-      organizationId: organization1.id,
-      isPublic: false,
-    },
-  });
-
-  // Create wishlist items
-  await prisma.wishlistItem.upsert({
-    where: { id: 'wishlist-item-1' },
-    update: {},
-    create: {
-      id: 'wishlist-item-1',
-      wishlistId: 'wishlist-1',
-      productId: product2.id,
-      addedAt: new Date(),
-    },
-  });
-
-  // Create coupons
-  await prisma.coupon.upsert({
-    where: { id: 'coupon-1' },
-    update: {},
-    create: {
-      id: 'coupon-1',
-      code: 'WELCOME10',
-      name: 'Welcome Discount',
-      description: '10% off for new customers',
-      type: 'PERCENTAGE',
-      value: 10,
-      minOrderAmount: 5000,
-      maxDiscountAmount: 5000,
-      usageLimit: 100,
-      usedCount: 5,
-      organizationId: organization1.id,
-      isActive: true,
-      validFrom: new Date(),
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    },
-  });
-
-  // Create loyalty rewards
-  await prisma.loyaltyReward.upsert({
-    where: { id: 'reward-1' },
-    update: {},
-    create: {
-      id: 'reward-1',
-      name: 'Free Shipping',
-      description: 'Free shipping on orders over Rs. 10,000',
-      type: 'SHIPPING',
-      value: 0,
-      minOrderAmount: 10000,
-      organizationId: organization1.id,
-      isActive: true,
-    },
-  });
-
-  // Create notifications
-  await prisma.notification.upsert({
-    where: { id: 'notif-1' },
-    update: {},
-    create: {
-      id: 'notif-1',
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      title: 'New Order Received',
-      message: 'Order ORD001 has been placed by John Doe',
-      type: 'ORDER',
-      isRead: false,
-    },
-  });
-
-  // Create notification settings
-  await prisma.notificationSetting.upsert({
-    where: { 
-      userId_organizationId: {
-        userId: adminUser.id,
-        organizationId: organization1.id,
-      }
-    },
-    update: {},
-    create: {
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      emailNotifications: true,
-      smsNotifications: false,
-      pushNotifications: true,
-      orderUpdates: true,
-      paymentUpdates: true,
-      marketingEmails: false,
-    },
-  });
-
-  // Create audit logs
-  await prisma.auditLog.upsert({
-    where: { id: 'audit-1' },
-    update: {},
-    create: {
-      id: 'audit-1',
-      userId: adminUser.id,
-      organizationId: organization1.id,
-      action: 'CREATE',
-      resource: 'ORDER',
-      resourceId: order1.id,
-      details: { orderNumber: 'ORD001', customerName: 'John Doe' },
-      ipAddress: '192.168.1.1',
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    },
-  });
-
-  // Create translations
-  await prisma.translation.upsert({
-    where: { id: 'trans-1' },
-    update: {},
-    create: {
-      id: 'trans-1',
-      organizationId: organization1.id,
-      key: 'welcome_message',
-      language: 'en',
-      value: 'Welcome to SmartStore',
-      context: 'homepage',
-    },
-  });
-
-  await prisma.translation.upsert({
-    where: { id: 'trans-2' },
-    update: {},
-    create: {
-      id: 'trans-2',
-      organizationId: organization1.id,
-      key: 'welcome_message',
-      language: 'si',
-      value: 'SmartStore වෙත සාදරයෙන් පිළිගනිමු',
-      context: 'homepage',
-    },
-  });
-
-  // Create currency exchange rates
-  await prisma.currencyExchangeRate.upsert({
-    where: { id: 'rate-1' },
-    update: {},
-    create: {
-      id: 'rate-1',
-      fromCurrency: 'USD',
-      toCurrency: 'LKR',
-      rate: 320.50,
-      organizationId: organization1.id,
-      effectiveDate: new Date(),
-    },
-  });
-
-  console.log('✅ Database seeding completed successfully!');
-  console.log('📊 Created:');
-  console.log('  - 2 Organizations');
-  console.log('  - 3 Users (Admin, Manager, Staff)');
-  console.log('  - 2 Customers');
-  console.log('  - 3 Categories');
-  console.log('  - 3 Products');
-  console.log('  - 2 Couriers');
-  console.log('  - 2 Orders with items');
-  console.log('  - 2 Payments');
-  console.log('  - 2 Deliveries');
-  console.log('  - 1 Wishlist with items');
-  console.log('  - 1 Coupon');
-  console.log('  - 1 Loyalty reward');
-  console.log('  - 1 Notification');
-  console.log('  - 1 Notification setting');
-  console.log('  - 1 Audit log');
-  console.log('  - 2 Translations');
-  console.log('  - 1 Currency exchange rate');
+  console.log('  - 2 Customer loyalty records');
 }
 
 main()

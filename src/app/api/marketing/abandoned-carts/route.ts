@@ -35,7 +35,7 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
 
       logger.info({
         message: 'Abandoned carts fetched',
-        context: { userId: user.id, count: abandoned Carts.length }
+        context: { userId: user.id, count: abandonedCarts.length }
       });
 
       return NextResponse.json(successResponse(abandonedCarts));

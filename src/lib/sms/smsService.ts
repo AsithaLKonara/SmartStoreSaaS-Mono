@@ -81,7 +81,7 @@ export class SMSService {
     }
     
     // Lazy import to avoid bundling twilio SDK in edge by default
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // @ts-ignore - Dynamic require for Twilio SDK
     const twilio = require('twilio');
     return twilio(accountSid, authToken);
   }

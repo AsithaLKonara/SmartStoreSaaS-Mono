@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { X, Loader2, Package, Printer } from 'lucide-react';
+import { X, Loader2, Package, Printer, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface PackingModalProps {

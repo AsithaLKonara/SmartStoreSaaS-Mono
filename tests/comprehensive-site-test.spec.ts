@@ -426,3 +426,4 @@ test.describe('Comprehensive Site Testing', () => {
     console.log('Check the console output above for detailed results.');
   });
 });
+
