@@ -1,0 +1,429 @@
+# Cursor AI Rules - SmartStore SaaS Project
+# Version: 1.0.0
+# Last Updated: October 12, 2025
+
+## CRITICAL RULES - NEVER VIOLATE THESE
+
+### 1. Exception Handling - ABSOLUTE PROHIBITION ON SILENT REMOVAL
+
+**RULE**: Cursor MUST NEVER remove, comment out, or suppress exception handling without explicit developer approval via PR.
+
+**VIOLATIONS**:
+- ❌ Removing `throw` statements
+- ❌ Removing `console.error()` calls
+- ❌ Converting errors to silent catches: `catch {}`
+- ❌ Returning success when an error occurred
+- ❌ Wrapping errors without re-throwing
+
+**REQUIRED BEHAVIOR**:
+```typescript
+// ✅ CORRECT - Log and re-throw
+try {
+  await riskyOperation();
+} catch (error) {
+  logger.error({
+    message: error.message,
+    stack: error.stack,
+    context: { userId, operation: 'riskyOperation' },
+    correlation: req.correlationId
+  });
+  throw error; // MUST RE-THROW
+}
+
+// ❌ WRONG - Silent swallow
+try {
+  await riskyOperation();
+} catch (error) {
+  // Cursor removed the error handling!
+}
+
+// ❌ WRONG - Return success on error
+try {
+  await riskyOperation();
+} catch (error) {
+  return { success: true }; // LYING TO CLIENT
+}
+```
+
+**ENFORCEMENT**:
+- Any change that removes exception handling MUST create a PR labeled `cursor/exception-change`
+- PR must include:
+  - Justification for removal
+  - Alternative error handling strategy
+  - Test demonstrating the change is safe
+
+---
+
+### 2. Authorization Centralization - NO AD-HOC CHECKS
+
+**RULE**: Cursor may ONLY suggest authorization changes through centralized middleware or hooks.
+
+**VIOLATIONS**:
+- ❌ Adding inline role checks: `if (user.role === 'ADMIN')`
+- ❌ Hardcoding permission strings in route handlers
+- ❌ Bypassing `requirePermission()` middleware
+- ❌ Custom auth logic in individual components
+
+**REQUIRED BEHAVIOR**:
+```typescript
+// ✅ CORRECT - Use centralized middleware
+export default withAuth(
+  requirePermission('MANAGE_PRODUCTS'),
+  async (req, res) => {
+    // Handler logic
+  }
+);
+
+// ✅ CORRECT - Use authorization hook in frontend
+function ProductForm() {
+  const { hasPermission } = useAuth();
+  
+  if (!hasPermission('MANAGE_PRODUCTS')) {
+    return <Forbidden />;
+  }
+  // Component logic
+}
+
+// ❌ WRONG - Ad-hoc check
+async function handler(req, res) {
+  if (req.user.role !== 'TENANT_ADMIN') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  // Handler logic
+}
+```
+
+**ENFORCEMENT**:
+- Any auth-related change MUST run RBAC audit script: `npm run audit:rbac`
+- PR must include audit results showing zero regressions
+
+---
+
+### 3. Structured Logging - NO CONSOLE STATEMENTS
+
+**RULE**: All logging MUST use the structured logger with correlation IDs.
+
+**VIOLATIONS**:
+- ❌ Using `console.log()`, `console.error()`, `console.warn()`
+- ❌ Logging without correlation ID
+- ❌ Missing context in log messages
+- ❌ Unstructured log strings
+
+**REQUIRED BEHAVIOR**:
+```typescript
+// ✅ CORRECT - Structured logging
+logger.error({
+  message: 'Failed to process payment',
+  error: error.message,
+  stack: error.stack,
+  context: {
+    userId: req.user?.id,
+    organizationId: req.user?.organizationId,
+    orderId: req.body.orderId,
+    amount: req.body.amount
+  },
+  correlation: req.correlationId,
+  timestamp: new Date().toISOString()
+});
+
+// ❌ WRONG - Console logging
+console.error('Payment failed:', error);
+
+// ❌ WRONG - Missing correlation ID
+logger.error('Payment failed');
+```
+
+**ENFORCEMENT**:
+- ESLint rule `no-console` is enforced
+- All API routes MUST attach `X-Request-Id` header
+- CI job validates correlation ID propagation
+
+---
+
+### 4. API Response Standards - CONSISTENT ERROR SHAPES
+
+**RULE**: All API responses MUST follow the standardized response format.
+
+**REQUIRED FORMAT**:
+```typescript
+// ✅ SUCCESS
+{
+  success: true,
+  data: { /* payload */ },
+  meta?: { /* pagination, etc */ }
+}
+
+// ✅ ERROR
+{
+  success: false,
+  code: 'ERR_VALIDATION' | 'ERR_AUTH' | 'ERR_INTERNAL' | 'ERR_NOT_FOUND',
+  message: 'Human-readable error message',
+  correlation: 'uuid',
+  details?: { /* additional error context */ }
+}
+```
+
+**VIOLATIONS**:
+- ❌ Returning `{ success: true }` when an error occurred
+- ❌ Inconsistent error codes
+- ❌ Missing correlation ID in errors
+- ❌ Exposing internal error details to client
+
+**ENFORCEMENT**:
+- All API handlers MUST use `withErrorHandler()` wrapper
+- Response schemas validated with Zod
+
+---
+
+### 5. Testing Requirements - NO UNTESTED CHANGES
+
+**RULE**: Every functional change MUST include corresponding tests.
+
+**REQUIRED**:
+```typescript
+// For every route change, add/update:
+describe('POST /api/products', () => {
+  it('should create product with valid data', async () => {
+    // Test implementation
+  });
+
+  it('should return 400 for invalid data', async () => {
+    // Test implementation
+  });
+
+  it('should return 403 for unauthorized role', async () => {
+    // Test implementation
+  });
+});
+```
+
+**ENFORCEMENT**:
+- PR must include test file changes
+- CI runs full test suite
+- Coverage must not decrease
+
+---
+
+### 6. Database Query Safety - TENANT SCOPING MANDATORY
+
+**RULE**: All database queries MUST include organization scoping for multi-tenant isolation.
+
+**REQUIRED BEHAVIOR**:
+```typescript
+// ✅ CORRECT - Organization scoped
+const products = await prisma.product.findMany({
+  where: {
+    organizationId: req.user.organizationId, // REQUIRED
+    isActive: true
+  }
+});
+
+// ❌ WRONG - Missing tenant scope (SECURITY VULNERABILITY)
+const products = await prisma.product.findMany({
+  where: {
+    isActive: true
+  }
+});
+```
+
+**EXCEPTIONS**:
+- SUPER_ADMIN queries explicitly marked with comment: `// SUPER_ADMIN: cross-tenant query`
+
+**ENFORCEMENT**:
+- Prisma middleware enforces organizationId
+- Code review checklist item
+- Security audit script validates all queries
+
+---
+
+### 7. Correlation ID Propagation - TRACEABILITY REQUIRED
+
+**RULE**: Every request MUST have a correlation ID that flows through all layers.
+
+**REQUIRED**:
+```typescript
+// API Layer
+export default withErrorHandler(async (req, res, { correlation }) => {
+  // Use correlation throughout handler
+  await someService.process({ correlationId: correlation });
+});
+
+// Service Layer
+async function process({ correlationId }: { correlationId: string }) {
+  logger.info({ message: 'Processing', correlation: correlationId });
+  // Forward to DB, external APIs, etc.
+}
+```
+
+**ENFORCEMENT**:
+- Middleware automatically generates `X-Request-Id` if missing
+- All logs MUST include correlation ID
+- Trace propagation validated in E2E tests
+
+---
+
+### 8. Cursor Auto-Fix Review Process
+
+**RULE**: All Cursor auto-fixes MUST go through PR review before merge.
+
+**PROCESS**:
+1. Cursor creates fix on `cursor/auto-fix-{timestamp}` branch
+2. PR automatically created with label `cursor/auto-fix`
+3. PR runs full CI pipeline
+4. Human reviewer required before merge
+5. RBAC audit must pass
+
+**PR TEMPLATE**:
+```markdown
+## Cursor Auto-Fix
+
+**What was changed:**
+- List of files and changes
+
+**Why this change was made:**
+- Explanation of the issue being fixed
+
+**Testing:**
+- [ ] Unit tests pass
+- [ ] RBAC audit passes
+- [ ] No exceptions removed
+- [ ] Correlation IDs preserved
+
+**Reviewer Checklist:**
+- [ ] Changes follow `.cursorrules`
+- [ ] No silent error handling
+- [ ] Authorization centralized
+- [ ] Tests included
+```
+
+---
+
+### 9. Change Documentation - TRACEABILITY
+
+**RULE**: Significant changes MUST include inline documentation.
+
+**REQUIRED**:
+```typescript
+/**
+ * cursor:change 2025-10-12
+ * Changed: Added RBAC check for product creation
+ * Reason: Fix authorization bypass vulnerability
+ * Test: tests/api/products.test.ts - testProductCreationAuth
+ */
+export default requirePermission('MANAGE_PRODUCTS')(handler);
+```
+
+**ENFORCEMENT**:
+- CI job scans for `cursor:change` comments
+- Validates referenced tests exist and pass
+
+---
+
+### 10. External API Calls - TIMEOUT AND ERROR HANDLING
+
+**RULE**: All external API calls MUST have timeouts and structured error handling.
+
+**REQUIRED**:
+```typescript
+// ✅ CORRECT
+try {
+  const response = await fetch(externalUrl, {
+    method: 'POST',
+    headers: { /* headers */ },
+    body: JSON.stringify(data),
+    signal: AbortSignal.timeout(5000) // REQUIRED: timeout
+  });
+
+  if (!response.ok) {
+    throw new ExternalAPIError(
+      `External API failed: ${response.statusText}`,
+      { statusCode: response.status, url: externalUrl }
+    );
+  }
+
+  return response.json();
+} catch (error) {
+  logger.error({
+    message: 'External API call failed',
+    error: error.message,
+    url: externalUrl,
+    correlation: req.correlationId
+  });
+  throw error; // Re-throw after logging
+}
+```
+
+---
+
+## CI ENFORCEMENT
+
+The following CI jobs enforce these rules:
+
+### `.github/workflows/cursor-policy-check.yml`
+```yaml
+name: Cursor Policy Enforcement
+
+on: [pull_request]
+
+jobs:
+  policy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check for removed exceptions
+        run: |
+          # Scan diff for removed throw statements
+          git diff origin/main...HEAD | grep -E '^\-.*throw' && exit 1 || true
+      
+      - name: Check for console statements
+        run: |
+          npm run lint:console
+      
+      - name: Run RBAC audit
+        run: |
+          npm run test:db:seed
+          npm run audit:rbac
+      
+      - name: Validate correlation IDs
+        run: |
+          npm run test:correlation
+      
+      - name: Check test coverage
+        run: |
+          npm run test:coverage -- --coverageThreshold=80
+```
+
+---
+
+## QUICK REFERENCE
+
+**Before committing code, Cursor MUST:**
+1. ✅ Run ESLint: `npm run lint`
+2. ✅ Run tests: `npm run test`
+3. ✅ Run RBAC audit (if auth changes): `npm run audit:rbac`
+4. ✅ Validate no exceptions removed
+5. ✅ Ensure correlation IDs present
+6. ✅ Use structured logger
+
+**Red Flags (Immediate PR Rejection):**
+- 🚨 Empty catch blocks
+- 🚨 `success: true` returned on error
+- 🚨 Ad-hoc role checks
+- 🚨 Console.log statements
+- 🚨 Missing correlation IDs
+- 🚨 Queries without organizationId
+- 🚨 No tests for functional changes
+
+---
+
+## CONTACT
+
+For questions about these rules or to request exceptions:
+- Create an issue with label `cursor-rules-question`
+- Tag: @project-lead
+
+**Last Updated**: October 12, 2025  
+**Version**: 1.0.0  
+**Enforced By**: CI Pipeline + Code Review
+

@@ -1,59 +1,34 @@
+/**
+ * Readiness Check API Route
+ * 
+ * Authorization:
+ * - GET: Public (Kubernetes readiness probe)
+ * 
+ * Returns readiness status
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { withErrorHandler, successResponse } from '@/lib/middleware/withErrorHandler';
+
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
-import dbManager from '@/lib/database';
 
-// Readiness check - determines if the app is ready to serve traffic
-export async function GET() {
-  try {
-    const startTime = Date.now();
-    const readinessChecks = {
-      database: false,
-      api: true
-    };
-
-    // Check database readiness with retry logic
-    const dbHealth = await dbManager.healthCheck();
-    readinessChecks.database = dbHealth.status === 'healthy';
-
-    const responseTime = Date.now() - startTime;
-
-    if (!readinessChecks.database) {
+export const GET = withErrorHandler(
+  async (req: NextRequest) => {
+    try {
+      // Check database connectivity
+      await prisma.$queryRaw`SELECT 1`;
+      
+      return NextResponse.json(successResponse({
+        ready: true,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (error: any) {
       return NextResponse.json({
-        status: 'not ready',
-        timestamp: new Date().toISOString(),
-        database: dbHealth,
-        services: {
-          database: 'unhealthy',
-          api: 'healthy'
-        },
-        responseTime
+        success: false,
+        ready: false,
+        error: error.message
       }, { status: 503 });
     }
-
-    return NextResponse.json({
-      status: 'ready',
-      timestamp: new Date().toISOString(),
-      database: dbHealth,
-      services: {
-        database: 'healthy',
-        api: 'healthy'
-      },
-      responseTime
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: 'error',
-        timestamp: new Date().toISOString(),
-        database: 'error',
-        error: 'Readiness check failed'
-      },
-      { status: 500 }
-    );
   }
-}
-
-// Handle CORS preflight
-export function OPTIONS() {
-  return new NextResponse(null, { status: 200 });
-}
+);

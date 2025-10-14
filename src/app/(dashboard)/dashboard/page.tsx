@@ -303,7 +303,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <Link 
-              href="/ai-insights"
+              href="/dashboard/ai-insights"
               className="px-4 py-2 bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 rounded-lg border border-purple-200 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
             >
               View All
@@ -444,7 +444,7 @@ export default function DashboardPage() {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link 
-            href="/products/new"
+            href="/dashboard/products/new"
             className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             <Package className="w-6 h-6 text-blue-600 mb-2" />
@@ -452,7 +452,7 @@ export default function DashboardPage() {
           </Link>
           
           <Link 
-            href="/orders/new"
+            href="/dashboard/orders/new"
             className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
           >
             <ShoppingCart className="w-6 h-6 text-green-600 mb-2" />
@@ -460,7 +460,7 @@ export default function DashboardPage() {
           </Link>
           
           <Link 
-            href="/customers/new"
+            href="/dashboard/customers/new"
             className="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
           >
             <Users className="w-6 h-6 text-purple-600 mb-2" />
@@ -468,7 +468,7 @@ export default function DashboardPage() {
           </Link>
           
           <Link 
-            href="/ai-insights"
+            href="/dashboard/ai-insights"
             className="flex flex-col items-center p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/30 dark:hover:to-blue-900/30 transition-colors"
           >
             <Brain className="w-6 h-6 text-purple-600 mb-2" />

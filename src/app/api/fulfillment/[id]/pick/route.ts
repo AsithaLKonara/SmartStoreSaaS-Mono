@@ -1,40 +1,62 @@
+/**
+ * Fulfillment Pick API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_FULFILLMENT permission)
+ * 
+ * Organization Scoping: Validated through fulfillment
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const fulfillmentId = params.id;
 
-    // Update order status to picking
-    const order = await prisma.order.update({
-      where: { id: params.id },
-      data: {
-        status: 'PICKING',
-        updatedAt: new Date()
+      const fulfillment = await prisma.fulfillment.findUnique({
+        where: { id: fulfillmentId }
+      });
+
+      if (!fulfillment) {
+        throw new ValidationError('Fulfillment not found');
       }
-    });
 
-    return NextResponse.json({
-      success: true,
-      order,
-      message: 'Picking started successfully'
-    });
-  } catch (error: any) {
-    console.error('Error starting picking:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+      if (fulfillment.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot pick fulfillment from other organizations');
+      }
+
+      await prisma.fulfillment.update({
+        where: { id: fulfillmentId },
+        data: {
+          status: 'PICKED',
+          pickedBy: user.id,
+          pickedAt: new Date()
+        }
+      });
+
+      logger.info({
+        message: 'Fulfillment items picked',
+        context: { userId: user.id, fulfillmentId }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Items picked successfully',
+        fulfillmentId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Fulfillment pick failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
-
+);

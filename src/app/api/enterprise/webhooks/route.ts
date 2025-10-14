@@ -1,67 +1,87 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Enterprise Webhooks Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_WEBHOOKS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_WEBHOOKS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
-import crypto from 'crypto';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List webhooks
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const webhooks = await prisma.webhook.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { createdAt: 'desc' }
+      });
+
+      logger.info({
+        message: 'Webhooks fetched',
+        context: { userId: user.id, count: webhooks.length }
+      });
+
+      return NextResponse.json(successResponse(webhooks));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch webhooks',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const webhooks = await db.webhook.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        _count: {
-          select: {
-            deliveries: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: webhooks });
-  } catch (error) {
-    apiLogger.error('Error fetching webhooks', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch webhooks' }, { status: 500 });
   }
-}
+);
 
-// POST - Create webhook
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { url, events, description } = body;
+
+      if (!url || !events || !Array.isArray(events)) {
+        throw new ValidationError('URL and events array are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const webhook = await prisma.webhook.create({
+        data: {
+          organizationId,
+          url,
+          events,
+          description,
+          isActive: true,
+          secret: `whsec_${Math.random().toString(36).substr(2, 32)}`
+        }
+      });
+
+      logger.info({
+        message: 'Webhook created',
+        context: { userId: user.id, webhookId: webhook.id }
+      });
+
+      return NextResponse.json(successResponse(webhook), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create webhook',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { url, events } = body;
-
-    // Generate webhook secret
-    const secret = crypto.randomBytes(32).toString('hex');
-
-    const webhook = await db.webhook.create({
-      data: {
-        organizationId: session.user.organizationId,
-        url,
-        events: JSON.stringify(events),
-        secret,
-      },
-    });
-
-    apiLogger.info('Webhook created', { webhookId: webhook.id });
-
-    return NextResponse.json({ success: true, data: webhook });
-  } catch (error) {
-    apiLogger.error('Error creating webhook', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create webhook' }, { status: 500 });
   }
-}
-
+);

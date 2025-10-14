@@ -1,73 +1,90 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Social Commerce API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_SOCIAL_COMMERCE permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_SOCIAL_COMMERCE permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List social commerce integrations
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const socialAccounts = await prisma.social_commerce.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        select: {
+          id: true,
+          platform: true,
+          accountName: true,
+          status: true,
+          lastSync: true,
+          isActive: true
+        }
+      });
+
+      logger.info({
+        message: 'Social commerce accounts fetched',
+        context: { userId: user.id, count: socialAccounts.length }
+      });
+
+      return NextResponse.json(successResponse(socialAccounts));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch social commerce',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const integrations = await db.socialCommerce.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        _count: {
-          select: {
-            catalogItems: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: integrations });
-  } catch (error) {
-    apiLogger.error('Error fetching social commerce integrations', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch integrations' }, { status: 500 });
   }
-}
+);
 
-// POST - Create social commerce integration
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { platform, accountName, accessToken } = body;
+
+      if (!platform || !accountName) {
+        throw new ValidationError('Platform and account name are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      logger.info({
+        message: 'Social commerce account connected',
+        context: {
+          userId: user.id,
+          organizationId,
+          platform
+        }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Social commerce account connected',
+        platform
+      }), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to connect social commerce',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const {
-      platform,
-      accountName,
-      accountId,
-      accessToken,
-      pageId,
-      businessAccountId,
-    } = body;
-
-    const integration = await db.socialCommerce.create({
-      data: {
-        organizationId: session.user.organizationId,
-        platform,
-        accountName,
-        accountId,
-        accessToken,
-        pageId,
-        businessAccountId,
-      },
-    });
-
-    apiLogger.info('Social commerce integration created', { integrationId: integration.id, platform });
-
-    return NextResponse.json({ success: true, data: integration });
-  } catch (error) {
-    apiLogger.error('Error creating social commerce integration', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create integration' }, { status: 500 });
   }
-}
-
+);

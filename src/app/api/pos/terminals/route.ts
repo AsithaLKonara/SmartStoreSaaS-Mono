@@ -1,73 +1,86 @@
-export const dynamic = 'force-dynamic';
+/**
+ * POS Terminals API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_POS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_POS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List POS terminals
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const terminals = await prisma.posTerminal.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { name: 'asc' }
+      });
+
+      logger.info({
+        message: 'POS terminals fetched',
+        context: { userId: user.id, count: terminals.length }
+      });
+
+      return NextResponse.json(successResponse(terminals));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch POS terminals',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const terminals = await db.pOSTerminal.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        warehouse: true,
-        _count: {
-          select: {
-            transactions: true,
-            cashDrawers: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: terminals });
-  } catch (error) {
-    apiLogger.error('Error fetching terminals', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch terminals' }, { status: 500 });
   }
-}
+);
 
-// POST - Create POS terminal
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, location, type } = body;
+
+      if (!name) {
+        throw new ValidationError('Terminal name is required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const terminal = await prisma.posTerminal.create({
+        data: {
+          organizationId,
+          name,
+          location,
+          type: type || 'STANDARD',
+          isActive: true
+        }
+      });
+
+      logger.info({
+        message: 'POS terminal created',
+        context: { userId: user.id, terminalId: terminal.id }
+      });
+
+      return NextResponse.json(successResponse(terminal), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create POS terminal',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { terminalName, warehouseId, deviceId, ipAddress } = body;
-
-    // Generate terminal code
-    const count = await db.pOSTerminal.count({
-      where: { organizationId: session.user.organizationId },
-    });
-    const terminalCode = `TERM-${(count + 1).toString().padStart(4, '0')}`;
-
-    const terminal = await db.pOSTerminal.create({
-      data: {
-        organizationId: session.user.organizationId,
-        terminalName,
-        terminalCode,
-        warehouseId,
-        deviceId,
-        ipAddress,
-      },
-    });
-
-    apiLogger.info('POS terminal created', { terminalId: terminal.id, terminalCode });
-
-    return NextResponse.json({ success: true, data: terminal });
-  } catch (error) {
-    apiLogger.error('Error creating terminal', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create terminal' }, { status: 500 });
   }
-}
-
+);

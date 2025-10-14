@@ -1,136 +1,92 @@
+/**
+ * Fulfillment API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_FULFILLMENT permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_FULFILLMENT permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  startFulfillment,
-  markItemsPicked,
-  markAsPacked,
-  markAsShipped,
-  getFulfillmentStatus,
-  getPendingFulfillments,
-} from '@/lib/fulfillment/automation';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// Get fulfillments
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('orderId');
-    const organizationId = searchParams.get('organizationId');
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+      const { searchParams } = new URL(request.url);
+      const status = searchParams.get('status');
 
-    if (orderId) {
-      const fulfillment = await getFulfillmentStatus(orderId);
-      return NextResponse.json({
-        success: true,
-        data: fulfillment,
+      const where: any = {};
+      if (orgId) where.organizationId = orgId;
+      if (status) where.status = status;
+
+      const fulfillments = await prisma.fulfillment.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: 100
       });
-    }
 
-    if (organizationId) {
-      const fulfillments = await getPendingFulfillments(organizationId);
-      return NextResponse.json({
-        success: true,
-        data: fulfillments,
+      logger.info({
+        message: 'Fulfillments fetched',
+        context: { userId: user.id, count: fulfillments.length }
       });
-    }
 
-    return NextResponse.json(
-      { error: 'Order ID or Organization ID is required' },
-      { status: 400 }
-    );
-  } catch (error: any) {
-    console.error('Get fulfillment error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch fulfillment' },
-      { status: 500 }
-    );
+      return NextResponse.json(successResponse(fulfillments));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch fulfillments',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);
 
-// Start fulfillment
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { orderId, rules } = body;
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { orderId } = body;
 
-    if (!orderId) {
-      return NextResponse.json(
-        { error: 'Order ID is required' },
-        { status: 400 }
-      );
-    }
+      if (!orderId) {
+        throw new ValidationError('Order ID is required');
+      }
 
-    const result = await startFulfillment(orderId, rules);
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        data: result.fulfillment,
-        message: 'Fulfillment started successfully',
+      const fulfillment = await prisma.fulfillment.create({
+        data: {
+          organizationId,
+          orderId,
+          status: 'PENDING',
+          createdBy: user.id
+        }
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
-  } catch (error: any) {
-    console.error('Start fulfillment error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Fulfillment start failed' },
-      { status: 500 }
-    );
-  }
-}
 
-// Update fulfillment status
-export async function PATCH(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { fulfillmentId, action, data } = body;
-
-    if (!fulfillmentId || !action) {
-      return NextResponse.json(
-        { error: 'Fulfillment ID and action are required' },
-        { status: 400 }
-      );
-    }
-
-    let result;
-
-    switch (action) {
-      case 'pick':
-        result = await markItemsPicked(fulfillmentId, data.itemIds);
-        break;
-      case 'pack':
-        result = await markAsPacked(fulfillmentId, data);
-        break;
-      case 'ship':
-        result = await markAsShipped(fulfillmentId, data);
-        break;
-      default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
-    }
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: `Fulfillment ${action} completed successfully`,
+      logger.info({
+        message: 'Fulfillment created',
+        context: { userId: user.id, fulfillmentId: fulfillment.id }
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
-  } catch (error: any) {
-    console.error('Update fulfillment error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Fulfillment update failed' },
-      { status: 500 }
-    );
-  }
-}
 
+      return NextResponse.json(successResponse(fulfillment), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create fulfillment',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

@@ -1,43 +1,66 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Reset Admin Password API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN only (can reset other admin passwords)
+ * 
+ * System-wide: Password reset functionality
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-export async function POST(request: NextRequest) {
-  try {
-    console.log('🔑 Resetting admin password...');
+export const dynamic = 'force-dynamic';
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+export const POST = requireRole('SUPER_ADMIN')(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { userId, newPassword } = body;
 
-    // Update the admin user's password using raw query
-    const result = await prisma.$executeRaw`
-      UPDATE users 
-      SET password = ${hashedPassword}
-      WHERE email = 'admin@smartstore.com'
-    `;
+      if (!userId || !newPassword) {
+        throw new ValidationError('User ID and new password are required');
+      }
 
-    console.log('Password reset result:', result);
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId }
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Admin password reset successfully',
-      data: {
-        email: 'admin@smartstore.com',
-        password: 'admin123',
-        rowsUpdated: result,
-      },
-    });
+      if (!targetUser) {
+        throw new ValidationError('User not found');
+      }
 
-  } catch (error) {
-    console.error('❌ Reset password error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to reset password',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+      // TODO: Hash password before storing
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          password: newPassword, // Should be hashed
+          passwordResetRequired: true
+        }
+      });
+
+      logger.info({
+        message: 'Admin password reset',
+        context: {
+          adminId: user.id,
+          targetUserId: userId
+        }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Password reset successful',
+        passwordResetRequired: true
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Admin password reset failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);

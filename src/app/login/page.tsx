@@ -1,18 +1,17 @@
 import LoginForm from '@/components/LoginForm';
-import Head from 'next/head';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Login - SmartStore SaaS',
+  description: 'Sign in to your SmartStore SaaS account to manage your business operations.',
+  keywords: 'login, sign in, smartstore, saas, business management',
+  openGraph: {
+    title: 'Login - SmartStore SaaS',
+    description: 'Sign in to your SmartStore SaaS account to manage your business operations.',
+    type: 'website',
+  },
+};
 
 export default function LoginPage() {
-  return (
-    <>
-      <Head>
-        <title>Login - SmartStore SaaS</title>
-        <meta name="description" content="Sign in to your SmartStore SaaS account to manage your business operations." />
-        <meta name="keywords" content="login, sign in, smartstore, saas, business management" />
-        <meta property="og:title" content="Login - SmartStore SaaS" />
-        <meta property="og:description" content="Sign in to your SmartStore SaaS account to manage your business operations." />
-        <meta property="og:type" content="website" />
-      </Head>
-      <LoginForm />
-    </>
-  );
+  return <LoginForm />;
 }

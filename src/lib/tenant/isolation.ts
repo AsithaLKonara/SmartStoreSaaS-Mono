@@ -6,6 +6,7 @@
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { UserRole } from '@/lib/rbac/roles';
+import { logger } from '@/lib/logger';
 
 export interface TenantContext {
   organizationId: string;
@@ -35,7 +36,11 @@ export async function getTenantContext(request: NextRequest): Promise<TenantCont
       isSuperAdmin
     };
   } catch (error) {
-    console.error('Error getting tenant context:', error);
+    logger.error({
+      message: 'Error getting tenant context',
+      error: error,
+      context: { url: request.url }
+    });
     return null;
   }
 }

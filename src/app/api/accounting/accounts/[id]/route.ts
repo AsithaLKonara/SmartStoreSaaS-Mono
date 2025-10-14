@@ -1,201 +1,137 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Single Accounting Account API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF-accountant (VIEW_ACCOUNTING permission)
+ * - PUT: SUPER_ADMIN, TENANT_ADMIN (MANAGE_ACCOUNTING permission)
+ * - DELETE: SUPER_ADMIN, TENANT_ADMIN (MANAGE_ACCOUNTING permission)
+ * 
+ * Organization Scoping: Validated through account
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - Get single account
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      if (user.role === 'STAFF' && user.roleTag !== 'accountant') {
+        throw new ValidationError('Only accountant staff can view accounts');
+      }
+
+      const accountId = params.id;
+
+      const account = await prisma.account.findUnique({
+        where: { id: accountId }
+      });
+
+      if (!account) {
+        throw new ValidationError('Account not found');
+      }
+
+      if (account.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot view accounts from other organizations');
+      }
+
+      logger.info({
+        message: 'Accounting account fetched',
+        context: { userId: user.id, accountId }
+      });
+
+      return NextResponse.json(successResponse(account));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch accounting account',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const account = await db.chartOfAccounts.findFirst({
-      where: {
-        id: params.id,
-        organizationId: session.user.organizationId,
-      },
-      include: {
-        parent: true,
-        children: true,
-        taxRate: true,
-        ledgerEntries: {
-          take: 10,
-          orderBy: { transactionDate: 'desc' },
-        },
-      },
-    });
-
-    if (!account) {
-      return NextResponse.json(
-        { success: false, message: 'Account not found' },
-        { status: 404 }
-      );
-    }
-
-    // Calculate current balance from ledger
-    const balanceResult = await db.ledger.aggregate({
-      where: {
-        accountId: params.id,
-      },
-      _sum: {
-        debit: true,
-        credit: true,
-      },
-    });
-
-    const calculatedBalance = (balanceResult._sum.debit || 0) - (balanceResult._sum.credit || 0);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...account,
-        calculatedBalance,
-      },
-    });
-  } catch (error) {
-    apiLogger.error('Error fetching account', { 
-      error: error instanceof Error ? error.message : 'Unknown' 
-    });
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch account' },
-      { status: 500 }
-    );
   }
-}
+);
 
-// PUT - Update account
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
+export const PUT = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const accountId = params.id;
+      const body = await request.json();
+
+      const account = await prisma.account.findUnique({
+        where: { id: accountId }
+      });
+
+      if (!account) {
+        throw new ValidationError('Account not found');
+      }
+
+      if (account.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot update accounts from other organizations');
+      }
+
+      const updated = await prisma.account.update({
+        where: { id: accountId },
+        data: body
+      });
+
+      logger.info({
+        message: 'Accounting account updated',
+        context: { userId: user.id, accountId }
+      });
+
+      return NextResponse.json(successResponse(updated));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update accounting account',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { name, description, parentId, taxEnabled, taxRateId, isActive } = body;
-
-    // Verify account exists and belongs to organization
-    const existing = await db.chartOfAccounts.findFirst({
-      where: {
-        id: params.id,
-        organizationId: session.user.organizationId,
-      },
-    });
-
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, message: 'Account not found' },
-        { status: 404 }
-      );
-    }
-
-    // Update account
-    const account = await db.chartOfAccounts.update({
-      where: { id: params.id },
-      data: {
-        name,
-        description,
-        parentId,
-        taxEnabled,
-        taxRateId,
-        isActive,
-      },
-      include: {
-        parent: true,
-        taxRate: true,
-      },
-    });
-
-    apiLogger.info('Account updated', { accountId: account.id, name });
-
-    return NextResponse.json({
-      success: true,
-      data: account,
-    });
-  } catch (error) {
-    apiLogger.error('Error updating account', { 
-      error: error instanceof Error ? error.message : 'Unknown' 
-    });
-    return NextResponse.json(
-      { success: false, message: 'Failed to update account' },
-      { status: 500 }
-    );
   }
-}
+);
 
-// DELETE - Deactivate account (soft delete)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
+export const DELETE = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const accountId = params.id;
+
+      const account = await prisma.account.findUnique({
+        where: { id: accountId }
+      });
+
+      if (!account) {
+        throw new ValidationError('Account not found');
+      }
+
+      if (account.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot delete accounts from other organizations');
+      }
+
+      await prisma.account.delete({
+        where: { id: accountId }
+      });
+
+      logger.info({
+        message: 'Accounting account deleted',
+        context: { userId: user.id, accountId }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Account deleted',
+        accountId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to delete accounting account',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    // Check if account has transactions
-    const hasTransactions = await db.ledger.count({
-      where: { accountId: params.id },
-    });
-
-    if (hasTransactions > 0) {
-      // Soft delete only
-      const account = await db.chartOfAccounts.update({
-        where: { id: params.id },
-        data: { isActive: false },
-      });
-
-      apiLogger.info('Account deactivated (has transactions)', { accountId: params.id });
-
-      return NextResponse.json({
-        success: true,
-        data: account,
-        message: 'Account deactivated (cannot delete account with transactions)',
-      });
-    } else {
-      // Hard delete if no transactions
-      await db.chartOfAccounts.delete({
-        where: { id: params.id },
-      });
-
-      apiLogger.info('Account deleted', { accountId: params.id });
-
-      return NextResponse.json({
-        success: true,
-        message: 'Account deleted successfully',
-      });
-    }
-  } catch (error) {
-    apiLogger.error('Error deleting account', { 
-      error: error instanceof Error ? error.message : 'Unknown' 
-    });
-    return NextResponse.json(
-      { success: false, message: 'Failed to delete account' },
-      { status: 500 }
-    );
   }
-}
-
+);

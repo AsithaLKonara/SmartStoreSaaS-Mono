@@ -1,106 +1,43 @@
+/**
+ * Reports Generation API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_REPORTS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requirePermission, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const {
-      reportType,
-      organizationId,
-      startDate,
-      endDate,
-      format = 'json',
-    } = body;
-
-    if (!reportType || !organizationId) {
-      return NextResponse.json(
-        { error: 'Report type and organization ID are required' },
-        { status: 400 }
-      );
-    }
-
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
-
-    let reportData: any = {};
-
-    switch (reportType) {
-      case 'sales':
-        reportData = await generateSalesReport(organizationId, start, end);
-        break;
-
-      case 'inventory':
-        reportData = await generateInventoryReport(organizationId);
-        break;
-
-      case 'customers':
-        reportData = await generateCustomerReport(organizationId, start, end);
-        break;
-
-      case 'financial':
-        reportData = await generateFinancialReport(organizationId, start, end);
-        break;
-
-      default:
-        return NextResponse.json(
-          { error: 'Invalid report type' },
-          { status: 400 }
-        );
-    }
-
-    return NextResponse.json({
-      success: true,
-      reportType,
-      period: { start, end },
-      data: reportData,
-      generatedAt: new Date().toISOString(),
-    });
-  } catch (error: any) {
-    console.error('Report generation error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Report generation failed',
-      },
-      { status: 500 }
-    );
-  }
-}
 
 async function generateSalesReport(organizationId: string, start: Date, end: Date) {
   const orders = await prisma.order.findMany({
     where: {
       organizationId,
       createdAt: { gte: start, lte: end },
+      status: { not: 'CANCELLED' }
     },
     include: {
+      customer: true,
       orderItems: {
-        include: {
-          product: {
-            select: {
-              name: true,
-              sku: true,
-            },
-          },
-        },
-      },
-    },
+        include: { product: true }
+      }
+    }
   });
 
-  const totalSales = orders.reduce((sum, o) => sum + Number(o.total), 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
   const totalOrders = orders.length;
-  const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
   return {
-    summary: {
-      totalSales,
-      totalOrders,
-      avgOrderValue,
-      period: { start, end },
-    },
-    orders,
+    reportType: 'sales',
+    period: { start, end },
+    summary: { totalRevenue, totalOrders },
+    orders
   };
 }
 
@@ -114,24 +51,22 @@ async function generateInventoryReport(organizationId: string) {
       stock: true,
       minStock: true,
       price: true,
-      cost: true,
-    },
+      cost: true
+    }
   });
 
   const lowStock = products.filter(p => p.stock <= p.minStock);
-  const outOfStock = products.filter(p => p.stock === 0);
-  const totalValue = products.reduce((sum, p) => sum + (p.stock * Number(p.cost || 0)), 0);
+  const totalValue = products.reduce((sum, p) => sum + (Number(p.cost || p.price) * p.stock), 0);
 
   return {
+    reportType: 'inventory',
     summary: {
       totalProducts: products.length,
-      lowStockItems: lowStock.length,
-      outOfStockItems: outOfStock.length,
-      totalInventoryValue: totalValue,
+      lowStockCount: lowStock.length,
+      totalValue
     },
-    lowStock,
-    outOfStock,
-    allProducts: products,
+    products,
+    lowStock
   };
 }
 
@@ -139,72 +74,99 @@ async function generateCustomerReport(organizationId: string, start: Date, end: 
   const customers = await prisma.customer.findMany({
     where: {
       organizationId,
-      createdAt: { gte: start, lte: end },
-    },
-    include: {
-      orders: true,
-    },
+      createdAt: { gte: start, lte: end }
+    }
   });
 
-  const totalCustomers = customers.length;
-  const customersWithOrders = customers.filter(c => c.orders.length > 0).length;
-
   return {
+    reportType: 'customers',
+    period: { start, end },
     summary: {
-      totalCustomers,
-      newCustomers: totalCustomers,
-      customersWithOrders,
-      conversionRate: totalCustomers > 0 ? (customersWithOrders / totalCustomers) * 100 : 0,
+      totalCustomers: customers.length,
+      newCustomers: customers.length
     },
-    customers: customers.map(c => ({
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      phone: c.phone,
-      totalOrders: c.orders.length,
-      totalSpent: c.orders.reduce((sum, o) => sum + Number(o.total), 0),
-    })),
+    customers
   };
 }
 
 async function generateFinancialReport(organizationId: string, start: Date, end: Date) {
-  const orders = await prisma.order.aggregate({
+  const orders = await prisma.order.findMany({
     where: {
       organizationId,
-      createdAt: { gte: start, lte: end },
-    },
-    _sum: {
-      total: true,
-      subtotal: true,
-      tax: true,
-      shipping: true,
-      discount: true,
-    },
-    _count: true,
+      createdAt: { gte: start, lte: end }
+    }
   });
 
-  const payments = await prisma.payment.aggregate({
-    where: {
-      organizationId,
-      createdAt: { gte: start, lte: end },
-    },
-    _sum: {
-      amount: true,
-    },
-    _count: true,
-  });
+  const revenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
+  const tax = orders.reduce((sum, o) => sum + Number(o.tax), 0);
 
   return {
-    summary: {
-      revenue: Number(orders._sum.total || 0),
-      subtotal: Number(orders._sum.subtotal || 0),
-      tax: Number(orders._sum.tax || 0),
-      shipping: Number(orders._sum.shipping || 0),
-      discounts: Number(orders._sum.discount || 0),
-      totalOrders: orders._count,
-      paymentsReceived: Number(payments._sum.amount || 0),
-      paymentsCount: payments._count,
-    },
+    reportType: 'financial',
+    period: { start, end },
+    summary: { revenue, tax, net: revenue - tax },
+    orders
   };
 }
 
+export const POST = requirePermission('VIEW_REPORTS')(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { reportType, startDate, endDate, format = 'json' } = body;
+
+      if (!reportType) {
+        throw new ValidationError('Report type is required');
+      }
+
+      // Organization scoping
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate) : new Date();
+
+      let reportData: any = {};
+
+      switch (reportType) {
+        case 'sales':
+          reportData = await generateSalesReport(organizationId, start, end);
+          break;
+        case 'inventory':
+          reportData = await generateInventoryReport(organizationId);
+          break;
+        case 'customers':
+          reportData = await generateCustomerReport(organizationId, start, end);
+          break;
+        case 'financial':
+          reportData = await generateFinancialReport(organizationId, start, end);
+          break;
+        default:
+          throw new ValidationError('Invalid report type');
+      }
+
+      logger.info({
+        message: 'Report generated',
+        context: {
+          userId: user.id,
+          organizationId,
+          reportType
+        }
+      });
+
+      return NextResponse.json(successResponse({
+        ...reportData,
+        generatedAt: new Date().toISOString(),
+        generatedBy: user.id
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to generate report',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

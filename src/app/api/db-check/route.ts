@@ -1,48 +1,46 @@
+/**
+ * Database Connection Check API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN only
+ * 
+ * Quick database connectivity check
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    const startTime = Date.now();
-    
-    // Test database connection
-    await prisma.$queryRaw`SELECT 1`;
-    
-    // Get basic counts
-    const userCount = await prisma.user.count();
-    const productCount = await prisma.product.count();
-    const orderCount = await prisma.order.count();
-    const customerCount = await prisma.customer.count();
-    
-    const responseTime = Date.now() - startTime;
-    
-    return NextResponse.json({
-      status: 'ok',
-      database: 'connected',
-      responseTime: `${responseTime}ms`,
-      counts: {
-        users: userCount,
-        products: productCount,
-        orders: orderCount,
-        customers: customerCount
-      },
-      timestamp: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('Database check failed:', error);
-    
-    return NextResponse.json({
-      status: 'error',
-      database: 'disconnected',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+export const GET = requireRole('SUPER_ADMIN')(
+  async (request, user) => {
+    try {
+      await prisma.$connect();
+      
+      logger.info({
+        message: 'Database connection verified',
+        context: { userId: user.id }
+      });
+
+      return NextResponse.json(successResponse({
+        connected: true,
+        message: 'Database connection successful'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Database connection failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      
+      return NextResponse.json({
+        success: false,
+        connected: false,
+        error: error.message
+      }, { status: 503 });
+    }
   }
-}
-
-
-
-
+);

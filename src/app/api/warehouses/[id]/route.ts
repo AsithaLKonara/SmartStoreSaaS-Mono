@@ -1,118 +1,133 @@
+/**
+ * Single Warehouse API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_WAREHOUSES permission)
+ * - PUT: SUPER_ADMIN, TENANT_ADMIN (MANAGE_WAREHOUSES permission)
+ * - DELETE: SUPER_ADMIN, TENANT_ADMIN (MANAGE_WAREHOUSES permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// GET - Get warehouse by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const warehouseId = params.id;
 
-    const warehouse = await prisma.warehouses.findFirst({
-      where: {
-        id: params.id,
-        organizationId: session.user.organizationId
+      const warehouse = await prisma.warehouse.findUnique({
+        where: { id: warehouseId }
+      });
+
+      if (!warehouse) {
+        throw new ValidationError('Warehouse not found');
       }
-    });
 
-    if (!warehouse) {
-      return NextResponse.json({
-        success: false,
-        message: 'Warehouse not found'
-      }, { status: 404 });
+      if (warehouse.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot view warehouses from other organizations');
+      }
+
+      logger.info({
+        message: 'Warehouse fetched',
+        context: { userId: user.id, warehouseId }
+      });
+
+      return NextResponse.json(successResponse(warehouse));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch warehouse',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    return NextResponse.json({
-      success: true,
-      warehouse
-    });
-  } catch (error: any) {
-    console.error('Error fetching warehouse:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
   }
-}
+);
 
-// PUT - Update warehouse
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const PUT = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const warehouseId = params.id;
+      const body = await request.json();
+
+      const warehouse = await prisma.warehouse.findUnique({
+        where: { id: warehouseId }
+      });
+
+      if (!warehouse) {
+        throw new ValidationError('Warehouse not found');
+      }
+
+      if (warehouse.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot update warehouses from other organizations');
+      }
+
+      const updated = await prisma.warehouse.update({
+        where: { id: warehouseId },
+        data: body
+      });
+
+      logger.info({
+        message: 'Warehouse updated',
+        context: { userId: user.id, warehouseId }
+      });
+
+      return NextResponse.json(successResponse(updated));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update warehouse',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { name, code, address, city, country, phone, email, manager, isActive } = body;
-
-    const warehouse = await prisma.warehouses.update({
-      where: { id: params.id },
-      data: {
-        ...(name && { name }),
-        ...(code && { code }),
-        ...(address !== undefined && { address }),
-        ...(city !== undefined && { city }),
-        ...(country !== undefined && { country }),
-        ...(phone !== undefined && { phone }),
-        ...(email !== undefined && { email }),
-        ...(manager !== undefined && { manager }),
-        ...(isActive !== undefined && { isActive }),
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      warehouse,
-      message: 'Warehouse updated successfully'
-    });
-  } catch (error: any) {
-    console.error('Error updating warehouse:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
   }
-}
+);
 
-// DELETE - Delete warehouse (soft delete)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const DELETE = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const warehouseId = params.id;
+
+      const warehouse = await prisma.warehouse.findUnique({
+        where: { id: warehouseId }
+      });
+
+      if (!warehouse) {
+        throw new ValidationError('Warehouse not found');
+      }
+
+      if (warehouse.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot delete warehouses from other organizations');
+      }
+
+      await prisma.warehouse.delete({
+        where: { id: warehouseId }
+      });
+
+      logger.info({
+        message: 'Warehouse deleted',
+        context: { userId: user.id, warehouseId }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Warehouse deleted',
+        warehouseId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to delete warehouse',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    // Soft delete by setting isActive to false
-    const warehouse = await prisma.warehouses.update({
-      where: { id: params.id },
-      data: { isActive: false },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Warehouse deactivated successfully'
-    });
-  } catch (error: any) {
-    console.error('Error deleting warehouse:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
   }
-}
-
+);

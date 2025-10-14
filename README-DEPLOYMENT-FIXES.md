@@ -243,3 +243,4 @@ npm run test:e2e        # Test everything
 curl localhost:3000/api/status  # Check health
 ```
 
+

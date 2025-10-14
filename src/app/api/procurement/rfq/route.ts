@@ -1,77 +1,89 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Request for Quotation (RFQ) API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_PROCUREMENT permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_PROCUREMENT permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List RFQs
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const rfqs = await prisma.rfq.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { createdAt: 'desc' },
+        take: 100
+      });
+
+      logger.info({
+        message: 'RFQs fetched',
+        context: { userId: user.id, count: rfqs.length }
+      });
+
+      return NextResponse.json(successResponse(rfqs));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch RFQs',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const rfqs = await db.rFQ.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        items: true,
-        responses: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: rfqs });
-  } catch (error) {
-    apiLogger.error('Error fetching RFQs', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch RFQs' }, { status: 500 });
   }
-}
+);
 
-// POST - Create RFQ
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { title, items, suppliers, deadline } = body;
+
+      if (!title || !items) {
+        throw new ValidationError('Title and items are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const rfq = await prisma.rfq.create({
+        data: {
+          organizationId,
+          title,
+          items,
+          suppliers,
+          deadline: deadline ? new Date(deadline) : undefined,
+          status: 'DRAFT',
+          createdBy: user.id
+        }
+      });
+
+      logger.info({
+        message: 'RFQ created',
+        context: { userId: user.id, rfqId: rfq.id }
+      });
+
+      return NextResponse.json(successResponse(rfq), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create RFQ',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { title, description, dueDate, items } = body;
-
-    const count = await db.rFQ.count({
-      where: { organizationId: session.user.organizationId },
-    });
-    const rfqNumber = `RFQ-${new Date().getFullYear()}-${(count + 1).toString().padStart(5, '0')}`;
-
-    const rfq = await db.rFQ.create({
-      data: {
-        organizationId: session.user.organizationId,
-        rfqNumber,
-        title,
-        description,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        createdBy: session.user.id,
-        items: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
-            description: item.description,
-            quantity: item.quantity,
-            specifications: item.specifications,
-          })),
-        },
-      },
-      include: {
-        items: true,
-      },
-    });
-
-    apiLogger.info('RFQ created', { rfqId: rfq.id, rfqNumber });
-
-    return NextResponse.json({ success: true, data: rfq });
-  } catch (error) {
-    apiLogger.error('Error creating RFQ', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create RFQ' }, { status: 500 });
   }
-}
+);

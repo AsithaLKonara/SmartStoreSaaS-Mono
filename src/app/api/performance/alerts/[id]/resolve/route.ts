@@ -1,17 +1,49 @@
+/**
+ * Resolve Performance Alert API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN only (MANAGE_ALERTS permission)
+ * 
+ * Marks performance alert as resolved
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json({ 
-    message: 'API endpoint under development',
-    status: 'coming_soon'
-  });
-}
+export const POST = requireRole('SUPER_ADMIN')(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const alertId = params.id;
+      const body = await request.json();
+      const { resolution } = body;
 
-export async function POST(request: NextRequest) {
-  return NextResponse.json({ 
-    message: 'API endpoint under development',
-    status: 'coming_soon'
-  });
-}
+      logger.info({
+        message: 'Performance alert resolved',
+        context: {
+          userId: user.id,
+          alertId,
+          resolution
+        }
+      });
+
+      // TODO: Mark actual alert as resolved
+      return NextResponse.json(successResponse({
+        alertId,
+        status: 'resolved',
+        resolvedBy: user.id,
+        resolvedAt: new Date().toISOString()
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Alert resolution failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

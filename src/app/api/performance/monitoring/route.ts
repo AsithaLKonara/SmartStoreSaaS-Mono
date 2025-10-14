@@ -1,75 +1,50 @@
+/**
+ * Performance Monitoring API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN only (VIEW_PERFORMANCE permission)
+ * 
+ * System-wide: Real-time performance monitoring
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandling } from '@/lib/error-handling';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') || 'org-1';
-    const timeRange = searchParams.get('timeRange') || '24h';
-
-    // Performance monitoring data
-    const performanceData = {
-      organizationId,
-      timeRange,
-      timestamp: new Date().toISOString(),
-      metrics: {
-        responseTime: {
-          average: 245, // ms
-          p95: 450,
-          p99: 890,
-          trend: 'down'
-        },
-        throughput: {
-          requestsPerSecond: 1250,
-          peakRPS: 2100,
-          trend: 'up'
-        },
-        errorRate: {
-          percentage: 0.12,
-          count: 15,
-          trend: 'down'
-        },
-        availability: {
-          percentage: 99.88,
-          uptime: '23h 58m',
-          trend: 'stable'
-        }
-      },
-      resources: {
-        cpu: {
-          usage: 45.2,
-          peak: 78.5,
-          trend: 'stable'
-        },
+export const GET = requireRole('SUPER_ADMIN')(
+  async (request, user) => {
+    try {
+      const memoryUsage = process.memoryUsage();
+      
+      const monitoring = {
+        cpu: { usage: 0 }, // TODO: Implement CPU monitoring
         memory: {
-          usage: 62.8,
-          peak: 89.2,
-          trend: 'up'
+          rss: Math.round(memoryUsage.rss / 1024 / 1024),
+          heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+          heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024)
         },
-        database: {
-          connections: 45,
-          maxConnections: 100,
-          queryTime: 12.5
-        }
-      },
-      alerts: [
-        {
-          id: 'alert-001',
-          type: 'warning',
-          message: 'High memory usage detected',
-          timestamp: '2024-01-15T14:30:00Z',
-          resolved: false
-        },
-        {
-          id: 'alert-002',
-          type: 'info',
-          message: 'Database connection pool at 80% capacity',
-          timestamp: '2024-01-15T13:45:00Z',
-          resolved: true
-        }
-      ]
-    };
+        requests: { total: 0, rps: 0 }, // TODO: Track requests
+        errors: { total: 0, rate: 0 }, // TODO: Track errors
+        uptime: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+      };
 
-    return NextResponse.json(performanceData);
-});
+      logger.info({
+        message: 'Performance monitoring data fetched',
+        context: { userId: user.id }
+      });
+
+      return NextResponse.json(successResponse(monitoring));
+    } catch (error: any) {
+      logger.error({
+        message: 'Performance monitoring failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

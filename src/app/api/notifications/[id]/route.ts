@@ -1,93 +1,94 @@
+/**
+ * Single Notification API Route
+ * 
+ * Authorization:
+ * - GET: Requires authentication (user can view own notification)
+ * - DELETE: Requires authentication (user can delete own notification)
+ * 
+ * User Scoping: Users see only their own notifications
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { notificationManager } from '@/lib/notifications';
-import { withErrorHandling } from '@/lib/error-handling';
+import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// Update notification status (mark as read, archived, etc.)
-export const PATCH = withErrorHandling(async (request: NextRequest, { params }: { params: { id: string } }) => {
-  const session = await getServerSession(authOptions);
-  
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const GET = requireAuth(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const notificationId = params.id;
 
-  const { id } = params;
-  
-  try {
-    const body = await request.json();
-    const { action } = body; // 'read', 'archive', 'delete'
+      const notification = await prisma.notification.findUnique({
+        where: { id: notificationId }
+      });
 
-    let success = false;
-    let message = '';
+      if (!notification) {
+        throw new ValidationError('Notification not found');
+      }
 
-    switch (action) {
-      case 'read':
-        success = notificationManager.markAsRead(id);
-        message = success ? 'Notification marked as read' : 'Failed to mark notification as read';
-        break;
-      case 'archive':
-        success = notificationManager.markAsArchived(id);
-        message = success ? 'Notification archived' : 'Failed to archive notification';
-        break;
-      case 'delete':
-        success = notificationManager.deleteNotification(id);
-        message = success ? 'Notification deleted' : 'Failed to delete notification';
-        break;
-      default:
-        return NextResponse.json({
-          success: false,
-          error: 'Invalid action. Use: read, archive, or delete'
-        }, { status: 400 });
+      // Verify ownership
+      if (notification.userId !== user.id) {
+        throw new ValidationError('Cannot view other users notifications');
+      }
+
+      logger.info({
+        message: 'Notification fetched',
+        context: { userId: user.id, notificationId }
+      });
+
+      return NextResponse.json(successResponse(notification));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch notification',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    return NextResponse.json({
-      success,
-      message
-    });
-  } catch (error) {
-    console.error('Error updating notification:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to update notification'
-    }, { status: 500 });
   }
-});
+);
 
-// Get specific notification
-export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: { id: string } }) => {
-  const session = await getServerSession(authOptions);
-  
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const DELETE = requireAuth(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const notificationId = params.id;
 
-  const { id } = params;
-  
-  try {
-    const notifications = notificationManager.getUserNotifications(session.user.id);
-    const notification = notifications.find(n => n.id === id);
+      const notification = await prisma.notification.findUnique({
+        where: { id: notificationId }
+      });
 
-    if (!notification) {
-      return NextResponse.json({
-        success: false,
-        error: 'Notification not found'
-      }, { status: 404 });
+      if (!notification) {
+        throw new ValidationError('Notification not found');
+      }
+
+      // Verify ownership
+      if (notification.userId !== user.id) {
+        throw new ValidationError('Cannot delete other users notifications');
+      }
+
+      await prisma.notification.delete({
+        where: { id: notificationId }
+      });
+
+      logger.info({
+        message: 'Notification deleted',
+        context: { userId: user.id, notificationId }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Notification deleted',
+        notificationId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to delete notification',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    return NextResponse.json({
-      success: true,
-      data: notification
-    });
-  } catch (error) {
-    console.error('Error fetching notification:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch notification'
-    }, { status: 500 });
   }
-});
-
-
+);

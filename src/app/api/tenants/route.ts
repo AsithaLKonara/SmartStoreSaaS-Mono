@@ -1,77 +1,160 @@
+/**
+ * Tenants (Organizations) API Route
+ * 
+ * Handles organization management operations
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN only (VIEW_ALL_ORGANIZATIONS permission)
+ * - POST: SUPER_ADMIN only (MANAGE_ORGANIZATIONS permission)
+ * 
+ * Organization Scoping:
+ * - SUPER_ADMIN can see and manage all organizations
+ * - Other roles cannot access this endpoint
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { withErrorHandler, successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    const organizations = await prisma.organization.findMany({
-      select: {
-        id: true,
-        name: true,
-        domain: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
+/**
+ * GET /api/tenants
+ * List all organizations (SUPER_ADMIN only)
+ */
+export const GET = requireRole('SUPER_ADMIN')(
+  async (request, user) => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = parseInt(searchParams.get('limit') || '20');
+      const skip = (page - 1) * limit;
+
+      const [organizations, total] = await Promise.all([
+        prisma.organization.findMany({
+          skip,
+          take: limit,
           select: {
-            users: true,
-            products: true,
-            orders: true
-          }
+            id: true,
+            name: true,
+            domain: true,
+            description: true,
+            status: true,
+            plan: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: {
+                users: true,
+                products: true,
+                orders: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }),
+        prisma.organization.count()
+      ]);
+
+      const tenants = organizations.map(org => ({
+        id: org.id,
+        name: org.name,
+        domain: org.domain,
+        description: org.description,
+        status: org.status || 'ACTIVE',
+        plan: org.plan,
+        userCount: org._count.users,
+        productCount: org._count.products,
+        orderCount: org._count.orders,
+        createdAt: org.createdAt,
+        updatedAt: org.updatedAt
+      }));
+
+      logger.info({
+        message: 'Organizations fetched by SUPER_ADMIN',
+        context: {
+          userId: user.id,
+          count: tenants.length,
+          page,
+          limit
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+      });
 
-    const tenants = organizations.map(org => ({
-      id: org.id,
-      name: org.name,
-      domain: org.domain,
-      status: 'active',
-      userCount: org._count.users,
-      productCount: org._count.products,
-      orderCount: org._count.orders,
-      createdAt: org.createdAt,
-      updatedAt: org.updatedAt
-    }));
-
-    return NextResponse.json({
-      success: true,
-      tenants,
-      data: tenants
-    });
-  } catch (error: any) {
-    console.error('Tenants API error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+      return NextResponse.json(
+        successResponse(tenants, {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit)
+        })
+      );
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch organizations',
+        error: error,
+        context: {
+          userId: user.id,
+          role: user.role
+        }
+      });
+      throw error;
+    }
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { name, domain, slug } = body;
+/**
+ * POST /api/tenants
+ * Create new organization (SUPER_ADMIN only)
+ */
+export const POST = requireRole('SUPER_ADMIN')(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, domain, description, plan } = body;
 
-    const organization = await prisma.organization.create({
-      data: {
-        name,
-        domain: domain || `${slug}.smartstore.app`,
-        slug: slug || name.toLowerCase().replace(/\s+/g, '-')
+      // Validation
+      if (!name) {
+        throw new ValidationError('Organization name is required');
       }
-    });
 
-    return NextResponse.json({
-      success: true,
-      tenant: organization,
-      data: organization
-    });
-  } catch (error: any) {
-    console.error('Create tenant error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+      // Create slug from name
+      const slug = name.toLowerCase().replace(/\s+/g, '-');
+
+      const organization = await prisma.organization.create({
+        data: {
+          name,
+          domain: domain || `${slug}.smartstore.app`,
+          description,
+          plan: plan || 'FREE',
+          status: 'ACTIVE'
+        }
+      });
+
+      logger.info({
+        message: 'Organization created',
+        context: {
+          createdBy: user.id,
+          organizationId: organization.id,
+          name: organization.name,
+          plan: organization.plan
+        }
+      });
+
+      return NextResponse.json(
+        successResponse(organization),
+        { status: 201 }
+      );
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create organization',
+        error: error,
+        context: {
+          userId: user.id
+        }
+      });
+      throw error;
+    }
   }
-}
+);

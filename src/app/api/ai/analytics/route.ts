@@ -1,56 +1,51 @@
+/**
+ * AI Analytics API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_AI_INSIGHTS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandling } from '@/lib/error-handling';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') || 'org-1';
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { analysisType, timeRange } = body;
 
-    // AI Analytics data
-    const aiAnalytics = {
-      organizationId,
-      timestamp: new Date().toISOString(),
-      aiInsights: {
-        demandForecasting: {
-          enabled: true,
-          accuracy: 0.87,
-          predictions: [
-            { product: 'Premium Headphones', nextMonth: 180, confidence: 0.85 },
-            { product: 'Smart Watch', nextMonth: 140, confidence: 0.92 },
-            { product: 'Wireless Speaker', nextMonth: 110, confidence: 0.78 }
-          ]
-        },
-        customerSegmentation: {
-          segments: [
-            { name: 'High Value', count: 250, avgOrderValue: 299.99 },
-            { name: 'Frequent Buyers', count: 400, avgOrderValue: 149.99 },
-            { name: 'New Customers', count: 180, avgOrderValue: 89.99 }
-          ]
-        },
-        churnPrediction: {
-          highRisk: 15,
-          mediumRisk: 45,
-          lowRisk: 240,
-          recommendations: [
-            'Implement loyalty program for high-risk customers',
-            'Send personalized offers to medium-risk segment'
-          ]
-        },
-        priceOptimization: {
-          suggestions: [
-            { product: 'Premium Headphones', currentPrice: 199.99, suggestedPrice: 189.99, impact: '+12% sales' },
-            { product: 'Smart Watch', currentPrice: 299.99, suggestedPrice: 279.99, impact: '+8% sales' }
-          ]
+      const orgId = getOrganizationScope(user);
+
+      logger.info({
+        message: 'AI analytics requested',
+        context: {
+          userId: user.id,
+          organizationId: orgId,
+          analysisType
         }
-      },
-      performance: {
-        modelAccuracy: 0.87,
-        lastTraining: '2024-01-15T10:30:00Z',
-        nextTraining: '2024-01-22T10:30:00Z'
-      }
-    };
+      });
 
-    return NextResponse.json(aiAnalytics);
-});
-
+      // TODO: Generate actual AI analytics
+      return NextResponse.json(successResponse({
+        insights: [],
+        trends: [],
+        predictions: [],
+        confidence: 0.8,
+        message: 'AI analytics - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'AI analytics failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

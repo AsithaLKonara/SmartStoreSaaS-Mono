@@ -1,67 +1,91 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Current User Profile API Route
+ * 
+ * Authorization:
+ * - GET: Requires authentication
+ * - PUT: Requires authentication (can update own profile)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/database';
-import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/middleware/auth';
+import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
-  try {
-    console.log('👤 Getting current user...');
+export const dynamic = 'force-dynamic';
 
-    // Get token from cookie
-    const token = request.cookies.get('auth-token')?.value;
-    
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    // Verify token
-    let payload;
+export const GET = requireAuth(
+  async (request, user) => {
     try {
-      payload = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid token' },
-        { status: 401 }
-      );
+      const userData = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          roleTag: true,
+          organizationId: true,
+          isActive: true,
+          emailVerified: true,
+          phone: true,
+          mfaEnabled: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+
+      logger.info({
+        message: 'User profile fetched',
+        context: { userId: user.id }
+      });
+
+      return NextResponse.json(successResponse(userData));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch user profile',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    // Get user from database
-    const user = await db.user.findUnique({
-      where: { id: payload.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        isActive: true,
-        organizationId: true,
-      },
-    });
-
-    if (!user || !user.isActive) {
-      return NextResponse.json(
-        { success: false, message: 'User not found or inactive' },
-        { status: 401 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: { user },
-    });
-
-  } catch (error) {
-    console.error('❌ Get user error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to get user',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
   }
-}
+);
+
+export const PUT = requireAuth(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, phone } = body;
+
+      const updated = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ...(name && { name }),
+          ...(phone && { phone })
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          updatedAt: true
+        }
+      });
+
+      logger.info({
+        message: 'User profile updated',
+        context: { userId: user.id }
+      });
+
+      return NextResponse.json(successResponse(updated));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update user profile',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

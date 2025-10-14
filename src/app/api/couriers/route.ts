@@ -1,167 +1,87 @@
-export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+/**
+ * Couriers API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_COURIERS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_COURIERS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { withProtection } from '@/lib/middleware/auth';
-import { z } from 'zod';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// Courier creation schema
-const createCourierSchema = z.object({
-  name: z.string().min(2, 'Courier name must be at least 2 characters'),
-  code: z.string().min(2, 'Courier code must be at least 2 characters'),
-  apiKey: z.string().optional(),
-  apiSecret: z.string().optional(),
-  isActive: z.boolean().default(true),
-  contactInfo: z.object({
-    phone: z.string().min(1, 'Phone number is required'),
-    email: z.string().email('Invalid email format').optional(),
-    address: z.string().optional()
-  }).optional(),
-  serviceAreas: z.array(z.string()).optional(),
-  vehicleType: z.string().optional(),
-  maxWeight: z.number().positive('Max weight must be positive').optional()
-});
+export const dynamic = 'force-dynamic';
 
-// GET /api/couriers - List couriers with real statistics
-async function getCouriers(request: AuthenticatedRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('page') || '10');
-    const search = searchParams.get('search') || '';
-    const isActive = searchParams.get('isActive');
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
 
-    // Build where clause
-    const where: unknown = {
-      organizationId: (request as unknown).user!.organizationId
-    };
-    
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { code: { contains: search, mode: 'insensitive' } }
-      ];
+      const couriers = await prisma.courier.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { name: 'asc' }
+      });
+
+      logger.info({
+        message: 'Couriers fetched',
+        context: { userId: user.id, count: couriers.length }
+      });
+
+      return NextResponse.json(successResponse(couriers));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch couriers',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    if (isActive !== null) where.isActive = isActive === 'true';
-
-    // Get total count for pagination
-    const total = await prisma.courier.count({ where });
-    
-    // Get couriers with pagination
-    const couriers = await prisma.courier.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        // deliveries include removed - not in schema
-      }
-    });
-
-    // Statistics calculation removed - deliveries not in schema
-    const couriersWithStats = couriers;
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        couriers: couriersWithStats,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Error fetching couriers:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch couriers' },
-      { status: 500 }
-    );
   }
-}
+);
 
-// POST /api/couriers - Create new courier
-async function createCourier(request: AuthenticatedRequest) {
-  try {
-    const body = await request.json();
-    
-    // Validate input
-    const validationResult = createCourierSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Validation failed', 
-          errors: validationResult.error.errors 
-        }, 
-        { status: 400 }
-      );
-    }
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, contactName, phone, email } = body;
 
-    const courierData = validationResult.data;
-
-    // Check if courier code already exists in the organization
-    const existingCourier = await prisma.courier.findFirst({
-      where: {
-        code: courierData.code,
-        organizationId: (request as unknown).user!.organizationId
+      if (!name) {
+        throw new ValidationError('Courier name is required');
       }
-    });
 
-    if (existingCourier) {
-      return NextResponse.json(
-        { success: false, message: 'Courier code already exists in this organization' },
-        { status: 409 }
-      );
-    }
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    // Create courier
-    const courier = await prisma.courier.create({
-      data: {
-        ...courierData,
-        organization: {
-          connect: { id: (request as unknown).user!.organizationId }
+      const courier = await prisma.courier.create({
+        data: {
+          organizationId,
+          name,
+          contactName,
+          phone,
+          email,
+          isActive: true
         }
-      }
-    });
+      });
 
-    // Create activity log
-    await prisma.activity.create({
-      data: {
-        type: 'COURIER_CREATED',
-        description: `Courier "${courier.name}" created`,
-        user: {
-          connect: { id: (request as unknown).user!.userId }
-        },
-        metadata: {
-          courierId: courier.id,
-          courierName: courier.name,
-          courierCode: courier.code
-        }
-      }
-    });
+      logger.info({
+        message: 'Courier created',
+        context: { userId: user.id, courierId: courier.id }
+      });
 
-    return NextResponse.json({
-      success: true,
-      data: { courier },
-      message: 'Courier created successfully'
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('Error creating courier:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create courier' },
-      { status: 500 }
-    );
+      return NextResponse.json(successResponse(courier), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create courier',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
-
-// Export handlers
-export const GET = withProtection()(getCouriers);
-export const POST = withProtection(['ADMIN', 'MANAGER'])(createCourier); 
+);

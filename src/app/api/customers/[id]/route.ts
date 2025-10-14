@@ -1,163 +1,133 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Single Customer API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_CUSTOMERS permission)
+ * - PUT: SUPER_ADMIN, TENANT_ADMIN (MANAGE_CUSTOMERS permission)
+ * - DELETE: SUPER_ADMIN, TENANT_ADMIN (MANAGE_CUSTOMERS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// PUT - Update customer
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.organizationId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const dynamic = 'force-dynamic';
 
-    const body = await request.json();
-    const { id, ...updateData } = body;
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const customerId = params.id;
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Customer ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify customer belongs to organization
-    const existingCustomer = await db.customer.findFirst({
-      where: {
-        id,
-        organizationId: session.user.organizationId
-      }
-    });
-
-    if (!existingCustomer) {
-      return NextResponse.json(
-        { error: 'Customer not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if email is being changed and if it already exists
-    if (updateData.email && updateData.email !== existingCustomer.email) {
-      const emailExists = await db.customer.findFirst({
-        where: {
-          email: updateData.email,
-          organizationId: session.user.organizationId,
-          id: { not: id }
-        }
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId }
       });
 
-      if (emailExists) {
-        return NextResponse.json(
-          { error: 'Customer with this email already exists' },
-          { status: 400 }
-        );
+      if (!customer) {
+        throw new ValidationError('Customer not found');
       }
+
+      if (customer.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot view customers from other organizations');
+      }
+
+      logger.info({
+        message: 'Customer fetched',
+        context: { userId: user.id, customerId }
+      });
+
+      return NextResponse.json(successResponse(customer));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch customer',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const customer = await db.customer.update({
-      where: { id },
-      data: updateData,
-      include: {
-        _count: {
-          select: { orders: true }
-        }
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: customer
-    });
-
-  } catch (error) {
-    console.error('Update customer error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update customer' },
-      { status: 500 }
-    );
   }
-}
+);
 
-// DELETE - Delete customer
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.organizationId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const PUT = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const customerId = params.id;
+      const body = await request.json();
 
-    const { id } = params;
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId }
+      });
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Customer ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify customer belongs to organization
-    const existingCustomer = await db.customer.findFirst({
-      where: {
-        id,
-        organizationId: session.user.organizationId
+      if (!customer) {
+        throw new ValidationError('Customer not found');
       }
-    });
 
-    if (!existingCustomer) {
-      return NextResponse.json(
-        { error: 'Customer not found' },
-        { status: 404 }
-      );
+      if (customer.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot update customers from other organizations');
+      }
+
+      const updated = await prisma.customer.update({
+        where: { id: customerId },
+        data: body
+      });
+
+      logger.info({
+        message: 'Customer updated',
+        context: { userId: user.id, customerId }
+      });
+
+      return NextResponse.json(successResponse(updated));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update customer',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    // Check if customer has orders
-    const orderCount = await db.order.count({
-      where: { customerId: id }
-    });
-
-    if (orderCount > 0) {
-      // Soft delete
-      await db.customer.update({
-        where: { id },
-        data: { status: 'inactive' }
-      });
-
-      return NextResponse.json({
-        success: true,
-        message: 'Customer deactivated (has orders)'
-      });
-    } else {
-      // Hard delete
-      await db.customer.delete({
-        where: { id }
-      });
-
-      return NextResponse.json({
-        success: true,
-        message: 'Customer deleted successfully'
-      });
-    }
-
-  } catch (error) {
-    console.error('Delete customer error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete customer' },
-      { status: 500 }
-    );
   }
-}
+);
+
+export const DELETE = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const customerId = params.id;
+
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId }
+      });
+
+      if (!customer) {
+        throw new ValidationError('Customer not found');
+      }
+
+      if (customer.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot delete customers from other organizations');
+      }
+
+      await prisma.customer.delete({
+        where: { id: customerId }
+      });
+
+      logger.info({
+        message: 'Customer deleted',
+        context: { userId: user.id, customerId }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Customer deleted',
+        customerId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to delete customer',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

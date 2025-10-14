@@ -1,6 +1,7 @@
 import './globals.css';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const metadata = {
   title: 'SmartStore SaaS - AI-Powered Commerce Platform',
@@ -15,11 +16,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <QueryProvider>
-          <SessionProvider>
-            {children}
-          </SessionProvider>
-        </QueryProvider>
+        <ErrorBoundary>
+          <QueryProvider>
+            <SessionProvider>
+              {children}
+            </SessionProvider>
+          </QueryProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

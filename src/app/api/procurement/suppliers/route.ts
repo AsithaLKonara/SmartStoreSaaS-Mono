@@ -1,158 +1,87 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Procurement Suppliers API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_SUPPLIERS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_SUPPLIERS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const suppliers = await prisma.supplier.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { name: 'asc' }
+      });
+
+      logger.info({
+        message: 'Procurement suppliers fetched',
+        context: { userId: user.id, count: suppliers.length }
+      });
+
+      return NextResponse.json(successResponse(suppliers));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch procurement suppliers',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const search = searchParams.get('search');
-    const status = searchParams.get('status');
-
-    const where: any = {
-      organizationId: session.user.organizationId,
-    };
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-        { contactPerson: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (status) {
-      where.status = status;
-    }
-
-    const [suppliers, total] = await Promise.all([
-      prisma.suppliers.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { name: 'asc' },
-        include: {
-          _count: {
-            select: {
-              purchase_orders: true,
-              products: true,
-            },
-          },
-        },
-      }),
-      prisma.suppliers.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      success: true,
-      data: suppliers,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching suppliers:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch suppliers' },
-      { status: 500 }
-    );
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, contactName, email, phone } = body;
+
+      if (!name) {
+        throw new ValidationError('Supplier name is required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const supplier = await prisma.supplier.create({
+        data: {
+          organizationId,
+          name,
+          contactName,
+          email,
+          phone,
+          isActive: true
+        }
+      });
+
+      logger.info({
+        message: 'Procurement supplier created',
+        context: { userId: user.id, supplierId: supplier.id }
+      });
+
+      return NextResponse.json(successResponse(supplier), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create procurement supplier',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const {
-      name,
-      email,
-      phone,
-      contactPerson,
-      address,
-      city,
-      state,
-      country,
-      postalCode,
-      taxId,
-      paymentTerms,
-      currency,
-      status,
-      notes,
-    } = body;
-
-    // Validate required fields
-    if (!name || !email) {
-      return NextResponse.json(
-        { success: false, message: 'Name and email are required' },
-        { status: 400 }
-      );
-    }
-
-    // Check if supplier already exists
-    const existingSupplier = await prisma.suppliers.findFirst({
-      where: {
-        organizationId: session.user.organizationId,
-        email,
-      },
-    });
-
-    if (existingSupplier) {
-      return NextResponse.json(
-        { success: false, message: 'Supplier with this email already exists' },
-        { status: 400 }
-      );
-    }
-
-    const supplier = await prisma.suppliers.create({
-      data: {
-        id: `sup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        organizationId: session.user.organizationId,
-        name,
-        email,
-        phone,
-        contactPerson,
-        address,
-        city,
-        state,
-        country,
-        postalCode,
-        taxId,
-        paymentTerms: paymentTerms || 'NET_30',
-        currency: currency || 'USD',
-        status: status || 'ACTIVE',
-        notes,
-        rating: 0,
-        totalOrders: 0,
-        totalValue: 0,
-        lastOrderDate: null,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: supplier,
-      message: 'Supplier created successfully',
-    });
-  } catch (error) {
-    console.error('Error creating supplier:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create supplier' },
-      { status: 500 }
-    );
   }
-}
+);

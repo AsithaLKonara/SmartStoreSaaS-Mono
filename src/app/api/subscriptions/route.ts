@@ -1,81 +1,83 @@
+/**
+ * Subscriptions API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_BILLING permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_BILLING permission)
+ * 
+ * Organization Scoping: User's organization subscription only
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Mock subscriptions data - table doesn't exist in DB yet
-    const subscriptions = [
-      {
-        id: 'sub-1',
-        organizationId: 'org-1',
-        planType: 'PRO',
-        status: 'ACTIVE',
-        startDate: new Date('2025-01-01'),
-        endDate: new Date('2025-12-31'),
-        organization: { name: 'Demo Organization' }
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const organizationId = user.organizationId;
+      
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    ];
 
-    return NextResponse.json({
-      success: true,
-      subscriptions,
-      data: subscriptions
-    });
-  } catch (error: any) {
-    console.error('Subscriptions API error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+      const subscription = await prisma.subscription.findUnique({
+        where: { organizationId }
+      });
+
+      logger.info({
+        message: 'Subscription fetched',
+        context: { userId: user.id, organizationId }
+      });
+
+      return NextResponse.json(successResponse(subscription));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch subscription',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    
-    // Mock response - table doesn't exist in DB yet
-    const subscription = {
-      id: `sub-${Date.now()}`,
-      ...body,
-      organization: { name: 'Demo Organization' }
-    };
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { plan, action } = body;
 
-    return NextResponse.json({
-      success: true,
-      subscription,
-      data: subscription
-    });
-  } catch (error: any) {
-    console.error('Create subscription error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      logger.info({
+        message: 'Subscription action',
+        context: {
+          userId: user.id,
+          organizationId,
+          plan,
+          action
+        }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Subscription management',
+        status: 'coming_soon'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Subscription action failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    
-    // Mock response - table doesn't exist in DB yet
-    const subscription = {
-      id: body.id,
-      ...body
-    };
-
-    return NextResponse.json({
-      success: true,
-      subscription,
-      data: subscription
-    });
-  } catch (error: any) {
-    console.error('Update subscription error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
-  }
-}
+);

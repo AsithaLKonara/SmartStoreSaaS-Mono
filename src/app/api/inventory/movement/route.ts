@@ -1,103 +1,88 @@
+/**
+ * Inventory Movement API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_INVENTORY permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_INVENTORY permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { recordStockMovement, getStockHistory, batchUpdateStock } from '@/lib/inventory/management';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// Record stock movement
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { productId, quantity, type, reason, warehouseId, reference, organizationId } = body;
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
 
-    if (!productId || !quantity || !type || !organizationId) {
-      return NextResponse.json(
-        { error: 'Product ID, quantity, type, and organization ID are required' },
-        { status: 400 }
-      );
-    }
-
-    const result = await recordStockMovement(
-      { productId, quantity, type, reason, warehouseId, reference },
-      organizationId
-    );
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        newStock: result.newStock,
-        message: 'Stock movement recorded successfully',
+      const movements = await prisma.inventoryMovement.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { createdAt: 'desc' },
+        take: 100
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+
+      logger.info({
+        message: 'Inventory movements fetched',
+        context: { userId: user.id, count: movements.length }
+      });
+
+      return NextResponse.json(successResponse(movements));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch inventory movements',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-  } catch (error: any) {
-    console.error('Stock movement API error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Stock movement failed' },
-      { status: 500 }
-    );
   }
-}
+);
 
-// Get stock history
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const productId = searchParams.get('productId');
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50;
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { productId, quantity, type, reason } = body;
 
-    if (!productId) {
-      return NextResponse.json(
-        { error: 'Product ID is required' },
-        { status: 400 }
-      );
+      if (!productId || !quantity || !type) {
+        throw new ValidationError('Product ID, quantity, and type are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const movement = await prisma.inventoryMovement.create({
+        data: {
+          organizationId,
+          productId,
+          quantity,
+          type,
+          reason,
+          createdBy: user.id
+        }
+      });
+
+      logger.info({
+        message: 'Inventory movement recorded',
+        context: { userId: user.id, movementId: movement.id }
+      });
+
+      return NextResponse.json(successResponse(movement), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to record inventory movement',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const history = await getStockHistory(productId, limit);
-
-    return NextResponse.json({
-      success: true,
-      data: history,
-    });
-  } catch (error: any) {
-    console.error('Stock history API error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch stock history' },
-      { status: 500 }
-    );
   }
-}
-
-// Batch update stock
-export async function PATCH(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { updates, organizationId } = body;
-
-    if (!updates || !Array.isArray(updates) || !organizationId) {
-      return NextResponse.json(
-        { error: 'Updates array and organization ID are required' },
-        { status: 400 }
-      );
-    }
-
-    const result = await batchUpdateStock(updates, organizationId);
-
-    return NextResponse.json({
-      success: result.success,
-      updated: result.updated,
-      failed: result.failed,
-      errors: result.errors,
-    });
-  } catch (error: any) {
-    console.error('Batch update API error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Batch update failed' },
-      { status: 500 }
-    );
-  }
-}
-
+);

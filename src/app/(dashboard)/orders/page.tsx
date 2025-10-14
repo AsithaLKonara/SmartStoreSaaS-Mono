@@ -214,7 +214,7 @@ export default function OrdersPage() {
             Export
           </Button>
           <Button
-            onClick={() => router.push('/orders/new')}
+            onClick={() => router.push('/dashboard/orders/new')}
             data-testid="create-order-button"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -429,14 +429,14 @@ export default function OrdersPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/orders/${order.id}`)}
+                        onClick={() => router.push(`/dashboard/orders/${order.id}`)}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/orders/${order.id}/edit`)}
+                        onClick={() => router.push(`/dashboard/orders/${order.id}`)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -460,7 +460,7 @@ export default function OrdersPage() {
             }
           </p>
           {!searchTerm && !statusFilter && !paymentFilter && !dateFilter && (
-            <Button onClick={() => router.push('/orders/new')}>
+            <Button onClick={() => router.push('/dashboard/orders/new')}>
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Order
             </Button>

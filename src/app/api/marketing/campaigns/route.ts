@@ -1,66 +1,88 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Marketing Campaigns API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_CAMPAIGNS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_CAMPAIGNS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List email campaigns
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const campaigns = await prisma.campaign.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { createdAt: 'desc' }
+      });
+
+      logger.info({
+        message: 'Marketing campaigns fetched',
+        context: { userId: user.id, count: campaigns.length }
+      });
+
+      return NextResponse.json(successResponse(campaigns));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch campaigns',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const campaigns = await db.emailCampaign.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        _count: {
-          select: {
-            sends: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: campaigns });
-  } catch (error) {
-    apiLogger.error('Error fetching campaigns', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch campaigns' }, { status: 500 });
   }
-}
+);
 
-// POST - Create email campaign
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, type, target, content } = body;
+
+      if (!name || !type) {
+        throw new ValidationError('Name and type are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const campaign = await prisma.campaign.create({
+        data: {
+          organizationId,
+          name,
+          type,
+          target,
+          content,
+          status: 'DRAFT',
+          createdBy: user.id
+        }
+      });
+
+      logger.info({
+        message: 'Marketing campaign created',
+        context: { userId: user.id, campaignId: campaign.id }
+      });
+
+      return NextResponse.json(successResponse(campaign), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create campaign',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { name, subject, htmlContent, textContent, campaignType, scheduledAt } = body;
-
-    const campaign = await db.emailCampaign.create({
-      data: {
-        organizationId: session.user.organizationId,
-        name,
-        subject,
-        htmlContent,
-        textContent,
-        campaignType,
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-      },
-    });
-
-    apiLogger.info('Email campaign created', { campaignId: campaign.id });
-
-    return NextResponse.json({ success: true, data: campaign });
-  } catch (error) {
-    apiLogger.error('Error creating campaign', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create campaign' }, { status: 500 });
   }
-}
-
+);

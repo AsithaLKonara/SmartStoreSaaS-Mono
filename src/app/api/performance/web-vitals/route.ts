@@ -1,28 +1,44 @@
+/**
+ * Web Vitals API Route
+ * 
+ * Authorization:
+ * - POST: Public (collect web vitals from client)
+ * 
+ * Collects Core Web Vitals metrics
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { performanceMonitor } from '@/lib/monitoring/performance';
-import { withErrorHandling } from '@/lib/error-handling';
+import { withErrorHandler, successResponse } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-const handleWebVitals = async (request: NextRequest) => {
-  try {
-    const vital = await request.json();
-    
-    // Track the web vital
-    performanceMonitor.trackWebVitals(vital);
-    
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error('Failed to track web vital:', error);
-    return NextResponse.json(
-      { error: 'Failed to track web vital' },
-      { status: 500 }
-    );
+export const POST = withErrorHandler(
+  async (req: NextRequest) => {
+    try {
+      const body = await req.json();
+      const { metric, value, id, path } = body;
+
+      logger.info({
+        message: 'Web vital recorded',
+        context: {
+          metric,
+          value,
+          path
+        }
+      });
+
+      // TODO: Store web vitals
+      return NextResponse.json(successResponse({
+        recorded: true,
+        metric
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Web vital recording failed',
+        error: error
+      });
+      throw error;
+    }
   }
-};
-
-export const POST = withErrorHandling(handleWebVitals);
-
-
-
-
+);

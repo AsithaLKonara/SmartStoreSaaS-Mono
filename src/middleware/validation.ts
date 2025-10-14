@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ValidationUtils, withValidation } from '@/lib/validation';
+import { logger } from '@/lib/logger';
 
 // Rate limiting storage (in production, use Redis or similar)
 const rateLimitStore = new Map<string, number[]>();
@@ -47,7 +48,11 @@ export function sanitizationMiddleware(request: NextRequest): NextResponse | nul
     
     return null;
   } catch (error) {
-    console.error('Sanitization middleware error:', error);
+    logger.error({
+      message: 'Sanitization middleware error',
+      error: error,
+      context: { url: request.url, method: request.method }
+    });
     return NextResponse.json(
       { error: 'Request validation failed' },
       { status: 400 }
@@ -198,7 +203,15 @@ export function loggingMiddleware(request: NextRequest): NextResponse {
   const startTime = Date.now();
   const identifier = getClientIdentifier(request);
   
-  console.log(`[${new Date().toISOString()}] ${request.method} ${request.url} - ${identifier}`);
+  logger.info({
+    message: 'Incoming request',
+    context: {
+      method: request.method,
+      url: request.url,
+      identifier,
+      timestamp: new Date().toISOString()
+    }
+  });
   
   const response = NextResponse.next();
   
@@ -206,7 +219,14 @@ export function loggingMiddleware(request: NextRequest): NextResponse {
   const endTime = Date.now();
   const duration = endTime - startTime;
   
-  console.log(`[${new Date().toISOString()}] Response: ${response.status} - ${duration}ms`);
+  logger.info({
+    message: 'Request completed',
+    context: {
+      status: response.status,
+      duration,
+      timestamp: new Date().toISOString()
+    }
+  });
   
   return response;
 }
@@ -216,7 +236,15 @@ export function errorHandlingMiddleware(
   error: Error,
   request: NextRequest
 ): NextResponse {
-  console.error(`[${new Date().toISOString()}] Error:`, error);
+  logger.error({
+    message: 'Middleware error',
+    error: error,
+    context: {
+      url: request.url,
+      method: request.method,
+      timestamp: new Date().toISOString()
+    }
+  });
   
   // Don't expose internal errors in production
   const isDevelopment = process.env.NODE_ENV === 'development';

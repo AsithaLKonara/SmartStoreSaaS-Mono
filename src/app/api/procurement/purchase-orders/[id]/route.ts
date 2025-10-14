@@ -1,145 +1,92 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Single Procurement Purchase Order API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_PURCHASE_ORDERS permission)
+ * - PUT: SUPER_ADMIN, TENANT_ADMIN (MANAGE_PURCHASE_ORDERS permission)
+ * 
+ * Organization Scoping: Validated through purchase order
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// PUT - Update purchase order
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const body = await request.json();
-    const { id, ...updateData } = body;
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const poId = params.id;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'Purchase order ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify purchase order belongs to organization
-    const existingPO = await prisma.purchase_orders.findFirst({
-      where: {
-        id,
-        organizationId: session.user.organizationId,
-      },
-    });
-
-    if (!existingPO) {
-      return NextResponse.json(
-        { success: false, message: 'Purchase order not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only allow updates for DRAFT status
-    if (existingPO.status !== 'DRAFT') {
-      return NextResponse.json(
-        { success: false, message: 'Only draft purchase orders can be updated' },
-        { status: 400 }
-      );
-    }
-
-    const purchaseOrder = await prisma.purchase_orders.update({
-      where: { id },
-      data: updateData,
-      include: {
-        suppliers: true,
-        purchase_order_items: {
-          include: {
-            products: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: purchaseOrder,
-      message: 'Purchase order updated successfully',
-    });
-  } catch (error) {
-    console.error('Error updating purchase order:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to update purchase order' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE - Delete purchase order
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { id } = params;
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'Purchase order ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify purchase order belongs to organization
-    const existingPO = await prisma.purchase_orders.findFirst({
-      where: {
-        id,
-        organizationId: session.user.organizationId,
-      },
-    });
-
-    if (!existingPO) {
-      return NextResponse.json(
-        { success: false, message: 'Purchase order not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only allow deletion for DRAFT status
-    if (existingPO.status !== 'DRAFT') {
-      return NextResponse.json(
-        { success: false, message: 'Only draft purchase orders can be deleted' },
-        { status: 400 }
-      );
-    }
-
-    // Delete purchase order and related items in a transaction
-    await prisma.$transaction(async (tx) => {
-      // Delete purchase order items first
-      await tx.purchase_order_items.deleteMany({
-        where: { purchaseOrderId: id },
+      const purchaseOrder = await prisma.purchaseOrder.findUnique({
+        where: { id: poId },
+        include: { supplier: true }
       });
 
-      // Delete purchase order
-      await tx.purchase_orders.delete({
-        where: { id },
-      });
-    });
+      if (!purchaseOrder) {
+        throw new ValidationError('Purchase order not found');
+      }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Purchase order deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting purchase order:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to delete purchase order' },
-      { status: 500 }
-    );
+      if (purchaseOrder.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot view purchase orders from other organizations');
+      }
+
+      logger.info({
+        message: 'Purchase order fetched',
+        context: { userId: user.id, poId }
+      });
+
+      return NextResponse.json(successResponse(purchaseOrder));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch purchase order',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);
+
+export const PUT = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const poId = params.id;
+      const body = await request.json();
+
+      const purchaseOrder = await prisma.purchaseOrder.findUnique({
+        where: { id: poId }
+      });
+
+      if (!purchaseOrder) {
+        throw new ValidationError('Purchase order not found');
+      }
+
+      if (purchaseOrder.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot update purchase orders from other organizations');
+      }
+
+      const updated = await prisma.purchaseOrder.update({
+        where: { id: poId },
+        data: body
+      });
+
+      logger.info({
+        message: 'Purchase order updated',
+        context: { userId: user.id, poId }
+      });
+
+      return NextResponse.json(successResponse(updated));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update purchase order',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

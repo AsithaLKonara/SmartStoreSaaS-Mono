@@ -1,69 +1,51 @@
+/**
+ * AI Automation API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_AI_AUTOMATION permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandling } from '@/lib/error-handling';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-export const GET = withErrorHandling(async (request: NextRequest) => {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') || 'org-1';
+export const dynamic = 'force-dynamic';
 
-    // AI Automation data
-    const automationData = {
-      organizationId,
-      timestamp: new Date().toISOString(),
-      automations: {
-        inventory: {
-          enabled: true,
-          rules: [
-            { type: 'low_stock_alert', threshold: 10, action: 'send_notification' },
-            { type: 'auto_reorder', threshold: 5, action: 'create_purchase_order' }
-          ],
-          lastRun: '2024-01-15T14:30:00Z',
-          nextRun: '2024-01-15T15:30:00Z'
-        },
-        customerService: {
-          enabled: true,
-          chatbots: [
-            { name: 'Order Support', status: 'active', conversations: 1250 },
-            { name: 'Product Info', status: 'active', conversations: 890 }
-          ],
-          responseTime: '2.3s',
-          satisfaction: 0.92
-        },
-        marketing: {
-          enabled: true,
-          campaigns: [
-            { name: 'Abandoned Cart Recovery', status: 'active', conversion: 0.15 },
-            { name: 'Birthday Offers', status: 'active', conversion: 0.08 }
-          ],
-          lastRun: '2024-01-15T09:00:00Z'
-        }
-      },
-      performance: {
-        totalAutomations: 12,
-        activeAutomations: 10,
-        successRate: 0.94,
-        timeSaved: '45 hours/week'
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { workflowType, config } = body;
+
+      if (!workflowType) {
+        throw new ValidationError('Workflow type is required');
       }
-    };
 
-    return NextResponse.json(automationData);
-});
+      logger.info({
+        message: 'AI automation triggered',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          workflowType
+        }
+      });
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
-    const body = await request.json();
-    
-    // Create new automation rule
-    const newAutomation = {
-      id: `auto-${Date.now()}`,
-      name: body.name,
-      type: body.type,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      ...body
-    };
-
-    return NextResponse.json({
-      success: true,
-      data: newAutomation,
-      message: 'Automation rule created successfully'
-    });
-});
+      // TODO: Trigger actual AI automation
+      return NextResponse.json(successResponse({
+        automationId: `auto_${Date.now()}`,
+        status: 'initiated',
+        message: 'AI automation - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'AI automation failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

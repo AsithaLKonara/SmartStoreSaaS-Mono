@@ -1,39 +1,65 @@
+/**
+ * Review Rejection API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_REVIEWS permission)
+ * 
+ * Organization Scoping: Validated through review
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.organizationId) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const reviewId = params.id;
+      const body = await request.json();
+      const { reason } = body;
 
-    const review = await prisma.reviews.update({
-      where: { id: params.id },
-      data: {
-        status: 'REJECTED',
-        moderatedAt: new Date()
+      const review = await prisma.review.findUnique({
+        where: { id: reviewId }
+      });
+
+      if (!review) {
+        throw new ValidationError('Review not found');
       }
-    });
 
-    return NextResponse.json({
-      success: true,
-      review,
-      message: 'Review rejected'
-    });
-  } catch (error: any) {
-    console.error('Error rejecting review:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+      if (review.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot reject reviews from other organizations');
+      }
+
+      await prisma.review.update({
+        where: { id: reviewId },
+        data: {
+          status: 'REJECTED',
+          rejectedBy: user.id,
+          rejectedAt: new Date(),
+          rejectionReason: reason
+        }
+      });
+
+      logger.info({
+        message: 'Review rejected',
+        context: { userId: user.id, reviewId, reason }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Review rejected',
+        reviewId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Review rejection failed',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
-
+);

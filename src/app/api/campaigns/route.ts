@@ -1,117 +1,100 @@
+/**
+ * Marketing Campaigns API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_CAMPAIGNS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_CAMPAIGNS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  createCampaign,
-  scheduleCampaign,
-  sendCampaign,
-  getCampaignAnalytics,
-  EmailTemplates,
-} from '@/lib/campaigns/email-builder';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// Get campaigns or analytics
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const campaignId = searchParams.get('campaignId');
-    const action = searchParams.get('action');
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const type = searchParams.get('type');
+      const status = searchParams.get('status');
+      
+      // Organization scoping
+      const orgId = getOrganizationScope(user);
 
-    if (campaignId && action === 'analytics') {
-      const analytics = await getCampaignAnalytics(campaignId);
-      return NextResponse.json({ success: true, data: analytics });
+      const where: any = {};
+      if (orgId) where.organizationId = orgId;
+      if (type) where.type = type;
+      if (status) where.status = status;
+
+      const campaigns = await prisma.sms_campaigns.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
+
+      logger.info({
+        message: 'Campaigns fetched',
+        context: { userId: user.id, count: campaigns.length }
+      });
+
+      return NextResponse.json(successResponse(campaigns));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch campaigns',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    if (action === 'templates') {
-      return NextResponse.json({ success: true, data: EmailTemplates });
-    }
-
-    // List campaigns would go here
-    return NextResponse.json({ success: true, data: [] });
-  } catch (error: any) {
-    console.error('Get campaigns error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch campaigns' },
-      { status: 500 }
-    );
   }
-}
+);
 
-// Create campaign
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { action, ...data } = body;
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, type, message, scheduledFor } = body;
 
-    if (action === 'send') {
-      const result = await sendCampaign(data.campaignId, data.testMode);
-      if (result.success) {
-        return NextResponse.json({
-          success: true,
-          data: result.stats,
-          message: 'Campaign sent successfully',
-        });
-      } else {
-        return NextResponse.json(
-          { success: false, error: result.error },
-          { status: 400 }
-        );
+      if (!name || !type || !message) {
+        throw new ValidationError('Name, type, and message are required');
       }
-    }
 
-    const result = await createCampaign(data);
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        data: result.campaign,
-        message: 'Campaign created successfully',
+      const campaign = await prisma.sms_campaigns.create({
+        data: {
+          organizationId,
+          name,
+          type,
+          message,
+          status: 'DRAFT',
+          scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+          sentCount: 0,
+          failedCount: 0,
+          deliveredCount: 0
+        }
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
-  } catch (error: any) {
-    console.error('Campaign error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Campaign operation failed' },
-      { status: 500 }
-    );
-  }
-}
 
-// Update campaign
-export async function PATCH(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { campaignId, scheduledAt } = body;
-
-    if (!campaignId || !scheduledAt) {
-      return NextResponse.json(
-        { error: 'Campaign ID and scheduled date are required' },
-        { status: 400 }
-      );
-    }
-
-    const result = await scheduleCampaign(campaignId, new Date(scheduledAt));
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: 'Campaign scheduled successfully',
+      logger.info({
+        message: 'Campaign created',
+        context: { userId: user.id, campaignId: campaign.id }
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
+
+      return NextResponse.json(successResponse(campaign), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create campaign',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-  } catch (error: any) {
-    console.error('Schedule campaign error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Campaign scheduling failed' },
-      { status: 500 }
-    );
   }
-}
+);

@@ -1,161 +1,91 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Accounting Accounts List API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF-accountant (VIEW_ACCOUNTING permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_ACCOUNTING permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
-import { AccountType, AccountSubType } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List all accounts
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const dynamic = 'force-dynamic';
 
-    const { searchParams } = new URL(request.url);
-    const accountType = searchParams.get('type') as AccountType | null;
-    const activeOnly = searchParams.get('activeOnly') === 'true';
-
-    const accounts = await db.chartOfAccounts.findMany({
-      where: {
-        organizationId: session.user.organizationId,
-        ...(accountType && { accountType }),
-        ...(activeOnly && { isActive: true }),
-      },
-      include: {
-        parent: true,
-        children: true,
-        taxRate: true,
-      },
-      orderBy: { code: 'asc' },
-    });
-
-    // Build hierarchy
-    const accountMap = new Map(accounts.map(acc => [acc.id, { ...acc, children: [] }]));
-    const rootAccounts: any[] = [];
-
-    accounts.forEach(account => {
-      const acc = accountMap.get(account.id)!;
-      if (account.parentId) {
-        const parent = accountMap.get(account.parentId);
-        if (parent) {
-          parent.children.push(acc);
-        }
-      } else {
-        rootAccounts.push(acc);
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      if (user.role === 'STAFF' && user.roleTag !== 'accountant') {
+        throw new ValidationError('Only accountant staff can view accounts');
       }
-    });
 
-    apiLogger.info('Chart of Accounts fetched', { 
-      count: accounts.length, 
-      organizationId: session.user.organizationId 
-    });
+      const orgId = getOrganizationScope(user);
 
-    return NextResponse.json({
-      success: true,
-      data: rootAccounts,
-      flat: accounts,
-      count: accounts.length,
-    });
-  } catch (error) {
-    apiLogger.error('Error fetching accounts', { 
-      error: error instanceof Error ? error.message : 'Unknown' 
-    });
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch accounts' },
-      { status: 500 }
-    );
+      const accounts = await prisma.account.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { code: 'asc' }
+      });
+
+      logger.info({
+        message: 'Accounting accounts fetched',
+        context: { userId: user.id, count: accounts.length }
+      });
+
+      return NextResponse.json(successResponse(accounts));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch accounting accounts',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);
 
-// POST - Create new account
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { code, name, type, category } = body;
+
+      if (!code || !name || !type) {
+        throw new ValidationError('Code, name, and type are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const account = await prisma.account.create({
+        data: {
+          organizationId,
+          code,
+          name,
+          type,
+          category,
+          balance: 0
+        }
+      });
+
+      logger.info({
+        message: 'Accounting account created',
+        context: { userId: user.id, accountId: account.id }
+      });
+
+      return NextResponse.json(successResponse(account), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create accounting account',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { 
-      code, 
-      name, 
-      description, 
-      accountType, 
-      accountSubType, 
-      parentId, 
-      currency, 
-      taxEnabled, 
-      taxRateId 
-    } = body;
-
-    // Validate required fields
-    if (!code || !name || !accountType || !accountSubType) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields: code, name, accountType, accountSubType' },
-        { status: 400 }
-      );
-    }
-
-    // Check if code already exists
-    const existing = await db.chartOfAccounts.findFirst({
-      where: {
-        organizationId: session.user.organizationId,
-        code,
-      },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { success: false, message: 'Account code already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Create account
-    const account = await db.chartOfAccounts.create({
-      data: {
-        organizationId: session.user.organizationId,
-        code,
-        name,
-        description,
-        accountType,
-        accountSubType,
-        parentId,
-        currency: currency || 'USD',
-        taxEnabled: taxEnabled || false,
-        taxRateId,
-      },
-      include: {
-        parent: true,
-        taxRate: true,
-      },
-    });
-
-    apiLogger.info('Account created', { accountId: account.id, code, name });
-
-    return NextResponse.json({
-      success: true,
-      data: account,
-    });
-  } catch (error) {
-    apiLogger.error('Error creating account', { 
-      error: error instanceof Error ? error.message : 'Unknown' 
-    });
-    return NextResponse.json(
-      { success: false, message: 'Failed to create account' },
-      { status: 500 }
-    );
   }
-}
-
+);

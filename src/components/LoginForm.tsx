@@ -10,8 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FormErrorMessage } from '@/components/ui/ErrorBoundary';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('admin@techhub.lk');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('superadmin@smartstore.com');
+  const [password, setPassword] = useState('SuperAdmin123!');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -146,7 +146,7 @@ export default function LoginForm() {
                 type="button"
                 onClick={() => {
                   setEmail('superadmin@smartstore.com');
-                  setPassword('admin123');
+                  setPassword('SuperAdmin123!');
                 }}
                 className="w-full text-left p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
               >
@@ -161,7 +161,7 @@ export default function LoginForm() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                      superadmin@smartstore.com / admin123
+                      superadmin@smartstore.com / SuperAdmin123!
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       ✓ All 72 pages • System admin • Multi-tenant management
@@ -174,8 +174,8 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('admin@techhub.lk');
-                  setPassword('password123');
+                  setEmail('admin@demo.com');
+                  setPassword('Admin123!');
                 }}
                 className="w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
@@ -190,7 +190,7 @@ export default function LoginForm() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                      admin@techhub.lk / password123
+                      admin@demo.com / Admin123!
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       ✓ 63 pages • All business ops • User management • Integrations
@@ -203,8 +203,8 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('staff@techhub.lk');
-                  setPassword('staff123');
+                  setEmail('sales@demo.com');
+                  setPassword('Sales123!');
                 }}
                 className="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
               >
@@ -219,7 +219,7 @@ export default function LoginForm() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                      staff@techhub.lk / staff123
+                      sales@demo.com / Sales123!
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       ✓ 15-30 pages • Role-based access • Orders & Products
@@ -232,8 +232,8 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('customer@example.com');
-                  setPassword('customer123');
+                  setEmail('customer@demo.com');
+                  setPassword('Customer123!');
                 }}
                 className="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
               >
@@ -248,7 +248,7 @@ export default function LoginForm() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                      customer@example.com / customer123
+                      customer@demo.com / Customer123!
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       ✓ 6 pages • My orders • Profile • Shop • Support

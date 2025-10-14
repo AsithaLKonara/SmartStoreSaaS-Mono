@@ -1,54 +1,96 @@
-export const dynamic = 'force-dynamic';
+/**
+ * White Label Configuration API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_WHITE_LABEL permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_WHITE_LABEL permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - Get white label settings
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const organizationId = user.organizationId;
+      
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const organization = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: {
+          whiteLabelConfig: true
+        }
+      });
+
+      logger.info({
+        message: 'White label config fetched',
+        context: { userId: user.id, organizationId }
+      });
+
+      return NextResponse.json(successResponse({
+        config: organization?.whiteLabelConfig || {},
+        organizationId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch white label config',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const whiteLabel = await db.whiteLabel.findUnique({
-      where: { organizationId: session.user.organizationId },
-    });
-
-    return NextResponse.json({ success: true, data: whiteLabel });
-  } catch (error) {
-    apiLogger.error('Error fetching white label settings', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch settings' }, { status: 500 });
   }
-}
+);
 
-// POST/PUT - Update white label settings
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { logo, primaryColor, secondaryColor, companyName } = body;
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          whiteLabelConfig: JSON.stringify({
+            logo,
+            primaryColor,
+            secondaryColor,
+            companyName
+          })
+        }
+      });
+
+      logger.info({
+        message: 'White label config updated',
+        context: { userId: user.id, organizationId }
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'White label configuration updated',
+        organizationId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update white label config',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-
-    const whiteLabel = await db.whiteLabel.upsert({
-      where: { organizationId: session.user.organizationId },
-      create: {
-        organizationId: session.user.organizationId,
-        ...body,
-      },
-      update: body,
-    });
-
-    apiLogger.info('White label settings updated', { organizationId: session.user.organizationId });
-
-    return NextResponse.json({ success: true, data: whiteLabel });
-  } catch (error) {
-    apiLogger.error('Error updating white label settings', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to update settings' }, { status: 500 });
   }
-}
-
+);

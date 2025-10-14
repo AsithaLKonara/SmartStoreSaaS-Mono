@@ -1,138 +1,133 @@
+/**
+ * Purchase Orders API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_PROCUREMENT permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_PROCUREMENT permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  createPurchaseOrder,
-  approvePurchaseOrder,
-  sendPurchaseOrder,
-  receivePurchaseOrderItems,
-  completePurchaseOrder,
-  cancelPurchaseOrder,
-  getPurchaseOrders,
-} from '@/lib/purchase-orders/manager';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// Get purchase orders
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const status = searchParams.get('status');
+      
+      // Organization scoping
+      const orgId = getOrganizationScope(user);
 
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'Organization ID is required' },
-        { status: 400 }
-      );
-    }
+      const where: any = {};
+      if (orgId) where.organizationId = orgId;
+      if (status) where.status = status;
 
-    const status = searchParams.get('status');
-    const supplierId = searchParams.get('supplierId');
-
-    const purchaseOrders = await getPurchaseOrders(organizationId, {
-      status: status as any,
-      supplierId: supplierId || undefined,
-    });
-
-    return NextResponse.json({ success: true, data: purchaseOrders });
-  } catch (error: any) {
-    console.error('Get purchase orders error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch purchase orders' },
-      { status: 500 }
-    );
-  }
-}
-
-// Create purchase order
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { organizationId, supplierId, items, expectedDeliveryDate, notes } = body;
-
-    if (!organizationId || !supplierId || !items || !Array.isArray(items)) {
-      return NextResponse.json(
-        { error: 'Organization ID, supplier ID, and items are required' },
-        { status: 400 }
-      );
-    }
-
-    const result = await createPurchaseOrder({
-      organizationId,
-      supplierId,
-      items,
-      expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : undefined,
-      notes,
-    });
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        data: result.purchaseOrder,
-        message: 'Purchase order created successfully',
+      const purchaseOrders = await prisma.purchaseOrder.findMany({
+        where,
+        include: {
+          supplier: {
+            select: {
+              id: true,
+              name: true,
+              code: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
       });
-    } else {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
-  } catch (error: any) {
-    console.error('Create purchase order error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Purchase order creation failed' },
-      { status: 500 }
-    );
-  }
-}
 
-// Update purchase order
-export async function PATCH(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { poId, action, ...data } = body;
-
-    if (!poId || !action) {
-      return NextResponse.json(
-        { error: 'PO ID and action are required' },
-        { status: 400 }
-      );
-    }
-
-    let result;
-
-    switch (action) {
-      case 'approve':
-        result = await approvePurchaseOrder(poId, data.approvedBy);
-        break;
-      case 'send':
-        result = await sendPurchaseOrder(poId);
-        break;
-      case 'receive':
-        result = await receivePurchaseOrderItems(poId, data.receivedItems);
-        break;
-      case 'complete':
-        result = await completePurchaseOrder(poId);
-        break;
-      case 'cancel':
-        result = await cancelPurchaseOrder(poId, data.reason);
-        break;
-      default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-    }
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: `Purchase order ${action} completed successfully`,
+      logger.info({
+        message: 'Purchase orders fetched',
+        context: { userId: user.id, count: purchaseOrders.length }
       });
-    } else {
-      return NextResponse.json({ success: false, error: result.error }, { status: 400 });
-    }
-  } catch (error: any) {
-    console.error('Update purchase order error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Purchase order update failed' },
-      { status: 500 }
-    );
-  }
-}
 
+      return NextResponse.json(successResponse(purchaseOrders));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch purchase orders',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);
+
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { supplierId, items, expectedDate, notes } = body;
+
+      if (!supplierId || !items || items.length === 0) {
+        throw new ValidationError('Supplier ID and items are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      // Verify supplier belongs to organization
+      const supplier = await prisma.supplier.findFirst({
+        where: { id: supplierId, organizationId }
+      });
+
+      if (!supplier) {
+        throw new ValidationError('Supplier not found');
+      }
+
+      const orderNumber = `PO-${Date.now()}`;
+      
+      // Calculate totals
+      const subtotal = items.reduce((sum: number, item: any) => 
+        sum + (item.unitPrice * item.quantity), 0
+      );
+      const tax = subtotal * 0.1;
+      const total = subtotal + tax;
+
+      const purchaseOrder = await prisma.purchaseOrder.create({
+        data: {
+          orderNumber,
+          supplierId,
+          organizationId,
+          createdBy: user.id,
+          status: 'DRAFT',
+          orderDate: new Date(),
+          expectedDate: expectedDate ? new Date(expectedDate) : null,
+          subtotal,
+          tax,
+          shipping: 0,
+          total,
+          notes
+        }
+      });
+
+      logger.info({
+        message: 'Purchase order created',
+        context: {
+          userId: user.id,
+          poId: purchaseOrder.id,
+          orderNumber,
+          total
+        }
+      });
+
+      return NextResponse.json(successResponse(purchaseOrder), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create purchase order',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
+  }
+);

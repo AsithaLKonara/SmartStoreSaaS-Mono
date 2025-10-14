@@ -1,0 +1,3922 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 AppleColorEmoji;\f2\fnil\fcharset0 LucidaGrande;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # 
+\f1 \uc0\u55356 \u57314 
+\f0  SmartStore SaaS - Complete Project Deep Dive\
+\
+**Version:** 1.2.0  \
+**Date:** October 12, 2025  \
+**Status:** Production Ready 
+\f1 \uc0\u9989 
+\f0   \
+**Architecture:** Multi-Tenant SaaS Platform\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56529 
+\f0  Table of Contents\
+\
+1. [Project Overview](#project-overview)\
+2. [Database Architecture (53 Models)](#database-architecture)\
+3. [API Endpoints (221 Routes)](#api-endpoints)\
+4. [Frontend Pages (72 Pages)](#frontend-pages)\
+5. [CRUD Operations](#crud-operations)\
+6. [Security & RBAC](#security--rbac)\
+7. [Integrations](#integrations)\
+8. [ML/AI Features](#mlai-features)\
+9. [Advanced Features](#advanced-features)\
+10. [Technology Stack](#technology-stack)\
+\
+---\
+\
+## 
+\f1 \uc0\u55356 \u57263 
+\f0  Project Overview\
+\
+SmartStore SaaS is a comprehensive, production-ready multi-tenant e-commerce and business management platform built with Next.js 14, TypeScript, PostgreSQL, and modern web technologies.\
+\
+### **Core Capabilities:**\
+- **Multi-Tenant Architecture**: Isolated data per organization\
+- **Role-Based Access Control**: 4 roles, 45+ permissions\
+- **E-commerce Platform**: Complete online store management\
+- **Business Management**: Orders, inventory, accounting, procurement\
+- **ML/AI Integration**: Demand forecasting, churn prediction, recommendations\
+- **Omnichannel**: WooCommerce, Shopify, WhatsApp, SMS\
+- **Payment Processing**: Stripe, PayHere, PayPal\
+- **Advanced Analytics**: Real-time insights and reporting\
+- **IoT Integration**: Device management and monitoring\
+- **Blockchain Support**: Supply chain tracking, NFTs\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56510 
+\f0  Database Architecture\
+\
+### **Database Statistics:**\
+- **Total Models**: 53\
+- **Database**: PostgreSQL\
+- **ORM**: Prisma Client 6.16.2\
+- **Multi-Tenancy**: Organization-based isolation\
+\
+### **1. Core Models (10 Models)**\
+\
+#### **User**\
+```prisma\
+model User \{\
+  id                 String    @id @default(cuid())\
+  email              String    @unique\
+  name               String?\
+  password           String?\
+  role               UserRole  @default(TENANT_ADMIN)\
+  roleTag            String?   // For STAFF roles\
+  organizationId     String?\
+  isActive           Boolean   @default(true)\
+  emailVerified      DateTime?\
+  phone              String?\
+  mfaEnabled         Boolean   @default(false)\
+  mfaSecret          String?\
+  mfaBackupCodes     String?\
+  deletedAt          DateTime?\
+  createdAt          DateTime  @default(now())\
+  updatedAt          DateTime  @updatedAt\
+\}\
+```\
+\
+**Features:**\
+- Authentication & Authorization\
+- Multi-Factor Authentication (MFA/2FA)\
+- Soft delete support\
+- Role-based access (SUPER_ADMIN, TENANT_ADMIN, STAFF, CUSTOMER)\
+- Staff role tags (sales_staff, inventory_manager, customer_service, accountant)\
+\
+**Relationships:**\
+- Organization (Many-to-One)\
+- Reports (One-to-Many)\
+- PurchaseOrders (One-to-Many)\
+- Returns (One-to-Many)\
+- GiftCards (One-to-Many)\
+\
+---\
+\
+#### **Organization**\
+```prisma\
+model Organization \{\
+  id          String   @id @default(cuid())\
+  name        String\
+  domain      String?  @unique\
+  description String?\
+  logo        String?\
+  status      String   @default("ACTIVE")\
+  plan        PlanType @default(FREE)\
+  settings    String?  // JSON\
+  createdAt   DateTime @default(now())\
+  updatedAt   DateTime @updatedAt\
+\}\
+```\
+\
+**Features:**\
+- Multi-tenant isolation\
+- Subscription plans (FREE, BASIC, PRO, ENTERPRISE)\
+- Custom domain support\
+- Organization branding\
+\
+**Plans:**\
+- **FREE**: Basic features, limited users\
+- **BASIC**: Standard features, 10 users\
+- **PRO**: Advanced features, 50 users\
+- **ENTERPRISE**: Unlimited features and users\
+\
+**Relationships:** Connected to 36+ other models for complete isolation\
+\
+---\
+\
+#### **Customer**\
+```prisma\
+model Customer \{\
+  id             String   @id @default(cuid())\
+  name           String\
+  email          String\
+  phone          String?\
+  address        String?\
+  organizationId String\
+  createdAt      DateTime @default(now())\
+  updatedAt      DateTime @updatedAt\
+\}\
+```\
+\
+**Features:**\
+- Customer management\
+- Loyalty programs\
+- Order history\
+- Wishlist support\
+- Return management\
+- Referral system\
+\
+**Relationships:**\
+- Orders (One-to-Many)\
+- CustomerLoyalty (One-to-One)\
+- Wishlists (One-to-Many)\
+- Returns (One-to-Many)\
+- Referrals (Many-to-Many)\
+- CustomerSegments (Many-to-Many)\
+\
+---\
+\
+#### **Product**\
+```prisma\
+model Product \{\
+  id              String   @id @default(cuid())\
+  name            String\
+  description     String?\
+  sku             String   @unique\
+  price           Decimal\
+  cost            Decimal?\
+  stock           Int      @default(0)\
+  minStock        Int      @default(0)\
+  weight          Float?\
+  dimensions      String?\
+  tags            String?\
+  isVariant       Boolean  @default(false)\
+  parentProductId String?\
+  organizationId  String\
+  categoryId      String?\
+  isActive        Boolean  @default(true)\
+  createdAt       DateTime @default(now())\
+  updatedAt       DateTime @updatedAt\
+\}\
+```\
+\
+**Features:**\
+- Product variants support\
+- SKU management\
+- Stock tracking\
+- Cost/price management\
+- Category organization\
+- Weight & dimensions\
+- Product tags\
+\
+**Relationships:**\
+- Category (Many-to-One)\
+- Variants (One-to-Many)\
+- OrderItems (One-to-Many)\
+- InventoryMovements (One-to-Many)\
+- WishlistItems (One-to-Many)\
+- PurchaseOrderItems (One-to-Many)\
+- ReturnItems (One-to-Many)\
+\
+---\
+\
+#### **Order**\
+```prisma\
+model Order \{\
+  id          String   @id @default(cuid())\
+  orderNumber String   @unique\
+  customerId  String\
+  status      String   @default("PENDING")\
+  total       Decimal\
+  subtotal    Decimal\
+  tax         Decimal  @default(0)\
+  shipping    Decimal  @default(0)\
+  discount    Decimal  @default(0)\
+  notes       String?\
+  createdAt   DateTime @default(now())\
+  updatedAt   DateTime @updatedAt\
+\}\
+```\
+\
+**Order Statuses:**\
+- PENDING 
+\f2 \uc0\u8594 
+\f0  CONFIRMED 
+\f2 \uc0\u8594 
+\f0  PROCESSING 
+\f2 \uc0\u8594 
+\f0  SHIPPED 
+\f2 \uc0\u8594 
+\f0  DELIVERED\
+- CANCELLED, REFUNDED\
+\
+**Features:**\
+- Order management\
+- Status tracking\
+- Payment processing\
+- Delivery tracking\
+- Returns & refunds\
+- Gift card redemption\
+- Affiliate commissions\
+\
+**Relationships:**\
+- Customer (Many-to-One)\
+- OrderItems (One-to-Many)\
+- Payments (One-to-Many)\
+- Deliveries (One-to-Many)\
+- StatusHistory (One-to-Many)\
+- Returns (One-to-Many)\
+\
+---\
+\
+### **2. E-Commerce Models (8 Models)**\
+\
+#### **Category**\
+- Hierarchical categories\
+- Parent-child relationships\
+- Active/inactive status\
+\
+#### **OrderItem**\
+- Line items for orders\
+- Quantity & pricing\
+- Product/variant references\
+\
+#### **Payment**\
+- Multiple payment methods\
+- Payment gateway integration\
+- Transaction tracking\
+- Currency support\
+\
+#### **Delivery**\
+- Shipping management\
+- Courier assignment\
+- Tracking numbers\
+- Status history\
+\
+#### **Courier**\
+- Courier management\
+- Contact information\
+- Active status\
+\
+#### **ProductVariant**\
+- Product variations (size, color, etc.)\
+- Separate SKUs\
+- Independent pricing & stock\
+\
+#### **InventoryMovement**\
+- Stock adjustments\
+- Movement tracking\
+- Reason logging\
+- Reference tracking\
+\
+#### **OrderStatusHistory**\
+- Order status changes\
+- Audit trail\
+- Notes support\
+\
+---\
+\
+### **3. Customer Management Models (6 Models)**\
+\
+#### **CustomerLoyalty**\
+```prisma\
+model CustomerLoyalty \{\
+  id           String   @id\
+  customerId   String\
+  points       Int      @default(0)\
+  tier         String   @default("BRONZE")\
+  totalSpent   Decimal  @default(0)\
+  lastActivity DateTime?\
+\}\
+```\
+\
+**Loyalty Tiers:**\
+- BRONZE (0-999 points)\
+- SILVER (1000-4999 points)\
+- GOLD (5000-9999 points)\
+- PLATINUM (10000+ points)\
+\
+**Features:**\
+- Points accumulation\
+- Tier-based rewards\
+- Spending tracking\
+- Activity monitoring\
+\
+#### **customer_segments**\
+- Customer segmentation\
+- Criteria-based grouping\
+- Marketing campaigns\
+\
+#### **customer_segment_customers**\
+- Segment membership\
+- Many-to-many relationships\
+\
+#### **wishlists**\
+- Customer wishlists\
+- Public/private wishlists\
+- Share functionality\
+\
+#### **wishlist_items**\
+- Wishlist products\
+- Quantity tracking\
+\
+#### **loyalty_transactions**\
+- Points history\
+- Transaction types (EARN, REDEEM, EXPIRE, ADJUST)\
+\
+---\
+\
+### **4. Warehouse & Inventory Models (3 Models)**\
+\
+#### **Warehouse**\
+```prisma\
+model Warehouse \{\
+  id             String   @id\
+  name           String\
+  address        String?\
+  organizationId String\
+\}\
+```\
+\
+**Features:**\
+- Multi-warehouse support\
+- Location management\
+- IoT device integration\
+\
+#### **warehouse_inventory**\
+- Stock per warehouse\
+- Reserved quantities\
+- Inventory tracking\
+\
+#### **InventoryMovement**\
+- Stock movements\
+- Types: PURCHASE, SALE, ADJUSTMENT, TRANSFER\
+- Audit trail\
+\
+---\
+\
+### **5. Procurement Models (3 Models)**\
+\
+#### **Supplier**\
+```prisma\
+model Supplier \{\
+  id             String         @id\
+  organizationId String\
+  code           String\
+  name           String\
+  contactName    String?\
+  email          String?\
+  phone          String?\
+  address        Json?\
+  paymentTerms   String?\
+  currency       String         @default("LKR")\
+  status         SupplierStatus @default(ACTIVE)\
+  rating         Float?\
+  totalOrders    Int            @default(0)\
+  totalSpent     Decimal        @default(0)\
+\}\
+```\
+\
+**Features:**\
+- Supplier management\
+- Performance tracking\
+- Rating system\
+- Multi-currency\
+\
+#### **PurchaseOrder**\
+```prisma\
+model PurchaseOrder \{\
+  id           String              @id\
+  orderNumber  String              @unique\
+  supplierId   String\
+  status       PurchaseOrderStatus @default(DRAFT)\
+  orderDate    DateTime            @default(now())\
+  expectedDate DateTime?\
+  receivedDate DateTime?\
+  subtotal     Decimal\
+  tax          Decimal             @default(0)\
+  shipping     Decimal             @default(0)\
+  total        Decimal\
+\}\
+```\
+\
+**Statuses:**\
+- DRAFT 
+\f2 \uc0\u8594 
+\f0  SUBMITTED 
+\f2 \uc0\u8594 
+\f0  APPROVED 
+\f2 \uc0\u8594 
+\f0  ORDERED 
+\f2 \uc0\u8594 
+\f0  PARTIALLY_RECEIVED 
+\f2 \uc0\u8594 
+\f0  RECEIVED\
+- CANCELLED\
+\
+#### **PurchaseOrderItem**\
+- Line items\
+- Received quantity tracking\
+- Unit pricing\
+\
+---\
+\
+### **6. Returns & Refunds Models (4 Models)**\
+\
+#### **Return**\
+```prisma\
+model Return \{\
+  id           String       @id\
+  returnNumber String       @unique\
+  orderId      String\
+  customerId   String\
+  reason       String\
+  status       ReturnStatus @default(PENDING)\
+  refundMethod RefundMethod?\
+  refundAmount Decimal?\
+  restockFee   Decimal      @default(0)\
+  approvedAt   DateTime?\
+\}\
+```\
+\
+**Statuses:**\
+- PENDING 
+\f2 \uc0\u8594 
+\f0  APPROVED 
+\f2 \uc0\u8594 
+\f0  RECEIVED 
+\f2 \uc0\u8594 
+\f0  REFUNDED 
+\f2 \uc0\u8594 
+\f0  COMPLETED\
+- REJECTED, CANCELLED\
+\
+**Refund Methods:**\
+- ORIGINAL_PAYMENT\
+- STORE_CREDIT\
+- GIFT_CARD\
+- BANK_TRANSFER\
+\
+#### **ReturnItem**\
+- Return line items\
+- Condition tracking\
+- Refund amounts\
+\
+#### **GiftCard**\
+```prisma\
+model GiftCard \{\
+  code         String         @unique\
+  initialValue Decimal\
+  currentValue Decimal\
+  status       GiftCardStatus @default(ACTIVE)\
+  expiresAt    DateTime?\
+\}\
+```\
+\
+**Statuses:** ACTIVE, REDEEMED, EXPIRED, CANCELLED\
+\
+#### **GiftCardTransaction**\
+- Transaction history\
+- Types: PURCHASE, REDEMPTION, REFUND, ADJUSTMENT, EXPIRY\
+\
+---\
+\
+### **7. Marketing & Campaigns Models (8 Models)**\
+\
+#### **sms_campaigns**\
+- SMS marketing campaigns\
+- Schedule management\
+- Status tracking (draft, scheduled, running, completed)\
+\
+#### **sms_templates**\
+- Reusable templates\
+- Variable support\
+- Template versioning\
+\
+#### **sms_logs**\
+- Delivery tracking\
+- Click tracking\
+- Provider logs\
+\
+#### **sms_subscriptions**\
+- Subscriber management\
+- List management\
+- Opt-in/opt-out\
+\
+#### **social_commerce**\
+- Platform integrations (Facebook, Instagram, TikTok)\
+- OAuth tokens\
+- Sync management\
+\
+#### **social_posts**\
+- Content scheduling\
+- Multi-platform posting\
+- Engagement tracking\
+\
+#### **social_products**\
+- Product listings on social platforms\
+- Platform-specific IDs\
+\
+#### **support_tickets**\
+- Customer support\
+- Priority management (low, medium, high, critical)\
+- Status tracking\
+- Assignment system\
+\
+---\
+\
+### **8. Integrations Models (7 Models)**\
+\
+#### **channel_integrations**\
+```prisma\
+model channel_integrations \{\
+  id            String  @id\
+  name          String\
+  type          String\
+  provider      String\
+  channel       String\
+  status        String  @default("INACTIVE")\
+  credentials   String? // Encrypted\
+  settings      String? // JSON\
+  webhookUrl    String?\
+  isActive      Boolean @default(true)\
+  metadata      String? // JSON\
+\}\
+```\
+\
+**Integration Types:**\
+- E-COMMERCE (WooCommerce, Shopify)\
+- MESSAGING (WhatsApp, SMS, Email)\
+- PAYMENT (Stripe, PayHere, PayPal)\
+- SHIPPING (Shippo, Local Couriers)\
+- SOCIAL (Facebook, Instagram)\
+\
+#### **WooCommerceIntegration**\
+- Store URL\
+- Consumer Key/Secret\
+- Sync settings\
+- Last sync timestamp\
+\
+#### **WhatsAppIntegration**\
+- Phone number\
+- Access token\
+- Message management\
+\
+#### **whatsapp_messages**\
+- Message logs\
+- Direction (INBOUND/OUTBOUND)\
+- Media support\
+- Auto-reply\
+\
+#### **integration_logs**\
+- Integration activity logs\
+- Error tracking\
+- Debug information\
+\
+---\
+\
+### **9. Accounting & Finance Models (6 Models)**\
+\
+#### **chart_of_accounts**\
+```prisma\
+model chart_of_accounts \{\
+  id             String  @id\
+  organizationId String\
+  code           String\
+  name           String\
+  description    String?\
+  accountType    String  // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE\
+  accountSubType String\
+  balance        Float   @default(0)\
+  currency       String  @default("USD")\
+  taxEnabled     Boolean @default(false)\
+\}\
+```\
+\
+**Account Types:**\
+- ASSET (Current, Fixed, Intangible)\
+- LIABILITY (Current, Long-term)\
+- EQUITY (Capital, Retained Earnings)\
+- REVENUE (Sales, Services, Other)\
+- EXPENSE (Operating, COGS, Depreciation)\
+\
+#### **journal_entries**\
+- Double-entry bookkeeping\
+- Entry statuses (DRAFT, POSTED, REVERSED)\
+- Reversal support\
+- Attachments\
+\
+#### **journal_entry_lines**\
+- Debit/credit lines\
+- Account references\
+- Line numbers\
+\
+#### **ledger**\
+- General ledger\
+- Transaction history\
+- Running balance\
+- Reference tracking\
+\
+#### **tax_rates**\
+```prisma\
+model tax_rates \{\
+  id           String  @id\
+  name         String\
+  code         String\
+  rate         Float\
+  jurisdiction String?\
+  taxType      String  // VAT, GST, SALES_TAX, etc.\
+  isCompound   Boolean @default(false)\
+  effectiveFrom DateTime\
+  effectiveTo   DateTime?\
+\}\
+```\
+\
+#### **tax_transactions**\
+- Tax calculations\
+- Transaction types\
+- Base/tax/total amounts\
+- Reference linking\
+\
+---\
+\
+### **10. IoT & Monitoring Models (4 Models)**\
+\
+#### **iot_devices**\
+```prisma\
+model iot_devices \{\
+  id              String  @id\
+  name            String\
+  type            String  // SENSOR, CAMERA, RFID, BEACON\
+  location        String\
+  warehouseId     String?\
+  macAddress      String\
+  ipAddress       String?\
+  firmwareVersion String\
+  batteryLevel    Int?\
+  status          String  @default("offline")\
+  lastSeen        DateTime?\
+  configuration   String? // JSON\
+\}\
+```\
+\
+**Device Types:**\
+- SENSOR (Temperature, Humidity, Motion)\
+- CAMERA (Security, Inventory Scanning)\
+- RFID (Asset Tracking)\
+- BEACON (Location Services)\
+\
+#### **sensor_readings**\
+- Real-time data\
+- Reading types (temperature, humidity, motion, pressure)\
+- Unit tracking\
+- Metadata support\
+\
+#### **iot_alerts**\
+```prisma\
+model iot_alerts \{\
+  type       String  // TEMPERATURE_HIGH, MOTION_DETECTED, etc.\
+  severity   String  // LOW, MEDIUM, HIGH, CRITICAL\
+  message    String\
+  isResolved Boolean @default(false)\
+  resolvedAt DateTime?\
+  resolvedBy String?\
+\}\
+```\
+\
+#### **performance_metrics**\
+- API performance tracking\
+- Response times\
+- Error rates\
+- Endpoint monitoring\
+\
+---\
+\
+### **11. Analytics & AI Models (3 Models)**\
+\
+#### **Analytics**\
+- Analytics data storage\
+- Type-based categorization\
+- JSON metadata\
+- Time-series data\
+\
+#### **ai_analytics**\
+```prisma\
+model ai_analytics \{\
+  query       String  // User query\
+  insights    String  // AI-generated insights\
+  dataContext String? // Context data\
+  filters     String? // Applied filters\
+\}\
+```\
+\
+**AI Capabilities:**\
+- Natural language queries\
+- Predictive analytics\
+- Automated insights\
+- Recommendation engine\
+\
+#### **ai_conversations**\
+- Conversation history\
+- Message threading\
+- Context preservation\
+\
+---\
+\
+### **12. Subscription & Billing Models (1 Model)**\
+\
+#### **Subscription**\
+```prisma\
+model Subscription \{\
+  organizationId       String             @unique\
+  plan                 PlanType           @default(FREE)\
+  status               SubscriptionStatus @default(TRIAL)\
+  stripeCustomerId     String?\
+  stripeSubscriptionId String?\
+  currentPeriodStart   DateTime\
+  currentPeriodEnd     DateTime\
+  cancelAtPeriodEnd    Boolean            @default(false)\
+  trialEndsAt          DateTime?\
+\}\
+```\
+\
+**Subscription Statuses:**\
+- TRIAL (14-day trial)\
+- ACTIVE (Paid and active)\
+- PAST_DUE (Payment failed)\
+- CANCELLED (Cancelled, still active until period end)\
+- EXPIRED (Subscription ended)\
+\
+**Billing Features:**\
+- Stripe integration\
+- Subscription management\
+- Usage tracking\
+- Invoice generation\
+\
+---\
+\
+### **13. Affiliate & Referral Models (3 Models)**\
+\
+#### **Affiliate**\
+```prisma\
+model Affiliate \{\
+  code            String\
+  name            String\
+  email           String\
+  commissionRate  Decimal        @default(10)\
+  status          AffiliateStatus @default(PENDING)\
+  totalSales      Decimal        @default(0)\
+  totalCommission Decimal        @default(0)\
+  paymentDetails  Json?\
+\}\
+```\
+\
+**Statuses:** PENDING, ACTIVE, SUSPENDED, TERMINATED\
+\
+#### **AffiliateCommission**\
+- Commission tracking\
+- Sale amounts\
+- Payout management\
+- Status (PENDING, APPROVED, PAID, CANCELLED)\
+\
+#### **Referral**\
+```prisma\
+model Referral \{\
+  code         String         @unique\
+  referrerId   String         // Customer who refers\
+  referredId   String?        // Customer who was referred\
+  affiliateId  String?        // Optional affiliate\
+  status       ReferralStatus @default(PENDING)\
+  rewardType   String?        // POINTS, DISCOUNT, CASH\
+  rewardValue  Decimal?\
+  rewardedAt   DateTime?\
+  completedAt  DateTime?\
+\}\
+```\
+\
+**Statuses:** PENDING, COMPLETED, REWARDED, EXPIRED, CANCELLED\
+\
+---\
+\
+### **14. Activity & Audit Models (3 Models)**\
+\
+#### **activities**\
+- User activity logging\
+- Activity types (LOGIN, LOGOUT, CREATE, UPDATE, DELETE)\
+- Metadata support\
+\
+#### **delivery_status_history**\
+- Delivery status changes\
+- Notes tracking\
+- Audit trail\
+\
+#### **product_activities**\
+- Product-specific activities\
+- Price changes\
+- Stock updates\
+- Visibility changes\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56588 
+\f0  API Endpoints (221 Routes)\
+\
+### **API Architecture:**\
+- **Total Endpoints**: 221 route files\
+- **REST API**: JSON responses\
+- **Authentication**: JWT + Session-based\
+- **Rate Limiting**: Per endpoint\
+- **Error Handling**: Standardized responses\
+\
+---\
+\
+### **1. Authentication & Authorization (10 Endpoints)**\
+\
+#### **POST /api/auth/[...nextauth]**\
+- **NextAuth.js** integration\
+- Credentials provider\
+- OAuth providers (Google, GitHub)\
+- Session management\
+\
+**Request:**\
+```json\
+\{\
+  "email": "admin@example.com",\
+  "password": "SecurePassword123!"\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "user": \{\
+    "id": "user_123",\
+    "email": "admin@example.com",\
+    "name": "Admin User",\
+    "role": "TENANT_ADMIN",\
+    "organizationId": "org_123"\
+  \},\
+  "token": "jwt_token_here"\
+\}\
+```\
+\
+#### **POST /api/auth/refresh**\
+- JWT token refresh\
+- Automatic renewal\
+- Session validation\
+\
+#### **GET /api/auth-test**\
+- Authentication testing\
+- Session verification\
+\
+---\
+\
+### **2. User Management (5 Endpoints)**\
+\
+#### **GET /api/users**\
+- List all users\
+- Pagination support\
+- Filter by role, status\
+- Organization scoping\
+\
+**Query Parameters:**\
+```\
+?page=1&limit=20&role=STAFF&status=active\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "id": "user_123",\
+      "email": "staff@example.com",\
+      "name": "Staff Member",\
+      "role": "STAFF",\
+      "roleTag": "sales_staff",\
+      "isActive": true,\
+      "createdAt": "2025-10-01T00:00:00Z"\
+    \}\
+  ],\
+  "meta": \{\
+    "total": 45,\
+    "page": 1,\
+    "limit": 20,\
+    "totalPages": 3\
+  \}\
+\}\
+```\
+\
+#### **POST /api/users**\
+- Create new user\
+- Role assignment\
+- Email verification\
+- Password hashing\
+\
+**CRUD Operations:**\
+- **POST** - Create user\
+- **GET** - Read users\
+- **PUT /api/users/[id]** - Update user\
+- **DELETE /api/users/[id]** - Delete user (soft delete)\
+\
+---\
+\
+### **3. Organization Management (10 Endpoints)**\
+\
+#### **GET /api/tenants**\
+- List organizations (Super Admin only)\
+- Subscription details\
+- User counts\
+- Activity metrics\
+\
+#### **POST /api/tenants**\
+- Create new organization\
+- Initialize default settings\
+- Assign subscription plan\
+\
+#### **POST /api/tenants/switch**\
+- Switch between organizations\
+- Session update\
+- Permission refresh\
+\
+**Additional:**\
+- **GET /api/tenants/[id]** - Organization details\
+- **PUT /api/tenants/[id]** - Update organization\
+- **DELETE /api/tenants/[id]** - Deactivate organization\
+\
+---\
+\
+### **4. Product Management (15 Endpoints)**\
+\
+#### **GET /api/products**\
+```typescript\
+interface ProductListRequest \{\
+  page?: number;\
+  limit?: number;\
+  search?: string;\
+  category?: string;\
+  minPrice?: number;\
+  maxPrice?: number;\
+  inStock?: boolean;\
+  sort?: 'price' | 'name' | 'stock' | 'createdAt';\
+  order?: 'asc' | 'desc';\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "id": "prod_123",\
+      "name": "Premium T-Shirt",\
+      "sku": "TS-001",\
+      "price": 29.99,\
+      "cost": 15.00,\
+      "stock": 150,\
+      "minStock": 20,\
+      "category": \{\
+        "id": "cat_1",\
+        "name": "Clothing"\
+      \},\
+      "variants": [\
+        \{\
+          "id": "var_1",\
+          "name": "Small - Blue",\
+          "sku": "TS-001-S-BLU",\
+          "price": 29.99,\
+          "stock": 50\
+        \}\
+      ],\
+      "isActive": true\
+    \}\
+  ],\
+  "meta": \{\
+    "total": 1250,\
+    "page": 1,\
+    "limit": 20\
+  \}\
+\}\
+```\
+\
+#### **POST /api/products**\
+- Create product with variants\
+- SKU validation\
+- Stock initialization\
+- Image upload\
+\
+#### **PUT /api/products/[id]**\
+- Update product details\
+- Price changes\
+- Stock adjustments\
+- Variant management\
+\
+#### **DELETE /api/products/[id]**\
+- Soft delete product\
+- Inventory reconciliation\
+- Order validation\
+\
+**Additional Endpoints:**\
+- **GET /api/products/[id]** - Product details\
+- **POST /api/import/products** - Bulk import (CSV, Excel)\
+- **POST /api/export/products** - Export products\
+\
+---\
+\
+### **5. Categories (5 Endpoints)**\
+\
+#### **GET /api/categories**\
+- Hierarchical category tree\
+- Product counts\
+- Active/inactive filtering\
+\
+#### **POST /api/categories**\
+- Create category\
+- Parent category assignment\
+- Hierarchical validation\
+\
+**Full CRUD:**\
+- GET - List categories\
+- POST - Create category\
+- PUT /api/categories/[id] - Update category\
+- DELETE /api/categories/[id] - Delete category\
+- GET /api/categories/[id]/products - Category products\
+\
+---\
+\
+### **6. Order Management (20 Endpoints)**\
+\
+#### **GET /api/orders**\
+```typescript\
+interface OrderListRequest \{\
+  status?: OrderStatus[];\
+  customer?: string;\
+  dateFrom?: string;\
+  dateTo?: string;\
+  minTotal?: number;\
+  maxTotal?: number;\
+  page?: number;\
+  limit?: number;\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "id": "ord_123",\
+      "orderNumber": "ORD-2025-001",\
+      "customer": \{\
+        "id": "cust_1",\
+        "name": "John Doe",\
+        "email": "john@example.com"\
+      \},\
+      "status": "PROCESSING",\
+      "items": [\
+        \{\
+          "product": "Premium T-Shirt",\
+          "quantity": 2,\
+          "price": 29.99,\
+          "total": 59.98\
+        \}\
+      ],\
+      "subtotal": 59.98,\
+      "tax": 4.80,\
+      "shipping": 5.99,\
+      "discount": 0.00,\
+      "total": 70.77,\
+      "createdAt": "2025-10-12T10:30:00Z"\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/orders**\
+- Create order\
+- Inventory reservation\
+- Payment initiation\
+- Email notifications\
+\
+**Order Workflow:**\
+1. Create order (PENDING)\
+2. Process payment (CONFIRMED)\
+3. Pick items (PROCESSING)\
+4. Ship order (SHIPPED)\
+5. Deliver (DELIVERED)\
+\
+**Additional Endpoints:**\
+- **GET /api/orders/[id]** - Order details\
+- **PUT /api/orders/[id]** - Update order\
+- **POST /api/orders/[id]/cancel** - Cancel order\
+- **POST /api/orders/[id]/refund** - Process refund\
+- **GET /api/orders/[id]/status-history** - Status history\
+\
+---\
+\
+### **7. Customer Management (15 Endpoints)**\
+\
+#### **GET /api/customers**\
+- Customer list\
+- Segmentation filters\
+- Loyalty tier filtering\
+- Spending analytics\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "id": "cust_123",\
+      "name": "Jane Smith",\
+      "email": "jane@example.com",\
+      "phone": "+1234567890",\
+      "loyalty": \{\
+        "points": 2500,\
+        "tier": "SILVER",\
+        "totalSpent": 1250.00\
+      \},\
+      "orders": 15,\
+      "lastOrder": "2025-10-10T14:20:00Z",\
+      "createdAt": "2025-01-15T00:00:00Z"\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/customers**\
+- Create customer\
+- Loyalty initialization\
+- Email verification\
+\
+#### **POST /api/customer-registration**\
+- Self-service registration\
+- Password creation\
+- Verification email\
+\
+**Additional Endpoints:**\
+- **GET /api/customers/[id]** - Customer profile\
+- **GET /api/customers/[id]/orders** - Customer orders\
+- **GET /api/customers/[id]/loyalty** - Loyalty details\
+- **POST /api/customers/[id]/loyalty/points** - Add/deduct points\
+- **GET /api/customers/[id]/analytics** - Customer analytics\
+\
+---\
+\
+### **8. Cart & Checkout (10 Endpoints)**\
+\
+#### **GET /api/cart**\
+- Get cart items\
+- Calculate totals\
+- Apply discounts\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "cart": \{\
+    "id": "cart_123",\
+    "items": [\
+      \{\
+        "productId": "prod_1",\
+        "name": "Premium T-Shirt",\
+        "variant": "Small - Blue",\
+        "quantity": 2,\
+        "price": 29.99,\
+        "total": 59.98\
+      \}\
+    ],\
+    "subtotal": 59.98,\
+    "tax": 4.80,\
+    "shipping": 5.99,\
+    "discount": 10.00,\
+    "total": 60.77\
+  \}\
+\}\
+```\
+\
+#### **POST /api/cart**\
+- Add item to cart\
+- Stock validation\
+- Price calculation\
+\
+#### **POST /api/checkout**\
+- Process checkout\
+- Create order\
+- Payment processing\
+- Inventory update\
+- Send confirmations\
+\
+**Full Cart API:**\
+- **GET /api/cart** - Get cart\
+- **POST /api/cart** - Add item\
+- **PUT /api/cart/[itemId]** - Update quantity\
+- **DELETE /api/cart/[itemId]** - Remove item\
+- **DELETE /api/cart** - Clear cart\
+- **POST /api/cart/apply-coupon** - Apply discount code\
+- **POST /api/checkout** - Complete checkout\
+\
+---\
+\
+### **9. Wishlist (5 Endpoints)**\
+\
+#### **GET /api/wishlist**\
+- Get user wishlist\
+- Product details\
+- Stock availability\
+\
+#### **POST /api/wishlist**\
+- Add to wishlist\
+- Duplicate check\
+\
+**CRUD:**\
+- GET - Get wishlist\
+- POST - Add item\
+- DELETE /api/wishlist/[itemId] - Remove item\
+- POST /api/wishlist/move-to-cart - Move to cart\
+- GET /api/wishlist/share/[code] - Public wishlist\
+\
+---\
+\
+### **10. Inventory Management (12 Endpoints)**\
+\
+#### **GET /api/inventory**\
+- Current stock levels\
+- Low stock alerts\
+- Multi-warehouse view\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "productId": "prod_1",\
+      "product": "Premium T-Shirt",\
+      "sku": "TS-001",\
+      "totalStock": 150,\
+      "warehouses": [\
+        \{\
+          "warehouseId": "wh_1",\
+          "name": "Main Warehouse",\
+          "stock": 100,\
+          "reserved": 20,\
+          "available": 80\
+        \}\
+      ],\
+      "minStock": 20,\
+      "status": "IN_STOCK"\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/inventory/movement**\
+- Record stock movement\
+- Types: PURCHASE, SALE, ADJUSTMENT, TRANSFER\
+- Automatic updates\
+\
+**Additional:**\
+- **POST /api/inventory/[id]/adjust** - Adjust stock\
+- **GET /api/inventory/value** - Inventory valuation\
+- **GET /api/inventory/statistics** - Inventory stats\
+- **POST /api/inventory/transfer** - Warehouse transfer\
+\
+---\
+\
+### **11. Warehouse Management (8 Endpoints)**\
+\
+#### **GET /api/warehouses**\
+- List warehouses\
+- Stock summaries\
+- IoT device counts\
+\
+#### **POST /api/warehouses**\
+- Create warehouse\
+- Location setup\
+\
+**Additional:**\
+- **GET /api/warehouses/[id]** - Warehouse details\
+- **GET /api/warehouses/[id]/inventory** - Warehouse stock\
+- **POST /api/warehouses/movements** - Stock movements\
+- **GET /api/warehouses/inventory** - All warehouse inventory\
+\
+---\
+\
+### **12. Payment Processing (15 Endpoints)**\
+\
+#### **POST /api/payments/stripe/create-intent**\
+- Create payment intent\
+- Amount calculation\
+- Metadata attachment\
+\
+**Request:**\
+```json\
+\{\
+  "amount": 7077,\
+  "currency": "usd",\
+  "orderId": "ord_123",\
+  "customerId": "cust_123"\
+\}\
+```\
+\
+#### **POST /api/payments/payhere/initiate**\
+- PayHere LKR payments\
+- Order details\
+- Return URLs\
+\
+#### **POST /api/payments/confirm**\
+- Confirm payment\
+- Update order status\
+- Send receipts\
+\
+**Webhooks:**\
+- **POST /api/webhooks/stripe** - Stripe webhooks\
+- **POST /api/payments/payhere/notify** - PayHere IPN\
+\
+**Additional:**\
+- **GET /api/payments/transactions** - Payment history\
+- **POST /api/payments/refund** - Process refund\
+- **POST /api/payments/intent** - Create payment intent\
+- **POST /api/payments/stripe/test** - Test Stripe\
+- **POST /api/payments/payhere/test** - Test PayHere\
+\
+---\
+\
+### **13. Procurement & Suppliers (12 Endpoints)**\
+\
+#### **GET /api/suppliers**\
+- Supplier list\
+- Performance metrics\
+- Rating system\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "id": "sup_1",\
+      "code": "SUP-001",\
+      "name": "ABC Suppliers Ltd",\
+      "email": "contact@abc.com",\
+      "rating": 4.5,\
+      "totalOrders": 45,\
+      "totalSpent": 125000.00,\
+      "status": "ACTIVE"\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/suppliers**\
+- Create supplier\
+- Contact management\
+- Payment terms\
+\
+#### **GET /api/purchase-orders**\
+- PO list\
+- Status filtering\
+- Supplier filtering\
+\
+#### **POST /api/purchase-orders**\
+- Create purchase order\
+- Line items\
+- Approval workflow\
+\
+**PO Workflow:**\
+1. DRAFT - Being created\
+2. SUBMITTED - Sent for approval\
+3. APPROVED - Approved internally\
+4. ORDERED - Sent to supplier\
+5. PARTIALLY_RECEIVED - Some items received\
+6. RECEIVED - All items received\
+\
+**Additional:**\
+- **GET /api/purchase-orders/[id]** - PO details\
+- **POST /api/purchase-orders/[id]/receive** - Receive items\
+- **POST /api/purchase-orders/[id]/approve** - Approve PO\
+\
+---\
+\
+### **14. Returns & Refunds (10 Endpoints)**\
+\
+#### **GET /api/returns**\
+- Returns list\
+- Status filtering\
+- Customer filtering\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": [\
+    \{\
+      "id": "ret_123",\
+      "returnNumber": "RET-2025-001",\
+      "order": "ORD-2025-001",\
+      "customer": "John Doe",\
+      "reason": "Size doesn't fit",\
+      "status": "PENDING",\
+      "items": [\
+        \{\
+          "product": "Premium T-Shirt",\
+          "quantity": 1,\
+          "refundAmount": 29.99\
+        \}\
+      ],\
+      "refundMethod": "ORIGINAL_PAYMENT",\
+      "totalRefund": 29.99,\
+      "createdAt": "2025-10-12T15:30:00Z"\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/returns**\
+- Create return request\
+- Item selection\
+- Reason capture\
+\
+**Workflow:**\
+- **POST /api/returns/[id]/approve** - Approve return\
+- **POST /api/returns/[id]/reject** - Reject return\
+- **POST /api/returns/[id]/refund** - Process refund\
+\
+---\
+\
+### **15. Shipping & Delivery (12 Endpoints)**\
+\
+#### **GET /api/shipping/rates**\
+- Calculate shipping rates\
+- Multiple carriers\
+- Address validation\
+\
+**Request:**\
+```json\
+\{\
+  "from": \{\
+    "country": "US",\
+    "zip": "10001"\
+  \},\
+  "to": \{\
+    "country": "US",\
+    "zip": "90210"\
+  \},\
+  "weight": 2.5,\
+  "dimensions": \{\
+    "length": 12,\
+    "width": 8,\
+    "height": 4\
+  \}\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "rates": [\
+    \{\
+      "carrier": "USPS",\
+      "service": "Priority Mail",\
+      "rate": 9.99,\
+      "estimatedDays": 3\
+    \},\
+    \{\
+      "carrier": "FedEx",\
+      "service": "Ground",\
+      "rate": 12.50,\
+      "estimatedDays": 5\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/shipping/shipments**\
+- Create shipment\
+- Generate label\
+- Track shipment\
+\
+**Additional:**\
+- **POST /api/shipping/labels** - Generate label\
+- **GET /api/shipping/track** - Track shipment\
+- **GET /api/shipping/statistics** - Shipping stats\
+\
+---\
+\
+### **16. Fulfillment (10 Endpoints)**\
+\
+#### **GET /api/fulfillment**\
+- Orders awaiting fulfillment\
+- Priority sorting\
+- Warehouse filtering\
+\
+#### **POST /api/fulfillment/[id]/pick**\
+- Start picking process\
+- Item location\
+- Barcode scanning\
+\
+**Fulfillment Workflow:**\
+1. **POST /api/fulfillment/[id]/pick** - Pick items\
+2. **POST /api/fulfillment/[id]/pack** - Pack order\
+3. **POST /api/fulfillment/[id]/label** - Print label\
+4. **POST /api/fulfillment/[id]/ship** - Mark shipped\
+\
+---\
+\
+### **17. Integrations (25 Endpoints)**\
+\
+#### **Email Integration (SendGrid)**\
+- **POST /api/email/send** - Send email\
+- **POST /api/email/test** - Test connection\
+- **GET /api/email/statistics** - Email stats\
+\
+#### **SMS Integration (Twilio)**\
+- **POST /api/sms/send** - Send SMS\
+- **POST /api/sms/otp** - Send OTP\
+- **POST /api/sms/test** - Test SMS\
+- **GET /api/sms/statistics** - SMS stats\
+\
+#### **WhatsApp Integration**\
+- **POST /api/integrations/whatsapp/send** - Send message\
+- **POST /api/integrations/whatsapp/verify** - Verify setup\
+- **POST /api/webhooks/whatsapp** - Webhook handler\
+\
+#### **WooCommerce Integration**\
+- **POST /api/integrations/woocommerce/verify** - Verify credentials\
+- **POST /api/integrations/woocommerce/sync** - Sync products/orders\
+- **POST /api/webhooks/woocommerce/[organizationId]** - Webhook\
+\
+#### **Shopify Integration**\
+- **POST /api/integrations/shopify/verify** - Verify setup\
+- **POST /api/integrations/shopify/sync** - Sync data\
+\
+#### **General Integration Management**\
+- **GET /api/integrations/setup** - Get configured integrations\
+- **POST /api/integrations/setup** - Configure integration\
+- **POST /api/integrations/test** - Test integration\
+\
+---\
+\
+### **18. Analytics & Reporting (18 Endpoints)**\
+\
+#### **GET /api/analytics/dashboard**\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "data": \{\
+    "revenue": \{\
+      "today": 15250.00,\
+      "yesterday": 12300.00,\
+      "thisMonth": 425000.00,\
+      "lastMonth": 395000.00,\
+      "growth": 7.6\
+    \},\
+    "orders": \{\
+      "total": 1250,\
+      "pending": 45,\
+      "processing": 120,\
+      "shipped": 890,\
+      "delivered": 195\
+    \},\
+    "customers": \{\
+      "total": 5420,\
+      "new": 45,\
+      "returning": 890\
+    \},\
+    "inventory": \{\
+      "lowStock": 15,\
+      "outOfStock": 3,\
+      "totalValue": 245000.00\
+    \},\
+    "topProducts": [\
+      \{\
+        "id": "prod_1",\
+        "name": "Premium T-Shirt",\
+        "sales": 450,\
+        "revenue": 13485.00\
+      \}\
+    ]\
+  \}\
+\}\
+```\
+\
+#### **GET /api/analytics/advanced**\
+- Custom date ranges\
+- Segmentation\
+- Cohort analysis\
+- Trend analysis\
+\
+#### **GET /api/analytics/customer-insights**\
+- Customer behavior\
+- Purchase patterns\
+- Lifetime value\
+- Churn risk\
+\
+#### **POST /api/reports/generate**\
+- Generate custom reports\
+- Multiple formats (PDF, Excel, CSV)\
+- Scheduled reports\
+\
+**Report Types:**\
+- Sales reports\
+- Inventory reports\
+- Customer reports\
+- Financial reports\
+- Tax reports\
+\
+**Additional:**\
+- **GET /api/reports/sales** - Sales report\
+- **GET /api/reports/inventory** - Inventory report\
+- **POST /api/export** - Export data\
+\
+---\
+\
+### **19. ML/AI Endpoints (10 Endpoints)**\
+\
+#### **POST /api/ml/demand-forecast**\
+**Request:**\
+```json\
+\{\
+  "productId": "prod_123",\
+  "horizon": 30\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "forecast": [\
+    \{\
+      "date": "2025-10-13",\
+      "predictedDemand": 45,\
+      "confidence": 0.85\
+    \}\
+  ],\
+  "recommendations": [\
+    "Reorder 50 units by October 15",\
+    "Current stock sufficient for 5 days"\
+  ]\
+\}\
+```\
+\
+#### **POST /api/ml/churn-prediction**\
+- Customer churn risk\
+- Retention recommendations\
+- Proactive interventions\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "customers": [\
+    \{\
+      "id": "cust_123",\
+      "name": "John Doe",\
+      "churnRisk": 0.75,\
+      "riskLevel": "HIGH",\
+      "reasons": [\
+        "No purchase in 60 days",\
+        "Decreased engagement",\
+        "Support ticket unresolved"\
+      ],\
+      "recommendations": [\
+        "Send 15% discount code",\
+        "Follow up on support ticket",\
+        "Offer loyalty points bonus"\
+      ]\
+    \}\
+  ]\
+\}\
+```\
+\
+#### **POST /api/ml/recommendations**\
+- Product recommendations\
+- Personalized suggestions\
+- Similar products\
+\
+**Additional:**\
+- **POST /api/ai-analytics/insights** - AI insights\
+- **POST /api/ai-analytics/predictions** - Predictions\
+- **POST /api/ai-analytics/recommendations** - Recommendations\
+\
+---\
+\
+### **20. Loyalty & Rewards (8 Endpoints)**\
+\
+#### **GET /api/loyalty**\
+- Customer loyalty programs\
+- Points balance\
+- Tier status\
+\
+#### **POST /api/loyalty/points**\
+- Award points\
+- Deduct points\
+- Adjust balance\
+\
+**Points Earning:**\
+- Purchase: 1 point per $1\
+- Review: 50 points\
+- Referral: 500 points\
+- Birthday: 100 points\
+\
+**Points Redemption:**\
+- $10 discount = 1000 points\
+- Free shipping = 500 points\
+- Exclusive products = 2000 points\
+\
+---\
+\
+### **21. Campaigns & Marketing (10 Endpoints)**\
+\
+#### **GET /api/campaigns**\
+- Marketing campaigns\
+- Email/SMS campaigns\
+- Performance metrics\
+\
+#### **POST /api/campaigns**\
+- Create campaign\
+- Segment targeting\
+- Schedule delivery\
+\
+**Campaign Types:**\
+- EMAIL - Email marketing\
+- SMS - SMS marketing\
+- PUSH - Push notifications\
+- IN_APP - In-app messages\
+\
+---\
+\
+### **22. Affiliates (8 Endpoints)**\
+\
+#### **GET /api/affiliates**\
+- Affiliate list\
+- Performance metrics\
+- Commission tracking\
+\
+#### **POST /api/affiliates/[id]/commission**\
+- Calculate commission\
+- Approve commission\
+- Process payout\
+\
+**Additional:**\
+- **GET /api/affiliates/[id]/sales** - Affiliate sales\
+- **POST /api/affiliates/[id]/payout** - Process payout\
+\
+---\
+\
+### **23. Reviews & Ratings (8 Endpoints)**\
+\
+#### **GET /api/reviews**\
+- Product reviews\
+- Rating statistics\
+- Moderation queue\
+\
+#### **POST /api/reviews**\
+- Submit review\
+- Rating (1-5 stars)\
+- Photo upload\
+\
+**Moderation:**\
+- **POST /api/reviews/[id]/approve** - Approve review\
+- **POST /api/reviews/[id]/reject** - Reject review\
+- **POST /api/reviews/[id]/spam** - Mark as spam\
+\
+---\
+\
+### **24. Accounting (12 Endpoints)**\
+\
+#### **POST /api/accounting/journal-entry**\
+- Create journal entry\
+- Double-entry validation\
+- Account balances\
+\
+#### **GET /api/accounting/ledger**\
+- General ledger\
+- Account transactions\
+- Running balances\
+\
+#### **GET /api/accounting/trial-balance**\
+- Trial balance report\
+- Debit/credit totals\
+- Balance validation\
+\
+#### **GET /api/accounting/income-statement**\
+- Profit & loss statement\
+- Revenue vs expenses\
+- Net income\
+\
+#### **GET /api/accounting/balance-sheet**\
+- Assets, liabilities, equity\
+- Financial position\
+- Date-specific\
+\
+---\
+\
+### **25. Monitoring & Health (10 Endpoints)**\
+\
+#### **GET /api/health**\
+- System health check\
+- Database connectivity\
+- External services status\
+\
+**Response:**\
+```json\
+\{\
+  "status": "healthy",\
+  "timestamp": "2025-10-12T10:00:00Z",\
+  "checks": \{\
+    "database": "healthy",\
+    "redis": "healthy",\
+    "stripe": "healthy",\
+    "sendgrid": "healthy"\
+  \},\
+  "uptime": 99.98,\
+  "responseTime": 45\
+\}\
+```\
+\
+#### **GET /api/monitoring/status**\
+- Detailed system status\
+- Performance metrics\
+- Error rates\
+\
+#### **GET /api/status**\
+- Application status\
+- Version information\
+- Build details\
+\
+**Additional:**\
+- **GET /api/ready** - Readiness probe\
+- **GET /api/monitoring/health** - Health checks\
+- **GET /api/database/status** - Database status\
+- **GET /api/database/performance** - DB performance\
+\
+---\
+\
+### **26. Administration (15 Endpoints)**\
+\
+#### **GET /api/audit-logs**\
+- User activity logs\
+- System changes\
+- Security events\
+\
+#### **POST /api/backup/create**\
+- Create database backup\
+- Scheduled backups\
+- Cloud storage\
+\
+#### **POST /api/backup/[id]/restore**\
+- Restore from backup\
+- Point-in-time recovery\
+\
+#### **GET /api/performance/metrics**\
+- API performance\
+- Response times\
+- Error rates\
+\
+**Additional:**\
+- **GET /api/logs** - System logs\
+- **GET /api/compliance** - Compliance reports\
+- **POST /api/deployment/trigger** - Trigger deployment\
+- **GET /api/deployment/status** - Deployment status\
+\
+---\
+\
+### **27. Webhooks (10 Endpoints)**\
+\
+#### **GET /api/webhooks/endpoints**\
+- List webhook endpoints\
+- Event types\
+- Delivery status\
+\
+#### **POST /api/webhooks/endpoints**\
+- Create webhook\
+- Configure events\
+- Set URL\
+\
+**Webhook Events:**\
+- `order.created`\
+- `order.updated`\
+- `payment.succeeded`\
+- `payment.failed`\
+- `product.updated`\
+- `inventory.low`\
+- `customer.created`\
+\
+**Additional:**\
+- **GET /api/webhooks/events** - Webhook events\
+- **POST /api/webhooks/test** - Test webhook\
+- **POST /api/webhook-handler** - Webhook receiver\
+\
+---\
+\
+### **28. Customer Portal (10 Endpoints)**\
+\
+#### **GET /api/customer-portal/orders**\
+- Customer's orders\
+- Order history\
+- Tracking information\
+\
+#### **GET /api/customer-portal/account**\
+- Customer profile\
+- Loyalty points\
+- Preferences\
+\
+#### **POST /api/customer-portal/support**\
+- Create support ticket\
+- Track issues\
+\
+**Additional:**\
+- **GET /api/customer-portal/orders/[id]** - Order details\
+- **GET /api/customer-portal/wishlist** - Customer wishlist\
+- **GET /api/customer-portal/addresses** - Saved addresses\
+- **GET /api/customer-portal/analytics** - Purchase history\
+\
+---\
+\
+### **29. Advanced Features (15+ Endpoints)**\
+\
+#### **POST /api/chat**\
+- AI-powered chat\
+- Order assistance\
+- Product recommendations\
+\
+#### **GET /api/search**\
+- Global search\
+- Product search\
+- Customer search\
+- Order search\
+\
+#### **POST /api/bulk-operations**\
+- Bulk product updates\
+- Bulk order processing\
+- Batch operations\
+\
+#### **POST /api/workflows**\
+- Automation workflows\
+- Triggers & actions\
+- Conditional logic\
+\
+#### **POST /api/notifications/send**\
+- Push notifications\
+- Email notifications\
+- SMS notifications\
+\
+#### **POST /api/currency/convert**\
+- Currency conversion\
+- Real-time rates\
+\
+#### **POST /api/pricing/calculate**\
+- Dynamic pricing\
+- Discount application\
+- Tax calculation\
+\
+#### **POST /api/validation/test**\
+- Data validation\
+- Testing utilities\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56561 
+\f0  Frontend Pages (72 Pages)\
+\
+### **Page Architecture:**\
+- **Framework**: Next.js 14 App Router\
+- **UI Library**: React 18 with TypeScript\
+- **Styling**: Tailwind CSS\
+- **Components**: Radix UI, Lucide Icons\
+- **State Management**: TanStack Query (React Query)\
+- **Forms**: React Hook Form + Zod validation\
+\
+---\
+\
+### **1. Authentication Pages (2 Pages)**\
+\
+#### **/login**\
+- Email/password login\
+- OAuth providers (Google, GitHub)\
+- Remember me\
+- Password reset link\
+- Demo credential cards (4 roles)\
+\
+**Features:**\
+- Click-to-fill credentials\
+- Session management\
+- MFA support\
+- Error handling\
+\
+#### **/register**\
+- Self-service registration\
+- Email verification\
+- Password strength meter\
+- Terms acceptance\
+\
+---\
+\
+### **2. Dashboard Pages (66 Pages)**\
+\
+#### **Main Dashboard**\
+- **/dashboard** - Main dashboard\
+\
+**Features:**\
+- Revenue metrics\
+- Order statistics\
+- Customer insights\
+- Quick actions\
+- Recent activity\
+- Low stock alerts\
+- Performance graphs\
+\
+---\
+\
+#### **Product Management (3 Pages)**\
+\
+- **/dashboard/products** - Product list\
+  - Grid/list view\
+  - Search & filters\
+  - Bulk actions\
+  - Stock indicators\
+  \
+- **/dashboard/products/new** - Create product\
+  - Product details form\
+  - Variant management\
+  - Image upload\
+  - SEO fields\
+  \
+- **/dashboard/products/[id]** - Edit product\
+  - Update details\
+  - Manage variants\
+  - Inventory adjustments\
+  - Activity history\
+\
+---\
+\
+#### **Order Management (2 Pages)**\
+\
+- **/dashboard/orders** - Orders list\
+  - Status filtering\
+  - Date range\
+  - Customer search\
+  - Export options\
+  \
+- **/dashboard/orders/new** - Create order\
+  - Customer selection\
+  - Product picker\
+  - Discount application\
+  - Payment processing\
+\
+---\
+\
+#### **Customer Management (3 Pages)**\
+\
+- **/dashboard/customers** - Customer list\
+  - Segmentation\
+  - Loyalty tiers\
+  - Export customers\
+  - Bulk actions\
+  \
+- **/dashboard/customers/new** - Add customer\
+  - Contact details\
+  - Loyalty enrollment\
+  - Notes\
+  \
+- **/dashboard/customers/[id]** - Customer profile\
+  - Order history\
+  - Loyalty details\
+  - Communication history\
+  - Analytics\
+\
+---\
+\
+#### **Inventory Management (2 Pages)**\
+\
+- **/dashboard/inventory** - Stock levels\
+  - Multi-warehouse view\
+  - Low stock alerts\
+  - Stock movements\
+  - Valuation\
+  \
+- **/dashboard/warehouse** - Warehouse management\
+  - Warehouse list\
+  - Stock distribution\
+  - Transfer management\
+  - IoT devices\
+\
+---\
+\
+#### **Sales & Operations (5 Pages)**\
+\
+- **/dashboard/pos** - Point of Sale\
+  - Product search\
+  - Cart management\
+  - Quick checkout\
+  - Receipt printing\
+  \
+- **/dashboard/fulfillment** - Order fulfillment\
+  - Pick lists\
+  - Pack orders\
+  - Print labels\
+  - Ship orders\
+  \
+- **/dashboard/returns** - Returns management\
+  - Return requests\
+  - Approval workflow\
+  - Refund processing\
+  - Restocking\
+  \
+- **/dashboard/shipping** - Shipping management\
+  - Carrier selection\
+  - Rate comparison\
+  - Label printing\
+  - Tracking\
+  \
+- **/dashboard/payments** - Payment management\
+  - Transaction history\
+  - Refunds\
+  - Gateway status\
+\
+---\
+\
+#### **Procurement (4 Pages)**\
+\
+- **/dashboard/procurement** - Procurement overview\
+  - Active POs\
+  - Supplier performance\
+  - Spending analytics\
+  \
+- **/dashboard/procurement/suppliers** - Supplier management\
+  - Supplier list\
+  - Contact details\
+  - Performance ratings\
+  - Order history\
+  \
+- **/dashboard/procurement/purchase-orders** - Purchase orders\
+  - PO list\
+  - Create PO\
+  - Approval workflow\
+  - Receiving\
+  \
+- **/dashboard/procurement/analytics** - Procurement analytics\
+  - Spending trends\
+  - Supplier comparison\
+  - Cost savings\
+\
+---\
+\
+#### **Accounting (7 Pages)**\
+\
+- **/dashboard/accounting** - Accounting dashboard\
+  - Account balances\
+  - Recent transactions\
+  - Quick actions\
+  \
+- **/dashboard/accounting/chart-of-accounts** - Chart of accounts\
+  - Account tree\
+  - Create accounts\
+  - Edit accounts\
+  \
+- **/dashboard/accounting/journal-entries** - Journal entries\
+  - Entry list\
+  - Create entry\
+  - Post/reverse entries\
+  \
+- **/dashboard/accounting/journal-entries/new** - New journal entry\
+  - Double-entry form\
+  - Account selection\
+  - Validation\
+  \
+- **/dashboard/accounting/ledger** - General ledger\
+  - Account transactions\
+  - Running balances\
+  - Filters\
+  \
+- **/dashboard/accounting/tax** - Tax management\
+  - Tax rates\
+  - Tax transactions\
+  - Reports\
+  \
+- **/dashboard/accounting/reports** - Financial reports\
+  - Income statement\
+  - Balance sheet\
+  - Cash flow\
+  - Trial balance\
+\
+---\
+\
+#### **Analytics & Reporting (4 Pages)**\
+\
+- **/dashboard/analytics** - Analytics dashboard\
+  - Sales analytics\
+  - Customer analytics\
+  - Product performance\
+  - Trends\
+  \
+- **/dashboard/analytics/customer-insights** - Customer insights\
+  - Behavior analysis\
+  - Segmentation\
+  - Lifetime value\
+  - Churn prediction\
+  \
+- **/dashboard/analytics/enhanced** - Advanced analytics\
+  - Custom metrics\
+  - Cohort analysis\
+  - Funnel analysis\
+  \
+- **/dashboard/reports** - Report center\
+  - Report library\
+  - Generate reports\
+  - Scheduled reports\
+  - Export options\
+\
+---\
+\
+#### **AI & ML Features (2 Pages)**\
+\
+- **/dashboard/ai-insights** - AI insights\
+  - Demand forecasting\
+  - Churn prediction\
+  - Recommendations\
+  - Automated insights\
+  \
+- **/dashboard/ai-analytics** - AI analytics\
+  - Natural language queries\
+  - Predictive analytics\
+  - Conversation history\
+\
+---\
+\
+#### **Marketing (2 Pages)**\
+\
+- **/dashboard/campaigns** - Marketing campaigns\
+  - Campaign list\
+  - Create campaign\
+  - Performance metrics\
+  \
+- **/dashboard/loyalty** - Loyalty programs\
+  - Program settings\
+  - Tier management\
+  - Points rules\
+  - Rewards catalog\
+\
+---\
+\
+#### **Integrations (8 Pages)**\
+\
+- **/dashboard/integrations** - Integration hub\
+  - Available integrations\
+  - Connection status\
+  - Configuration\
+  \
+- **/dashboard/integrations/stripe** - Stripe setup\
+  - API keys\
+  - Test payments\
+  - Webhook configuration\
+  \
+- **/dashboard/integrations/payhere** - PayHere setup\
+  - Merchant credentials\
+  - Test transactions\
+  \
+- **/dashboard/integrations/email** - Email integration (SendGrid)\
+  - API key setup\
+  - Template management\
+  - Test emails\
+  \
+- **/dashboard/integrations/sms** - SMS integration (Twilio)\
+  - Account SID\
+  - Phone numbers\
+  - Test SMS\
+  \
+- **/dashboard/integrations/whatsapp** - WhatsApp Business\
+  - Phone number\
+  - Templates\
+  - Message history\
+  \
+- **/dashboard/integrations/woocommerce** - WooCommerce sync\
+  - Store URL\
+  - Credentials\
+  - Sync products/orders\
+  \
+- **/dashboard/integrations/shopify** - Shopify integration\
+  - Store setup\
+  - OAuth flow\
+  - Data sync\
+\
+---\
+\
+#### **Omnichannel (1 Page)**\
+\
+- **/dashboard/omnichannel** - Omnichannel management\
+  - Channel overview\
+  - Product listings\
+  - Order aggregation\
+  - Inventory sync\
+\
+---\
+\
+#### **Reviews (1 Page)**\
+\
+- **/dashboard/reviews** - Product reviews\
+  - Review moderation\
+  - Rating statistics\
+  - Approve/reject\
+  - Response management\
+\
+---\
+\
+#### **Affiliates (1 Page)**\
+\
+- **/dashboard/affiliates** - Affiliate program\
+  - Affiliate list\
+  - Commission tracking\
+  - Payout management\
+  - Performance reports\
+\
+---\
+\
+#### **Users & Access (1 Page)**\
+\
+- **/dashboard/users** - User management\
+  - User list\
+  - Create users\
+  - Role assignment\
+  - Permissions\
+  - Activity logs\
+\
+---\
+\
+#### **Settings (2 Pages)**\
+\
+- **/dashboard/settings** - General settings\
+  - Organization details\
+  - Branding\
+  - Preferences\
+  - Email templates\
+  \
+- **/dashboard/settings/features** - Feature flags\
+  - Enable/disable features\
+  - Beta features\
+  - Module management\
+\
+---\
+\
+#### **Subscription Management (2 Pages)**\
+\
+- **/dashboard/billing** - Billing & subscription\
+  - Current plan\
+  - Usage metrics\
+  - Upgrade/downgrade\
+  - Invoice history\
+  \
+- **/dashboard/subscriptions** - Subscription details\
+  - Plan features\
+  - Payment method\
+  - Cancel subscription\
+\
+---\
+\
+#### **Super Admin Pages (9 Pages)**\
+\
+*Only accessible by SUPER_ADMIN role*\
+\
+- **/dashboard/tenants** - Organization management\
+  - Organization list\
+  - Create organizations\
+  - Manage subscriptions\
+  - Activity monitoring\
+  \
+- **/dashboard/admin** - Admin dashboard\
+  - System overview\
+  - Key metrics\
+  - Alerts\
+  \
+- **/dashboard/admin/packages** - Package management\
+  - Package definitions\
+  - Feature sets\
+  - Pricing tiers\
+  \
+- **/dashboard/admin/billing** - System billing\
+  - Revenue tracking\
+  - Organization billing\
+  - Payment processing\
+  \
+- **/dashboard/monitoring** - System monitoring\
+  - Health checks\
+  - Performance metrics\
+  - Uptime tracking\
+  \
+- **/dashboard/performance** - Performance monitoring\
+  - API performance\
+  - Response times\
+  - Error rates\
+  - Optimization\
+  \
+- **/dashboard/audit** - Audit logs\
+  - User activities\
+  - System changes\
+  - Security events\
+  \
+- **/dashboard/compliance** - Compliance management\
+  - Audit logs export\
+  - Data retention\
+  - GDPR compliance\
+  \
+- **/dashboard/backup** - Backup management\
+  - Create backups\
+  - Restore backups\
+  - Backup schedule\
+  - Cloud storage\
+\
+---\
+\
+#### **Development & Testing (7 Pages)**\
+\
+- **/dashboard/logs** - System logs\
+  - Application logs\
+  - Error logs\
+  - Filtering\
+  \
+- **/dashboard/testing** - Testing utilities\
+  - API testing\
+  - Data seeding\
+  - Test scenarios\
+  \
+- **/dashboard/validation** - Data validation\
+  - Validation rules\
+  - Data integrity checks\
+  \
+- **/dashboard/deployment** - Deployment management\
+  - Deployment status\
+  - Trigger deployments\
+  - Rollback\
+  \
+- **/dashboard/documentation** - Documentation\
+  - API docs\
+  - User guides\
+  - Integration guides\
+  \
+- **/dashboard/webhooks** - Webhook management\
+  - Webhook endpoints\
+  - Event subscriptions\
+  - Delivery logs\
+  - Test webhooks\
+  \
+- **/dashboard/sync** - Data synchronization\
+  - Sync status\
+  - Conflict resolution\
+  - Sync logs\
+\
+---\
+\
+#### **Additional Pages (3 Pages)**\
+\
+- **/dashboard/docs** - Help & documentation\
+  - Getting started\
+  - Tutorials\
+  - FAQs\
+  \
+- **/dashboard/configuration** - System configuration\
+  - Environment variables\
+  - Feature flags\
+  - API settings\
+  \
+- **/dashboard/chat** - Support chat\
+  - AI-powered chat\
+  - Support tickets\
+  - Chat history\
+\
+---\
+\
+### **3. Customer Portal Pages (6 Pages)**\
+\
+#### **/portal**\
+- Customer dashboard\
+- Order summary\
+- Quick actions\
+- Notifications\
+\
+#### **/portal/products**\
+- Product catalog\
+- Search & filters\
+- Add to cart\
+- Add to wishlist\
+\
+#### **/portal/orders**\
+- Order history\
+- Order tracking\
+- Download invoices\
+- Request returns\
+\
+#### **/portal/profile**\
+- Account details\
+- Saved addresses\
+- Payment methods\
+- Preferences\
+\
+#### **/portal/wishlist**\
+- Wishlist items\
+- Move to cart\
+- Share wishlist\
+- Remove items\
+\
+#### **/portal/cart**\
+- Shopping cart\
+- Update quantities\
+- Apply coupons\
+- Checkout\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56615 
+\f0  CRUD Operations\
+\
+### **Complete CRUD Coverage:**\
+\
+Every major entity in the system has full CRUD (Create, Read, Update, Delete) operations implemented at both the API and frontend levels.\
+\
+---\
+\
+### **1. Products CRUD**\
+\
+#### **CREATE (POST /api/products)**\
+```typescript\
+const createProduct = async (data: ProductCreate) => \{\
+  return await fetch('/api/products', \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      name: 'Premium T-Shirt',\
+      sku: 'TS-001',\
+      price: 29.99,\
+      cost: 15.00,\
+      stock: 100,\
+      minStock: 20,\
+      categoryId: 'cat_1',\
+      description: 'High quality cotton t-shirt',\
+      variants: [\
+        \{\
+          name: 'Small - Blue',\
+          sku: 'TS-001-S-BLU',\
+          price: 29.99,\
+          stock: 50\
+        \}\
+      ]\
+    \})\
+  \});\
+\};\
+```\
+\
+**Features:**\
+- Automatic SKU validation\
+- Variant creation\
+- Stock initialization\
+- Image upload\
+- Category assignment\
+\
+#### **READ (GET /api/products)**\
+```typescript\
+const getProducts = async (filters: ProductFilters) => \{\
+  const params = new URLSearchParams(\{\
+    page: '1',\
+    limit: '20',\
+    search: 'shirt',\
+    category: 'cat_1',\
+    inStock: 'true',\
+    sort: 'price',\
+    order: 'asc'\
+  \});\
+  \
+  return await fetch(`/api/products?$\{params\}`);\
+\};\
+```\
+\
+**Features:**\
+- Pagination\
+- Search (name, SKU, description)\
+- Category filtering\
+- Stock filtering\
+- Price range filtering\
+- Sorting (price, name, stock, date)\
+\
+#### **UPDATE (PUT /api/products/[id])**\
+```typescript\
+const updateProduct = async (id: string, data: ProductUpdate) => \{\
+  return await fetch(`/api/products/$\{id\}`, \{\
+    method: 'PUT',\
+    body: JSON.stringify(\{\
+      price: 34.99,\
+      stock: 150,\
+      description: 'Updated description'\
+    \})\
+  \});\
+\};\
+```\
+\
+**Features:**\
+- Partial updates\
+- Variant management\
+- Price changes\
+- Stock adjustments\
+- Image updates\
+- Activity logging\
+\
+#### **DELETE (DELETE /api/products/[id])**\
+```typescript\
+const deleteProduct = async (id: string) => \{\
+  return await fetch(`/api/products/$\{id\}`, \{\
+    method: 'DELETE'\
+  \});\
+\};\
+```\
+\
+**Features:**\
+- Soft delete (isActive = false)\
+- Order validation (can't delete if in active orders)\
+- Cascade delete variants\
+- Activity logging\
+\
+---\
+\
+### **2. Orders CRUD**\
+\
+#### **CREATE**\
+```typescript\
+const createOrder = async (data: OrderCreate) => \{\
+  return await fetch('/api/orders', \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      customerId: 'cust_123',\
+      items: [\
+        \{\
+          productId: 'prod_1',\
+          variantId: 'var_1',\
+          quantity: 2,\
+          price: 29.99\
+        \}\
+      ],\
+      subtotal: 59.98,\
+      tax: 4.80,\
+      shipping: 5.99,\
+      discount: 10.00,\
+      total: 60.77,\
+      notes: 'Please gift wrap'\
+    \})\
+  \});\
+\};\
+```\
+\
+**Automatic Actions:**\
+- Inventory reservation\
+- Order number generation\
+- Status history initialization\
+- Customer notification\
+- Payment initiation\
+\
+#### **READ**\
+- List orders (with filters)\
+- Get single order\
+- Get order items\
+- Get status history\
+- Get related payments/deliveries\
+\
+#### **UPDATE**\
+```typescript\
+const updateOrder = async (id: string, data: OrderUpdate) => \{\
+  return await fetch(`/api/orders/$\{id\}`, \{\
+    method: 'PUT',\
+    body: JSON.stringify(\{\
+      status: 'PROCESSING',\
+      notes: 'Updated notes'\
+    \})\
+  \});\
+\};\
+```\
+\
+**Features:**\
+- Status updates\
+- Item modifications\
+- Address changes\
+- Notes addition\
+- Status history tracking\
+\
+#### **DELETE (Cancel)**\
+```typescript\
+const cancelOrder = async (id: string, reason: string) => \{\
+  return await fetch(`/api/orders/$\{id\}/cancel`, \{\
+    method: 'POST',\
+    body: JSON.stringify(\{ reason \})\
+  \});\
+\};\
+```\
+\
+**Features:**\
+- Status change to CANCELLED\
+- Inventory release\
+- Payment refund (if paid)\
+- Customer notification\
+- Activity logging\
+\
+---\
+\
+### **3. Customers CRUD**\
+\
+#### **CREATE**\
+```typescript\
+const createCustomer = async (data: CustomerCreate) => \{\
+  return await fetch('/api/customers', \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      name: 'Jane Smith',\
+      email: 'jane@example.com',\
+      phone: '+1234567890',\
+      address: '123 Main St, City, State 12345'\
+    \})\
+  \});\
+\};\
+```\
+\
+**Automatic Actions:**\
+- Loyalty program enrollment\
+- Email verification sent\
+- Customer segment assignment\
+- Welcome email\
+\
+#### **READ**\
+- List customers\
+- Get customer profile\
+- Get order history\
+- Get loyalty details\
+- Get analytics\
+\
+#### **UPDATE**\
+```typescript\
+const updateCustomer = async (id: string, data: CustomerUpdate) => \{\
+  return await fetch(`/api/customers/$\{id\}`, \{\
+    method: 'PUT',\
+    body: JSON.stringify(\{\
+      phone: '+0987654321',\
+      address: '456 Oak Ave'\
+    \})\
+  \});\
+\};\
+```\
+\
+#### **DELETE**\
+- Soft delete customer\
+- Anonymize data (GDPR)\
+- Preserve order history\
+- Mark as deleted\
+\
+---\
+\
+### **4. Inventory CRUD**\
+\
+#### **CREATE (Stock Addition)**\
+```typescript\
+const addStock = async (productId: string, data: StockAdjustment) => \{\
+  return await fetch(`/api/inventory/$\{productId\}/adjust`, \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      type: 'PURCHASE',\
+      quantity: 100,\
+      reason: 'Purchase order received',\
+      reference: 'PO-2025-001'\
+    \})\
+  \});\
+\};\
+```\
+\
+#### **READ**\
+- Get stock levels\
+- Get stock movements\
+- Get warehouse inventory\
+- Get low stock alerts\
+\
+#### **UPDATE (Stock Adjustment)**\
+```typescript\
+const adjustStock = async (productId: string, adjustment: number) => \{\
+  return await fetch(`/api/inventory/$\{productId\}/adjust`, \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      type: 'ADJUSTMENT',\
+      quantity: adjustment,\
+      reason: 'Physical count correction'\
+    \})\
+  \});\
+\};\
+```\
+\
+#### **DELETE (Remove Stock)**\
+- Stock reduction\
+- Reason logging\
+- Movement tracking\
+\
+---\
+\
+### **5. Categories CRUD**\
+\
+#### **CREATE**\
+```typescript\
+const createCategory = async (data: CategoryCreate) => \{\
+  return await fetch('/api/categories', \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      name: 'T-Shirts',\
+      description: 'All t-shirt styles',\
+      parentId: 'cat_clothing' // Optional\
+    \})\
+  \});\
+\};\
+```\
+\
+#### **READ**\
+- Get category tree\
+- Get category products\
+- Get subcategories\
+\
+#### **UPDATE**\
+```typescript\
+const updateCategory = async (id: string, data: CategoryUpdate) => \{\
+  return await fetch(`/api/categories/$\{id\}`, \{\
+    method: 'PUT',\
+    body: JSON.stringify(\{\
+      name: 'Premium T-Shirts',\
+      description: 'Updated description'\
+    \})\
+  \});\
+\};\
+```\
+\
+#### **DELETE**\
+- Delete category\
+- Reassign products\
+- Update hierarchy\
+\
+---\
+\
+### **6. Users CRUD**\
+\
+#### **CREATE**\
+```typescript\
+const createUser = async (data: UserCreate) => \{\
+  return await fetch('/api/users', \{\
+    method: 'POST',\
+    body: JSON.stringify(\{\
+      email: 'staff@example.com',\
+      name: 'Staff Member',\
+      password: 'SecurePassword123!',\
+      role: 'STAFF',\
+      roleTag: 'sales_staff'\
+    \})\
+  \});\
+\};\
+```\
+\
+**Features:**\
+- Password hashing (bcrypt)\
+- Email verification\
+- Role assignment\
+- Permission setup\
+\
+#### **READ**\
+- List users\
+- Get user profile\
+- Get user activities\
+- Get user permissions\
+\
+#### **UPDATE**\
+```typescript\
+const updateUser = async (id: string, data: UserUpdate) => \{\
+  return await fetch(`/api/users/$\{id\}`, \{\
+    method: 'PUT',\
+    body: JSON.stringify(\{\
+      name: 'Updated Name',\
+      role: 'TENANT_ADMIN',\
+      isActive: true\
+    \})\
+  \});\
+\};\
+```\
+\
+#### **DELETE**\
+- Soft delete (deletedAt timestamp)\
+- Preserve audit trail\
+- Revoke permissions\
+- Session invalidation\
+\
+---\
+\
+### **7. Warehouse CRUD**\
+\
+All entities follow similar CRUD patterns with appropriate business logic, validations, and automatic actions.\
+\
+**Additional CRUD Entities:**\
+- Suppliers\
+- Purchase Orders\
+- Returns\
+- Gift Cards\
+- Affiliates\
+- Campaigns\
+- Reviews\
+- Support Tickets\
+- Webhooks\
+- And 40+ more...\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56592 
+\f0  Security & RBAC\
+\
+### **Role-Based Access Control System:**\
+\
+#### **1. Roles (4 Main Roles)**\
+\
+##### **SUPER_ADMIN**\
+- **Description**: Full system access, manages all organizations\
+- **Permissions**: 25+ permissions\
+- **Page Access**: 72 pages (all pages)\
+- **Special Access**:\
+  - View all organizations\
+  - Manage system settings\
+  - Access system logs\
+  - Manage packages\
+  - System-wide monitoring\
+\
+##### **TENANT_ADMIN**\
+- **Description**: Full organization access\
+- **Permissions**: 20+ permissions\
+- **Page Access**: 63 pages (no Super Admin pages)\
+- **Restrictions**:\
+  - Cannot access Super Admin pages\
+  - Cannot view other organizations\
+  - Cannot access system-wide logs\
+\
+##### **STAFF**\
+- **Description**: Limited access based on role tag\
+- **Role Tags**:\
+  - `sales_staff`: POS, Orders, Customers\
+  - `inventory_manager`: Products, Inventory, Warehouse\
+  - `customer_service`: Customers, Orders, Returns\
+  - `accountant`: Accounting, Reports\
+- **Page Access**: 25 pages (role-dependent)\
+- **Restrictions**:\
+  - Cannot access admin settings\
+  - Cannot manage users\
+  - Cannot access integrations\
+\
+##### **CUSTOMER**\
+- **Description**: Customer portal access only\
+- **Permissions**: 7 permissions\
+- **Page Access**: 6 pages (portal only)\
+- **Restrictions**:\
+  - Cannot access dashboard\
+  - Cannot view other customers' data\
+  - Portal access only\
+\
+---\
+\
+#### **2. Permission System (45+ Permissions)**\
+\
+**Permission Categories:**\
+\
+**System Permissions:**\
+- VIEW_ALL_ORGANIZATIONS\
+- MANAGE_ORGANIZATIONS\
+- VIEW_SYSTEM_LOGS\
+- MANAGE_SYSTEM_SETTINGS\
+- VIEW_AUDIT_LOGS\
+- MANAGE_PACKAGES\
+\
+**User Management:**\
+- VIEW_USERS\
+- MANAGE_USERS\
+- VIEW_ALL_USERS\
+- MANAGE_ALL_USERS\
+\
+**Product Management:**\
+- VIEW_PRODUCTS\
+- MANAGE_PRODUCTS\
+- VIEW_ASSIGNED_PRODUCTS\
+\
+**Order Management:**\
+- VIEW_ORDERS\
+- MANAGE_ORDERS\
+- CREATE_ORDERS\
+- UPDATE_ORDERS\
+- VIEW_OWN_ORDERS\
+\
+**Customer Management:**\
+- VIEW_CUSTOMERS\
+- MANAGE_CUSTOMERS\
+- VIEW_ASSIGNED_CUSTOMERS\
+\
+**Inventory:**\
+- VIEW_INVENTORY\
+- MANAGE_INVENTORY\
+- VIEW_ASSIGNED_INVENTORY\
+\
+**Analytics:**\
+- VIEW_ANALYTICS\
+- VIEW_REPORTS\
+- VIEW_AI_INSIGHTS\
+\
+**Settings:**\
+- VIEW_SETTINGS\
+- MANAGE_SETTINGS\
+- VIEW_ORGANIZATION\
+- MANAGE_ORGANIZATION_SETTINGS\
+\
+**Billing:**\
+- VIEW_BILLING\
+- MANAGE_BILLING\
+- VIEW_BILLING_INFO\
+\
+**Monitoring:**\
+- VIEW_MONITORING\
+- MANAGE_MONITORING\
+- VIEW_PERFORMANCE\
+- MANAGE_PERFORMANCE\
+\
+**Compliance:**\
+- VIEW_COMPLIANCE\
+- MANAGE_COMPLIANCE\
+- VIEW_BACKUP\
+- MANAGE_BACKUP\
+\
+---\
+\
+#### **3. Security Features**\
+\
+**Authentication:**\
+- JWT tokens\
+- Session-based auth\
+- Refresh tokens\
+- Secure cookies\
+\
+**Multi-Factor Authentication (MFA/2FA):**\
+- TOTP (Google Authenticator)\
+- SMS codes (Twilio)\
+- Email codes (SendGrid)\
+- Backup codes (10 one-time codes)\
+\
+**Password Security:**\
+- bcrypt hashing (10 rounds)\
+- Password strength requirements\
+- Password history (prevent reuse)\
+- Password reset flow\
+- Account lockout (5 failed attempts)\
+\
+**API Security:**\
+- Rate limiting (per endpoint)\
+- API key authentication\
+- CORS configuration\
+- CSRF protection\
+- Request validation (Zod)\
+\
+**Data Security:**\
+- Multi-tenant isolation\
+- Row-level security\
+- Encrypted sensitive fields\
+- Audit logging\
+- GDPR compliance\
+\
+**Session Management:**\
+- Automatic session expiry\
+- Session refresh\
+- Concurrent session handling\
+- Device tracking\
+- Session revocation\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56599 
+\f0  Integrations\
+\
+### **1. Payment Integrations (3 Providers)**\
+\
+#### **Stripe Integration**\
+- **Features**:\
+  - Card payments\
+  - Payment intents\
+  - Subscriptions\
+  - Refunds\
+  - Webhooks\
+- **Currencies**: 135+ supported\
+- **API Version**: 2024-10-28\
+- **Setup**: `/dashboard/integrations/stripe`\
+\
+#### **PayHere Integration (Sri Lanka)**\
+- **Features**:\
+  - LKR payments\
+  - Mobile money\
+  - Bank transfers\
+  - IPN notifications\
+- **Currency**: LKR\
+- **Setup**: `/dashboard/integrations/payhere`\
+\
+#### **PayPal Integration**\
+- **Features**:\
+  - PayPal checkout\
+  - Express checkout\
+  - Subscription billing\
+  - Refunds\
+- **SDK**: @paypal/paypal-server-sdk\
+- **Setup**: Environment variables\
+\
+---\
+\
+### **2. E-Commerce Integrations (2 Platforms)**\
+\
+#### **WooCommerce Integration**\
+- **Features**:\
+  - Product sync (bidirectional)\
+  - Order import\
+  - Stock sync\
+  - Price sync\
+  - Webhook support\
+- **API**: WooCommerce REST API v3\
+- **Authentication**: Consumer Key/Secret\
+- **Setup**: `/dashboard/integrations/woocommerce`\
+\
+**Sync Operations:**\
+```typescript\
+// Sync products from WooCommerce\
+POST /api/integrations/woocommerce/sync\
+\{\
+  "type": "products",\
+  "direction": "import"\
+\}\
+\
+// Sync orders from WooCommerce\
+POST /api/integrations/woocommerce/sync\
+\{\
+  "type": "orders",\
+  "direction": "import"\
+\}\
+\
+// Export products to WooCommerce\
+POST /api/integrations/woocommerce/sync\
+\{\
+  "type": "products",\
+  "direction": "export"\
+\}\
+```\
+\
+#### **Shopify Integration**\
+- **Features**:\
+  - OAuth authentication\
+  - Product sync\
+  - Order import\
+  - Inventory sync\
+  - Fulfillment sync\
+- **API**: Shopify Admin API\
+- **Authentication**: OAuth 2.0\
+- **Setup**: `/dashboard/integrations/shopify`\
+\
+---\
+\
+### **3. Communication Integrations (4 Channels)**\
+\
+#### **SendGrid Email Integration**\
+- **Features**:\
+  - Transactional emails\
+  - Template management\
+  - Email tracking\
+  - Delivery statistics\
+  - Bounce handling\
+- **API**: SendGrid Web API v3\
+- **Setup**: `/dashboard/integrations/email`\
+\
+**Email Types:**\
+- Order confirmations\
+- Shipping notifications\
+- Password resets\
+- Marketing campaigns\
+- Invoice delivery\
+\
+#### **Twilio SMS Integration**\
+- **Features**:\
+  - SMS notifications\
+  - OTP/2FA codes\
+  - Marketing SMS\
+  - Delivery tracking\
+  - Click tracking\
+- **API**: Twilio API\
+- **Setup**: `/dashboard/integrations/sms`\
+\
+**SMS Use Cases:**\
+- Order updates\
+- Delivery notifications\
+- OTP verification\
+- Marketing campaigns\
+- Low stock alerts\
+\
+#### **Twilio WhatsApp Integration**\
+- **Features**:\
+  - WhatsApp Business messages\
+  - Template messages\
+  - Media messages (images, PDFs)\
+  - Message status tracking\
+  - Auto-reply\
+- **API**: Twilio WhatsApp API\
+- **Setup**: `/dashboard/integrations/whatsapp`\
+\
+**Message Templates:**\
+- Order confirmation\
+- Shipping update\
+- Delivery notification\
+- Support messages\
+\
+#### **Social Commerce Integration**\
+- **Platforms**:\
+  - Facebook Shops\
+  - Instagram Shopping\
+  - TikTok Shop\
+- **Features**:\
+  - Product catalog sync\
+  - Post scheduling\
+  - Engagement tracking\
+  - Order management\
+\
+---\
+\
+### **4. Shipping Integrations (1 Provider)**\
+\
+#### **Shippo Integration**\
+- **Features**:\
+  - Multi-carrier rates\
+  - Label generation\
+  - Tracking\
+  - Address validation\
+- **Carriers**: USPS, FedEx, UPS, DHL, and 75+ more\
+- **API**: Shippo REST API\
+- **Setup**: Environment variables\
+\
+---\
+\
+### **5. Analytics Integration**\
+\
+#### **Google Analytics (Optional)**\
+- E-commerce tracking\
+- Conversion tracking\
+- User behavior\
+- Custom events\
+\
+---\
+\
+## 
+\f1 \uc0\u55358 \u56598 
+\f0  ML/AI Features\
+\
+### **1. Demand Forecasting**\
+\
+**Model**: Time Series Forecasting with ML\
+**Implementation**: `/src/lib/ml/models/demand-forecast.ts`\
+**Size**: 385 lines of production code\
+\
+**Features:**\
+- Historical sales analysis\
+- Trend detection\
+- Seasonal patterns\
+- Holiday adjustments\
+- Confidence intervals\
+\
+**Algorithm:**\
+- Exponential smoothing\
+- Moving averages\
+- Trend analysis\
+- Seasonal decomposition\
+\
+**API Endpoint:**\
+```typescript\
+POST /api/ml/demand-forecast\
+\{\
+  "productId": "prod_123",\
+  "horizon": 30, // days\
+  "confidence": 0.95\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "forecast": [\
+    \{\
+      "date": "2025-10-13",\
+      "predictedDemand": 45,\
+      "confidence": 0.85,\
+      "lowerBound": 38,\
+      "upperBound": 52\
+    \}\
+  ],\
+  "accuracy": 0.87,\
+  "recommendations": [\
+    "Reorder 50 units by October 15",\
+    "Expected stock-out on October 20",\
+    "Consider promotion to boost sales"\
+  ]\
+\}\
+```\
+\
+**Use Cases:**\
+- Inventory planning\
+- Purchase order optimization\
+- Stockout prevention\
+- Seasonal preparation\
+\
+---\
+\
+### **2. Customer Churn Prediction**\
+\
+**Model**: Classification Model\
+**Implementation**: `/src/lib/ml/models/churn-prediction.ts`\
+**Size**: 420 lines of production code\
+\
+**Features:**\
+- Churn risk scoring\
+- Risk factors identification\
+- Retention recommendations\
+- Proactive interventions\
+\
+**Risk Factors:**\
+- Purchase frequency decline\
+- Engagement decrease\
+- Support ticket history\
+- Loyalty point inactivity\
+- Cart abandonment\
+- Email open rates\
+\
+**API Endpoint:**\
+```typescript\
+POST /api/ml/churn-prediction\
+\{\
+  "customerId": "cust_123"\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "customer": \{\
+    "id": "cust_123",\
+    "name": "John Doe",\
+    "churnRisk": 0.75,\
+    "riskLevel": "HIGH",\
+    "factors": [\
+      \{\
+        "factor": "No purchase in 60 days",\
+        "impact": 0.35\
+      \},\
+      \{\
+        "factor": "Decreased engagement",\
+        "impact": 0.25\
+      \},\
+      \{\
+        "factor": "Unresolved support ticket",\
+        "impact": 0.15\
+      \}\
+    ],\
+    "recommendations": [\
+      "Send personalized 15% discount code",\
+      "Follow up on support ticket #456",\
+      "Offer 500 loyalty points bonus",\
+      "Re-engagement email campaign"\
+    ],\
+    "predictedChurnDate": "2025-11-15"\
+  \}\
+\}\
+```\
+\
+**Use Cases:**\
+- Retention campaigns\
+- Personalized offers\
+- Support prioritization\
+- Win-back strategies\
+\
+---\
+\
+### **3. Product Recommendations**\
+\
+**Model**: Collaborative Filtering + Content-Based\
+**Implementation**: `/src/lib/ml/models/recommendations.ts`\
+**Size**: 330 lines of production code\
+\
+**Features:**\
+- Personalized recommendations\
+- Similar products\
+- Frequently bought together\
+- Cross-sell opportunities\
+- Upsell suggestions\
+\
+**Algorithms:**\
+- User-based collaborative filtering\
+- Item-based collaborative filtering\
+- Content similarity\
+- Purchase pattern analysis\
+\
+**API Endpoint:**\
+```typescript\
+POST /api/ml/recommendations\
+\{\
+  "customerId": "cust_123",\
+  "productId": "prod_456", // optional\
+  "type": "personalized", // or "similar", "crossSell"\
+  "limit": 10\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "recommendations": [\
+    \{\
+      "productId": "prod_789",\
+      "name": "Premium Jeans",\
+      "score": 0.92,\
+      "reason": "Frequently bought together",\
+      "price": 79.99,\
+      "image": "url"\
+    \},\
+    \{\
+      "productId": "prod_101",\
+      "name": "Designer Belt",\
+      "score": 0.87,\
+      "reason": "Completes your style",\
+      "price": 34.99,\
+      "image": "url"\
+    \}\
+  ],\
+  "strategy": "hybrid",\
+  "confidence": 0.85\
+\}\
+```\
+\
+**Use Cases:**\
+- Homepage recommendations\
+- Product page suggestions\
+- Cart page cross-sells\
+- Email campaigns\
+- Post-purchase upsells\
+\
+---\
+\
+### **4. AI-Powered Analytics**\
+\
+**Feature**: Natural Language Query Interface\
+**Implementation**: `/src/lib/ai/analytics.ts`\
+\
+**Capabilities:**\
+- Natural language queries\
+- Automated insights\
+- Trend detection\
+- Anomaly detection\
+- Report generation\
+\
+**Example Queries:**\
+- "Show me top 10 products this month"\
+- "Which customers are at risk of churning?"\
+- "What's our revenue trend over last 6 months?"\
+- "Which products have low stock?"\
+- "Show me sales by category"\
+\
+**API Endpoint:**\
+```typescript\
+POST /api/ai-analytics/insights\
+\{\
+  "query": "Show me products with declining sales"\
+\}\
+```\
+\
+**Response:**\
+```json\
+\{\
+  "success": true,\
+  "insights": [\
+    \{\
+      "type": "declining_sales",\
+      "products": [\
+        \{\
+          "id": "prod_123",\
+          "name": "Basic T-Shirt",\
+          "currentMonthSales": 45,\
+          "previousMonthSales": 89,\
+          "decline": 49.4,\
+          "recommendation": "Consider promotion or product refresh"\
+        \}\
+      ],\
+      "summary": "3 products show significant sales decline",\
+      "visualization": "chart_data"\
+    \}\
+  ],\
+  "confidence": 0.91\
+\}\
+```\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56960 
+\f0  Advanced Features\
+\
+### **1. Multi-Tenant Architecture**\
+\
+**Implementation:**\
+- Organization-based isolation\
+- Shared database with row-level security\
+- Per-tenant customization\
+- Subdomain routing (optional)\
+\
+**Features:**\
+- Automatic tenant scoping\
+- Cross-tenant prevention\
+- Tenant switching\
+- Resource limits per plan\
+\
+---\
+\
+### **2. IoT Integration**\
+\
+**Device Management:**\
+- Device registration\
+- Firmware tracking\
+- Battery monitoring\
+- Status tracking\
+- Location management\
+\
+**Sensor Monitoring:**\
+- Temperature sensors\
+- Humidity sensors\
+- Motion detectors\
+- RFID readers\
+\
+**Alert System:**\
+- Real-time alerts\
+- SMS notifications\
+- Email notifications\
+- Severity levels (LOW, MEDIUM, HIGH, CRITICAL)\
+\
+**Use Cases:**\
+- Warehouse temperature monitoring\
+- Security cameras\
+- Asset tracking\
+- Environmental monitoring\
+\
+---\
+\
+### **3. Blockchain Integration**\
+\
+**Features:**\
+- Supply chain tracking\
+- Product authenticity verification\
+- NFT minting\
+- Cryptocurrency payments\
+- Smart contracts\
+\
+**Implementation**: `/src/lib/blockchain/service.ts`\
+**Blockchain**: Ethereum (Ethers.js)\
+\
+**Use Cases:**\
+- Luxury goods verification\
+- Supply chain transparency\
+- Digital collectibles\
+- Crypto payments\
+\
+---\
+\
+### **4. Real-Time Features**\
+\
+**Technologies:**\
+- Server-Sent Events (SSE)\
+- WebSockets (optional)\
+- Real-time notifications\
+\
+**Features:**\
+- Live order updates\
+- Stock level changes\
+- Chat messages\
+- Alert notifications\
+- Dashboard updates\
+\
+---\
+\
+### **5. Automated Workflows**\
+\
+**Workflow Engine:**\
+- Trigger-based automation\
+- Conditional logic\
+- Multi-step workflows\
+- Schedule support\
+\
+**Example Workflows:**\
+- Low stock 
+\f2 \uc0\u8594 
+\f0  Create PO 
+\f2 \uc0\u8594 
+\f0  Email supplier\
+- New order 
+\f2 \uc0\u8594 
+\f0  Process payment 
+\f2 \uc0\u8594 
+\f0  Pick items 
+\f2 \uc0\u8594 
+\f0  Ship\
+- High churn risk 
+\f2 \uc0\u8594 
+\f0  Send offer 
+\f2 \uc0\u8594 
+\f0  Track response\
+- Support ticket 
+\f2 \uc0\u8594 
+\f0  Assign 
+\f2 \uc0\u8594 
+\f0  Notify 
+\f2 \uc0\u8594 
+\f0  Escalate\
+\
+---\
+\
+### **6. Advanced Reporting**\
+\
+**Report Types:**\
+- Sales reports (daily, weekly, monthly)\
+- Inventory reports\
+- Customer reports\
+- Financial reports\
+- Tax reports\
+- Custom reports\
+\
+**Export Formats:**\
+- PDF\
+- Excel (XLSX)\
+- CSV\
+- JSON\
+\
+**Scheduling:**\
+- Daily reports\
+- Weekly digests\
+- Monthly summaries\
+- Custom schedules\
+\
+---\
+\
+### **7. Bulk Operations**\
+\
+**Features:**\
+- Bulk product import/export\
+- Bulk price updates\
+- Bulk stock adjustments\
+- Bulk order processing\
+- Bulk customer import\
+\
+**Import Formats:**\
+- CSV\
+- Excel (XLSX)\
+- JSON\
+\
+---\
+\
+### **8. API Management**\
+\
+**Features:**\
+- API key generation\
+- Rate limiting\
+- Usage tracking\
+- Webhook management\
+- API documentation (auto-generated)\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56507 
+\f0  Technology Stack\
+\
+### **Frontend:**\
+- **Framework**: Next.js 14 (App Router)\
+- **Language**: TypeScript 5\
+- **UI Library**: React 18\
+- **Styling**: Tailwind CSS 3.4\
+- **Components**: Radix UI\
+- **Icons**: Lucide React\
+- **State**: TanStack Query (React Query)\
+- **Forms**: React Hook Form\
+- **Validation**: Zod\
+- **Themes**: next-themes\
+\
+### **Backend:**\
+- **Runtime**: Node.js 20\
+- **Framework**: Next.js API Routes\
+- **Language**: TypeScript\
+- **ORM**: Prisma 6.16.2\
+- **Database**: PostgreSQL\
+- **Authentication**: NextAuth.js 4\
+- **Validation**: Zod\
+\
+### **Database:**\
+- **Primary**: PostgreSQL\
+- **ORM**: Prisma Client\
+- **Migrations**: Prisma Migrate\
+- **Models**: 53 models\
+- **Multi-tenancy**: Organization-based\
+\
+### **Payment Processing:**\
+- Stripe (@stripe/stripe-js 8.0.0)\
+- PayHere (Custom implementation)\
+- PayPal (@paypal/paypal-server-sdk)\
+\
+### **Communication:**\
+- SendGrid (@sendgrid/mail 8.1.6)\
+- Twilio (twilio 5.10.2)\
+- Nodemailer (6.10.1)\
+\
+### **Integrations:**\
+- WooCommerce (@woocommerce/woocommerce-rest-api)\
+- Shopify (@shopify/shopify-api 12.0.0)\
+- Shippo (shippo 2.15.0)\
+- Google APIs (googleapis 160.0.0)\
+\
+### **AI/ML:**\
+- OpenAI (openai 5.23.1)\
+- Custom ML models (TensorFlow.js alternative implementations)\
+\
+### **Testing:**\
+- Jest 29.7.0\
+- Playwright 1.55.1\
+- Testing Library (React)\
+- Axe-core (Accessibility)\
+\
+### **DevOps:**\
+- Vercel (deployment)\
+- GitHub Actions (CI/CD)\
+- Docker (optional)\
+- Environment variables\
+\
+### **Development:**\
+- ESLint\
+- Prettier (implicit)\
+- TypeScript\
+- ts-node\
+- Nodemon (optional)\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56520 
+\f0  Performance & Scalability\
+\
+### **Performance:**\
+- Server-side rendering (SSR)\
+- Static generation (SSG) where possible\
+- API route caching\
+- Database query optimization\
+- Image optimization (Next.js Image)\
+- Code splitting\
+- Lazy loading\
+- Bundle analysis\
+\
+### **Scalability:**\
+- Multi-tenant architecture\
+- Horizontal scaling ready\
+- Database connection pooling\
+- Redis caching (optional)\
+- CDN integration (Vercel)\
+- Load balancing ready\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56594 
+\f0  Compliance & Security\
+\
+### **GDPR Compliance:**\
+- Data anonymization\
+- Right to be forgotten\
+- Data export\
+- Consent management\
+- Privacy policy\
+\
+### **Security Standards:**\
+- OWASP Top 10 compliance\
+- SQL injection prevention (Prisma)\
+- XSS protection\
+- CSRF protection\
+- Rate limiting\
+- API authentication\
+- Encrypted sensitive data\
+\
+### **Audit & Compliance:**\
+- Activity logging\
+- Audit trails\
+- Change tracking\
+- Compliance reports\
+- Data retention policies\
+\
+---\
+\
+## 
+\f1 \uc0\u55357 \u56538 
+\f0  Documentation\
+\
+### **Available Documentation:**\
+1. **API Documentation** - Auto-generated\
+2. **User Guides** - Frontend usage\
+3. **Integration Guides** - Third-party integrations\
+4. **Developer Guide** - Technical documentation\
+5. **Deployment Guide** - Deployment instructions\
+\
+**Access:** `/dashboard/documentation`\
+\
+---\
+\
+## 
+\f1 \uc0\u55356 \u57225 
+\f0  Conclusion\
+\
+SmartStore SaaS is a **complete, production-ready, enterprise-grade** multi-tenant e-commerce and business management platform featuring:\
+\
+
+\f1 \uc0\u9989 
+\f0  **53 Database Models** - Complete data architecture  \
+
+\f1 \uc0\u9989 
+\f0  **221 API Endpoints** - Full REST API coverage  \
+
+\f1 \uc0\u9989 
+\f0  **72 Frontend Pages** - Comprehensive UI  \
+
+\f1 \uc0\u9989 
+\f0  **Full CRUD Operations** - Every entity  \
+
+\f1 \uc0\u9989 
+\f0  **4-Role RBAC** - 45+ permissions  \
+
+\f1 \uc0\u9989 
+\f0  **10+ Integrations** - Payments, E-commerce, Communication  \
+
+\f1 \uc0\u9989 
+\f0  **3 ML Models** - AI-powered features  \
+
+\f1 \uc0\u9989 
+\f0  **100% E2E Tested** - 50/50 tests passed  \
+
+\f1 \uc0\u9989 
+\f0  **Production Ready** - Live deployment  \
+\
+**Status:** 
+\f1 \uc0\u9989 
+\f0  **READY FOR LAUNCH!**\
+\
+---\
+\
+**Last Updated:** October 12, 2025  \
+**Version:** 1.2.0  \
+**Platform:** https://smart-store-saas-demo.vercel.app\
+\
+}

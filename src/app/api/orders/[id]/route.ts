@@ -1,141 +1,100 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Single Order API Route
+ * 
+ * Authorization:
+ * - GET: Authenticated (customers see own, staff see org orders)
+ * - PUT: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_ORDERS permission)
+ * 
+ * Organization/Customer Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
+import { prisma } from '@/lib/prisma';
+import { requireAuth, requireRole } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// PUT - Update order
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.organizationId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const dynamic = 'force-dynamic';
 
-    const body = await request.json();
-    const { id, ...updateData } = body;
+export const GET = requireAuth(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const orderId = params.id;
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Order ID is required' },
-        { status: 400 }
-      );
-    }
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { customer: true, items: true }
+      });
 
-    // Verify order belongs to organization
-    const existingOrder = await db.order.findFirst({
-      where: {
-        id,
-        organizationId: session.user.organizationId
+      if (!order) {
+        throw new ValidationError('Order not found');
       }
-    });
 
-    if (!existingOrder) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      );
-    }
-
-    const order = await db.order.update({
-      where: { id },
-      data: updateData,
-      include: {
-        customer: true,
-        items: {
-          include: {
-            product: true
-          }
-        },
-        shippingAddress: true,
-        billingAddress: true
+      // Verify access
+      if (user.role === 'CUSTOMER') {
+        const customer = await prisma.customer.findFirst({
+          where: { email: user.email }
+        });
+        if (!customer || order.customerId !== customer.id) {
+          throw new ValidationError('Cannot view other customers orders');
+        }
+      } else if (order.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot view orders from other organizations');
       }
-    });
 
-    return NextResponse.json({
-      success: true,
-      data: order
-    });
+      logger.info({
+        message: 'Order fetched',
+        context: { userId: user.id, orderId }
+      });
 
-  } catch (error) {
-    console.error('Update order error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update order' },
-      { status: 500 }
-    );
+      return NextResponse.json(successResponse(order));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch order',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);
 
-// DELETE - Cancel order
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.organizationId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const PUT = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user, { params }: { params: { id: string } }) => {
+    try {
+      const orderId = params.id;
+      const body = await request.json();
 
-    const { id } = params;
+      const order = await prisma.order.findUnique({
+        where: { id: orderId }
+      });
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Order ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify order belongs to organization
-    const existingOrder = await db.order.findFirst({
-      where: {
-        id,
-        organizationId: session.user.organizationId
+      if (!order) {
+        throw new ValidationError('Order not found');
       }
-    });
 
-    if (!existingOrder) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      );
+      if (order.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot update orders from other organizations');
+      }
+
+      const updated = await prisma.order.update({
+        where: { id: orderId },
+        data: body
+      });
+
+      logger.info({
+        message: 'Order updated',
+        context: { userId: user.id, orderId }
+      });
+
+      return NextResponse.json(successResponse(updated));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update order',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    // Check if order can be cancelled (only pending orders)
-    if (existingOrder.status !== 'pending') {
-      return NextResponse.json(
-        { error: 'Only pending orders can be cancelled' },
-        { status: 400 }
-      );
-    }
-
-    // Soft delete by updating status to cancelled
-    await db.order.update({
-      where: { id },
-      data: { status: 'cancelled' }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Order cancelled successfully'
-    });
-
-  } catch (error) {
-    console.error('Delete order error:', error);
-    return NextResponse.json(
-      { error: 'Failed to cancel order' },
-      { status: 500 }
-    );
   }
-}
+);

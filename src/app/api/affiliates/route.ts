@@ -1,68 +1,99 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Affiliates API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_AFFILIATES permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_AFFILIATES permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List affiliates
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const status = searchParams.get('status');
+      
+      // Organization scoping
+      const orgId = getOrganizationScope(user);
+
+      const where: any = {};
+      if (orgId) where.organizationId = orgId;
+      if (status) where.status = status;
+
+      const affiliates = await prisma.affiliate.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
+
+      logger.info({
+        message: 'Affiliates fetched',
+        context: { userId: user.id, count: affiliates.length }
+      });
+
+      return NextResponse.json(successResponse(affiliates));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch affiliates',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const affiliates = await db.affiliate.findMany({
-      where: { organizationId: session.user.organizationId },
-      include: {
-        _count: {
-          select: {
-            sales: true,
-            payouts: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: affiliates });
-  } catch (error) {
-    apiLogger.error('Error fetching affiliates', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch affiliates' }, { status: 500 });
   }
-}
+);
 
-// POST - Create affiliate
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { name, email, commissionRate } = body;
+
+      if (!name || !email) {
+        throw new ValidationError('Name and email are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const code = `AFF-${Date.now()}`;
+
+      const affiliate = await prisma.affiliate.create({
+        data: {
+          code,
+          name,
+          email,
+          commissionRate: commissionRate || 10,
+          status: 'PENDING',
+          organizationId,
+          totalSales: 0,
+          totalCommission: 0
+        }
+      });
+
+      logger.info({
+        message: 'Affiliate created',
+        context: { userId: user.id, affiliateId: affiliate.id }
+      });
+
+      return NextResponse.json(successResponse(affiliate), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create affiliate',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const { name, email, commissionRate } = body;
-
-    // Generate unique affiliate code
-    const code = `AFF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-
-    const affiliate = await db.affiliate.create({
-      data: {
-        organizationId: session.user.organizationId,
-        affiliateCode: code,
-        name,
-        email,
-        commissionRate: parseFloat(commissionRate),
-      },
-    });
-
-    apiLogger.info('Affiliate created', { affiliateId: affiliate.id, code });
-
-    return NextResponse.json({ success: true, data: affiliate });
-  } catch (error) {
-    apiLogger.error('Error creating affiliate', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create affiliate' }, { status: 500 });
   }
-}
-
+);

@@ -1,92 +1,88 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Procurement Invoices API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_PROCUREMENT permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_PROCUREMENT permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/database';
-import { apiLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-// GET - List supplier invoices
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const orgId = getOrganizationScope(user);
+
+      const invoices = await prisma.procurementInvoice.findMany({
+        where: orgId ? { organizationId: orgId } : {},
+        orderBy: { createdAt: 'desc' },
+        take: 100
+      });
+
+      logger.info({
+        message: 'Procurement invoices fetched',
+        context: { userId: user.id, count: invoices.length }
+      });
+
+      return NextResponse.json(successResponse(invoices));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch procurement invoices',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const paymentStatus = searchParams.get('paymentStatus');
-
-    const where: any = {
-      organizationId: session.user.organizationId,
-    };
-
-    if (status) where.status = status;
-    if (paymentStatus) where.paymentStatus = paymentStatus;
-
-    const invoices = await db.supplierInvoice.findMany({
-      where,
-      include: {
-        supplier: true,
-        purchaseOrder: true,
-      },
-      orderBy: { invoiceDate: 'desc' },
-    });
-
-    return NextResponse.json({ success: true, data: invoices });
-  } catch (error) {
-    apiLogger.error('Error fetching invoices', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to fetch invoices' }, { status: 500 });
   }
-}
+);
 
-// POST - Create supplier invoice
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
+  async (request, user) => {
+    try {
+      const body = await request.json();
+      const { purchaseOrderId, amount, dueDate } = body;
+
+      if (!purchaseOrderId || !amount) {
+        throw new ValidationError('Purchase order ID and amount are required');
+      }
+
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const invoice = await prisma.procurementInvoice.create({
+        data: {
+          organizationId,
+          purchaseOrderId,
+          amount,
+          dueDate: dueDate ? new Date(dueDate) : undefined,
+          status: 'PENDING',
+          createdBy: user.id
+        }
+      });
+
+      logger.info({
+        message: 'Procurement invoice created',
+        context: { userId: user.id, invoiceId: invoice.id }
+      });
+
+      return NextResponse.json(successResponse(invoice), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create procurement invoice',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
     }
-
-    const body = await request.json();
-    const {
-      supplierId,
-      purchaseOrderId,
-      invoiceNumber,
-      invoiceDate,
-      dueDate,
-      subtotal,
-      taxAmount,
-      notes,
-    } = body;
-
-    const totalAmount = parseFloat(subtotal) + parseFloat(taxAmount || 0);
-
-    const invoice = await db.supplierInvoice.create({
-      data: {
-        organizationId: session.user.organizationId,
-        supplierId,
-        purchaseOrderId,
-        invoiceNumber,
-        invoiceDate: new Date(invoiceDate),
-        dueDate: new Date(dueDate),
-        subtotal: parseFloat(subtotal),
-        taxAmount: parseFloat(taxAmount || 0),
-        totalAmount,
-        notes,
-      },
-      include: {
-        supplier: true,
-        purchaseOrder: true,
-      },
-    });
-
-    apiLogger.info('Supplier invoice created', { invoiceId: invoice.id, invoiceNumber });
-
-    return NextResponse.json({ success: true, data: invoice });
-  } catch (error) {
-    apiLogger.error('Error creating invoice', { error: error instanceof Error ? error.message : 'Unknown' });
-    return NextResponse.json({ success: false, message: 'Failed to create invoice' }, { status: 500 });
   }
-}
-
+);

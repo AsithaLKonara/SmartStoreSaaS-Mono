@@ -107,8 +107,8 @@ export default function ProductsPage() {
   };
 
   const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setShowForm(true);
+    // Navigate to product detail page
+    window.location.href = `/dashboard/products/${product.id}`;
   };
 
   const handleDeleteProduct = async (productId: string) => {

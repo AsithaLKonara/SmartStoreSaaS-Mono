@@ -147,3 +147,4 @@ export function invalidateAnalytics(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: queryKeys.analytics });
 }
 
+

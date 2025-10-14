@@ -1,37 +1,39 @@
-export const dynamic = 'force-dynamic';
+/**
+ * Logout API Route
+ * 
+ * Authorization:
+ * - POST: Requires authentication
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/middleware/auth';
+import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { logger } from '@/lib/logger';
 
-export async function POST(request: NextRequest) {
-  try {
-    console.log('🚪 Logout request...');
+export const dynamic = 'force-dynamic';
 
-    // Create response
-    const response = NextResponse.json({
-      success: true,
-      message: 'Logout successful',
-    });
+export const POST = requireAuth(
+  async (request, user) => {
+    try {
+      logger.info({
+        message: 'User logged out',
+        context: {
+          userId: user.id,
+          email: user.email,
+          role: user.role
+        }
+      });
 
-    // Clear cookie
-    response.cookies.set('auth-token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 0,
-      path: '/',
-    });
-
-    console.log('✅ Logout successful');
-    return response;
-
-  } catch (error) {
-    console.error('❌ Logout error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Logout failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+      return NextResponse.json(successResponse({
+        message: 'Logged out successfully'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Logout error',
+        error: error,
+        context: { userId: user.id }
+      });
+      throw error;
+    }
   }
-}
+);
