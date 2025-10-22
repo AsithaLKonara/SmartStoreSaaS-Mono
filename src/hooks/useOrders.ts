@@ -26,15 +26,26 @@ export function useOrders(filters?: { status?: string; search?: string }) {
   return useQuery({
     queryKey: queryKeys.ordersList(filters),
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.status) params.append('status', filters.status);
-      if (filters?.search) params.append('search', filters.search);
-      
-      const response = await fetch(`/api/orders?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
+      try {
+        const params = new URLSearchParams();
+        if (filters?.status) params.append('status', filters.status);
+        if (filters?.search) params.append('search', filters.search);
+        
+        const response = await fetch(`/api/orders?${params.toString()}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch orders: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useOrders] Fetch orders error:', error);
+        throw error;
+      }
     },
     staleTime: 2 * 60 * 1000, // 2 minutes (orders change more frequently)
+    retry: 2,
   });
 }
 
@@ -45,12 +56,23 @@ export function useOrder(id: string) {
   return useQuery({
     queryKey: queryKeys.orderDetail(id),
     queryFn: async () => {
-      const response = await fetch(`/api/orders/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch order');
-      return response.json();
+      try {
+        const response = await fetch(`/api/orders/${id}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch order: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useOrders] Fetch single order error:', error);
+        throw error;
+      }
     },
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -62,17 +84,28 @@ export function useCreateOrder() {
   
   return useMutation({
     mutationFn: async (order: Partial<Order>) => {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(order),
-      });
-      if (!response.ok) throw new Error('Failed to create order');
-      return response.json();
+      try {
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(order),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to create order: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useOrders] Create order error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       invalidateOrders(queryClient);
     },
+    retry: 1,
   });
 }
 
@@ -84,18 +117,29 @@ export function useUpdateOrderStatus() {
   
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const response = await fetch(`/api/orders/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) throw new Error('Failed to update order status');
-      return response.json();
+      try {
+        const response = await fetch(`/api/orders/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to update order status: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useOrders] Update order status error:', error);
+        throw error;
+      }
     },
     onSuccess: (_, variables) => {
       invalidateOrders(queryClient);
       queryClient.invalidateQueries({ queryKey: queryKeys.orderDetail(variables.id) });
     },
+    retry: 1,
   });
 }
 

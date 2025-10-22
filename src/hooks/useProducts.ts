@@ -27,16 +27,27 @@ export function useProducts(filters?: { search?: string; category?: string; acti
   return useQuery({
     queryKey: queryKeys.productsList(filters),
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.search) params.append('search', filters.search);
-      if (filters?.category) params.append('category', filters.category);
-      if (filters?.active !== undefined) params.append('active', String(filters.active));
-      
-      const response = await fetch(`/api/products?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch products');
-      return response.json();
+      try {
+        const params = new URLSearchParams();
+        if (filters?.search) params.append('search', filters.search);
+        if (filters?.category) params.append('category', filters.category);
+        if (filters?.active !== undefined) params.append('active', String(filters.active));
+        
+        const response = await fetch(`/api/products?${params.toString()}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch products: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useProducts] Fetch products error:', error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -47,12 +58,23 @@ export function useProduct(id: string) {
   return useQuery({
     queryKey: queryKeys.productDetail(id),
     queryFn: async () => {
-      const response = await fetch(`/api/products/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch product');
-      return response.json();
+      try {
+        const response = await fetch(`/api/products/${id}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch product: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useProducts] Fetch single product error:', error);
+        throw error;
+      }
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -64,17 +86,28 @@ export function useCreateProduct() {
   
   return useMutation({
     mutationFn: async (product: Partial<Product>) => {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product),
-      });
-      if (!response.ok) throw new Error('Failed to create product');
-      return response.json();
+      try {
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(product),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to create product: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useProducts] Create product error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       invalidateProducts(queryClient);
     },
+    retry: 1,
   });
 }
 
@@ -86,18 +119,29 @@ export function useUpdateProduct() {
   
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Product> }) => {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update product');
-      return response.json();
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to update product: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useProducts] Update product error:', error);
+        throw error;
+      }
     },
     onSuccess: (_, variables) => {
       invalidateProducts(queryClient);
       queryClient.invalidateQueries({ queryKey: queryKeys.productDetail(variables.id) });
     },
+    retry: 1,
   });
 }
 
@@ -109,15 +153,26 @@ export function useDeleteProduct() {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete product');
-      return response.json();
+      try {
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to delete product: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useProducts] Delete product error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       invalidateProducts(queryClient);
     },
+    retry: 1,
   });
 }
 

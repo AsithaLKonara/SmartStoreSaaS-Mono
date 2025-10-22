@@ -42,10 +42,19 @@ export function useDashboardAnalytics(organizationId: string = 'org-1', period: 
   return useQuery({
     queryKey: queryKeys.analyticsDashboard(),
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/dashboard?organizationId=${organizationId}&period=${period}`);
-      
-      if (!response.ok) {
-        // Return default data instead of throwing
+      try {
+        const response = await fetch(`/api/analytics/dashboard?organizationId=${organizationId}&period=${period}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch dashboard analytics: ${response.status}`);
+        }
+        
+        const data: DashboardData = await response.json();
+        return data;
+      } catch (error) {
+        console.error('[useAnalytics] Dashboard fetch error:', error);
+        // Return default data as fallback
         return {
           revenue: { total: 0, change: 0, trend: 'up' as const },
           orders: { total: 0, change: 0, trend: 'up' as const },
@@ -56,12 +65,10 @@ export function useDashboardAnalytics(organizationId: string = 'org-1', period: 
           aiInsights: { demandForecasts: [], churnPredictions: [], aiEnabled: false }
         };
       }
-      
-      const data: DashboardData = await response.json();
-      return data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+    retry: 2, // Retry failed requests twice
   });
 }
 
@@ -72,11 +79,22 @@ export function useRevenueAnalytics(period: string = '30d') {
   return useQuery({
     queryKey: queryKeys.analyticsRevenue(period),
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/revenue?period=${period}`);
-      if (!response.ok) throw new Error('Failed to fetch revenue');
-      return response.json();
+      try {
+        const response = await fetch(`/api/analytics/revenue?period=${period}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch revenue analytics: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useAnalytics] Revenue fetch error:', error);
+        throw error; // Re-throw to let React Query handle it
+      }
     },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -87,12 +105,23 @@ export function useEnhancedAnalytics(timeRange: string = '30d', organizationId?:
   return useQuery({
     queryKey: ['analytics', 'enhanced', timeRange, organizationId],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/enhanced?period=${timeRange}&organizationId=${organizationId || ''}`);
-      if (!response.ok) throw new Error('Failed to fetch analytics');
-      return response.json();
+      try {
+        const response = await fetch(`/api/analytics/enhanced?period=${timeRange}&organizationId=${organizationId || ''}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch enhanced analytics: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useAnalytics] Enhanced analytics fetch error:', error);
+        throw error; // Re-throw to let React Query handle it
+      }
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!organizationId, // Only fetch if organizationId is provided
+    retry: 2,
   });
 }
 

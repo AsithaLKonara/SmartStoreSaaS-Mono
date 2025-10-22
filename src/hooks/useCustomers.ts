@@ -29,15 +29,26 @@ export function useCustomers(filters?: { search?: string; active?: boolean }) {
   return useQuery({
     queryKey: queryKeys.customersList(filters),
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.search) params.append('search', filters.search);
-      if (filters?.active !== undefined) params.append('active', String(filters.active));
-      
-      const response = await fetch(`/api/customers?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch customers');
-      return response.json();
+      try {
+        const params = new URLSearchParams();
+        if (filters?.search) params.append('search', filters.search);
+        if (filters?.active !== undefined) params.append('active', String(filters.active));
+        
+        const response = await fetch(`/api/customers?${params.toString()}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch customers: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useCustomers] Fetch error:', error);
+        throw error;
+      }
     },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -48,12 +59,23 @@ export function useCustomer(id: string) {
   return useQuery({
     queryKey: queryKeys.customerDetail(id),
     queryFn: async () => {
-      const response = await fetch(`/api/customers/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch customer');
-      return response.json();
+      try {
+        const response = await fetch(`/api/customers/${id}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch customer: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useCustomers] Fetch single customer error:', error);
+        throw error;
+      }
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 }
 
@@ -65,17 +87,28 @@ export function useCreateCustomer() {
   
   return useMutation({
     mutationFn: async (customer: Partial<Customer>) => {
-      const response = await fetch('/api/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customer),
-      });
-      if (!response.ok) throw new Error('Failed to create customer');
-      return response.json();
+      try {
+        const response = await fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customer),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to create customer: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useCustomers] Create customer error:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       invalidateCustomers(queryClient);
     },
+    retry: 1,
   });
 }
 
@@ -87,18 +120,29 @@ export function useUpdateCustomer() {
   
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Customer> }) => {
-      const response = await fetch(`/api/customers/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update customer');
-      return response.json();
+      try {
+        const response = await fetch(`/api/customers/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to update customer: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('[useCustomers] Update customer error:', error);
+        throw error;
+      }
     },
     onSuccess: (_, variables) => {
       invalidateCustomers(queryClient);
       queryClient.invalidateQueries({ queryKey: queryKeys.customerDetail(variables.id) });
     },
+    retry: 1,
   });
 }
 
