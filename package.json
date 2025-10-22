@@ -18,6 +18,8 @@
     "test:coverage": "pnpm test:unit --coverage && pnpm test:integration --coverage",
     "test:correlation": "jest --testPathPattern=correlation",
     "test:report": "npx playwright show-report",
+    "test:db": "npx tsx tests/database/validate-schema.ts",
+    "test:comprehensive": "bash scripts/comprehensive-test-and-deploy.sh",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
@@ -67,7 +69,6 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@next/swc-darwin-x64": "^15.5.4",
     "@playwright/test": "^1.55.1",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.2",

@@ -35,27 +35,30 @@ export default defineConfig({
   
   // Global test configuration
   use: {
-    // Base URL
-    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
+    // Base URL - LIVE DEPLOYMENT
+    baseURL: process.env.E2E_BASE_URL ?? 'https://smart-store-saas-demo.vercel.app',
     
-    // Browser options
-    headless: true,
+    // Browser options - VISIBLE BROWSER FOR USER VIEWING
+    headless: false,
     viewport: { width: 1280, height: 800 },
     
     // Timeout for actions
-    actionTimeout: 10_000,
+    actionTimeout: 15_000, // Increased for live server
     
-    // Screenshot on failure
-    screenshot: 'only-on-failure',
+    // Screenshot ALL actions
+    screenshot: 'on',
     
-    // Video on failure
-    video: 'retain-on-failure',
+    // Video recording ALL tests
+    video: 'on',
     
-    // Trace on first retry
-    trace: 'on-first-retry',
+    // Trace ALL tests
+    trace: 'on',
     
     // Ignore HTTPS errors (for local testing)
     ignoreHTTPSErrors: true,
+    
+    // Slow down for visibility
+    slowMo: 500, // 500ms delay between actions for viewing
   },
   
   // Configure projects for different browsers
