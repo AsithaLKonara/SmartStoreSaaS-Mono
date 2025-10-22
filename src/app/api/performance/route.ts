@@ -33,25 +33,35 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
-    // Query actual business metrics from database
-    const [totalUsers, totalOrders, recentOrders, orderStats] = await Promise.all([
-      prisma.user.count({ where: { organizationId } }),
-      prisma.order.count({ where: { organizationId } }),
-      prisma.order.count({ 
-        where: { 
-          organizationId,
-          createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-        } 
-      }),
-      prisma.order.aggregate({
-        where: { organizationId },
-        _avg: { total: true },
-        _sum: { total: true }
-      })
-    ]);
+    // Query actual business metrics from database with fallbacks
+    let totalUsers = 0, totalOrders = 0, recentOrders = 0;
+    let orderStats: any = { _avg: { total: 0 }, _sum: { total: 0 } };
+
+    try {
+      [totalUsers, totalOrders, recentOrders, orderStats] = await Promise.all([
+        prisma.user.count({ where: { organizationId } }).catch(() => 0),
+        prisma.order.count({ where: { organizationId } }).catch(() => 0),
+        prisma.order.count({ 
+          where: { 
+            organizationId,
+            createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+          } 
+        }).catch(() => 0),
+        prisma.order.aggregate({
+          where: { organizationId },
+          _avg: { total: true },
+          _sum: { total: true }
+        }).catch(() => ({ _avg: { total: 0 }, _sum: { total: 0 } }))
+      ]);
+    } catch (dbError: any) {
+      logger.warn({
+        message: 'Database metrics query failed, using defaults',
+        error: dbError.message,
+      });
+    }
 
     // Calculate conversion rate (orders vs total users)
-    const conversionRate = totalUsers > 0 ? ((totalOrders / totalUsers) * 100).toFixed(2) : 0;
+    const conversionRate = totalUsers > 0 ? ((totalOrders / totalUsers) * 100).toFixed(2) : '0';
 
     const performanceData = {
       system: {

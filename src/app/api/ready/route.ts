@@ -13,22 +13,30 @@ import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withError
 
 export const dynamic = 'force-dynamic';
 
-export const GET = withErrorHandlerApp(
-  async (req: NextRequest) => {
-    try {
-      // Check database connectivity
-      await prisma.$queryRaw`SELECT 1`;
-      
-      return NextResponse.json(successResponse({
-        ready: true,
+export const GET = async (req: NextRequest) => {
+  try {
+    // Check database connectivity
+    await prisma.$queryRaw`SELECT 1`;
+    
+    return NextResponse.json({
+      success: true,
+      status: 'ready',
+      ready: true,
+      checks: {
+        database: 'healthy',
         timestamp: new Date().toISOString()
-      }));
-    } catch (error: any) {
-      return NextResponse.json({
-        success: false,
-        ready: false,
+      }
+    }, { status: 200 });
+  } catch (error: any) {
+    console.error('[API /ready] Readiness check failed:', error);
+    return NextResponse.json({
+      success: false,
+      status: 'not ready',
+      ready: false,
+      checks: {
+        database: 'unhealthy',
         error: error.message
-      }, { status: 503 });
-    }
+      }
+    }, { status: 503 });
   }
-);
+};
