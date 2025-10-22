@@ -1,0 +1,2885 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          String    @default("STAFF") // ADMIN, STAFF, USER
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  stripeCustomerId String? // Stripe customer ID for payments
+  mfaEnabled    Boolean   @default(false) // MFA status
+  mfaSecret    String?   // MFA secret for TOTP
+  mfaBackupCodes String[] // MFA backup codes
+  deletedAt     DateTime? // Soft delete timestamp
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organizationId  String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdOrders   Order[] @relation("OrderCreatedBy")
+  updatedOrders   Order[] @relation("OrderUpdatedBy")
+  createdProducts Product[] @relation("ProductCreatedBy")
+  updatedProducts Product[] @relation("ProductUpdatedBy")
+  createdReports    Report[] @relation("ReportCreatedBy")
+  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+  
+  // New relations
+  subscriptions UserSubscription[]
+  businessProfile BusinessProfile?
+  featureAccess UserFeatureAccess[]
+  courierApiConfigs CourierApiConfig[]
+  paymentMethods UserPaymentMethod[]
+  billingCycles BillingCycle[]
+
+  @@map("users")
+}
+
+// Organization Management
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String?  @unique
+  plan        String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
+  status      String   @default("ACTIVE") // ACTIVE, SUSPENDED, CANCELLED
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  customers   Customer[]
+  categories  Category[]
+  products    Product[]
+  orders      Order[]
+  payments    Payment[]
+  warehouses  Warehouse[]
+  couriers    Courier[]
+  deliveries  Delivery[]
+  campaigns   Campaign[]
+  analytics   Analytics[]
+  reports     Report[]
+  inventoryMovements InventoryMovement[]
+  purchaseOrders PurchaseOrder[]
+  wooCommerceIntegrations WooCommerceIntegration[]
+  whatsAppIntegrations WhatsAppIntegration[]
+  customerLoyalty CustomerLoyalty[]
+
+  @@map("organizations")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  email         String
+  name          String
+  phone         String?
+  address       Json?    // Address object
+  organizationId String
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, BLOCKED
+  totalOrders   Int      @default(0)
+  totalSpent    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  orders       Order[]
+  payments     Payment[]
+  deliveries   Delivery[]
+  analytics    Analytics[]
+  loyalty      CustomerLoyalty?
+
+  @@map("customers")
+}
+
+// Customer Loyalty Management
+model CustomerLoyalty {
+  id              String   @id @default(cuid())
+  customerId      String   @unique
+  organizationId  String
+  points          Int      @default(0)
+  tier            String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  totalSpent      Float    @default(0)
+  totalOrders     Int      @default(0)
+  lastOrderDate   DateTime?
+  tierExpiryDate  DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("customer_loyalty")
+}
+
+// Category Management
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  organizationId String
+  parentId      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Product Management
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  sku              String?  @unique
+  price            Float
+  comparePrice     Float?
+  cost             Float?
+  organizationId   String
+  categoryId       String?
+  createdById      String
+  updatedById      String?
+  status           String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  inventoryQuantity Int     @default(0)
+  weight           Float?
+  dimensions       Json?    // Dimensions object
+  tags             String[]
+  isVariant       Boolean  @default(false)
+  parentProductId  String?  // For variant products
+  variantGroup    String?  // Group variants together
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  category        Category?    @relation(fields: [categoryId], references: [id])
+  createdBy       User         @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  parentProduct   Product?     @relation("ProductVariants", fields: [parentProductId], references: [id])
+  variants        Product[]    @relation("ProductVariants")
+  productVariants ProductVariant[]
+  orderItems      OrderItem[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  media           ProductMedia[]
+
+  @@map("products")
+}
+
+// Product Media Management
+model ProductMedia {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // IMAGE, VIDEO, DOCUMENT, 3D_MODEL
+  url         String
+  altText     String?
+  sortOrder   Int      @default(0)
+  isPrimary   Boolean  @default(false)
+  metadata    Json?    // Additional media properties
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_media")
+}
+
+// Product Variant Management
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // e.g., "Red", "Large", "Cotton"
+  value       String   // e.g., "Red", "XL", "100% Cotton"
+  sku         String?  @unique
+  price       Float?
+  comparePrice Float?
+  cost        Float?
+  inventoryQuantity Int @default(0)
+  weight      Float?
+  dimensions  Json?    // Variant-specific dimensions
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_variants")
+}
+
+// Order Management
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  status          String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  total           Float
+  subtotal        Float
+  tax             Float    @default(0)
+  shipping        Float    @default(0)
+  discount        Float    @default(0)
+  organizationId  String
+  customerId      String
+  createdById     String
+  updatedById     String?
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  shippingStatus  String   @default("PENDING") // PENDING, SHIPPED, DELIVERED
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  createdBy       User         @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+  deliveries      Delivery[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  shippingLabels ShippingLabel[]
+  statusHistory   OrderStatusHistory[]
+
+  @@map("orders")
+}
+
+// Order Status History
+model OrderStatusHistory {
+  id          String   @id @default(cuid())
+  orderId     String
+  status      String   // Previous status
+  newStatus   String   // New status
+  reason      String?  // Reason for status change
+  notes       String?  // Additional notes
+  changedBy   String   // User ID who made the change
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id])
+
+  @@map("order_status_history")
+}
+
+// Order Item Management
+model OrderItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  total     Float
+  orderId   String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// Payment Management
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Float
+  currency        String   @default("USD")
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  method          String   // CREDIT_CARD, PAYPAL, BANK_TRANSFER, CRYPTO
+  organizationId  String
+  orderId         String?
+  customerId      String?
+  transactionId   String?  @unique
+  gateway         String?  // STRIPE, PAYPAL, SQUARE
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("payments")
+}
+
+// Inventory Management
+model InventoryMovement {
+  id              String   @id @default(cuid())
+  type            String   // IN, OUT, ADJUSTMENT, TRANSFER
+  quantity        Int
+  reason          String?
+  organizationId  String
+  productId       String?
+  orderId         String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+// Warehouse Management
+model Warehouse {
+  id              String   @id @default(cuid())
+  name            String
+  address         Json?    // Address object
+  organizationId  String
+  isActive        Boolean  @default(true)
+  capacity        Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("warehouses")
+}
+
+// Courier Management
+model Courier {
+  id                String   @id @default(cuid())
+  name              String
+  email             String?
+  phone             String?
+  vehicleType       String?  // CAR, MOTORCYCLE, BICYCLE, TRUCK
+  vehicleNumber     String?
+  organizationId    String
+  status            String   @default("ACTIVE") // ACTIVE, INACTIVE, OFFLINE
+  isActive          Boolean  @default(true)
+  rating            Float?
+  totalDeliveries   Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  deliveries        Delivery[]
+
+  @@map("couriers")
+}
+
+// Delivery Management
+model Delivery {
+  id                  String    @id @default(cuid())
+  trackingNumber      String    @unique
+  status              String    @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED
+  estimatedDelivery   DateTime?
+  actualDelivery      DateTime?
+  organizationId      String
+  orderId             String?
+  courierId           String?
+  customerId          String?
+  address             Json?     // Address object
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  order               Order?       @relation(fields: [orderId], references: [id])
+  courier             Courier?     @relation(fields: [courierId], references: [id])
+  customer            Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("deliveries")
+}
+
+// Campaign Management
+model Campaign {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  type              String   // EMAIL, SMS, SOCIAL_MEDIA, PUSH_NOTIFICATION
+  status            String   @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, PAUSED, COMPLETED
+  organizationId    String
+  startDate         DateTime?
+  endDate           DateTime?
+  budget             Float?
+  targetAudience    String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  details           CampaignDetail[]
+
+  @@map("campaigns")
+}
+
+// Marketing Campaign Details
+model CampaignDetail {
+  id              String   @id @default(cuid())
+  campaignId      String
+  type            String   // EMAIL_TEMPLATE, SMS_TEMPLATE, SOCIAL_POST, LANDING_PAGE
+  content         Json     // Template content, design, etc.
+  targetAudience  Json     // Audience criteria
+  schedule        Json     // Timing and frequency
+  metrics         Json     // Performance tracking
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  campaign        Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("campaign_details")
+}
+
+// Analytics Management
+model Analytics {
+  id              String   @id @default(cuid())
+  type            String   // PAGE_VIEW, PRODUCT_VIEW, PURCHASE, CART_ADD
+  value           Int
+  metadata        Json     @default("{}")
+  organizationId  String
+  customerId      String?
+  productId       String?
+  orderId         String?
+  timestamp       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("analytics")
+}
+
+// Report Management
+model Report {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // SALES, INVENTORY, CUSTOMER, FINANCIAL
+  status          String   @default("DRAFT") // DRAFT, GENERATED, SCHEDULED
+  organizationId  String
+  createdById     String?
+  data            Json     @default("{}")
+  schedule        String?  // DAILY, WEEKLY, MONTHLY, QUARTERLY
+  lastGenerated   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User?        @relation("ReportCreatedBy", fields: [createdById], references: [id])
+
+  @@map("reports")
+}
+
+// Purchase Order Management
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  poNumber        String   @unique
+  status          String   @default("DRAFT") // DRAFT, APPROVED, ORDERED, RECEIVED, CANCELLED
+  total           Float
+  organizationId  String
+  supplierId      String?
+  createdById     String
+  notes           String?
+  expectedDelivery DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User         @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+
+  @@map("purchase_orders")
+}
+
+// WooCommerce Integration
+model WooCommerceIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  siteUrl         String
+  consumerKey     String
+  consumerSecret  String
+  isActive        Boolean  @default(true)
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("woocommerce_integrations")
+}
+
+// WhatsApp Integration
+model WhatsAppIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  phoneNumber     String
+  accessToken     String
+  isActive        Boolean  @default(true)
+  webhookUrl      String?
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}
+
+// Package Management System
+model Package {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  billingCycle  String   @default("monthly") // monthly, yearly
+  trialDays     Int      @default(0)
+  maxUsers      Int?
+  maxProducts   Int?
+  maxOrders     Int?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  subscriptions UserSubscription[]
+  features      PackageFeature[]
+  registrationRequests RegistrationRequest[]
+  billingCycles BillingCycle[]
+
+  @@map("packages")
+}
+
+model PackageFeature {
+  id        String   @id @default(cuid())
+  packageId String
+  featureKey String
+  featureName String
+  isEnabled Boolean  @default(true)
+  limits    Json?    // Usage limits
+  createdAt DateTime @default(now())
+
+  // Relations
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@map("package_features")
+}
+
+model UserSubscription {
+  id              String   @id @default(cuid())
+  userId          String
+  packageId       String
+  status          String   @default("trial") // trial, active, expired, cancelled
+  trialStartDate  DateTime?
+  trialEndDate    DateTime?
+  billingStartDate DateTime?
+  billingEndDate  DateTime?
+  autoRenew      Boolean  @default(true)
+  paymentMethod   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+// Registration & Approval System
+model RegistrationRequest {
+  id          String   @id @default(cuid())
+  businessName String
+  contactName String
+  email       String
+  phone       String?
+  businessType String?
+  industry    String?
+  packageId   String?
+  status      String   @default("pending") // pending, approved, rejected
+  adminNotes  String?
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  package Package? @relation(fields: [packageId], references: [id])
+
+  @@map("registration_requests")
+}
+
+model BusinessProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  businessName      String
+  businessType      String?
+  industry          String?
+  registrationNumber String?
+  taxId            String?
+  address          Json?
+  logoUrl          String?
+  website          String?
+  description      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("business_profiles")
+}
+
+// Feature Management System
+model Feature {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  category    String?
+  isCore      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userAccess UserFeatureAccess[]
+
+  @@map("features")
+}
+
+model UserFeatureAccess {
+  id        String    @id @default(cuid())
+  userId    String
+  featureKey String
+  isEnabled Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  feature Feature @relation(fields: [featureKey], references: [key])
+
+  @@map("user_feature_access")
+}
+
+// Courier Integration System
+model CourierService {
+  id                String   @id @default(cuid())
+  name              String
+  code              String   @unique
+  apiEndpoint       String?
+  apiKey            String?
+  webhookUrl        String?
+  isActive          Boolean  @default(true)
+  supportedFeatures Json     @default("{}") // pickup, delivery, tracking, label_printing
+  rateCalculation   Json?
+  createdAt         DateTime @default(now())
+
+  // Relations
+  apiConfigs CourierApiConfig[]
+  labels     ShippingLabel[]
+
+  @@map("courier_services")
+}
+
+model CourierApiConfig {
+  id              String   @id @default(cuid())
+  userId          String
+  courierServiceId String
+  apiCredentials  Json
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user           User          @relation(fields: [userId], references: [id])
+  courierService CourierService @relation(fields: [courierServiceId], references: [id])
+
+  @@map("courier_api_configs")
+}
+
+model ShippingLabel {
+  id              String   @id @default(cuid())
+  orderId         String?
+  courierServiceId String
+  trackingNumber  String?
+  labelUrl        String?
+  labelData       Json?
+  printedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  order         Order?         @relation(fields: [orderId], references: [id])
+  courierService CourierService @relation(fields: [courierServiceId], references: [id])
+
+  @@map("shipping_labels")
+}
+
+// Payment & Billing System
+model BillingCycle {
+  id            String   @id @default(cuid())
+  userId        String
+  packageId     String
+  startDate     DateTime
+  endDate       DateTime
+  amount        Float
+  status        String   @default("pending") // pending, paid, failed, refunded
+  paymentMethod String?
+  transactionId String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("billing_cycles")
+}
+
+model UserPaymentMethod {
+  id            String   @id @default(cuid())
+  userId        String
+  methodType    String   // card, bank, digital_wallet
+  provider      String?  // stripe, paypal, lankapay
+  accountDetails Json?
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_payment_methods")
+}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          String    @default("STAFF") // ADMIN, STAFF, USER
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  stripeCustomerId String? // Stripe customer ID for payments
+  mfaEnabled    Boolean   @default(false) // MFA status
+  mfaSecret    String?   // MFA secret for TOTP
+  mfaBackupCodes String[] // MFA backup codes
+  deletedAt     DateTime? // Soft delete timestamp
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organizationId  String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdOrders   Order[] @relation("OrderCreatedBy")
+  updatedOrders   Order[] @relation("OrderUpdatedBy")
+  createdProducts Product[] @relation("ProductCreatedBy")
+  updatedProducts Product[] @relation("ProductUpdatedBy")
+  createdReports    Report[] @relation("ReportCreatedBy")
+  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+
+  @@map("users")
+}
+
+// Organization Management
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String?  @unique
+  plan        String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
+  status      String   @default("ACTIVE") // ACTIVE, SUSPENDED, CANCELLED
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  customers   Customer[]
+  categories  Category[]
+  products    Product[]
+  orders      Order[]
+  payments    Payment[]
+  warehouses  Warehouse[]
+  couriers    Courier[]
+  deliveries  Delivery[]
+  campaigns   Campaign[]
+  analytics   Analytics[]
+  reports     Report[]
+  inventoryMovements InventoryMovement[]
+  purchaseOrders PurchaseOrder[]
+  wooCommerceIntegrations WooCommerceIntegration[]
+  whatsAppIntegrations WhatsAppIntegration[]
+  customerLoyalty CustomerLoyalty[]
+
+  @@map("organizations")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  email         String
+  name          String
+  phone         String?
+  address       Json?    // Address object
+  organizationId String
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, BLOCKED
+  totalOrders   Int      @default(0)
+  totalSpent    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  orders       Order[]
+  payments     Payment[]
+  deliveries   Delivery[]
+  analytics    Analytics[]
+  loyalty      CustomerLoyalty?
+
+  @@map("customers")
+}
+
+// Customer Loyalty Management
+model CustomerLoyalty {
+  id              String   @id @default(cuid())
+  customerId      String   @unique
+  organizationId  String
+  points          Int      @default(0)
+  tier            String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  totalSpent      Float    @default(0)
+  totalOrders     Int      @default(0)
+  lastOrderDate   DateTime?
+  tierExpiryDate  DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("customer_loyalty")
+}
+
+// Category Management
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  organizationId String
+  parentId      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Product Management
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  sku              String?  @unique
+  price            Float
+  comparePrice     Float?
+  cost             Float?
+  organizationId   String
+  categoryId       String?
+  createdById      String
+  updatedById      String?
+  status           String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  inventoryQuantity Int     @default(0)
+  weight           Float?
+  dimensions       Json?    // Dimensions object
+  tags             String[]
+  isVariant       Boolean  @default(false)
+  parentProductId  String?  // For variant products
+  variantGroup    String?  // Group variants together
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  category        Category?    @relation(fields: [categoryId], references: [id])
+  createdBy       User         @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  parentProduct   Product?     @relation("ProductVariants", fields: [parentProductId], references: [id])
+  variants        Product[]    @relation("ProductVariants")
+  productVariants ProductVariant[]
+  orderItems      OrderItem[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  media           ProductMedia[]
+
+  @@map("products")
+}
+
+// Product Media Management
+model ProductMedia {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // IMAGE, VIDEO, DOCUMENT, 3D_MODEL
+  url         String
+  altText     String?
+  sortOrder   Int      @default(0)
+  isPrimary   Boolean  @default(false)
+  metadata    Json?    // Additional media properties
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_media")
+}
+
+// Product Variant Management
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // e.g., "Red", "Large", "Cotton"
+  value       String   // e.g., "Red", "XL", "100% Cotton"
+  sku         String?  @unique
+  price       Float?
+  comparePrice Float?
+  cost        Float?
+  inventoryQuantity Int @default(0)
+  weight      Float?
+  dimensions  Json?    // Variant-specific dimensions
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_variants")
+}
+
+// Order Management
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  status          String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  total           Float
+  subtotal        Float
+  tax             Float    @default(0)
+  shipping        Float    @default(0)
+  discount        Float    @default(0)
+  organizationId  String
+  customerId      String
+  createdById     String
+  updatedById     String?
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  shippingStatus  String   @default("PENDING") // PENDING, SHIPPED, DELIVERED
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  createdBy       User         @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+  deliveries      Delivery[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  statusHistory   OrderStatusHistory[]
+
+  @@map("orders")
+}
+
+// Order Status History
+model OrderStatusHistory {
+  id          String   @id @default(cuid())
+  orderId     String
+  status      String   // Previous status
+  newStatus   String   // New status
+  reason      String?  // Reason for status change
+  notes       String?  // Additional notes
+  changedBy   String   // User ID who made the change
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id])
+
+  @@map("order_status_history")
+}
+
+// Order Item Management
+model OrderItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  total     Float
+  orderId   String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// Payment Management
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Float
+  currency        String   @default("USD")
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  method          String   // CREDIT_CARD, PAYPAL, BANK_TRANSFER, CRYPTO
+  organizationId  String
+  orderId         String?
+  customerId      String?
+  transactionId   String?  @unique
+  gateway         String?  // STRIPE, PAYPAL, SQUARE
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("payments")
+}
+
+// Inventory Management
+model InventoryMovement {
+  id              String   @id @default(cuid())
+  type            String   // IN, OUT, ADJUSTMENT, TRANSFER
+  quantity        Int
+  reason          String?
+  organizationId  String
+  productId       String?
+  orderId         String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+// Warehouse Management
+model Warehouse {
+  id              String   @id @default(cuid())
+  name            String
+  address         Json?    // Address object
+  organizationId  String
+  isActive        Boolean  @default(true)
+  capacity        Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("warehouses")
+}
+
+// Courier Management
+model Courier {
+  id                String   @id @default(cuid())
+  name              String
+  email             String?
+  phone             String?
+  vehicleType       String?  // CAR, MOTORCYCLE, BICYCLE, TRUCK
+  vehicleNumber     String?
+  organizationId    String
+  status            String   @default("ACTIVE") // ACTIVE, INACTIVE, OFFLINE
+  isActive          Boolean  @default(true)
+  rating            Float?
+  totalDeliveries   Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  deliveries        Delivery[]
+
+  @@map("couriers")
+}
+
+// Delivery Management
+model Delivery {
+  id                  String    @id @default(cuid())
+  trackingNumber      String    @unique
+  status              String    @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED
+  estimatedDelivery   DateTime?
+  actualDelivery      DateTime?
+  organizationId      String
+  orderId             String?
+  courierId           String?
+  customerId          String?
+  address             Json?     // Address object
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  order               Order?       @relation(fields: [orderId], references: [id])
+  courier             Courier?     @relation(fields: [courierId], references: [id])
+  customer            Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("deliveries")
+}
+
+// Campaign Management
+model Campaign {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  type              String   // EMAIL, SMS, SOCIAL_MEDIA, PUSH_NOTIFICATION
+  status            String   @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, PAUSED, COMPLETED
+  organizationId    String
+  startDate         DateTime?
+  endDate           DateTime?
+  budget             Float?
+  targetAudience    String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  details           CampaignDetail[]
+
+  @@map("campaigns")
+}
+
+// Marketing Campaign Details
+model CampaignDetail {
+  id              String   @id @default(cuid())
+  campaignId      String
+  type            String   // EMAIL_TEMPLATE, SMS_TEMPLATE, SOCIAL_POST, LANDING_PAGE
+  content         Json     // Template content, design, etc.
+  targetAudience  Json     // Audience criteria
+  schedule        Json     // Timing and frequency
+  metrics         Json     // Performance tracking
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  campaign        Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("campaign_details")
+}
+
+// Analytics Management
+model Analytics {
+  id              String   @id @default(cuid())
+  type            String   // PAGE_VIEW, PRODUCT_VIEW, PURCHASE, CART_ADD
+  value           Int
+  metadata        Json     @default("{}")
+  organizationId  String
+  customerId      String?
+  productId       String?
+  orderId         String?
+  timestamp       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("analytics")
+}
+
+// Report Management
+model Report {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // SALES, INVENTORY, CUSTOMER, FINANCIAL
+  status          String   @default("DRAFT") // DRAFT, GENERATED, SCHEDULED
+  organizationId  String
+  createdById     String?
+  data            Json     @default("{}")
+  schedule        String?  // DAILY, WEEKLY, MONTHLY, QUARTERLY
+  lastGenerated   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User?        @relation("ReportCreatedBy", fields: [createdById], references: [id])
+
+  @@map("reports")
+}
+
+// Purchase Order Management
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  poNumber        String   @unique
+  status          String   @default("DRAFT") // DRAFT, APPROVED, ORDERED, RECEIVED, CANCELLED
+  total           Float
+  organizationId  String
+  supplierId      String?
+  createdById     String
+  notes           String?
+  expectedDelivery DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User         @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+
+  @@map("purchase_orders")
+}
+
+// WooCommerce Integration
+model WooCommerceIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  siteUrl         String
+  consumerKey     String
+  consumerSecret  String
+  isActive        Boolean  @default(true)
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("woocommerce_integrations")
+}
+
+// WhatsApp Integration
+model WhatsAppIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  phoneNumber     String
+  accessToken     String
+  isActive        Boolean  @default(true)
+  webhookUrl      String?
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}
+
+// Package Management System
+model Package {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  billingCycle  String   @default("monthly") // monthly, yearly
+  trialDays     Int      @default(0)
+  maxUsers      Int?
+  maxProducts   Int?
+  maxOrders     Int?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  subscriptions UserSubscription[]
+  features      PackageFeature[]
+  registrationRequests RegistrationRequest[]
+  billingCycles BillingCycle[]
+
+  @@map("packages")
+}
+
+model PackageFeature {
+  id        String   @id @default(cuid())
+  packageId String
+  featureKey String
+  featureName String
+  isEnabled Boolean  @default(true)
+  limits    Json?    // Usage limits
+  createdAt DateTime @default(now())
+
+  // Relations
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@map("package_features")
+}
+
+model UserSubscription {
+  id              String   @id @default(cuid())
+  userId          String
+  packageId       String
+  status          String   @default("trial") // trial, active, expired, cancelled
+  trialStartDate  DateTime?
+  trialEndDate    DateTime?
+  billingStartDate DateTime?
+  billingEndDate  DateTime?
+  autoRenew      Boolean  @default(true)
+  paymentMethod   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+// Registration & Approval System
+model RegistrationRequest {
+  id          String   @id @default(cuid())
+  businessName String
+  contactName String
+  email       String
+  phone       String?
+  businessType String?
+  industry    String?
+  packageId   String?
+  status      String   @default("pending") // pending, approved, rejected
+  adminNotes  String?
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  package Package? @relation(fields: [packageId], references: [id])
+
+  @@map("registration_requests")
+}
+
+model BusinessProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  businessName      String
+  businessType      String?
+  industry          String?
+  registrationNumber String?
+  taxId            String?
+  address          Json?
+  logoUrl          String?
+  website          String?
+  description      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("business_profiles")
+}
+
+// Feature Management System
+model Feature {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  category    String?
+  isCore      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userAccess UserFeatureAccess[]
+
+  @@map("features")
+}
+
+model UserFeatureAccess {
+  id        String    @id @default(cuid())
+  userId    String
+  featureKey String
+  isEnabled Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  feature Feature @relation(fields: [featureKey], references: [key])
+
+  @@map("user_feature_access")
+}
+
+// Courier Integration System
+model CourierService {
+  id                String   @id @default(cuid())
+  name              String
+  code              String   @unique
+  apiEndpoint       String?
+  apiKey            String?
+  webhookUrl        String?
+  isActive          Boolean  @default(true)
+  supportedFeatures Json     @default("{}") // pickup, delivery, tracking, label_printing
+  rateCalculation   Json?
+  createdAt         DateTime @default(now())
+
+  // Relations
+  apiConfigs CourierApiConfig[]
+  labels     ShippingLabel[]
+
+  @@map("courier_services")
+}
+
+model CourierApiConfig {
+  id              String   @id @default(cuid())
+  userId          String
+  courierServiceId String
+  apiCredentials  Json
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user           User          @relation(fields: [userId], references: [id])
+  courierService CourierService @relation(fields: [courierServiceId], references: [id])
+
+  @@map("courier_api_configs")
+}
+
+model ShippingLabel {
+  id              String   @id @default(cuid())
+  orderId         String?
+  courierServiceId String
+  trackingNumber  String?
+  labelUrl        String?
+  labelData       Json?
+  printedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  order         Order?         @relation(fields: [orderId], references: [id])
+  courierService CourierService @relation(fields: [courierServiceId], references: [id])
+
+  @@map("shipping_labels")
+}
+
+// Payment & Billing System
+model BillingCycle {
+  id            String   @id @default(cuid())
+  userId        String
+  packageId     String
+  startDate     DateTime
+  endDate       DateTime
+  amount        Float
+  status        String   @default("pending") // pending, paid, failed, refunded
+  paymentMethod String?
+  transactionId String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("billing_cycles")
+}
+
+model UserPaymentMethod {
+  id            String   @id @default(cuid())
+  userId        String
+  methodType    String   // card, bank, digital_wallet
+  provider      String?  // stripe, paypal, lankapay
+  accountDetails Json?
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_payment_methods")
+}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          String    @default("STAFF") // ADMIN, STAFF, USER
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  stripeCustomerId String? // Stripe customer ID for payments
+  mfaEnabled    Boolean   @default(false) // MFA status
+  mfaSecret    String?   // MFA secret for TOTP
+  mfaBackupCodes String[] // MFA backup codes
+  deletedAt     DateTime? // Soft delete timestamp
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organizationId  String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdOrders   Order[] @relation("OrderCreatedBy")
+  updatedOrders   Order[] @relation("OrderUpdatedBy")
+  createdProducts Product[] @relation("ProductCreatedBy")
+  updatedProducts Product[] @relation("ProductUpdatedBy")
+  createdReports    Report[] @relation("ReportCreatedBy")
+  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+
+  @@map("users")
+}
+
+// Organization Management
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String?  @unique
+  plan        String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
+  status      String   @default("ACTIVE") // ACTIVE, SUSPENDED, CANCELLED
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  customers   Customer[]
+  categories  Category[]
+  products    Product[]
+  orders      Order[]
+  payments    Payment[]
+  warehouses  Warehouse[]
+  couriers    Courier[]
+  deliveries  Delivery[]
+  campaigns   Campaign[]
+  analytics   Analytics[]
+  reports     Report[]
+  inventoryMovements InventoryMovement[]
+  purchaseOrders PurchaseOrder[]
+  wooCommerceIntegrations WooCommerceIntegration[]
+  whatsAppIntegrations WhatsAppIntegration[]
+  customerLoyalty CustomerLoyalty[]
+
+  @@map("organizations")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  email         String
+  name          String
+  phone         String?
+  address       Json?    // Address object
+  organizationId String
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, BLOCKED
+  totalOrders   Int      @default(0)
+  totalSpent    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  orders       Order[]
+  payments     Payment[]
+  deliveries   Delivery[]
+  analytics    Analytics[]
+  loyalty      CustomerLoyalty?
+
+  @@map("customers")
+}
+
+// Customer Loyalty Management
+model CustomerLoyalty {
+  id              String   @id @default(cuid())
+  customerId      String   @unique
+  organizationId  String
+  points          Int      @default(0)
+  tier            String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  totalSpent      Float    @default(0)
+  totalOrders     Int      @default(0)
+  lastOrderDate   DateTime?
+  tierExpiryDate  DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("customer_loyalty")
+}
+
+// Category Management
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  organizationId String
+  parentId      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Product Management
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  sku              String?  @unique
+  price            Float
+  comparePrice     Float?
+  cost             Float?
+  organizationId   String
+  categoryId       String?
+  createdById      String
+  updatedById      String?
+  status           String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  inventoryQuantity Int     @default(0)
+  weight           Float?
+  dimensions       Json?    // Dimensions object
+  tags             String[]
+  isVariant       Boolean  @default(false)
+  parentProductId  String?  // For variant products
+  variantGroup    String?  // Group variants together
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  category        Category?    @relation(fields: [categoryId], references: [id])
+  createdBy       User         @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  parentProduct   Product?     @relation("ProductVariants", fields: [parentProductId], references: [id])
+  variants        Product[]    @relation("ProductVariants")
+  productVariants ProductVariant[]
+  orderItems      OrderItem[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  media           ProductMedia[]
+
+  @@map("products")
+}
+
+// Product Media Management
+model ProductMedia {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // IMAGE, VIDEO, DOCUMENT, 3D_MODEL
+  url         String
+  altText     String?
+  sortOrder   Int      @default(0)
+  isPrimary   Boolean  @default(false)
+  metadata    Json?    // Additional media properties
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_media")
+}
+
+// Product Variant Management
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // e.g., "Red", "Large", "Cotton"
+  value       String   // e.g., "Red", "XL", "100% Cotton"
+  sku         String?  @unique
+  price       Float?
+  comparePrice Float?
+  cost        Float?
+  inventoryQuantity Int @default(0)
+  weight      Float?
+  dimensions  Json?    // Variant-specific dimensions
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_variants")
+}
+
+// Order Management
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  status          String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  total           Float
+  subtotal        Float
+  tax             Float    @default(0)
+  shipping        Float    @default(0)
+  discount        Float    @default(0)
+  organizationId  String
+  customerId      String
+  createdById     String
+  updatedById     String?
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  shippingStatus  String   @default("PENDING") // PENDING, SHIPPED, DELIVERED
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  createdBy       User         @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+  deliveries      Delivery[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  statusHistory   OrderStatusHistory[]
+
+  @@map("orders")
+}
+
+// Order Status History
+model OrderStatusHistory {
+  id          String   @id @default(cuid())
+  orderId     String
+  status      String   // Previous status
+  newStatus   String   // New status
+  reason      String?  // Reason for status change
+  notes       String?  // Additional notes
+  changedBy   String   // User ID who made the change
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id])
+
+  @@map("order_status_history")
+}
+
+// Order Item Management
+model OrderItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  total     Float
+  orderId   String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// Payment Management
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Float
+  currency        String   @default("USD")
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  method          String   // CREDIT_CARD, PAYPAL, BANK_TRANSFER, CRYPTO
+  organizationId  String
+  orderId         String?
+  customerId      String?
+  transactionId   String?  @unique
+  gateway         String?  // STRIPE, PAYPAL, SQUARE
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("payments")
+}
+
+// Inventory Management
+model InventoryMovement {
+  id              String   @id @default(cuid())
+  type            String   // IN, OUT, ADJUSTMENT, TRANSFER
+  quantity        Int
+  reason          String?
+  organizationId  String
+  productId       String?
+  orderId         String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+// Warehouse Management
+model Warehouse {
+  id              String   @id @default(cuid())
+  name            String
+  address         Json?    // Address object
+  organizationId  String
+  isActive        Boolean  @default(true)
+  capacity        Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("warehouses")
+}
+
+// Courier Management
+model Courier {
+  id                String   @id @default(cuid())
+  name              String
+  email             String?
+  phone             String?
+  vehicleType       String?  // CAR, MOTORCYCLE, BICYCLE, TRUCK
+  vehicleNumber     String?
+  organizationId    String
+  status            String   @default("ACTIVE") // ACTIVE, INACTIVE, OFFLINE
+  isActive          Boolean  @default(true)
+  rating            Float?
+  totalDeliveries   Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  deliveries        Delivery[]
+
+  @@map("couriers")
+}
+
+// Delivery Management
+model Delivery {
+  id                  String    @id @default(cuid())
+  trackingNumber      String    @unique
+  status              String    @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED
+  estimatedDelivery   DateTime?
+  actualDelivery      DateTime?
+  organizationId      String
+  orderId             String?
+  courierId           String?
+  customerId          String?
+  address             Json?     // Address object
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  order               Order?       @relation(fields: [orderId], references: [id])
+  courier             Courier?     @relation(fields: [courierId], references: [id])
+  customer            Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("deliveries")
+}
+
+// Campaign Management
+model Campaign {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  type              String   // EMAIL, SMS, SOCIAL_MEDIA, PUSH_NOTIFICATION
+  status            String   @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, PAUSED, COMPLETED
+  organizationId    String
+  startDate         DateTime?
+  endDate           DateTime?
+  budget             Float?
+  targetAudience    String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  details           CampaignDetail[]
+
+  @@map("campaigns")
+}
+
+// Marketing Campaign Details
+model CampaignDetail {
+  id              String   @id @default(cuid())
+  campaignId      String
+  type            String   // EMAIL_TEMPLATE, SMS_TEMPLATE, SOCIAL_POST, LANDING_PAGE
+  content         Json     // Template content, design, etc.
+  targetAudience  Json     // Audience criteria
+  schedule        Json     // Timing and frequency
+  metrics         Json     // Performance tracking
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  campaign        Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("campaign_details")
+}
+
+// Analytics Management
+model Analytics {
+  id              String   @id @default(cuid())
+  type            String   // PAGE_VIEW, PRODUCT_VIEW, PURCHASE, CART_ADD
+  value           Int
+  metadata        Json     @default("{}")
+  organizationId  String
+  customerId      String?
+  productId       String?
+  orderId         String?
+  timestamp       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("analytics")
+}
+
+// Report Management
+model Report {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // SALES, INVENTORY, CUSTOMER, FINANCIAL
+  status          String   @default("DRAFT") // DRAFT, GENERATED, SCHEDULED
+  organizationId  String
+  createdById     String?
+  data            Json     @default("{}")
+  schedule        String?  // DAILY, WEEKLY, MONTHLY, QUARTERLY
+  lastGenerated   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User?        @relation("ReportCreatedBy", fields: [createdById], references: [id])
+
+  @@map("reports")
+}
+
+// Purchase Order Management
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  poNumber        String   @unique
+  status          String   @default("DRAFT") // DRAFT, APPROVED, ORDERED, RECEIVED, CANCELLED
+  total           Float
+  organizationId  String
+  supplierId      String?
+  createdById     String
+  notes           String?
+  expectedDelivery DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User         @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+
+  @@map("purchase_orders")
+}
+
+// WooCommerce Integration
+model WooCommerceIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  siteUrl         String
+  consumerKey     String
+  consumerSecret  String
+  isActive        Boolean  @default(true)
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("woocommerce_integrations")
+}
+
+// WhatsApp Integration
+model WhatsAppIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  phoneNumber     String
+  accessToken     String
+  isActive        Boolean  @default(true)
+  webhookUrl      String?
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}
+
+// Package Management System
+model Package {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  billingCycle  String   @default("monthly") // monthly, yearly
+  trialDays     Int      @default(0)
+  maxUsers      Int?
+  maxProducts   Int?
+  maxOrders     Int?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  subscriptions UserSubscription[]
+  features      PackageFeature[]
+  registrationRequests RegistrationRequest[]
+  billingCycles BillingCycle[]
+
+  @@map("packages")
+}
+
+model PackageFeature {
+  id        String   @id @default(cuid())
+  packageId String
+  featureKey String
+  featureName String
+  isEnabled Boolean  @default(true)
+  limits    Json?    // Usage limits
+  createdAt DateTime @default(now())
+
+  // Relations
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@map("package_features")
+}
+
+model UserSubscription {
+  id              String   @id @default(cuid())
+  userId          String
+  packageId       String
+  status          String   @default("trial") // trial, active, expired, cancelled
+  trialStartDate  DateTime?
+  trialEndDate    DateTime?
+  billingStartDate DateTime?
+  billingEndDate  DateTime?
+  autoRenew      Boolean  @default(true)
+  paymentMethod   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+// Registration & Approval System
+model RegistrationRequest {
+  id          String   @id @default(cuid())
+  businessName String
+  contactName String
+  email       String
+  phone       String?
+  businessType String?
+  industry    String?
+  packageId   String?
+  status      String   @default("pending") // pending, approved, rejected
+  adminNotes  String?
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  package Package? @relation(fields: [packageId], references: [id])
+
+  @@map("registration_requests")
+}
+
+model BusinessProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  businessName      String
+  businessType      String?
+  industry          String?
+  registrationNumber String?
+  taxId            String?
+  address          Json?
+  logoUrl          String?
+  website          String?
+  description      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("business_profiles")
+}
+
+// Feature Management System
+model Feature {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  category    String?
+  isCore      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userAccess UserFeatureAccess[]
+
+  @@map("features")
+}
+
+model UserFeatureAccess {
+  id        String    @id @default(cuid())
+  userId    String
+  featureKey String
+  isEnabled Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  feature Feature @relation(fields: [featureKey], references: [key])
+
+  @@map("user_feature_access")
+}
+
+// Courier Integration System
+model CourierService {
+  id                String   @id @default(cuid())
+  name              String
+  code              String   @unique
+  apiEndpoint       String?
+  apiKey            String?
+  webhookUrl        String?
+  isActive          Boolean  @default(true)
+  supportedFeatures Json     @default("{}") // pickup, delivery, tracking, label_printing
+  rateCalculation   Json?
+  createdAt         DateTime @default(now())
+
+  // Relations
+  apiConfigs CourierApiConfig[]
+  labels     ShippingLabel[]
+
+  @@map("courier_services")
+}
+
+model CourierApiConfig {
+  id              String   @id @default(cuid())
+  userId          String
+  courierServiceId String
+  apiCredentials  Json
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user           User          @relation(fields: [userId], references: [id])
+  courierService CourierService @relation(fields: [courierServiceId], references: [id])
+
+  @@map("courier_api_configs")
+}
+
+model ShippingLabel {
+  id              String   @id @default(cuid())
+  orderId         String?
+  courierServiceId String
+  trackingNumber  String?
+  labelUrl        String?
+  labelData       Json?
+  printedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  order         Order?         @relation(fields: [orderId], references: [id])
+  courierService CourierService @relation(fields: [courierServiceId], references: [id])
+
+  @@map("shipping_labels")
+}
+
+// Payment & Billing System
+model BillingCycle {
+  id            String   @id @default(cuid())
+  userId        String
+  packageId     String
+  startDate     DateTime
+  endDate       DateTime
+  amount        Float
+  status        String   @default("pending") // pending, paid, failed, refunded
+  paymentMethod String?
+  transactionId String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("billing_cycles")
+}
+
+model UserPaymentMethod {
+  id            String   @id @default(cuid())
+  userId        String
+  methodType    String   // card, bank, digital_wallet
+  provider      String?  // stripe, paypal, lankapay
+  accountDetails Json?
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_payment_methods")
+}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          String    @default("STAFF") // ADMIN, STAFF, USER
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  stripeCustomerId String? // Stripe customer ID for payments
+  mfaEnabled    Boolean   @default(false) // MFA status
+  mfaSecret    String?   // MFA secret for TOTP
+  mfaBackupCodes String[] // MFA backup codes
+  deletedAt     DateTime? // Soft delete timestamp
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organizationId  String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdOrders   Order[] @relation("OrderCreatedBy")
+  updatedOrders   Order[] @relation("OrderUpdatedBy")
+  createdProducts Product[] @relation("ProductCreatedBy")
+  updatedProducts Product[] @relation("ProductUpdatedBy")
+  createdReports    Report[] @relation("ReportCreatedBy")
+  createdPurchaseOrders PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+
+  @@map("users")
+}
+
+// Organization Management
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String?  @unique
+  plan        String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
+  status      String   @default("ACTIVE") // ACTIVE, SUSPENDED, CANCELLED
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  customers   Customer[]
+  categories  Category[]
+  products    Product[]
+  orders      Order[]
+  payments    Payment[]
+  warehouses  Warehouse[]
+  couriers    Courier[]
+  deliveries  Delivery[]
+  campaigns   Campaign[]
+  analytics   Analytics[]
+  reports     Report[]
+  inventoryMovements InventoryMovement[]
+  purchaseOrders PurchaseOrder[]
+  wooCommerceIntegrations WooCommerceIntegration[]
+  whatsAppIntegrations WhatsAppIntegration[]
+  customerLoyalty CustomerLoyalty[]
+
+  @@map("organizations")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  email         String
+  name          String
+  phone         String?
+  address       Json?    // Address object
+  organizationId String
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, BLOCKED
+  totalOrders   Int      @default(0)
+  totalSpent    Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  orders       Order[]
+  payments     Payment[]
+  deliveries   Delivery[]
+  analytics    Analytics[]
+  loyalty      CustomerLoyalty?
+
+  @@map("customers")
+}
+
+// Customer Loyalty Management
+model CustomerLoyalty {
+  id              String   @id @default(cuid())
+  customerId      String   @unique
+  organizationId  String
+  points          Int      @default(0)
+  tier            String   @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM
+  totalSpent      Float    @default(0)
+  totalOrders     Int      @default(0)
+  lastOrderDate   DateTime?
+  tierExpiryDate  DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("customer_loyalty")
+}
+
+// Category Management
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  organizationId String
+  parentId      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Product Management
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  sku              String?  @unique
+  price            Float
+  comparePrice     Float?
+  cost             Float?
+  organizationId   String
+  categoryId       String?
+  createdById      String
+  updatedById      String?
+  status           String   @default("ACTIVE") // ACTIVE, DRAFT, ARCHIVED
+  inventoryQuantity Int     @default(0)
+  weight           Float?
+  dimensions       Json?    // Dimensions object
+  tags             String[]
+  isVariant       Boolean  @default(false)
+  parentProductId  String?  // For variant products
+  variantGroup    String?  // Group variants together
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  category        Category?    @relation(fields: [categoryId], references: [id])
+  createdBy       User         @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  parentProduct   Product?     @relation("ProductVariants", fields: [parentProductId], references: [id])
+  variants        Product[]    @relation("ProductVariants")
+  productVariants ProductVariant[]
+  orderItems      OrderItem[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  media           ProductMedia[]
+
+  @@map("products")
+}
+
+// Product Media Management
+model ProductMedia {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // IMAGE, VIDEO, DOCUMENT, 3D_MODEL
+  url         String
+  altText     String?
+  sortOrder   Int      @default(0)
+  isPrimary   Boolean  @default(false)
+  metadata    Json?    // Additional media properties
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_media")
+}
+
+// Product Variant Management
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // e.g., "Red", "Large", "Cotton"
+  value       String   // e.g., "Red", "XL", "100% Cotton"
+  sku         String?  @unique
+  price       Float?
+  comparePrice Float?
+  cost        Float?
+  inventoryQuantity Int @default(0)
+  weight      Float?
+  dimensions  Json?    // Variant-specific dimensions
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_variants")
+}
+
+// Order Management
+model Order {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  status          String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  total           Float
+  subtotal        Float
+  tax             Float    @default(0)
+  shipping        Float    @default(0)
+  discount        Float    @default(0)
+  organizationId  String
+  customerId      String
+  createdById     String
+  updatedById     String?
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  shippingStatus  String   @default("PENDING") // PENDING, SHIPPED, DELIVERED
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  createdBy       User         @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?        @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+  deliveries      Delivery[]
+  inventoryMovements InventoryMovement[]
+  analytics       Analytics[]
+  statusHistory   OrderStatusHistory[]
+
+  @@map("orders")
+}
+
+// Order Status History
+model OrderStatusHistory {
+  id          String   @id @default(cuid())
+  orderId     String
+  status      String   // Previous status
+  newStatus   String   // New status
+  reason      String?  // Reason for status change
+  notes       String?  // Additional notes
+  changedBy   String   // User ID who made the change
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id])
+
+  @@map("order_status_history")
+}
+
+// Order Item Management
+model OrderItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  total     Float
+  orderId   String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// Payment Management
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Float
+  currency        String   @default("USD")
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  method          String   // CREDIT_CARD, PAYPAL, BANK_TRANSFER, CRYPTO
+  organizationId  String
+  orderId         String?
+  customerId      String?
+  transactionId   String?  @unique
+  gateway         String?  // STRIPE, PAYPAL, SQUARE
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("payments")
+}
+
+// Inventory Management
+model InventoryMovement {
+  id              String   @id @default(cuid())
+  type            String   // IN, OUT, ADJUSTMENT, TRANSFER
+  quantity        Int
+  reason          String?
+  organizationId  String
+  productId       String?
+  orderId         String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+// Warehouse Management
+model Warehouse {
+  id              String   @id @default(cuid())
+  name            String
+  address         Json?    // Address object
+  organizationId  String
+  isActive        Boolean  @default(true)
+  capacity        Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("warehouses")
+}
+
+// Courier Management
+model Courier {
+  id                String   @id @default(cuid())
+  name              String
+  email             String?
+  phone             String?
+  vehicleType       String?  // CAR, MOTORCYCLE, BICYCLE, TRUCK
+  vehicleNumber     String?
+  organizationId    String
+  status            String   @default("ACTIVE") // ACTIVE, INACTIVE, OFFLINE
+  isActive          Boolean  @default(true)
+  rating            Float?
+  totalDeliveries   Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  deliveries        Delivery[]
+
+  @@map("couriers")
+}
+
+// Delivery Management
+model Delivery {
+  id                  String    @id @default(cuid())
+  trackingNumber      String    @unique
+  status              String    @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED
+  estimatedDelivery   DateTime?
+  actualDelivery      DateTime?
+  organizationId      String
+  orderId             String?
+  courierId           String?
+  customerId          String?
+  address             Json?     // Address object
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  order               Order?       @relation(fields: [orderId], references: [id])
+  courier             Courier?     @relation(fields: [courierId], references: [id])
+  customer            Customer?    @relation(fields: [customerId], references: [id])
+
+  @@map("deliveries")
+}
+
+// Campaign Management
+model Campaign {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  type              String   // EMAIL, SMS, SOCIAL_MEDIA, PUSH_NOTIFICATION
+  status            String   @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, PAUSED, COMPLETED
+  organizationId    String
+  startDate         DateTime?
+  endDate           DateTime?
+  budget             Float?
+  targetAudience    String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  details           CampaignDetail[]
+
+  @@map("campaigns")
+}
+
+// Marketing Campaign Details
+model CampaignDetail {
+  id              String   @id @default(cuid())
+  campaignId      String
+  type            String   // EMAIL_TEMPLATE, SMS_TEMPLATE, SOCIAL_POST, LANDING_PAGE
+  content         Json     // Template content, design, etc.
+  targetAudience  Json     // Audience criteria
+  schedule        Json     // Timing and frequency
+  metrics         Json     // Performance tracking
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  campaign        Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("campaign_details")
+}
+
+// Analytics Management
+model Analytics {
+  id              String   @id @default(cuid())
+  type            String   // PAGE_VIEW, PRODUCT_VIEW, PURCHASE, CART_ADD
+  value           Int
+  metadata        Json     @default("{}")
+  organizationId  String
+  customerId      String?
+  productId       String?
+  orderId         String?
+  timestamp       DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+  product         Product?     @relation(fields: [productId], references: [id])
+  order           Order?       @relation(fields: [orderId], references: [id])
+
+  @@map("analytics")
+}
+
+// Report Management
+model Report {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   // SALES, INVENTORY, CUSTOMER, FINANCIAL
+  status          String   @default("DRAFT") // DRAFT, GENERATED, SCHEDULED
+  organizationId  String
+  createdById     String?
+  data            Json     @default("{}")
+  schedule        String?  // DAILY, WEEKLY, MONTHLY, QUARTERLY
+  lastGenerated   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User?        @relation("ReportCreatedBy", fields: [createdById], references: [id])
+
+  @@map("reports")
+}
+
+// Purchase Order Management
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  poNumber        String   @unique
+  status          String   @default("DRAFT") // DRAFT, APPROVED, ORDERED, RECEIVED, CANCELLED
+  total           Float
+  organizationId  String
+  supplierId      String?
+  createdById     String
+  notes           String?
+  expectedDelivery DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdBy       User         @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id])
+
+  @@map("purchase_orders")
+}
+
+// WooCommerce Integration
+model WooCommerceIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  siteUrl         String
+  consumerKey     String
+  consumerSecret  String
+  isActive        Boolean  @default(true)
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("woocommerce_integrations")
+}
+
+// WhatsApp Integration
+model WhatsAppIntegration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  phoneNumber     String
+  accessToken     String
+  isActive        Boolean  @default(true)
+  webhookUrl      String?
+  lastSync        DateTime?
+  syncSettings    Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_integrations")
+}

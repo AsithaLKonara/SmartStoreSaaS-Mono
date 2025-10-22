@@ -1,0 +1,66 @@
+[
+  {
+    "id": "org_demo_store",
+    "name": "Demo Store",
+    "subdomain": "demo",
+    "plan": "premium",
+    "settings": {
+      "currency": "LKR",
+      "timezone": "Asia/Colombo",
+      "language": "en",
+      "taxRate": 8.5,
+      "shippingMethods": ["standard", "express", "overnight"],
+      "paymentMethods": ["stripe", "paypal", "cash"],
+      "notifications": {
+        "email": true,
+        "sms": false,
+        "whatsapp": true
+      }
+    },
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "org_tech_gadgets",
+    "name": "Tech Gadgets Pro",
+    "subdomain": "tech",
+    "plan": "enterprise",
+    "settings": {
+      "currency": "LKR",
+      "timezone": "Asia/Colombo",
+      "language": "en",
+      "taxRate": 20.0,
+      "shippingMethods": ["standard", "express", "same-day"],
+      "paymentMethods": ["stripe", "paypal", "apple-pay", "google-pay"],
+      "notifications": {
+        "email": true,
+        "sms": true,
+        "whatsapp": true
+      }
+    },
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "org_fashion_boutique",
+    "name": "Fashion Boutique",
+    "subdomain": "fashion",
+    "plan": "basic",
+    "settings": {
+      "currency": "LKR",
+      "timezone": "Asia/Colombo",
+      "language": "en",
+      "taxRate": 0.0,
+      "shippingMethods": ["standard", "express"],
+      "paymentMethods": ["stripe", "paypal"],
+      "notifications": {
+        "email": true,
+        "sms": false,
+        "whatsapp": false
+      }
+    },
+    "createdAt": "2024-02-01T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  }
+]
+

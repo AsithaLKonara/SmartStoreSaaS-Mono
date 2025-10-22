@@ -1,0 +1,17 @@
+[
+  {
+    "id": "001-create-indexes",
+    "name": "Create database indexes for performance",
+    "executed": false
+  },
+  {
+    "id": "002-add-constraints",
+    "name": "Add database constraints for data integrity",
+    "executed": false
+  },
+  {
+    "id": "003-seed-data",
+    "name": "Seed initial data (organizations, categories)",
+    "executed": false
+  }
+]

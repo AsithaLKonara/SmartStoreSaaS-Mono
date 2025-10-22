@@ -1,0 +1,529 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          String    @default("STAFF") // ADMIN, STAFF, USER
+  isActive      Boolean   @default(true)
+  organizationId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organization     Organization?     @relation(fields: [organizationId], references: [id])
+  createdProducts  Product[]
+  createdOrders    Order[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+// Organization Management
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  plan        String   @default("FREE") // FREE, PRO, ENTERPRISE
+  isActive    Boolean  @default(true)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users                User[]
+  customers            Customer[]
+  products             Product[]
+  categories           Category[]
+  orders               Order[]
+  payments             Payment[]
+  deliveries           Delivery[]
+  couriers             Courier[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+
+  @@map("organizations")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  phone         String?
+  address       Json?
+  organizationId String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  orders           Order[]
+
+  @@map("customers")
+}
+
+// Product Management
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  sku           String?
+  stock         Int      @default(0)
+  images        String[]
+  categoryId    String?
+  organizationId String
+  createdById   String
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, DRAFT
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  createdBy        User              @relation(fields: [createdById], references: [id])
+  category         Category?         @relation(fields: [categoryId], references: [id])
+  orderItems       OrderItem[]
+
+  @@map("products")
+}
+
+// Category Management
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  organizationId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Order Management
+model Order {
+  id            String   @id @default(cuid())
+  orderNumber   String   @unique
+  customerId    String
+  organizationId String
+  createdById   String
+  status        String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  total         Decimal  @db.Decimal(10, 2)
+  currency      String   @default("LKR")
+  billingAddress Json?
+  shippingAddress Json?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  createdBy       User            @relation(fields: [createdById], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+  deliveries      Delivery[]
+
+  @@map("orders")
+}
+
+// Order Item Management
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// Payment Management
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  organizationId String
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("LKR")
+  method        String   // CASH, CARD, BANK_TRANSFER, LANKAQR, COD, WebXPay
+  status        String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  transactionId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  order        Order        @relation(fields: [orderId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("payments")
+}
+
+// Delivery Management
+model Delivery {
+  id            String   @id @default(cuid())
+  orderId       String
+  organizationId String
+  courierId     String?
+  status        String   @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED, FAILED
+  trackingNumber String?
+  estimatedDelivery DateTime?
+  actualDelivery DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  order        Order        @relation(fields: [orderId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  courier      Courier?     @relation(fields: [courierId], references: [id])
+
+  @@map("deliveries")
+}
+
+// Courier Management
+model Courier {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  email         String?
+  organizationId String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  deliveries   Delivery[]
+
+  @@map("couriers")
+}
+
+// Notification Management
+model Notification {
+  id            String   @id @default(cuid())
+  userId        String
+  organizationId String
+  title         String
+  message       String
+  type          String   // INFO, WARNING, ERROR, SUCCESS
+  isRead        Boolean  @default(false)
+  data          Json?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("notifications")
+}
+
+// Audit and Security
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  organizationId String?
+  action        String
+  resource      String
+  resourceId    String?
+  details       Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user         User?         @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("audit_logs")
+}
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  image         String?
+  role          String    @default("STAFF") // ADMIN, STAFF, USER
+  isActive      Boolean   @default(true)
+  organizationId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  organization     Organization?     @relation(fields: [organizationId], references: [id])
+  createdProducts  Product[]
+  createdOrders    Order[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+// Organization Management
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  plan        String   @default("FREE") // FREE, PRO, ENTERPRISE
+  isActive    Boolean  @default(true)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users                User[]
+  customers            Customer[]
+  products             Product[]
+  categories           Category[]
+  orders               Order[]
+  payments             Payment[]
+  deliveries           Delivery[]
+  couriers             Courier[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+
+  @@map("organizations")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  phone         String?
+  address       Json?
+  organizationId String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  orders           Order[]
+
+  @@map("customers")
+}
+
+// Product Management
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  price         Decimal  @db.Decimal(10, 2)
+  sku           String?
+  stock         Int      @default(0)
+  images        String[]
+  categoryId    String?
+  organizationId String
+  createdById   String
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE, DRAFT
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  createdBy        User              @relation(fields: [createdById], references: [id])
+  category         Category?         @relation(fields: [categoryId], references: [id])
+  orderItems       OrderItem[]
+
+  @@map("products")
+}
+
+// Category Management
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  organizationId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Order Management
+model Order {
+  id            String   @id @default(cuid())
+  orderNumber   String   @unique
+  customerId    String
+  organizationId String
+  createdById   String
+  status        String   @default("PENDING") // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  total         Decimal  @db.Decimal(10, 2)
+  currency      String   @default("LKR")
+  billingAddress Json?
+  shippingAddress Json?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  createdBy       User            @relation(fields: [createdById], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+  deliveries      Delivery[]
+
+  @@map("orders")
+}
+
+// Order Item Management
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// Payment Management
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  organizationId String
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("LKR")
+  method        String   // CASH, CARD, BANK_TRANSFER, LANKAQR, COD, WebXPay
+  status        String   @default("PENDING") // PENDING, COMPLETED, FAILED, REFUNDED
+  transactionId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  order        Order        @relation(fields: [orderId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("payments")
+}
+
+// Delivery Management
+model Delivery {
+  id            String   @id @default(cuid())
+  orderId       String
+  organizationId String
+  courierId     String?
+  status        String   @default("PENDING") // PENDING, PICKED_UP, IN_TRANSIT, DELIVERED, FAILED
+  trackingNumber String?
+  estimatedDelivery DateTime?
+  actualDelivery DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  order        Order        @relation(fields: [orderId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  courier      Courier?     @relation(fields: [courierId], references: [id])
+
+  @@map("deliveries")
+}
+
+// Courier Management
+model Courier {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  email         String?
+  organizationId String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  deliveries   Delivery[]
+
+  @@map("couriers")
+}
+
+// Notification Management
+model Notification {
+  id            String   @id @default(cuid())
+  userId        String
+  organizationId String
+  title         String
+  message       String
+  type          String   // INFO, WARNING, ERROR, SUCCESS
+  isRead        Boolean  @default(false)
+  data          Json?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("notifications")
+}
+
+// Audit and Security
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  organizationId String?
+  action        String
+  resource      String
+  resourceId    String?
+  details       Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user         User?         @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("audit_logs")
+}

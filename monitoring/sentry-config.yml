@@ -1,0 +1,442 @@
+# Sentry Configuration for SmartStore SaaS
+# Error tracking and performance monitoring
+
+version: 2
+
+# Project settings
+project: smartstore-saas
+environment: production
+organization: smartstore
+
+# Error tracking configuration
+error_tracking:
+  enabled: true
+  sample_rate: 1.0
+  max_breadcrumbs: 50
+  attach_stacktrace: true
+  send_default_pii: false
+
+# Performance monitoring
+performance_monitoring:
+  enabled: true
+  sample_rate: 0.1
+  traces_sample_rate: 0.1
+  profiles_sample_rate: 0.1
+
+# Release tracking
+releases:
+  auto_deploy: true
+  create_release: true
+  finalize_release: true
+
+# Alerts configuration
+alerts:
+  # Critical errors (immediate notification)
+  critical_errors:
+    enabled: true
+    threshold: 1
+    time_window: 5m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Performance degradation
+  performance_degradation:
+    enabled: true
+    threshold: 2000ms  # 2 seconds
+    time_window: 10m
+    channels: ["email", "slack"]
+    
+  # High error rate
+  high_error_rate:
+    enabled: true
+    threshold: 5%  # 5% error rate
+    time_window: 15m
+    channels: ["email", "slack"]
+    
+  # Database connection issues
+  database_errors:
+    enabled: true
+    threshold: 3
+    time_window: 5m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Payment processing errors
+  payment_errors:
+    enabled: true
+    threshold: 1
+    time_window: 2m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Courier API failures
+  courier_api_errors:
+    enabled: true
+    threshold: 3
+    time_window: 10m
+    channels: ["email", "slack"]
+
+# Custom tags for better filtering
+tags:
+  service: smartstore-saas
+  version: 2.1.0
+  environment: production
+  region: asia-south1
+
+# User context
+user_context:
+  include_user_id: true
+  include_email: false
+  include_username: true
+
+# Breadcrumbs for better debugging
+breadcrumbs:
+  console: true
+  dom: true
+  fetch: true
+  history: true
+  sentry: true
+  xhr: true
+
+# Security settings
+security:
+  sanitize_data: true
+  strip_sensitive_data: true
+  include_request_headers: false
+  include_response_headers: false
+
+# Integration settings
+integrations:
+  - name: "@sentry/node"
+    options:
+      tracing: true
+      profiling: true
+  - name: "@sentry/react"
+    options:
+      tracing: true
+      profiling: true
+  - name: "@sentry/nextjs"
+    options:
+      tracing: true
+      profiling: true
+
+# Custom error grouping
+error_grouping:
+  fingerprinting:
+    enabled: true
+    rules:
+      - "courier-api-error"
+      - "payment-processing-error"
+      - "database-connection-error"
+      - "authentication-error"
+      - "validation-error"
+
+# Rate limiting
+rate_limiting:
+  enabled: true
+  max_events_per_minute: 1000
+  max_events_per_hour: 10000
+
+# Data scrubbing
+data_scrubbing:
+  enabled: true
+  rules:
+    - "password"
+    - "token"
+    - "api_key"
+    - "secret"
+    - "credit_card"
+    - "ssn"
+    - "phone"
+    - "email"
+# Error tracking and performance monitoring
+
+version: 2
+
+# Project settings
+project: smartstore-saas
+environment: production
+organization: smartstore
+
+# Error tracking configuration
+error_tracking:
+  enabled: true
+  sample_rate: 1.0
+  max_breadcrumbs: 50
+  attach_stacktrace: true
+  send_default_pii: false
+
+# Performance monitoring
+performance_monitoring:
+  enabled: true
+  sample_rate: 0.1
+  traces_sample_rate: 0.1
+  profiles_sample_rate: 0.1
+
+# Release tracking
+releases:
+  auto_deploy: true
+  create_release: true
+  finalize_release: true
+
+# Alerts configuration
+alerts:
+  # Critical errors (immediate notification)
+  critical_errors:
+    enabled: true
+    threshold: 1
+    time_window: 5m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Performance degradation
+  performance_degradation:
+    enabled: true
+    threshold: 2000ms  # 2 seconds
+    time_window: 10m
+    channels: ["email", "slack"]
+    
+  # High error rate
+  high_error_rate:
+    enabled: true
+    threshold: 5%  # 5% error rate
+    time_window: 15m
+    channels: ["email", "slack"]
+    
+  # Database connection issues
+  database_errors:
+    enabled: true
+    threshold: 3
+    time_window: 5m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Payment processing errors
+  payment_errors:
+    enabled: true
+    threshold: 1
+    time_window: 2m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Courier API failures
+  courier_api_errors:
+    enabled: true
+    threshold: 3
+    time_window: 10m
+    channels: ["email", "slack"]
+
+# Custom tags for better filtering
+tags:
+  service: smartstore-saas
+  version: 2.1.0
+  environment: production
+  region: asia-south1
+
+# User context
+user_context:
+  include_user_id: true
+  include_email: false
+  include_username: true
+
+# Breadcrumbs for better debugging
+breadcrumbs:
+  console: true
+  dom: true
+  fetch: true
+  history: true
+  sentry: true
+  xhr: true
+
+# Security settings
+security:
+  sanitize_data: true
+  strip_sensitive_data: true
+  include_request_headers: false
+  include_response_headers: false
+
+# Integration settings
+integrations:
+  - name: "@sentry/node"
+    options:
+      tracing: true
+      profiling: true
+  - name: "@sentry/react"
+    options:
+      tracing: true
+      profiling: true
+  - name: "@sentry/nextjs"
+    options:
+      tracing: true
+      profiling: true
+
+# Custom error grouping
+error_grouping:
+  fingerprinting:
+    enabled: true
+    rules:
+      - "courier-api-error"
+      - "payment-processing-error"
+      - "database-connection-error"
+      - "authentication-error"
+      - "validation-error"
+
+# Rate limiting
+rate_limiting:
+  enabled: true
+  max_events_per_minute: 1000
+  max_events_per_hour: 10000
+
+# Data scrubbing
+data_scrubbing:
+  enabled: true
+  rules:
+    - "password"
+    - "token"
+    - "api_key"
+    - "secret"
+    - "credit_card"
+    - "ssn"
+    - "phone"
+    - "email"
+# Error tracking and performance monitoring
+
+version: 2
+
+# Project settings
+project: smartstore-saas
+environment: production
+organization: smartstore
+
+# Error tracking configuration
+error_tracking:
+  enabled: true
+  sample_rate: 1.0
+  max_breadcrumbs: 50
+  attach_stacktrace: true
+  send_default_pii: false
+
+# Performance monitoring
+performance_monitoring:
+  enabled: true
+  sample_rate: 0.1
+  traces_sample_rate: 0.1
+  profiles_sample_rate: 0.1
+
+# Release tracking
+releases:
+  auto_deploy: true
+  create_release: true
+  finalize_release: true
+
+# Alerts configuration
+alerts:
+  # Critical errors (immediate notification)
+  critical_errors:
+    enabled: true
+    threshold: 1
+    time_window: 5m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Performance degradation
+  performance_degradation:
+    enabled: true
+    threshold: 2000ms  # 2 seconds
+    time_window: 10m
+    channels: ["email", "slack"]
+    
+  # High error rate
+  high_error_rate:
+    enabled: true
+    threshold: 5%  # 5% error rate
+    time_window: 15m
+    channels: ["email", "slack"]
+    
+  # Database connection issues
+  database_errors:
+    enabled: true
+    threshold: 3
+    time_window: 5m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Payment processing errors
+  payment_errors:
+    enabled: true
+    threshold: 1
+    time_window: 2m
+    channels: ["email", "slack", "pagerduty"]
+    
+  # Courier API failures
+  courier_api_errors:
+    enabled: true
+    threshold: 3
+    time_window: 10m
+    channels: ["email", "slack"]
+
+# Custom tags for better filtering
+tags:
+  service: smartstore-saas
+  version: 2.1.0
+  environment: production
+  region: asia-south1
+
+# User context
+user_context:
+  include_user_id: true
+  include_email: false
+  include_username: true
+
+# Breadcrumbs for better debugging
+breadcrumbs:
+  console: true
+  dom: true
+  fetch: true
+  history: true
+  sentry: true
+  xhr: true
+
+# Security settings
+security:
+  sanitize_data: true
+  strip_sensitive_data: true
+  include_request_headers: false
+  include_response_headers: false
+
+# Integration settings
+integrations:
+  - name: "@sentry/node"
+    options:
+      tracing: true
+      profiling: true
+  - name: "@sentry/react"
+    options:
+      tracing: true
+      profiling: true
+  - name: "@sentry/nextjs"
+    options:
+      tracing: true
+      profiling: true
+
+# Custom error grouping
+error_grouping:
+  fingerprinting:
+    enabled: true
+    rules:
+      - "courier-api-error"
+      - "payment-processing-error"
+      - "database-connection-error"
+      - "authentication-error"
+      - "validation-error"
+
+# Rate limiting
+rate_limiting:
+  enabled: true
+  max_events_per_minute: 1000
+  max_events_per_hour: 10000
+
+# Data scrubbing
+data_scrubbing:
+  enabled: true
+  rules:
+    - "password"
+    - "token"
+    - "api_key"
+    - "secret"
+    - "credit_card"
+    - "ssn"
+    - "phone"
+    - "email"

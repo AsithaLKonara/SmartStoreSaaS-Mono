@@ -1,0 +1,59 @@
+{
+  "products": [
+    {
+      "name": "Premium T-Shirt",
+      "sku": "TSHIRT-001",
+      "description": "High quality cotton t-shirt",
+      "price": 29.99,
+      "cost": 15.00,
+      "stock": 100,
+      "minStock": 20,
+      "isActive": true,
+      "variants": [
+        {
+          "name": "Small - Blue",
+          "sku": "TSHIRT-001-S-BLU",
+          "price": 29.99,
+          "stock": 50
+        },
+        {
+          "name": "Medium - Red",
+          "sku": "TSHIRT-001-M-RED",
+          "price": 29.99,
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "name": "Designer Jeans",
+      "sku": "JEANS-001",
+      "description": "Premium denim jeans",
+      "price": 79.99,
+      "cost": 40.00,
+      "stock": 50,
+      "minStock": 10,
+      "isActive": true
+    },
+    {
+      "name": "Leather Wallet",
+      "sku": "WALLET-001",
+      "description": "Genuine leather wallet",
+      "price": 34.99,
+      "cost": 18.00,
+      "stock": 75,
+      "minStock": 15,
+      "isActive": true
+    },
+    {
+      "name": "Running Shoes",
+      "sku": "SHOES-001",
+      "description": "Comfortable running shoes",
+      "price": 89.99,
+      "cost": 45.00,
+      "stock": 30,
+      "minStock": 5,
+      "isActive": true
+    }
+  ]
+}
+

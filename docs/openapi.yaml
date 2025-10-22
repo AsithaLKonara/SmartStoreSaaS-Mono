@@ -1,0 +1,1196 @@
+openapi: 3.0.3
+info:
+  title: SmartStore SaaS API
+  description: |
+    A comprehensive REST API for managing e-commerce operations including products, orders, customers, and analytics.
+    
+    ## Authentication
+    All API endpoints require authentication using NextAuth.js with JWT tokens.
+    
+    ## Rate Limiting
+    API endpoints are rate limited to prevent abuse:
+    - Authentication endpoints: 10 requests per minute
+    - CRUD operations: 100 requests per 15 minutes
+    - Analytics endpoints: 50 requests per 15 minutes
+    - Monitoring endpoints: 200 requests per 15 minutes
+    
+    ## Support
+    For API support and questions:
+    - Documentation: https://docs.smartstore-saas.com
+    - Support Email: support@smartstore-saas.com
+    - Status Page: https://status.smartstore-saas.com
+  version: 1.2.0
+  contact:
+    name: SmartStore SaaS Support
+    email: support@smartstore-saas.com
+    url: https://docs.smartstore-saas.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://smart-store-saas-demo.vercel.app/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/signin:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Authenticate user and receive JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: jwt-token-here
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get Products
+      description: Retrieve a paginated list of products with optional filtering and sorting
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Search term for name, description, or SKU
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by category ID
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [name, price, createdAt]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  message:
+                    type: string
+                    example: Products fetched successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Products
+      summary: Create Product
+      description: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+                  message:
+                    type: string
+                    example: Product created successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          description: Product with SKU already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Products
+      summary: Update Product
+      description: Update an existing product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+                  message:
+                    type: string
+                    example: Product updated successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      tags:
+        - Products
+      summary: Delete Product
+      description: Delete a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  example: product-123
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Product deleted successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Get Orders
+      description: Retrieve a paginated list of orders with optional filtering
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Filter by order status
+          schema:
+            type: string
+            enum: [pending, processing, shipped, delivered, cancelled]
+        - name: customerId
+          in: query
+          description: Filter by customer ID
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: Start date (ISO format)
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: End date (ISO format)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Orders
+      summary: Create Order
+      description: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Order'
+                  message:
+                    type: string
+                    example: Order created successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: Get Customers
+      description: Retrieve a paginated list of customers with optional filtering
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Search term for name, email, or phone
+          schema:
+            type: string
+        - name: segment
+          in: query
+          description: Filter by customer segment
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Customers
+      summary: Create Customer
+      description: Create a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+      responses:
+        '201':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Customer'
+                  message:
+                    type: string
+                    example: Customer created successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /analytics/dashboard:
+    get:
+      tags:
+        - Analytics
+      summary: Get Dashboard Statistics
+      description: Retrieve dashboard statistics including counts and recent activity
+      responses:
+        '200':
+          description: Dashboard statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/DashboardStats'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /health:
+    get:
+      tags:
+        - Monitoring
+      summary: Health Check
+      description: Check the health status of the API and its dependencies
+      security: []
+      responses:
+        '200':
+          description: Health check successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+        '503':
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheck'
+
+  /db-check:
+    get:
+      tags:
+        - Monitoring
+      summary: Database Check
+      description: Check database connectivity and get record counts
+      security: []
+      responses:
+        '200':
+          description: Database check successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseCheck'
+
+  /performance/dashboard:
+    get:
+      tags:
+        - Monitoring
+      summary: Performance Dashboard
+      description: Get performance metrics and monitoring data
+      parameters:
+        - name: timeRange
+          in: query
+          description: Time range for metrics
+          schema:
+            type: string
+            enum: [1h, 24h, 7d]
+            default: 24h
+      responses:
+        '200':
+          description: Performance metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PerformanceDashboard'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /security/audit:
+    get:
+      tags:
+        - Security
+      summary: Security Audit
+      description: Perform security audit and get security recommendations
+      responses:
+        '200':
+          description: Security audit completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SecurityAudit'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: user-123
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        name:
+          type: string
+          example: Admin User
+        role:
+          type: string
+          example: admin
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          example: product-123
+        name:
+          type: string
+          example: Sample Product
+        description:
+          type: string
+          example: Product description
+        sku:
+          type: string
+          example: SKU-001
+        price:
+          type: number
+          format: decimal
+          example: 29.99
+        cost:
+          type: number
+          format: decimal
+          example: 15.00
+        stock:
+          type: integer
+          example: 100
+        isActive:
+          type: boolean
+          example: true
+        categoryId:
+          type: string
+          example: cat-123
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+
+    ProductCreate:
+      type: object
+      required:
+        - name
+        - sku
+        - price
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: New Product
+        description:
+          type: string
+          maxLength: 1000
+          example: Product description
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: SKU-002
+        price:
+          type: number
+          minimum: 0.01
+          example: 39.99
+        cost:
+          type: number
+          minimum: 0
+          example: 20.00
+        categoryId:
+          type: string
+          example: cat-123
+        isActive:
+          type: boolean
+          default: true
+
+    ProductUpdate:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          example: product-123
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+        price:
+          type: number
+          minimum: 0.01
+        cost:
+          type: number
+          minimum: 0
+        categoryId:
+          type: string
+        isActive:
+          type: boolean
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          example: order-123
+        orderNumber:
+          type: string
+          example: ORD-001
+        status:
+          type: string
+          enum: [pending, processing, shipped, delivered, cancelled]
+          example: pending
+        total:
+          type: number
+          format: decimal
+          example: 99.98
+        customerId:
+          type: string
+          example: customer-123
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        customer:
+          type: object
+          properties:
+            id:
+              type: string
+              example: customer-123
+            name:
+              type: string
+              example: John Doe
+            email:
+              type: string
+              example: john@example.com
+        orderItems:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: item-123
+              quantity:
+                type: integer
+                example: 2
+              price:
+                type: number
+                example: 29.99
+              product:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Sample Product
+                  sku:
+                    type: string
+                    example: SKU-001
+
+    OrderCreate:
+      type: object
+      required:
+        - customerId
+        - items
+      properties:
+        customerId:
+          type: string
+          example: customer-123
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - productId
+              - quantity
+              - price
+            properties:
+              productId:
+                type: string
+                example: product-123
+              quantity:
+                type: integer
+                minimum: 1
+                example: 2
+              price:
+                type: number
+                minimum: 0.01
+                example: 29.99
+        shippingAddress:
+          type: object
+          properties:
+            street:
+              type: string
+              example: 123 Main St
+            city:
+              type: string
+              example: Anytown
+            state:
+              type: string
+              example: CA
+            zipCode:
+              type: string
+              example: 12345
+            country:
+              type: string
+              example: US
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          example: customer-123
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        phone:
+          type: string
+          example: +1234567890
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: 123 Main St
+            city:
+              type: string
+              example: Anytown
+            state:
+              type: string
+              example: CA
+            zipCode:
+              type: string
+              example: 12345
+        createdAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        _count:
+          type: object
+          properties:
+            orders:
+              type: integer
+              example: 5
+
+    CustomerCreate:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Jane Doe
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        phone:
+          type: string
+          example: +1234567891
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: 456 Oak Ave
+            city:
+              type: string
+              example: Another City
+            state:
+              type: string
+              example: NY
+            zipCode:
+              type: string
+              example: 67890
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 100
+        totalPages:
+          type: integer
+          example: 10
+
+    DashboardStats:
+      type: object
+      properties:
+        products:
+          type: integer
+          example: 150
+        orders:
+          type: integer
+          example: 500
+        customers:
+          type: integer
+          example: 102
+        revenue:
+          type: number
+          format: decimal
+          example: 25000.50
+        recentOrders:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: order-123
+              orderNumber:
+                type: string
+                example: ORD-001
+              total:
+                type: number
+                example: 99.98
+              status:
+                type: string
+                example: completed
+              createdAt:
+                type: string
+                format: date-time
+        topProducts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: product-123
+              name:
+                type: string
+                example: Best Seller
+              sales:
+                type: integer
+                example: 50
+              revenue:
+                type: number
+                example: 1499.50
+
+    HealthCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        responseTime:
+          type: string
+          example: 15ms
+        checks:
+          type: object
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: ok
+                responseTime:
+                  type: integer
+                  example: 12
+                error:
+                  type: string
+                  nullable: true
+            memory:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: ok
+                usage:
+                  type: object
+                  properties:
+                    rss:
+                      type: integer
+                      example: 150
+                    heapTotal:
+                      type: integer
+                      example: 100
+                    heapUsed:
+                      type: integer
+                      example: 80
+                    external:
+                      type: integer
+                      example: 50
+                error:
+                  type: string
+                  nullable: true
+        version:
+          type: string
+          example: 1.2.0
+        environment:
+          type: string
+          example: production
+
+    DatabaseCheck:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        database:
+          type: string
+          example: connected
+        responseTime:
+          type: string
+          example: 25ms
+        counts:
+          type: object
+          properties:
+            users:
+              type: integer
+              example: 51
+            products:
+              type: integer
+              example: 203
+            orders:
+              type: integer
+              example: 500
+            customers:
+              type: integer
+              example: 102
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+
+    PerformanceDashboard:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            totalRequests:
+              type: integer
+              example: 1000
+            averageResponseTime:
+              type: integer
+              example: 150
+            slowestRequests:
+              type: array
+              items:
+                type: object
+            errorRate:
+              type: number
+              example: 2.5
+        health:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [healthy, warning, critical]
+              example: healthy
+            alerts:
+              type: array
+              items:
+                type: string
+
+    SecurityAudit:
+      type: object
+      properties:
+        environment:
+          type: object
+          properties:
+            secure:
+              type: boolean
+              example: true
+            issues:
+              type: array
+              items:
+                type: string
+        headers:
+          type: object
+          properties:
+            https:
+              type: boolean
+              example: true
+            userAgent:
+              type: string
+              example: curl/8.7.1
+        recommendations:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Error type
+        message:
+          type: string
+          example: Human-readable error message
+        code:
+          type: string
+          example: ERROR_CODE
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00Z
+        path:
+          type: string
+          example: /api/endpoint
+        requestId:
+          type: string
+          example: req_1234567890_abcdef
+
+    ValidationError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Validation failed
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: email
+              message:
+                type: string
+                example: Email is required
+              code:
+                type: string
+                example: required
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Products
+    description: Product management operations
+  - name: Orders
+    description: Order management operations
+  - name: Customers
+    description: Customer management operations
+  - name: Analytics
+    description: Analytics and reporting
+  - name: Monitoring
+    description: System monitoring and health checks
+  - name: Security
+    description: Security audit and monitoring
+
+
+
+

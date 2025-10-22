@@ -1,0 +1,35 @@
+{
+  "superAdmin": {
+    "email": "superadmin+test@smartstore.test",
+    "name": "Super Admin Test",
+    "password": "SuperAdmin123!",
+    "role": "SUPER_ADMIN"
+  },
+  "tenantAdmin": {
+    "email": "admin+test@smartstore.test",
+    "name": "Tenant Admin Test",
+    "password": "TenantAdmin123!",
+    "role": "TENANT_ADMIN"
+  },
+  "staffSales": {
+    "email": "staff.sales+test@smartstore.test",
+    "name": "Sales Staff Test",
+    "password": "StaffSales123!",
+    "role": "STAFF",
+    "roleTag": "sales_staff"
+  },
+  "staffInventory": {
+    "email": "staff.inventory+test@smartstore.test",
+    "name": "Inventory Staff Test",
+    "password": "StaffInventory123!",
+    "role": "STAFF",
+    "roleTag": "inventory_manager"
+  },
+  "customer": {
+    "email": "customer+test@smartstore.test",
+    "name": "Customer Test",
+    "password": "Customer123!",
+    "role": "CUSTOMER"
+  }
+}
+

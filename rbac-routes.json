@@ -1,0 +1,493 @@
+{
+  "roles": {
+    "SUPER_ADMIN": {
+      "description": "Full system access, manages all organizations",
+      "pageCount": 72,
+      "permissions": [
+        "VIEW_ALL_ORGANIZATIONS",
+        "MANAGE_ORGANIZATIONS",
+        "VIEW_SYSTEM_LOGS",
+        "MANAGE_SYSTEM_SETTINGS",
+        "VIEW_AUDIT_LOGS",
+        "MANAGE_PACKAGES",
+        "VIEW_USERS",
+        "MANAGE_USERS",
+        "VIEW_PRODUCTS",
+        "MANAGE_PRODUCTS",
+        "VIEW_ORDERS",
+        "MANAGE_ORDERS",
+        "VIEW_CUSTOMERS",
+        "MANAGE_CUSTOMERS",
+        "VIEW_INVENTORY",
+        "MANAGE_INVENTORY",
+        "VIEW_ANALYTICS",
+        "VIEW_REPORTS",
+        "VIEW_AI_INSIGHTS",
+        "VIEW_SETTINGS",
+        "MANAGE_SETTINGS",
+        "VIEW_BILLING",
+        "MANAGE_BILLING",
+        "VIEW_MONITORING",
+        "MANAGE_MONITORING"
+      ]
+    },
+    "TENANT_ADMIN": {
+      "description": "Full organization access",
+      "pageCount": 63,
+      "permissions": [
+        "VIEW_USERS",
+        "MANAGE_USERS",
+        "VIEW_PRODUCTS",
+        "MANAGE_PRODUCTS",
+        "VIEW_ORDERS",
+        "MANAGE_ORDERS",
+        "VIEW_CUSTOMERS",
+        "MANAGE_CUSTOMERS",
+        "VIEW_INVENTORY",
+        "MANAGE_INVENTORY",
+        "VIEW_ANALYTICS",
+        "VIEW_REPORTS",
+        "VIEW_AI_INSIGHTS",
+        "VIEW_SETTINGS",
+        "MANAGE_SETTINGS",
+        "VIEW_BILLING",
+        "MANAGE_BILLING",
+        "VIEW_ORGANIZATION",
+        "MANAGE_ORGANIZATION_SETTINGS"
+      ]
+    },
+    "STAFF": {
+      "description": "Limited access based on role tag",
+      "pageCount": 25,
+      "roleTags": {
+        "sales_staff": ["VIEW_PRODUCTS", "VIEW_ORDERS", "CREATE_ORDERS", "VIEW_CUSTOMERS"],
+        "inventory_manager": ["VIEW_PRODUCTS", "MANAGE_PRODUCTS", "VIEW_INVENTORY", "MANAGE_INVENTORY"],
+        "customer_service": ["VIEW_CUSTOMERS", "VIEW_ORDERS", "UPDATE_ORDERS", "MANAGE_CUSTOMERS"],
+        "accountant": ["VIEW_ANALYTICS", "VIEW_REPORTS", "VIEW_BILLING"]
+      },
+      "permissions": [
+        "VIEW_ASSIGNED_PRODUCTS",
+        "VIEW_ASSIGNED_CUSTOMERS",
+        "VIEW_ASSIGNED_INVENTORY"
+      ]
+    },
+    "CUSTOMER": {
+      "description": "Customer portal access only",
+      "pageCount": 6,
+      "permissions": [
+        "VIEW_OWN_ORDERS",
+        "VIEW_BILLING_INFO"
+      ]
+    }
+  },
+  "routes": [
+    {
+      "path": "/api/auth/[...nextauth]",
+      "method": "POST",
+      "allowedRoles": ["*"],
+      "requiresAuth": false,
+      "category": "Authentication"
+    },
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "allowedRoles": ["*"],
+      "requiresAuth": false,
+      "category": "Monitoring"
+    },
+    {
+      "path": "/api/users",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_USERS",
+      "category": "User Management"
+    },
+    {
+      "path": "/api/users",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "MANAGE_USERS",
+      "category": "User Management"
+    },
+    {
+      "path": "/api/users/[id]",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_USERS",
+      "category": "User Management"
+    },
+    {
+      "path": "/api/users/[id]",
+      "method": "PUT",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "MANAGE_USERS",
+      "category": "User Management"
+    },
+    {
+      "path": "/api/users/[id]",
+      "method": "DELETE",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "MANAGE_USERS",
+      "category": "User Management"
+    },
+    {
+      "path": "/api/tenants",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_ALL_ORGANIZATIONS",
+      "category": "Organization Management"
+    },
+    {
+      "path": "/api/tenants",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "MANAGE_ORGANIZATIONS",
+      "category": "Organization Management"
+    },
+    {
+      "path": "/api/tenants/[id]",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_ORGANIZATION",
+      "category": "Organization Management"
+    },
+    {
+      "path": "/api/tenants/[id]",
+      "method": "PUT",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "MANAGE_ORGANIZATION_SETTINGS",
+      "category": "Organization Management"
+    },
+    {
+      "path": "/api/products",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/api/products",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/api/products/[id]",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF", "CUSTOMER"],
+      "requiredPermission": "VIEW_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/api/products/[id]",
+      "method": "PUT",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/api/products/[id]",
+      "method": "DELETE",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "MANAGE_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/api/orders",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_ORDERS",
+      "category": "Order Management"
+    },
+    {
+      "path": "/api/orders",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF", "CUSTOMER"],
+      "requiredPermission": "CREATE_ORDERS",
+      "category": "Order Management"
+    },
+    {
+      "path": "/api/orders/[id]",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF", "CUSTOMER"],
+      "requiredPermission": "VIEW_ORDERS",
+      "category": "Order Management"
+    },
+    {
+      "path": "/api/orders/[id]",
+      "method": "PUT",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_ORDERS",
+      "category": "Order Management"
+    },
+    {
+      "path": "/api/customers",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/api/customers",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/api/customers/[id]",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/api/customers/[id]",
+      "method": "PUT",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/api/inventory",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_INVENTORY",
+      "category": "Inventory Management"
+    },
+    {
+      "path": "/api/inventory/[id]/adjust",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_INVENTORY",
+      "category": "Inventory Management"
+    },
+    {
+      "path": "/api/analytics/dashboard",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_ANALYTICS",
+      "category": "Analytics"
+    },
+    {
+      "path": "/api/analytics/customer-insights",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_ANALYTICS",
+      "category": "Analytics"
+    },
+    {
+      "path": "/api/reports/generate",
+      "method": "POST",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_REPORTS",
+      "category": "Reporting"
+    },
+    {
+      "path": "/api/audit-logs",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_AUDIT_LOGS",
+      "category": "Administration"
+    },
+    {
+      "path": "/api/monitoring/status",
+      "method": "GET",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_MONITORING",
+      "category": "Monitoring"
+    },
+    {
+      "path": "/api/customer-portal/orders",
+      "method": "GET",
+      "allowedRoles": ["CUSTOMER"],
+      "requiredPermission": "VIEW_OWN_ORDERS",
+      "category": "Customer Portal"
+    },
+    {
+      "path": "/api/customer-portal/account",
+      "method": "GET",
+      "allowedRoles": ["CUSTOMER"],
+      "requiredPermission": "VIEW_OWN_ORDERS",
+      "category": "Customer Portal"
+    }
+  ],
+  "pages": [
+    {
+      "path": "/login",
+      "allowedRoles": ["*"],
+      "requiresAuth": false,
+      "category": "Authentication"
+    },
+    {
+      "path": "/register",
+      "allowedRoles": ["*"],
+      "requiresAuth": false,
+      "category": "Authentication"
+    },
+    {
+      "path": "/dashboard",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiresAuth": true,
+      "category": "Dashboard"
+    },
+    {
+      "path": "/dashboard/products",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/dashboard/products/new",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/dashboard/products/[id]",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_PRODUCTS",
+      "category": "Product Management"
+    },
+    {
+      "path": "/dashboard/orders",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_ORDERS",
+      "category": "Order Management"
+    },
+    {
+      "path": "/dashboard/orders/new",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "CREATE_ORDERS",
+      "category": "Order Management"
+    },
+    {
+      "path": "/dashboard/customers",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/dashboard/customers/new",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "MANAGE_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/dashboard/customers/[id]",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_CUSTOMERS",
+      "category": "Customer Management"
+    },
+    {
+      "path": "/dashboard/inventory",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_INVENTORY",
+      "category": "Inventory"
+    },
+    {
+      "path": "/dashboard/warehouse",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_INVENTORY",
+      "category": "Inventory"
+    },
+    {
+      "path": "/dashboard/analytics",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_ANALYTICS",
+      "category": "Analytics"
+    },
+    {
+      "path": "/dashboard/analytics/customer-insights",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_ANALYTICS",
+      "category": "Analytics"
+    },
+    {
+      "path": "/dashboard/reports",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN", "STAFF"],
+      "requiredPermission": "VIEW_REPORTS",
+      "category": "Reporting"
+    },
+    {
+      "path": "/dashboard/users",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_USERS",
+      "category": "User Management"
+    },
+    {
+      "path": "/dashboard/settings",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_SETTINGS",
+      "category": "Settings"
+    },
+    {
+      "path": "/dashboard/billing",
+      "allowedRoles": ["SUPER_ADMIN", "TENANT_ADMIN"],
+      "requiredPermission": "VIEW_BILLING",
+      "category": "Billing"
+    },
+    {
+      "path": "/dashboard/tenants",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_ALL_ORGANIZATIONS",
+      "category": "Super Admin"
+    },
+    {
+      "path": "/dashboard/admin",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_SYSTEM_LOGS",
+      "category": "Super Admin"
+    },
+    {
+      "path": "/dashboard/monitoring",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_MONITORING",
+      "category": "Super Admin"
+    },
+    {
+      "path": "/dashboard/audit",
+      "allowedRoles": ["SUPER_ADMIN"],
+      "requiredPermission": "VIEW_AUDIT_LOGS",
+      "category": "Super Admin"
+    },
+    {
+      "path": "/portal",
+      "allowedRoles": ["CUSTOMER"],
+      "requiresAuth": true,
+      "category": "Customer Portal"
+    },
+    {
+      "path": "/portal/products",
+      "allowedRoles": ["CUSTOMER"],
+      "requiresAuth": true,
+      "category": "Customer Portal"
+    },
+    {
+      "path": "/portal/orders",
+      "allowedRoles": ["CUSTOMER"],
+      "requiredPermission": "VIEW_OWN_ORDERS",
+      "category": "Customer Portal"
+    },
+    {
+      "path": "/portal/profile",
+      "allowedRoles": ["CUSTOMER"],
+      "requiresAuth": true,
+      "category": "Customer Portal"
+    },
+    {
+      "path": "/portal/wishlist",
+      "allowedRoles": ["CUSTOMER"],
+      "requiresAuth": true,
+      "category": "Customer Portal"
+    },
+    {
+      "path": "/portal/cart",
+      "allowedRoles": ["CUSTOMER"],
+      "requiresAuth": true,
+      "category": "Customer Portal"
+    }
+  ]
+}
+

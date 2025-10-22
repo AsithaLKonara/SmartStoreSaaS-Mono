@@ -1,0 +1,799 @@
+# Datadog Configuration for SmartStore SaaS
+# Application performance monitoring and infrastructure monitoring
+
+version: 2
+
+# Application settings
+app_name: smartstore-saas
+service: smartstore-saas
+version: 2.1.0
+env: production
+
+# APM Configuration
+apm:
+  enabled: true
+  sample_rate: 0.1
+  trace_analytics: true
+  runtime_metrics: true
+  profiling: true
+
+# Infrastructure monitoring
+infrastructure:
+  enabled: true
+  collect_system_metrics: true
+  collect_container_metrics: true
+  collect_kubernetes_metrics: true
+
+# Custom metrics
+custom_metrics:
+  # Business metrics
+  business_metrics:
+    - name: "orders.created"
+      type: "counter"
+      tags: ["payment_method", "courier", "district"]
+    - name: "orders.completed"
+      type: "counter"
+      tags: ["payment_method", "courier", "district"]
+    - name: "revenue.total"
+      type: "gauge"
+      tags: ["currency", "period"]
+    - name: "customers.active"
+      type: "gauge"
+      tags: ["tier", "district"]
+    - name: "courier.deliveries"
+      type: "counter"
+      tags: ["courier", "status", "district"]
+    - name: "payments.processed"
+      type: "counter"
+      tags: ["gateway", "status", "currency"]
+    
+  # Performance metrics
+  performance_metrics:
+    - name: "api.response_time"
+      type: "histogram"
+      tags: ["endpoint", "method", "status_code"]
+    - name: "database.query_time"
+      type: "histogram"
+      tags: ["query_type", "table"]
+    - name: "cache.hit_rate"
+      type: "gauge"
+      tags: ["cache_type", "key_pattern"]
+    - name: "queue.processing_time"
+      type: "histogram"
+      tags: ["queue_name", "job_type"]
+    
+  # Error metrics
+  error_metrics:
+    - name: "errors.count"
+      type: "counter"
+      tags: ["error_type", "service", "severity"]
+    - name: "courier.api_errors"
+      type: "counter"
+      tags: ["courier", "error_type"]
+    - name: "payment.errors"
+      type: "counter"
+      tags: ["gateway", "error_type"]
+    - name: "database.errors"
+      type: "counter"
+      tags: ["error_type", "table"]
+
+# Dashboards
+dashboards:
+  - name: "SmartStore SaaS - Overview"
+    widgets:
+      - type: "timeseries"
+        title: "Request Rate"
+        query: "sum:nginx.requests{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Response Time"
+        query: "avg:nginx.response_time{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Error Rate"
+        query: "sum:nginx.errors{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Active Users"
+        query: "sum:smartstore.active_users{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Orders Created"
+        query: "sum:smartstore.orders.created{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Revenue"
+        query: "sum:smartstore.revenue.total{service:smartstore-saas}"
+  
+  - name: "SmartStore SaaS - Courier Performance"
+    widgets:
+      - type: "timeseries"
+        title: "Courier API Response Time"
+        query: "avg:smartstore.courier.api_response_time{service:smartstore-saas} by {courier}"
+      - type: "timeseries"
+        title: "Delivery Success Rate"
+        query: "sum:smartstore.courier.deliveries{status:delivered,service:smartstore-saas} / sum:smartstore.courier.deliveries{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Courier Errors"
+        query: "sum:smartstore.courier.api_errors{service:smartstore-saas} by {courier}"
+      - type: "timeseries"
+        title: "Delivery Time by District"
+        query: "avg:smartstore.courier.delivery_time{service:smartstore-saas} by {district}"
+  
+  - name: "SmartStore SaaS - Payment Performance"
+    widgets:
+      - type: "timeseries"
+        title: "Payment Success Rate"
+        query: "sum:smartstore.payments.processed{status:success,service:smartstore-saas} / sum:smartstore.payments.processed{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Payment Gateway Response Time"
+        query: "avg:smartstore.payment.gateway_response_time{service:smartstore-saas} by {gateway}"
+      - type: "timeseries"
+        title: "LankaQR Usage"
+        query: "sum:smartstore.payments.processed{gateway:lankaqr,service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Payment Errors"
+        query: "sum:smartstore.payment.errors{service:smartstore-saas} by {gateway,error_type}"
+
+# Alerts
+alerts:
+  # Critical alerts (PagerDuty)
+  critical_alerts:
+    - name: "High Error Rate"
+      query: "avg(last_5m):avg:nginx.error_rate{service:smartstore-saas} > 0.05"
+      message: "Error rate is above 5% for SmartStore SaaS"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Database Connection Failure"
+      query: "avg(last_2m):avg:postgresql.connections{service:smartstore-saas} < 1"
+      message: "Database connection failure detected"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Payment Processing Failure"
+      query: "avg(last_5m):sum:smartstore.payment.errors{service:smartstore-saas} > 5"
+      message: "High payment processing error rate"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Courier API Failure"
+      query: "avg(last_10m):sum:smartstore.courier.api_errors{service:smartstore-saas} > 10"
+      message: "Multiple courier API failures detected"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+  
+  # Warning alerts (Slack)
+  warning_alerts:
+    - name: "High Response Time"
+      query: "avg(last_10m):avg:nginx.response_time{service:smartstore-saas} > 2000"
+      message: "Response time is above 2 seconds"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "Low Order Volume"
+      query: "avg(last_1h):sum:smartstore.orders.created{service:smartstore-saas} < 10"
+      message: "Order volume is unusually low"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "High Memory Usage"
+      query: "avg(last_5m):avg:system.mem.used{service:smartstore-saas} > 0.8"
+      message: "Memory usage is above 80%"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "High CPU Usage"
+      query: "avg(last_5m):avg:system.cpu.user{service:smartstore-saas} > 0.8"
+      message: "CPU usage is above 80%"
+      priority: "warning"
+      channels: ["slack"]
+
+# Log management
+log_management:
+  enabled: true
+  log_collection:
+    - source: "nginx"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+    - source: "application"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+    - source: "database"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+  
+  log_parsing:
+    - pattern: "\\[ERROR\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>ERROR) (?<message>.*)"
+      service: "smartstore-saas"
+    - pattern: "\\[WARN\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>WARN) (?<message>.*)"
+      service: "smartstore-saas"
+    - pattern: "\\[INFO\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>INFO) (?<message>.*)"
+      service: "smartstore-saas"
+
+# Synthetic monitoring
+synthetic_monitoring:
+  enabled: true
+  tests:
+    - name: "Homepage Load Test"
+      type: "http"
+      url: "https://smartstore.lk"
+      locations: ["aws:ap-south-1", "aws:us-east-1", "aws:eu-west-1"]
+      frequency: 300  # 5 minutes
+      
+    - name: "Checkout Flow Test"
+      type: "browser"
+      url: "https://smartstore.lk/checkout"
+      locations: ["aws:ap-south-1"]
+      frequency: 900  # 15 minutes
+      
+    - name: "API Health Check"
+      type: "http"
+      url: "https://smartstore.lk/api/health"
+      locations: ["aws:ap-south-1", "aws:us-east-1"]
+      frequency: 60  # 1 minute
+      
+    - name: "Courier API Test"
+      type: "http"
+      url: "https://smartstore.lk/api/couriers"
+      locations: ["aws:ap-south-1"]
+      frequency: 300  # 5 minutes
+
+# RUM (Real User Monitoring)
+rum:
+  enabled: true
+  sample_rate: 0.1
+  track_user_interactions: true
+  track_resources: true
+  track_long_tasks: true
+  track_frustrated_users: true
+
+# Security monitoring
+security_monitoring:
+  enabled: true
+  threat_detection:
+    - sql_injection
+    - xss_attacks
+    - brute_force_attacks
+    - suspicious_activity
+  compliance:
+    - pci_dss
+    - gdpr
+    - soc2
+
+# Cost optimization
+cost_optimization:
+  enabled: true
+  metrics_retention:
+    high_resolution: "24h"
+    medium_resolution: "7d"
+    low_resolution: "30d"
+  log_retention: "30d"
+  trace_retention: "7d"
+# Application performance monitoring and infrastructure monitoring
+
+version: 2
+
+# Application settings
+app_name: smartstore-saas
+service: smartstore-saas
+version: 2.1.0
+env: production
+
+# APM Configuration
+apm:
+  enabled: true
+  sample_rate: 0.1
+  trace_analytics: true
+  runtime_metrics: true
+  profiling: true
+
+# Infrastructure monitoring
+infrastructure:
+  enabled: true
+  collect_system_metrics: true
+  collect_container_metrics: true
+  collect_kubernetes_metrics: true
+
+# Custom metrics
+custom_metrics:
+  # Business metrics
+  business_metrics:
+    - name: "orders.created"
+      type: "counter"
+      tags: ["payment_method", "courier", "district"]
+    - name: "orders.completed"
+      type: "counter"
+      tags: ["payment_method", "courier", "district"]
+    - name: "revenue.total"
+      type: "gauge"
+      tags: ["currency", "period"]
+    - name: "customers.active"
+      type: "gauge"
+      tags: ["tier", "district"]
+    - name: "courier.deliveries"
+      type: "counter"
+      tags: ["courier", "status", "district"]
+    - name: "payments.processed"
+      type: "counter"
+      tags: ["gateway", "status", "currency"]
+    
+  # Performance metrics
+  performance_metrics:
+    - name: "api.response_time"
+      type: "histogram"
+      tags: ["endpoint", "method", "status_code"]
+    - name: "database.query_time"
+      type: "histogram"
+      tags: ["query_type", "table"]
+    - name: "cache.hit_rate"
+      type: "gauge"
+      tags: ["cache_type", "key_pattern"]
+    - name: "queue.processing_time"
+      type: "histogram"
+      tags: ["queue_name", "job_type"]
+    
+  # Error metrics
+  error_metrics:
+    - name: "errors.count"
+      type: "counter"
+      tags: ["error_type", "service", "severity"]
+    - name: "courier.api_errors"
+      type: "counter"
+      tags: ["courier", "error_type"]
+    - name: "payment.errors"
+      type: "counter"
+      tags: ["gateway", "error_type"]
+    - name: "database.errors"
+      type: "counter"
+      tags: ["error_type", "table"]
+
+# Dashboards
+dashboards:
+  - name: "SmartStore SaaS - Overview"
+    widgets:
+      - type: "timeseries"
+        title: "Request Rate"
+        query: "sum:nginx.requests{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Response Time"
+        query: "avg:nginx.response_time{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Error Rate"
+        query: "sum:nginx.errors{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Active Users"
+        query: "sum:smartstore.active_users{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Orders Created"
+        query: "sum:smartstore.orders.created{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Revenue"
+        query: "sum:smartstore.revenue.total{service:smartstore-saas}"
+  
+  - name: "SmartStore SaaS - Courier Performance"
+    widgets:
+      - type: "timeseries"
+        title: "Courier API Response Time"
+        query: "avg:smartstore.courier.api_response_time{service:smartstore-saas} by {courier}"
+      - type: "timeseries"
+        title: "Delivery Success Rate"
+        query: "sum:smartstore.courier.deliveries{status:delivered,service:smartstore-saas} / sum:smartstore.courier.deliveries{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Courier Errors"
+        query: "sum:smartstore.courier.api_errors{service:smartstore-saas} by {courier}"
+      - type: "timeseries"
+        title: "Delivery Time by District"
+        query: "avg:smartstore.courier.delivery_time{service:smartstore-saas} by {district}"
+  
+  - name: "SmartStore SaaS - Payment Performance"
+    widgets:
+      - type: "timeseries"
+        title: "Payment Success Rate"
+        query: "sum:smartstore.payments.processed{status:success,service:smartstore-saas} / sum:smartstore.payments.processed{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Payment Gateway Response Time"
+        query: "avg:smartstore.payment.gateway_response_time{service:smartstore-saas} by {gateway}"
+      - type: "timeseries"
+        title: "LankaQR Usage"
+        query: "sum:smartstore.payments.processed{gateway:lankaqr,service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Payment Errors"
+        query: "sum:smartstore.payment.errors{service:smartstore-saas} by {gateway,error_type}"
+
+# Alerts
+alerts:
+  # Critical alerts (PagerDuty)
+  critical_alerts:
+    - name: "High Error Rate"
+      query: "avg(last_5m):avg:nginx.error_rate{service:smartstore-saas} > 0.05"
+      message: "Error rate is above 5% for SmartStore SaaS"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Database Connection Failure"
+      query: "avg(last_2m):avg:postgresql.connections{service:smartstore-saas} < 1"
+      message: "Database connection failure detected"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Payment Processing Failure"
+      query: "avg(last_5m):sum:smartstore.payment.errors{service:smartstore-saas} > 5"
+      message: "High payment processing error rate"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Courier API Failure"
+      query: "avg(last_10m):sum:smartstore.courier.api_errors{service:smartstore-saas} > 10"
+      message: "Multiple courier API failures detected"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+  
+  # Warning alerts (Slack)
+  warning_alerts:
+    - name: "High Response Time"
+      query: "avg(last_10m):avg:nginx.response_time{service:smartstore-saas} > 2000"
+      message: "Response time is above 2 seconds"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "Low Order Volume"
+      query: "avg(last_1h):sum:smartstore.orders.created{service:smartstore-saas} < 10"
+      message: "Order volume is unusually low"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "High Memory Usage"
+      query: "avg(last_5m):avg:system.mem.used{service:smartstore-saas} > 0.8"
+      message: "Memory usage is above 80%"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "High CPU Usage"
+      query: "avg(last_5m):avg:system.cpu.user{service:smartstore-saas} > 0.8"
+      message: "CPU usage is above 80%"
+      priority: "warning"
+      channels: ["slack"]
+
+# Log management
+log_management:
+  enabled: true
+  log_collection:
+    - source: "nginx"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+    - source: "application"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+    - source: "database"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+  
+  log_parsing:
+    - pattern: "\\[ERROR\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>ERROR) (?<message>.*)"
+      service: "smartstore-saas"
+    - pattern: "\\[WARN\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>WARN) (?<message>.*)"
+      service: "smartstore-saas"
+    - pattern: "\\[INFO\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>INFO) (?<message>.*)"
+      service: "smartstore-saas"
+
+# Synthetic monitoring
+synthetic_monitoring:
+  enabled: true
+  tests:
+    - name: "Homepage Load Test"
+      type: "http"
+      url: "https://smartstore.lk"
+      locations: ["aws:ap-south-1", "aws:us-east-1", "aws:eu-west-1"]
+      frequency: 300  # 5 minutes
+      
+    - name: "Checkout Flow Test"
+      type: "browser"
+      url: "https://smartstore.lk/checkout"
+      locations: ["aws:ap-south-1"]
+      frequency: 900  # 15 minutes
+      
+    - name: "API Health Check"
+      type: "http"
+      url: "https://smartstore.lk/api/health"
+      locations: ["aws:ap-south-1", "aws:us-east-1"]
+      frequency: 60  # 1 minute
+      
+    - name: "Courier API Test"
+      type: "http"
+      url: "https://smartstore.lk/api/couriers"
+      locations: ["aws:ap-south-1"]
+      frequency: 300  # 5 minutes
+
+# RUM (Real User Monitoring)
+rum:
+  enabled: true
+  sample_rate: 0.1
+  track_user_interactions: true
+  track_resources: true
+  track_long_tasks: true
+  track_frustrated_users: true
+
+# Security monitoring
+security_monitoring:
+  enabled: true
+  threat_detection:
+    - sql_injection
+    - xss_attacks
+    - brute_force_attacks
+    - suspicious_activity
+  compliance:
+    - pci_dss
+    - gdpr
+    - soc2
+
+# Cost optimization
+cost_optimization:
+  enabled: true
+  metrics_retention:
+    high_resolution: "24h"
+    medium_resolution: "7d"
+    low_resolution: "30d"
+  log_retention: "30d"
+  trace_retention: "7d"
+# Application performance monitoring and infrastructure monitoring
+
+version: 2
+
+# Application settings
+app_name: smartstore-saas
+service: smartstore-saas
+version: 2.1.0
+env: production
+
+# APM Configuration
+apm:
+  enabled: true
+  sample_rate: 0.1
+  trace_analytics: true
+  runtime_metrics: true
+  profiling: true
+
+# Infrastructure monitoring
+infrastructure:
+  enabled: true
+  collect_system_metrics: true
+  collect_container_metrics: true
+  collect_kubernetes_metrics: true
+
+# Custom metrics
+custom_metrics:
+  # Business metrics
+  business_metrics:
+    - name: "orders.created"
+      type: "counter"
+      tags: ["payment_method", "courier", "district"]
+    - name: "orders.completed"
+      type: "counter"
+      tags: ["payment_method", "courier", "district"]
+    - name: "revenue.total"
+      type: "gauge"
+      tags: ["currency", "period"]
+    - name: "customers.active"
+      type: "gauge"
+      tags: ["tier", "district"]
+    - name: "courier.deliveries"
+      type: "counter"
+      tags: ["courier", "status", "district"]
+    - name: "payments.processed"
+      type: "counter"
+      tags: ["gateway", "status", "currency"]
+    
+  # Performance metrics
+  performance_metrics:
+    - name: "api.response_time"
+      type: "histogram"
+      tags: ["endpoint", "method", "status_code"]
+    - name: "database.query_time"
+      type: "histogram"
+      tags: ["query_type", "table"]
+    - name: "cache.hit_rate"
+      type: "gauge"
+      tags: ["cache_type", "key_pattern"]
+    - name: "queue.processing_time"
+      type: "histogram"
+      tags: ["queue_name", "job_type"]
+    
+  # Error metrics
+  error_metrics:
+    - name: "errors.count"
+      type: "counter"
+      tags: ["error_type", "service", "severity"]
+    - name: "courier.api_errors"
+      type: "counter"
+      tags: ["courier", "error_type"]
+    - name: "payment.errors"
+      type: "counter"
+      tags: ["gateway", "error_type"]
+    - name: "database.errors"
+      type: "counter"
+      tags: ["error_type", "table"]
+
+# Dashboards
+dashboards:
+  - name: "SmartStore SaaS - Overview"
+    widgets:
+      - type: "timeseries"
+        title: "Request Rate"
+        query: "sum:nginx.requests{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Response Time"
+        query: "avg:nginx.response_time{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Error Rate"
+        query: "sum:nginx.errors{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Active Users"
+        query: "sum:smartstore.active_users{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Orders Created"
+        query: "sum:smartstore.orders.created{service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Revenue"
+        query: "sum:smartstore.revenue.total{service:smartstore-saas}"
+  
+  - name: "SmartStore SaaS - Courier Performance"
+    widgets:
+      - type: "timeseries"
+        title: "Courier API Response Time"
+        query: "avg:smartstore.courier.api_response_time{service:smartstore-saas} by {courier}"
+      - type: "timeseries"
+        title: "Delivery Success Rate"
+        query: "sum:smartstore.courier.deliveries{status:delivered,service:smartstore-saas} / sum:smartstore.courier.deliveries{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Courier Errors"
+        query: "sum:smartstore.courier.api_errors{service:smartstore-saas} by {courier}"
+      - type: "timeseries"
+        title: "Delivery Time by District"
+        query: "avg:smartstore.courier.delivery_time{service:smartstore-saas} by {district}"
+  
+  - name: "SmartStore SaaS - Payment Performance"
+    widgets:
+      - type: "timeseries"
+        title: "Payment Success Rate"
+        query: "sum:smartstore.payments.processed{status:success,service:smartstore-saas} / sum:smartstore.payments.processed{service:smartstore-saas}"
+      - type: "timeseries"
+        title: "Payment Gateway Response Time"
+        query: "avg:smartstore.payment.gateway_response_time{service:smartstore-saas} by {gateway}"
+      - type: "timeseries"
+        title: "LankaQR Usage"
+        query: "sum:smartstore.payments.processed{gateway:lankaqr,service:smartstore-saas}.as_rate()"
+      - type: "timeseries"
+        title: "Payment Errors"
+        query: "sum:smartstore.payment.errors{service:smartstore-saas} by {gateway,error_type}"
+
+# Alerts
+alerts:
+  # Critical alerts (PagerDuty)
+  critical_alerts:
+    - name: "High Error Rate"
+      query: "avg(last_5m):avg:nginx.error_rate{service:smartstore-saas} > 0.05"
+      message: "Error rate is above 5% for SmartStore SaaS"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Database Connection Failure"
+      query: "avg(last_2m):avg:postgresql.connections{service:smartstore-saas} < 1"
+      message: "Database connection failure detected"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Payment Processing Failure"
+      query: "avg(last_5m):sum:smartstore.payment.errors{service:smartstore-saas} > 5"
+      message: "High payment processing error rate"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+      
+    - name: "Courier API Failure"
+      query: "avg(last_10m):sum:smartstore.courier.api_errors{service:smartstore-saas} > 10"
+      message: "Multiple courier API failures detected"
+      priority: "critical"
+      channels: ["pagerduty", "slack"]
+  
+  # Warning alerts (Slack)
+  warning_alerts:
+    - name: "High Response Time"
+      query: "avg(last_10m):avg:nginx.response_time{service:smartstore-saas} > 2000"
+      message: "Response time is above 2 seconds"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "Low Order Volume"
+      query: "avg(last_1h):sum:smartstore.orders.created{service:smartstore-saas} < 10"
+      message: "Order volume is unusually low"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "High Memory Usage"
+      query: "avg(last_5m):avg:system.mem.used{service:smartstore-saas} > 0.8"
+      message: "Memory usage is above 80%"
+      priority: "warning"
+      channels: ["slack"]
+      
+    - name: "High CPU Usage"
+      query: "avg(last_5m):avg:system.cpu.user{service:smartstore-saas} > 0.8"
+      message: "CPU usage is above 80%"
+      priority: "warning"
+      channels: ["slack"]
+
+# Log management
+log_management:
+  enabled: true
+  log_collection:
+    - source: "nginx"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+    - source: "application"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+    - source: "database"
+      service: "smartstore-saas"
+      tags: ["env:production", "service:smartstore-saas"]
+  
+  log_parsing:
+    - pattern: "\\[ERROR\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>ERROR) (?<message>.*)"
+      service: "smartstore-saas"
+    - pattern: "\\[WARN\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>WARN) (?<message>.*)"
+      service: "smartstore-saas"
+    - pattern: "\\[INFO\\] (?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}) (?<level>INFO) (?<message>.*)"
+      service: "smartstore-saas"
+
+# Synthetic monitoring
+synthetic_monitoring:
+  enabled: true
+  tests:
+    - name: "Homepage Load Test"
+      type: "http"
+      url: "https://smartstore.lk"
+      locations: ["aws:ap-south-1", "aws:us-east-1", "aws:eu-west-1"]
+      frequency: 300  # 5 minutes
+      
+    - name: "Checkout Flow Test"
+      type: "browser"
+      url: "https://smartstore.lk/checkout"
+      locations: ["aws:ap-south-1"]
+      frequency: 900  # 15 minutes
+      
+    - name: "API Health Check"
+      type: "http"
+      url: "https://smartstore.lk/api/health"
+      locations: ["aws:ap-south-1", "aws:us-east-1"]
+      frequency: 60  # 1 minute
+      
+    - name: "Courier API Test"
+      type: "http"
+      url: "https://smartstore.lk/api/couriers"
+      locations: ["aws:ap-south-1"]
+      frequency: 300  # 5 minutes
+
+# RUM (Real User Monitoring)
+rum:
+  enabled: true
+  sample_rate: 0.1
+  track_user_interactions: true
+  track_resources: true
+  track_long_tasks: true
+  track_frustrated_users: true
+
+# Security monitoring
+security_monitoring:
+  enabled: true
+  threat_detection:
+    - sql_injection
+    - xss_attacks
+    - brute_force_attacks
+    - suspicious_activity
+  compliance:
+    - pci_dss
+    - gdpr
+    - soc2
+
+# Cost optimization
+cost_optimization:
+  enabled: true
+  metrics_retention:
+    high_resolution: "24h"
+    medium_resolution: "7d"
+    low_resolution: "30d"
+  log_retention: "30d"
+  trace_retention: "7d"

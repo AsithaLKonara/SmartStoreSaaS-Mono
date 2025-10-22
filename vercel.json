@@ -1,0 +1,4 @@
+{
+  "buildCommand": "./scripts/build-production.sh",
+  "framework": "nextjs"
+}

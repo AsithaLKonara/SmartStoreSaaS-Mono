@@ -1,0 +1,287 @@
+{
+  "roles": {
+    "SUPER_ADMIN": {
+      "name": "Super Administrator",
+      "description": "Full system access, manages all organizations and system-wide settings",
+      "permissions": [
+        "VIEW_ALL_ORGANIZATIONS",
+        "MANAGE_ORGANIZATIONS",
+        "VIEW_SYSTEM_LOGS",
+        "MANAGE_SYSTEM_SETTINGS",
+        "VIEW_AUDIT_LOGS",
+        "MANAGE_PACKAGES",
+        "VIEW_ALL_USERS",
+        "MANAGE_ALL_USERS",
+        "VIEW_BILLING",
+        "MANAGE_BILLING",
+        "VIEW_MONITORING",
+        "MANAGE_MONITORING",
+        "VIEW_COMPLIANCE",
+        "MANAGE_COMPLIANCE",
+        "VIEW_BACKUP",
+        "MANAGE_BACKUP",
+        "VIEW_PERFORMANCE",
+        "MANAGE_PERFORMANCE",
+        "ACCESS_ALL_FEATURES"
+      ],
+      "pages": [
+        "/dashboard",
+        "/dashboard/tenants",
+        "/dashboard/admin/billing",
+        "/dashboard/admin/packages",
+        "/dashboard/audit",
+        "/dashboard/backup",
+        "/dashboard/compliance",
+        "/dashboard/monitoring",
+        "/dashboard/performance",
+        "/dashboard/logs"
+      ],
+      "expectedPageCount": 72
+    },
+    "TENANT_ADMIN": {
+      "name": "Organization Administrator",
+      "description": "Full access to their organization, manages users, settings, and all business operations",
+      "permissions": [
+        "VIEW_ORGANIZATION",
+        "MANAGE_ORGANIZATION_SETTINGS",
+        "VIEW_USERS",
+        "MANAGE_USERS",
+        "VIEW_PRODUCTS",
+        "MANAGE_PRODUCTS",
+        "VIEW_ORDERS",
+        "MANAGE_ORDERS",
+        "VIEW_CUSTOMERS",
+        "MANAGE_CUSTOMERS",
+        "VIEW_INVENTORY",
+        "MANAGE_INVENTORY",
+        "VIEW_ANALYTICS",
+        "VIEW_REPORTS",
+        "MANAGE_INTEGRATIONS",
+        "VIEW_SETTINGS",
+        "MANAGE_SETTINGS",
+        "VIEW_BILLING_INFO",
+        "VIEW_AI_INSIGHTS",
+        "MANAGE_WAREHOUSE",
+        "MANAGE_PROCUREMENT",
+        "MANAGE_ACCOUNTING",
+        "MANAGE_MARKETING",
+        "MANAGE_SHIPPING",
+        "MANAGE_RETURNS"
+      ],
+      "pages": [
+        "/dashboard",
+        "/dashboard/products",
+        "/dashboard/orders",
+        "/dashboard/customers",
+        "/dashboard/inventory",
+        "/dashboard/warehouse",
+        "/dashboard/pos",
+        "/dashboard/fulfillment",
+        "/dashboard/returns",
+        "/dashboard/shipping",
+        "/dashboard/analytics",
+        "/dashboard/reports",
+        "/dashboard/ai-insights",
+        "/dashboard/integrations",
+        "/dashboard/settings",
+        "/dashboard/users",
+        "/dashboard/marketing",
+        "/dashboard/accounting",
+        "/dashboard/procurement"
+      ],
+      "expectedPageCount": 63,
+      "restrictions": [
+        "Cannot access Super Admin pages",
+        "Cannot view other organizations",
+        "Cannot access system-wide logs",
+        "Cannot manage system packages"
+      ]
+    },
+    "STAFF": {
+      "name": "Staff Member",
+      "description": "Limited business operations access based on assigned role tag",
+      "permissions": [
+        "VIEW_ASSIGNED_PRODUCTS",
+        "VIEW_ASSIGNED_ORDERS",
+        "VIEW_ASSIGNED_CUSTOMERS",
+        "VIEW_ASSIGNED_INVENTORY"
+      ],
+      "roleTags": {
+        "sales_staff": {
+          "permissions": [
+            "VIEW_PRODUCTS",
+            "VIEW_ORDERS",
+            "CREATE_ORDERS",
+            "VIEW_CUSTOMERS",
+            "VIEW_POS"
+          ],
+          "pages": [
+            "/dashboard",
+            "/dashboard/products",
+            "/dashboard/orders",
+            "/dashboard/customers",
+            "/dashboard/pos"
+          ]
+        },
+        "inventory_manager": {
+          "permissions": [
+            "VIEW_PRODUCTS",
+            "MANAGE_PRODUCTS",
+            "VIEW_INVENTORY",
+            "MANAGE_INVENTORY",
+            "VIEW_WAREHOUSE",
+            "MANAGE_WAREHOUSE"
+          ],
+          "pages": [
+            "/dashboard",
+            "/dashboard/products",
+            "/dashboard/inventory",
+            "/dashboard/warehouse"
+          ]
+        },
+        "customer_service": {
+          "permissions": [
+            "VIEW_CUSTOMERS",
+            "MANAGE_CUSTOMERS",
+            "VIEW_ORDERS",
+            "UPDATE_ORDERS",
+            "VIEW_RETURNS",
+            "MANAGE_RETURNS"
+          ],
+          "pages": [
+            "/dashboard",
+            "/dashboard/customers",
+            "/dashboard/orders",
+            "/dashboard/returns"
+          ]
+        },
+        "accountant": {
+          "permissions": [
+            "VIEW_ACCOUNTING",
+            "MANAGE_ACCOUNTING",
+            "VIEW_REPORTS",
+            "VIEW_ANALYTICS"
+          ],
+          "pages": [
+            "/dashboard",
+            "/dashboard/accounting",
+            "/dashboard/reports",
+            "/dashboard/analytics"
+          ]
+        }
+      },
+      "expectedPageCount": 25,
+      "restrictions": [
+        "Cannot access admin settings",
+        "Cannot manage users",
+        "Cannot access integrations",
+        "Cannot view organization-wide analytics"
+      ]
+    },
+    "CUSTOMER": {
+      "name": "Customer",
+      "description": "Customer portal access only, can browse products and manage their orders",
+      "permissions": [
+        "VIEW_PRODUCTS",
+        "VIEW_OWN_ORDERS",
+        "VIEW_OWN_PROFILE",
+        "MANAGE_OWN_PROFILE",
+        "CREATE_ORDERS",
+        "VIEW_OWN_WISHLIST",
+        "MANAGE_OWN_WISHLIST"
+      ],
+      "pages": [
+        "/portal",
+        "/portal/products",
+        "/portal/orders",
+        "/portal/profile",
+        "/portal/wishlist",
+        "/portal/cart"
+      ],
+      "expectedPageCount": 6,
+      "restrictions": [
+        "Cannot access dashboard",
+        "Cannot view other customers' data",
+        "Cannot access admin features",
+        "Portal access only"
+      ]
+    }
+  },
+  "permissionCategories": {
+    "system": [
+      "VIEW_ALL_ORGANIZATIONS",
+      "MANAGE_ORGANIZATIONS",
+      "VIEW_SYSTEM_LOGS",
+      "MANAGE_SYSTEM_SETTINGS"
+    ],
+    "users": [
+      "VIEW_USERS",
+      "MANAGE_USERS",
+      "VIEW_ALL_USERS",
+      "MANAGE_ALL_USERS"
+    ],
+    "products": [
+      "VIEW_PRODUCTS",
+      "MANAGE_PRODUCTS",
+      "VIEW_ASSIGNED_PRODUCTS"
+    ],
+    "orders": [
+      "VIEW_ORDERS",
+      "MANAGE_ORDERS",
+      "CREATE_ORDERS",
+      "UPDATE_ORDERS",
+      "VIEW_OWN_ORDERS"
+    ],
+    "customers": [
+      "VIEW_CUSTOMERS",
+      "MANAGE_CUSTOMERS",
+      "VIEW_ASSIGNED_CUSTOMERS"
+    ],
+    "inventory": [
+      "VIEW_INVENTORY",
+      "MANAGE_INVENTORY",
+      "VIEW_ASSIGNED_INVENTORY"
+    ],
+    "analytics": [
+      "VIEW_ANALYTICS",
+      "VIEW_REPORTS",
+      "VIEW_AI_INSIGHTS"
+    ],
+    "integrations": [
+      "MANAGE_INTEGRATIONS"
+    ],
+    "settings": [
+      "VIEW_SETTINGS",
+      "MANAGE_SETTINGS",
+      "VIEW_ORGANIZATION",
+      "MANAGE_ORGANIZATION_SETTINGS"
+    ],
+    "billing": [
+      "VIEW_BILLING",
+      "MANAGE_BILLING",
+      "VIEW_BILLING_INFO"
+    ],
+    "monitoring": [
+      "VIEW_MONITORING",
+      "MANAGE_MONITORING",
+      "VIEW_AUDIT_LOGS",
+      "VIEW_PERFORMANCE",
+      "MANAGE_PERFORMANCE"
+    ],
+    "compliance": [
+      "VIEW_COMPLIANCE",
+      "MANAGE_COMPLIANCE",
+      "VIEW_BACKUP",
+      "MANAGE_BACKUP"
+    ]
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-10-12",
+    "totalRoles": 4,
+    "totalPermissions": 45
+  }
+}
+
+
+

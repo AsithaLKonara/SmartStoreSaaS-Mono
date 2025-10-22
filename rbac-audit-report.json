@@ -1,0 +1,1063 @@
+{
+  "timestamp": "2025-10-14T05:22:53.791Z",
+  "summary": {
+    "total": 132,
+    "passed": 4,
+    "failed": 128,
+    "passRate": 3.03
+  },
+  "results": [
+    {
+      "route": "POST /api/auth/[...nextauth]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 500,
+      "status": "FAIL",
+      "error": "Expected 200, got 500"
+    },
+    {
+      "route": "POST /api/auth/[...nextauth]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 500,
+      "status": "FAIL",
+      "error": "Expected 200, got 500"
+    },
+    {
+      "route": "POST /api/auth/[...nextauth]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 500,
+      "status": "FAIL",
+      "error": "Expected 200, got 500"
+    },
+    {
+      "route": "POST /api/auth/[...nextauth]",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 500,
+      "status": "FAIL",
+      "error": "Expected 200, got 500"
+    },
+    {
+      "route": "GET /api/health",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "route": "GET /api/health",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "route": "GET /api/health",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "route": "GET /api/health",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 200,
+      "status": "PASS"
+    },
+    {
+      "route": "GET /api/users",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/users",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/users",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/users",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/users",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/users",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/users",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/users",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/users/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 200, got 404"
+    },
+    {
+      "route": "GET /api/users/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 200, got 404"
+    },
+    {
+      "route": "GET /api/users/[id]",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 403, got 404"
+    },
+    {
+      "route": "GET /api/users/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 403, got 404"
+    },
+    {
+      "route": "PUT /api/users/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 200, got 404"
+    },
+    {
+      "route": "PUT /api/users/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 200, got 404"
+    },
+    {
+      "route": "PUT /api/users/[id]",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 403, got 404"
+    },
+    {
+      "route": "PUT /api/users/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 403, got 404"
+    },
+    {
+      "route": "DELETE /api/users/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 200, got 404"
+    },
+    {
+      "route": "DELETE /api/users/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 200, got 404"
+    },
+    {
+      "route": "DELETE /api/users/[id]",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 403, got 404"
+    },
+    {
+      "route": "DELETE /api/users/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 404,
+      "status": "FAIL",
+      "error": "Expected 403, got 404"
+    },
+    {
+      "route": "GET /api/tenants",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/tenants",
+      "role": "TENANT_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/tenants",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/tenants",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/tenants",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/tenants",
+      "role": "TENANT_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/tenants",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/tenants",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/tenants/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/tenants/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/tenants/[id]",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/tenants/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "PUT /api/tenants/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/tenants/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/tenants/[id]",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "PUT /api/tenants/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/products",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/products",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/products",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/products",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/products",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/products",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/products",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/products",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/products/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/products/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/products/[id]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/products/[id]",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/products/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/products/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/products/[id]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/products/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "DELETE /api/products/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "DELETE /api/products/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "DELETE /api/products/[id]",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "DELETE /api/products/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/orders",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/orders",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/orders",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/orders",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/orders",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders/[id]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/orders/[id]",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/orders/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/orders/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/orders/[id]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/orders/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customers",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customers",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customers",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customers",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/customers",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/customers",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/customers",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/customers",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customers/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customers/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customers/[id]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customers/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "PUT /api/customers/[id]",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/customers/[id]",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/customers/[id]",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "PUT /api/customers/[id]",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/inventory",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/inventory",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/inventory",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/inventory",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/inventory/[id]/adjust",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/inventory/[id]/adjust",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/inventory/[id]/adjust",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/inventory/[id]/adjust",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/analytics/dashboard",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/analytics/dashboard",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/analytics/dashboard",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/analytics/dashboard",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/analytics/customer-insights",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/analytics/customer-insights",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/analytics/customer-insights",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/analytics/customer-insights",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "POST /api/reports/generate",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/reports/generate",
+      "role": "TENANT_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/reports/generate",
+      "role": "STAFF",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "POST /api/reports/generate",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/audit-logs",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/audit-logs",
+      "role": "TENANT_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/audit-logs",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/audit-logs",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/monitoring/status",
+      "role": "SUPER_ADMIN",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/monitoring/status",
+      "role": "TENANT_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/monitoring/status",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/monitoring/status",
+      "role": "CUSTOMER",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/orders",
+      "role": "SUPER_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/orders",
+      "role": "TENANT_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/orders",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/orders",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/account",
+      "role": "SUPER_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/account",
+      "role": "TENANT_ADMIN",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/account",
+      "role": "STAFF",
+      "expected": 403,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 403, got 401"
+    },
+    {
+      "route": "GET /api/customer-portal/account",
+      "role": "CUSTOMER",
+      "expected": 200,
+      "actual": 401,
+      "status": "FAIL",
+      "error": "Expected 200, got 401"
+    }
+  ]
+}

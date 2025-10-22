@@ -1,0 +1,322 @@
+# Vercel Environment Variables
+# Copy these to Vercel Dashboard > Settings > Environment Variables
+
+# ===========================================
+# REQUIRED VARIABLES (Must be set)
+# ===========================================
+
+# Database Connection
+DATABASE_URL=postgresql://username:password@host:port/database
+
+# Authentication & Security
+NEXTAUTH_SECRET=your-production-secret-key-min-32-chars
+NEXTAUTH_URL=https://your-domain.vercel.app
+JWT_SECRET=your-jwt-secret-key-min-32-chars
+JWT_REFRESH_SECRET=your-jwt-refresh-secret-key-min-32-chars
+
+# Encryption Keys
+ENCRYPTION_KEY=your-encryption-key-32-chars
+SESSION_SECRET=your-session-secret-key-32-chars
+MFA_ENCRYPTION_KEY=your-mfa-encryption-key-32-chars
+
+# App Configuration
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+
+# ===========================================
+# OPTIONAL VARIABLES (Add as needed)
+# ===========================================
+
+# Payment Gateways
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+PAYHERE_MERCHANT_ID=your_payhere_merchant_id
+PAYHERE_SECRET_KEY=your_payhere_secret_key
+
+# Messaging Services
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+# Social Media APIs
+FACEBOOK_APP_ID=your_facebook_app_id
+FACEBOOK_APP_SECRET=your_facebook_app_secret
+INSTAGRAM_BUSINESS_ACCOUNT_ID=your_instagram_business_account_id
+TIKTOK_APP_ID=your_tiktok_app_id
+TIKTOK_APP_SECRET=your_tiktok_app_secret
+
+# File Storage
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# AI Services
+OPENAI_API_KEY=sk-your_openai_api_key
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Courier & Maps
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+UBER_API_KEY=your_uber_api_key
+LYFT_API_KEY=your_lyft_api_key
+
+# Email Services
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_email_password
+MAILCHIMP_API_KEY=your_mailchimp_api_key
+KLAVIYO_API_KEY=your_klaviyo_api_key
+
+# E-commerce Integrations
+SHOPIFY_API_KEY=your_shopify_api_key
+SHOPIFY_API_SECRET=your_shopify_api_secret
+WOOCOMMERCE_CONSUMER_KEY=your_woocommerce_consumer_key
+WOOCOMMERCE_CONSUMER_SECRET=your_woocommerce_consumer_secret
+
+# Redis (Optional - for caching)
+REDIS_URL=redis://localhost:6379
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url
+REDIS_PASSWORD=your_redis_password
+
+# Monitoring (Optional)
+SENTRY_DSN=your_sentry_dsn
+LOG_LEVEL=info
+SECURITY_LOG_LEVEL=warn
+AUDIT_LOG_ENABLED=true
+
+# ===========================================
+# INSTRUCTIONS
+# ===========================================
+
+# 1. Copy the REQUIRED variables to Vercel Dashboard
+# 2. Set up a PostgreSQL database (Neon, Supabase, or Railway)
+# 3. Update DATABASE_URL with your database connection string
+# 4. Generate strong secrets for authentication keys
+# 5. Add optional variables as needed for your features
+# 6. Deploy to Vercel
+
+# ===========================================
+# SECURITY NOTES
+# ===========================================
+
+# - Use strong, unique secrets (minimum 32 characters)
+# - Never commit these values to version control
+# - Rotate secrets regularly
+# - Use different secrets for each environment
+# - Enable 2FA on all service accounts
+# Copy these to Vercel Dashboard > Settings > Environment Variables
+
+# ===========================================
+# REQUIRED VARIABLES (Must be set)
+# ===========================================
+
+# Database Connection
+DATABASE_URL=postgresql://username:password@host:port/database
+
+# Authentication & Security
+NEXTAUTH_SECRET=your-production-secret-key-min-32-chars
+NEXTAUTH_URL=https://your-domain.vercel.app
+JWT_SECRET=your-jwt-secret-key-min-32-chars
+JWT_REFRESH_SECRET=your-jwt-refresh-secret-key-min-32-chars
+
+# Encryption Keys
+ENCRYPTION_KEY=your-encryption-key-32-chars
+SESSION_SECRET=your-session-secret-key-32-chars
+MFA_ENCRYPTION_KEY=your-mfa-encryption-key-32-chars
+
+# App Configuration
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+
+# ===========================================
+# OPTIONAL VARIABLES (Add as needed)
+# ===========================================
+
+# Payment Gateways
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+PAYHERE_MERCHANT_ID=your_payhere_merchant_id
+PAYHERE_SECRET_KEY=your_payhere_secret_key
+
+# Messaging Services
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+# Social Media APIs
+FACEBOOK_APP_ID=your_facebook_app_id
+FACEBOOK_APP_SECRET=your_facebook_app_secret
+INSTAGRAM_BUSINESS_ACCOUNT_ID=your_instagram_business_account_id
+TIKTOK_APP_ID=your_tiktok_app_id
+TIKTOK_APP_SECRET=your_tiktok_app_secret
+
+# File Storage
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# AI Services
+OPENAI_API_KEY=sk-your_openai_api_key
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Courier & Maps
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+UBER_API_KEY=your_uber_api_key
+LYFT_API_KEY=your_lyft_api_key
+
+# Email Services
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_email_password
+MAILCHIMP_API_KEY=your_mailchimp_api_key
+KLAVIYO_API_KEY=your_klaviyo_api_key
+
+# E-commerce Integrations
+SHOPIFY_API_KEY=your_shopify_api_key
+SHOPIFY_API_SECRET=your_shopify_api_secret
+WOOCOMMERCE_CONSUMER_KEY=your_woocommerce_consumer_key
+WOOCOMMERCE_CONSUMER_SECRET=your_woocommerce_consumer_secret
+
+# Redis (Optional - for caching)
+REDIS_URL=redis://localhost:6379
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url
+REDIS_PASSWORD=your_redis_password
+
+# Monitoring (Optional)
+SENTRY_DSN=your_sentry_dsn
+LOG_LEVEL=info
+SECURITY_LOG_LEVEL=warn
+AUDIT_LOG_ENABLED=true
+
+# ===========================================
+# INSTRUCTIONS
+# ===========================================
+
+# 1. Copy the REQUIRED variables to Vercel Dashboard
+# 2. Set up a PostgreSQL database (Neon, Supabase, or Railway)
+# 3. Update DATABASE_URL with your database connection string
+# 4. Generate strong secrets for authentication keys
+# 5. Add optional variables as needed for your features
+# 6. Deploy to Vercel
+
+# ===========================================
+# SECURITY NOTES
+# ===========================================
+
+# - Use strong, unique secrets (minimum 32 characters)
+# - Never commit these values to version control
+# - Rotate secrets regularly
+# - Use different secrets for each environment
+# - Enable 2FA on all service accounts
+# Copy these to Vercel Dashboard > Settings > Environment Variables
+
+# ===========================================
+# REQUIRED VARIABLES (Must be set)
+# ===========================================
+
+# Database Connection
+DATABASE_URL=postgresql://username:password@host:port/database
+
+# Authentication & Security
+NEXTAUTH_SECRET=your-production-secret-key-min-32-chars
+NEXTAUTH_URL=https://your-domain.vercel.app
+JWT_SECRET=your-jwt-secret-key-min-32-chars
+JWT_REFRESH_SECRET=your-jwt-refresh-secret-key-min-32-chars
+
+# Encryption Keys
+ENCRYPTION_KEY=your-encryption-key-32-chars
+SESSION_SECRET=your-session-secret-key-32-chars
+MFA_ENCRYPTION_KEY=your-mfa-encryption-key-32-chars
+
+# App Configuration
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+
+# ===========================================
+# OPTIONAL VARIABLES (Add as needed)
+# ===========================================
+
+# Payment Gateways
+STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+PAYHERE_MERCHANT_ID=your_payhere_merchant_id
+PAYHERE_SECRET_KEY=your_payhere_secret_key
+
+# Messaging Services
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+
+# Social Media APIs
+FACEBOOK_APP_ID=your_facebook_app_id
+FACEBOOK_APP_SECRET=your_facebook_app_secret
+INSTAGRAM_BUSINESS_ACCOUNT_ID=your_instagram_business_account_id
+TIKTOK_APP_ID=your_tiktok_app_id
+TIKTOK_APP_SECRET=your_tiktok_app_secret
+
+# File Storage
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# AI Services
+OPENAI_API_KEY=sk-your_openai_api_key
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Courier & Maps
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+UBER_API_KEY=your_uber_api_key
+LYFT_API_KEY=your_lyft_api_key
+
+# Email Services
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_email_password
+MAILCHIMP_API_KEY=your_mailchimp_api_key
+KLAVIYO_API_KEY=your_klaviyo_api_key
+
+# E-commerce Integrations
+SHOPIFY_API_KEY=your_shopify_api_key
+SHOPIFY_API_SECRET=your_shopify_api_secret
+WOOCOMMERCE_CONSUMER_KEY=your_woocommerce_consumer_key
+WOOCOMMERCE_CONSUMER_SECRET=your_woocommerce_consumer_secret
+
+# Redis (Optional - for caching)
+REDIS_URL=redis://localhost:6379
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url
+REDIS_PASSWORD=your_redis_password
+
+# Monitoring (Optional)
+SENTRY_DSN=your_sentry_dsn
+LOG_LEVEL=info
+SECURITY_LOG_LEVEL=warn
+AUDIT_LOG_ENABLED=true
+
+# ===========================================
+# INSTRUCTIONS
+# ===========================================
+
+# 1. Copy the REQUIRED variables to Vercel Dashboard
+# 2. Set up a PostgreSQL database (Neon, Supabase, or Railway)
+# 3. Update DATABASE_URL with your database connection string
+# 4. Generate strong secrets for authentication keys
+# 5. Add optional variables as needed for your features
+# 6. Deploy to Vercel
+
+# ===========================================
+# SECURITY NOTES
+# ===========================================
+
+# - Use strong, unique secrets (minimum 32 characters)
+# - Never commit these values to version control
+# - Rotate secrets regularly
+# - Use different secrets for each environment
+# - Enable 2FA on all service accounts

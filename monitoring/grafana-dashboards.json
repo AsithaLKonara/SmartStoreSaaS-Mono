@@ -1,0 +1,940 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "SmartStore SaaS - Production Dashboard",
+    "tags": ["smartstore", "saas", "production"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(nginx_http_requests_total{service=\"smartstore-saas\"}[5m]))",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100},
+                {"color": "red", "value": 500}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(nginx_http_request_duration_seconds{service=\"smartstore-saas\"})",
+            "legendFormat": "Avg Response Time"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 2}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(nginx_http_requests_total{service=\"smartstore-saas\",status=~\"5..\"}[5m])) / sum(rate(nginx_http_requests_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Active Users",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "smartstore_active_users{service=\"smartstore-saas\"}",
+            "legendFormat": "Active Users"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1000},
+                {"color": "red", "value": 5000}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Business Metrics",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9}
+      },
+      {
+        "id": 7,
+        "title": "Orders Created (24h)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(increase(smartstore_orders_created_total{service=\"smartstore-saas\"}[1h]))",
+            "legendFormat": "Orders"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Revenue (LKR)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(smartstore_revenue_total{service=\"smartstore-saas\",currency=\"LKR\"})",
+            "legendFormat": "Revenue (LKR)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "currencyLKR"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Courier Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18}
+      },
+      {
+        "id": 10,
+        "title": "Courier API Response Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(smartstore_courier_api_response_time{service=\"smartstore-saas\"}) by (courier)",
+            "legendFormat": "{{courier}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 19},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Delivery Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(smartstore_courier_deliveries_total{service=\"smartstore-saas\",status=\"delivered\"}[5m])) / sum(rate(smartstore_courier_deliveries_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 19},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Payment Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27}
+      },
+      {
+        "id": 13,
+        "title": "Payment Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(smartstore_payments_processed_total{service=\"smartstore-saas\",status=\"success\"}[5m])) / sum(rate(smartstore_payments_processed_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "Payment Methods Usage",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(smartstore_payments_processed_total{service=\"smartstore-saas\"}) by (gateway)",
+            "legendFormat": "{{gateway}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "id": 15,
+        "title": "Infrastructure",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 36}
+      },
+      {
+        "id": 16,
+        "title": "CPU Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(rate(container_cpu_usage_seconds_total{name=~\"smartstore.*\"}[5m])) by (name) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 17,
+        "title": "Memory Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(container_memory_usage_bytes{name=~\"smartstore.*\"} / container_spec_memory_limit_bytes{name=~\"smartstore.*\"}) by (name) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 18,
+        "title": "Database Connections",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "postgresql_connections{service=\"smartstore-saas\"}",
+            "legendFormat": "Active Connections"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": []
+  }
+}
+  "dashboard": {
+    "id": null,
+    "title": "SmartStore SaaS - Production Dashboard",
+    "tags": ["smartstore", "saas", "production"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(nginx_http_requests_total{service=\"smartstore-saas\"}[5m]))",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100},
+                {"color": "red", "value": 500}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(nginx_http_request_duration_seconds{service=\"smartstore-saas\"})",
+            "legendFormat": "Avg Response Time"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 2}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(nginx_http_requests_total{service=\"smartstore-saas\",status=~\"5..\"}[5m])) / sum(rate(nginx_http_requests_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Active Users",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "smartstore_active_users{service=\"smartstore-saas\"}",
+            "legendFormat": "Active Users"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1000},
+                {"color": "red", "value": 5000}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Business Metrics",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9}
+      },
+      {
+        "id": 7,
+        "title": "Orders Created (24h)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(increase(smartstore_orders_created_total{service=\"smartstore-saas\"}[1h]))",
+            "legendFormat": "Orders"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Revenue (LKR)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(smartstore_revenue_total{service=\"smartstore-saas\",currency=\"LKR\"})",
+            "legendFormat": "Revenue (LKR)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "currencyLKR"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Courier Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18}
+      },
+      {
+        "id": 10,
+        "title": "Courier API Response Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(smartstore_courier_api_response_time{service=\"smartstore-saas\"}) by (courier)",
+            "legendFormat": "{{courier}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 19},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Delivery Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(smartstore_courier_deliveries_total{service=\"smartstore-saas\",status=\"delivered\"}[5m])) / sum(rate(smartstore_courier_deliveries_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 19},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Payment Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27}
+      },
+      {
+        "id": 13,
+        "title": "Payment Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(smartstore_payments_processed_total{service=\"smartstore-saas\",status=\"success\"}[5m])) / sum(rate(smartstore_payments_processed_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "Payment Methods Usage",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(smartstore_payments_processed_total{service=\"smartstore-saas\"}) by (gateway)",
+            "legendFormat": "{{gateway}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "id": 15,
+        "title": "Infrastructure",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 36}
+      },
+      {
+        "id": 16,
+        "title": "CPU Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(rate(container_cpu_usage_seconds_total{name=~\"smartstore.*\"}[5m])) by (name) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 17,
+        "title": "Memory Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(container_memory_usage_bytes{name=~\"smartstore.*\"} / container_spec_memory_limit_bytes{name=~\"smartstore.*\"}) by (name) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 18,
+        "title": "Database Connections",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "postgresql_connections{service=\"smartstore-saas\"}",
+            "legendFormat": "Active Connections"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": []
+  }
+}
+  "dashboard": {
+    "id": null,
+    "title": "SmartStore SaaS - Production Dashboard",
+    "tags": ["smartstore", "saas", "production"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(nginx_http_requests_total{service=\"smartstore-saas\"}[5m]))",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100},
+                {"color": "red", "value": 500}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(nginx_http_request_duration_seconds{service=\"smartstore-saas\"})",
+            "legendFormat": "Avg Response Time"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 2}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(nginx_http_requests_total{service=\"smartstore-saas\",status=~\"5..\"}[5m])) / sum(rate(nginx_http_requests_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Active Users",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "smartstore_active_users{service=\"smartstore-saas\"}",
+            "legendFormat": "Active Users"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 1},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1000},
+                {"color": "red", "value": 5000}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Business Metrics",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9}
+      },
+      {
+        "id": 7,
+        "title": "Orders Created (24h)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(increase(smartstore_orders_created_total{service=\"smartstore-saas\"}[1h]))",
+            "legendFormat": "Orders"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Revenue (LKR)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(smartstore_revenue_total{service=\"smartstore-saas\",currency=\"LKR\"})",
+            "legendFormat": "Revenue (LKR)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "currencyLKR"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Courier Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18}
+      },
+      {
+        "id": 10,
+        "title": "Courier API Response Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(smartstore_courier_api_response_time{service=\"smartstore-saas\"}) by (courier)",
+            "legendFormat": "{{courier}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 19},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Delivery Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(smartstore_courier_deliveries_total{service=\"smartstore-saas\",status=\"delivered\"}[5m])) / sum(rate(smartstore_courier_deliveries_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 19},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Payment Performance",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27}
+      },
+      {
+        "id": 13,
+        "title": "Payment Success Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(smartstore_payments_processed_total{service=\"smartstore-saas\",status=\"success\"}[5m])) / sum(rate(smartstore_payments_processed_total{service=\"smartstore-saas\"}[5m])) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "Payment Methods Usage",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(smartstore_payments_processed_total{service=\"smartstore-saas\"}) by (gateway)",
+            "legendFormat": "{{gateway}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"}
+          }
+        }
+      },
+      {
+        "id": 15,
+        "title": "Infrastructure",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 36}
+      },
+      {
+        "id": 16,
+        "title": "CPU Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(rate(container_cpu_usage_seconds_total{name=~\"smartstore.*\"}[5m])) by (name) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 17,
+        "title": "Memory Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg(container_memory_usage_bytes{name=~\"smartstore.*\"} / container_spec_memory_limit_bytes{name=~\"smartstore.*\"}) by (name) * 100",
+            "legendFormat": "{{name}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 18,
+        "title": "Database Connections",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "postgresql_connections{service=\"smartstore-saas\"}",
+            "legendFormat": "Active Connections"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 37},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 30,
+    "version": 1,
+    "links": []
+  }
+}
