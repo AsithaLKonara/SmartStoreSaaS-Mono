@@ -338,3 +338,4 @@ validateDatabaseSchema()
     process.exit(1);
   });
 
+
