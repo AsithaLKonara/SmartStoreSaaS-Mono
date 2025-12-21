@@ -11,12 +11,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, message: 'Organization not found' }, { status: 400 });
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
     const fulfillments = await prisma.delivery.findMany({
-      where: { organizationId: session.user.organizationId },
+      where: { organizationId },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: 'desc' }
