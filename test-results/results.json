@@ -1,0 +1,274 @@
+{
+  "config": {
+    "configFile": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/playwright.config.ts",
+    "rootDir": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/tests/e2e/flows",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/tests/e2e/flows",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "production-login-test.spec.ts",
+      "file": "production-login-test.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Production Authentication Login Test",
+          "file": "production-login-test.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Login with Seeded Admin Credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23696,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🚀 Testing Production Login with Seeded Credentials\n"
+                        },
+                        {
+                          "text": "📧 Email: admin@techhub.lk\n"
+                        },
+                        {
+                          "text": "🔑 Password: demo123\n"
+                        },
+                        {
+                          "text": "📍 Step 1: Visiting https://smart-store-saas-demo.vercel.app\n"
+                        },
+                        {
+                          "text": "✅ Redirected to login page\n"
+                        },
+                        {
+                          "text": "📍 Step 2: Filling login form\n"
+                        },
+                        {
+                          "text": "✅ Login form elements found\n"
+                        },
+                        {
+                          "text": "✅ Credentials entered\n"
+                        },
+                        {
+                          "text": "📸 Screenshot taken: before-login.png\n"
+                        },
+                        {
+                          "text": "📍 Step 3: Submitting login form\n"
+                        },
+                        {
+                          "text": "📍 Current URL after login: https://smart-store-saas-demo.vercel.app/login?callbackUrl=%2F\n"
+                        },
+                        {
+                          "text": "❌ LOGIN FAILED - Still on login page\n"
+                        },
+                        {
+                          "text": "⚠️ No error message visible - possible network issue\n"
+                        },
+                        {
+                          "text": "📸 Screenshot taken: login-failed.png\n"
+                        },
+                        {
+                          "text": "🔍 Troubleshooting suggestions:\n"
+                        },
+                        {
+                          "text": "1. Database may not be seeded yet\n"
+                        },
+                        {
+                          "text": "2. Wrong credentials\n"
+                        },
+                        {
+                          "text": "3. Database connection issues\n"
+                        },
+                        {
+                          "text": "4. API endpoint not working\n"
+                        },
+                        {
+                          "text": "🎯 Production Login Test Complete\n"
+                        }
+                      ],
+                      "stderr": [
+                        {
+                          "text": "(node:15508) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2025-12-21T17:54:30.725Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results/production-login-test-Prod-39793-th-Seeded-Admin-Credentials-chromium/test-finished-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results/production-login-test-Prod-39793-th-Seeded-Admin-Credentials-chromium/video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results/production-login-test-Prod-39793-th-Seeded-Admin-Credentials-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3eafeb79e8cc58d68897-4f721e1cd9fea134b8ec",
+              "file": "production-login-test.spec.ts",
+              "line": 6,
+              "column": 7
+            },
+            {
+              "title": "Check Database Seeding Status",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6358,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "🗃️ Checking if database is seeded\n"
+                        },
+                        {
+                          "text": "⚠️ Database seeding returned: 500\n"
+                        },
+                        {
+                          "text": "Error: {\"success\":false,\"message\":\"Seeding failed\",\"error\":\"\\nInvalid `prisma.payment.deleteMany()` invocation:\\n\\n\\nCan't reach database server at `pg-smartstore-demo-asithalkonaras-projects.c.aivencloud.com:17145`\\n\\nPlease make sure your database server is running at `pg-smartstore-demo-asithalkonaras-projects.c.aivencloud.com:17145`.\"}\n"
+                        }
+                      ],
+                      "stderr": [
+                        {
+                          "text": "(node:15509) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2025-12-21T17:54:30.777Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results/production-login-test-Prod-0e11f-eck-Database-Seeding-Status-chromium/test-finished-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results/production-login-test-Prod-0e11f-eck-Database-Seeding-Status-chromium/video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/test-results/production-login-test-Prod-0e11f-eck-Database-Seeding-Status-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3eafeb79e8cc58d68897-59e7ddaf1e5019eead5e",
+              "file": "production-login-test.spec.ts",
+              "line": 193,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-21T17:54:28.467Z",
+    "duration": 28054.596,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -34,6 +34,10 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
+    if (!organizationId) {
+      return NextResponse.json({ success: false, message: 'Organization not found' }, { status: 400 });
+    }
+
     // Calculate date range
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - parseInt(period));

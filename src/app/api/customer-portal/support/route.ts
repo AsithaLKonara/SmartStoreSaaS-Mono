@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
     // });
 
     // Get customer record to find email and organizationId
-    const customer = await prisma.customer.findUnique({
-      where: { userId: session.user.id },
+    const customer = await prisma.customer.findFirst({
+      where: { email: session.user.email },
       select: { email: true, organizationId: true }
     });
 
