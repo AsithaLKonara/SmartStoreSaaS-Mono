@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
