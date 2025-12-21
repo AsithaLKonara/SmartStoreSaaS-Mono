@@ -71,5 +71,4 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
       throw error;
     }
   }
-);
 
