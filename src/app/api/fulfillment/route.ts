@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     });
 
     const total = await prisma.delivery.count({
-      where: { organizationId: session.user.organizationId }
+      where: { organizationId }
     });
 
     return NextResponse.json({
