@@ -18,9 +18,12 @@ import { requireRole } from '@/lib/middleware/auth';
 export const dynamic = 'force-dynamic';
 
 export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user, { params }: { params: { id: string } }) => {
+  async (request, user) => {
     try {
-      const fulfillmentId = params.id;
+      // Extract fulfillment ID from URL path
+      const url = new URL(request.url);
+      const pathParts = url.pathname.split('/');
+      const fulfillmentId = pathParts[pathParts.length - 2]; // [id] is second to last
       const body = await request.json();
       const { carrier, service } = body;
 
