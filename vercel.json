@@ -1,4 +1,5 @@
 {
+  "name": "smartstore-saas",
   "buildCommand": "./scripts/build-production.sh",
   "framework": "nextjs"
 }
