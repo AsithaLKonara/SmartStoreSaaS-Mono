@@ -42,9 +42,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
       await prisma.delivery.update({
         where: { id: fulfillmentId },
         data: {
-          status: 'PACKED',
-          packedBy: user.id,
-          packedAt: new Date()
+          status: 'PACKED'
         }
       });
 
