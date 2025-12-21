@@ -27,7 +27,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
       const body = await request.json();
       const { carrier, service } = body;
 
-      const fulfillment = await prisma.fulfillment.findUnique({
+      const fulfillment = await prisma.delivery.findUnique({
         where: { id: fulfillmentId }
       });
 
