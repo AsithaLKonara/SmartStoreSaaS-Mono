@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     ` as PasswordQueryResult[];
 
-    if (!passwordResult || passwordResult.length === 0 || !passwordResult[0].password) {
+    if (!passwordResult || passwordResult.length === 0 || !passwordResult[0]?.password) {
       return NextResponse.json(
         { 
           success: false, 
