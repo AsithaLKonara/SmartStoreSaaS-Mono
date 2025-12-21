@@ -29,7 +29,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
       const body = await request.json();
       const { trackingNumber, carrier } = body;
 
-      const fulfillment = await prisma.fulfillment.findUnique({
+      const fulfillment = await prisma.delivery.findUnique({
         where: { id: fulfillmentId }
       });
 
@@ -41,7 +41,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         throw new ValidationError('Cannot ship fulfillment from other organizations');
       }
 
-      await prisma.fulfillment.update({
+      await prisma.delivery.update({
         where: { id: fulfillmentId },
         data: {
           status: 'SHIPPED',

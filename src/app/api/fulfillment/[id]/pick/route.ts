@@ -27,7 +27,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     try {
       // const fulfillmentId = params.id; // Now extracted from URL above
 
-      const fulfillment = await prisma.fulfillment.findUnique({
+      const fulfillment = await prisma.delivery.findUnique({
         where: { id: fulfillmentId }
       });
 
@@ -39,7 +39,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         throw new ValidationError('Cannot pick fulfillment from other organizations');
       }
 
-      await prisma.fulfillment.update({
+      await prisma.delivery.update({
         where: { id: fulfillmentId },
         data: {
           status: 'PICKED',
