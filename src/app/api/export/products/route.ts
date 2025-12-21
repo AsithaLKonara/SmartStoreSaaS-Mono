@@ -16,20 +16,21 @@ import { logger } from '@/lib/logger';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  // TODO: Add authentication check
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // TODO: Add role check for SUPER_ADMIN or TENANT_ADMIN
+  if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
+    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+  }
+
+  // TODO: Get organization scoping from session
+  const orgId = session.user.organizationId;
+
   try {
-    // TODO: Add authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN or TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    // TODO: Get organization scoping from session
-    const orgId = session.user.organizationId;
 
     const body = await request.json();
     const { format = 'csv', filters } = body;
