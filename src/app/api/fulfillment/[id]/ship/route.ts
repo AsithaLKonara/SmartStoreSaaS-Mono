@@ -19,11 +19,11 @@ export const dynamic = 'force-dynamic';
 
 export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
   async (request, user) => {
-    try {
-      // Extract fulfillment ID from URL path
-      const url = new URL(request.url);
-      const pathParts = url.pathname.split('/');
-      const fulfillmentId = pathParts[pathParts.length - 2]; // [id] is second to last
+    // Extract fulfillment ID from URL path
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const fulfillmentId = pathParts[pathParts.length - 2]; // [id] is second to last
+
     try {
       // const fulfillmentId = params.id; // Now extracted from URL above
       const body = await request.json();
