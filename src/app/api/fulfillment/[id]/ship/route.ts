@@ -45,10 +45,8 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         where: { id: fulfillmentId },
         data: {
           status: 'SHIPPED',
-          shippedBy: user.id,
-          shippedAt: new Date(),
           trackingNumber,
-          carrier
+          notes: carrier // Store carrier in notes field since it doesn't have a dedicated field
         }
       });
 
