@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface SupplierData {
   name: string;
@@ -35,7 +36,11 @@ export async function createSupplier(
 
     return { success: true, supplier };
   } catch (error: any) {
-    console.error('Create supplier error:', error);
+    logger.error({
+      message: 'Create supplier error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SupplierManager', operation: 'createSupplier', organizationId: data.organizationId, name: data.name }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -55,7 +60,11 @@ export async function updateSupplier(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Update supplier error:', error);
+    logger.error({
+      message: 'Update supplier error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SupplierManager', operation: 'updateSupplier', supplierId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -141,7 +150,11 @@ export async function linkProductToSupplier(data: {
 
     return { success: true };
   } catch (error: any) {
-    console.error('Link product error:', error);
+    logger.error({
+      message: 'Link product error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SupplierManager', operation: 'linkProduct', supplierId, productId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -183,7 +196,11 @@ export async function rateSupplier(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Rate supplier error:', error);
+    logger.error({
+      message: 'Rate supplier error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SupplierManager', operation: 'rateSupplier', supplierId, rating }
+    });
     return { success: false, error: error.message };
   }
 }

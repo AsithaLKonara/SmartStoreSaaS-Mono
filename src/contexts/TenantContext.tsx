@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { logger } from '@/lib/logger';
 
 interface TenantContextType {
   organizationId: string | null;
@@ -35,7 +36,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   const switchTenant = async (tenantId: string) => {
     if (!canSwitchTenant) {
-      console.error('Unauthorized tenant switch attempt');
+      logger.error({
+        message: 'Unauthorized tenant switch attempt',
+        context: { tenantId, userId: session?.user?.id }
+      });
       return;
     }
     
@@ -51,7 +55,11 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         window.location.reload();
       }
     } catch (error) {
-      console.error('Failed to switch tenant:', error);
+      logger.error({
+        message: 'Failed to switch tenant',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { tenantId, userId: session?.user?.id }
+      });
     }
   };
 

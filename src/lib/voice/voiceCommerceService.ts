@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import { realTimeSyncService } from '../sync/realTimeSyncService';
+import { logger } from '../logger';
 
 // SpeechRecognition type definitions - using unknown to avoid conflicts
 declare global {
@@ -73,7 +74,10 @@ export class VoiceCommerceService {
       const SpeechRecognition = window.SpeechRecognition || (window as unknown).webkitSpeechRecognition;
       
       if (!SpeechRecognition) {
-        console.warn('Speech recognition not supported');
+        logger.warn({
+          message: 'Speech recognition not supported',
+          context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
+        });
         return;
       }
 
@@ -83,17 +87,27 @@ export class VoiceCommerceService {
       this.recognition.lang = 'en-US';
 
       this.recognition.onstart = () => {
-        console.log('Voice recognition started');
+        logger.info({
+          message: 'Voice recognition started',
+          context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
+        });
         this.isListening = true;
       };
 
       this.recognition.onend = () => {
-        console.log('Voice recognition ended');
+        logger.info({
+          message: 'Voice recognition ended',
+          context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
+        });
         this.isListening = false;
       };
 
       this.recognition.onerror = (event: unknown) => {
-        console.error('Speech recognition error:', event.error);
+        logger.error({
+          message: 'Speech recognition error',
+          error: (event as { error: string }).error ? new Error((event as { error: string }).error) : new Error('Unknown error'),
+          context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
+        });
         this.isListening = false;
       };
 
@@ -102,7 +116,11 @@ export class VoiceCommerceService {
       };
 
     } catch (error) {
-      console.error('Error initializing speech recognition:', error);
+      logger.error({
+        message: 'Error initializing speech recognition',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
+      });
     }
   }
 
@@ -113,12 +131,22 @@ export class VoiceCommerceService {
     try {
       if ('speechSynthesis' in window) {
         this.synthesis = window.speechSynthesis;
-        console.log('Speech synthesis initialized');
+        logger.info({
+          message: 'Speech synthesis initialized',
+          context: { service: 'VoiceCommerceService', operation: 'initializeSpeechSynthesis' }
+        });
       } else {
-        console.warn('Speech synthesis not supported');
+        logger.warn({
+          message: 'Speech synthesis not supported',
+          context: { service: 'VoiceCommerceService', operation: 'initializeSpeechSynthesis' }
+        });
       }
     } catch (error) {
-      console.error('Error initializing speech synthesis:', error);
+      logger.error({
+        message: 'Error initializing speech synthesis',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'initializeSpeechSynthesis' }
+      });
     }
   }
 
@@ -327,7 +355,11 @@ export class VoiceCommerceService {
 
       return response;
     } catch (error) {
-      console.error('Error processing voice command:', error);
+      logger.error({
+        message: 'Error processing voice command',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'processVoiceCommand', command: command.text }
+      });
       return {
         text: 'Sorry, I couldn\'t understand that command. Please try again.',
         suggestions: ['Try saying "help" to see available commands'],
@@ -607,7 +639,11 @@ export class VoiceCommerceService {
         suggestions: products.slice(0, 3).map((p: unknown) => `add ${p.name} to cart`),
       };
     } catch (error) {
-      console.error('Error searching products:', error);
+      logger.error({
+        message: 'Error searching products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'searchProducts', query, organizationId }
+      });
       return {
         text: 'Sorry, I had trouble searching for products. Please try again.',
       };
@@ -657,7 +693,11 @@ export class VoiceCommerceService {
         suggestions: ['view cart', 'checkout', 'continue shopping'],
       };
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      logger.error({
+        message: 'Error adding to cart',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'addToCart', productId, quantity, customerId }
+      });
       return {
         text: 'Sorry, I had trouble adding that to your cart. Please try again.',
       };
@@ -712,7 +752,11 @@ export class VoiceCommerceService {
         };
       }
     } catch (error) {
-      console.error('Error checking order status:', error);
+      logger.error({
+        message: 'Error checking order status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'checkOrderStatus', orderId, customerId }
+      });
       return {
         text: 'Sorry, I had trouble checking your order status. Please try again.',
       };
@@ -787,7 +831,11 @@ export class VoiceCommerceService {
         suggestions: products.map((p: unknown) => `add ${p.name} to cart`),
       };
     } catch (error) {
-      console.error('Error getting recommendations:', error);
+      logger.error({
+        message: 'Error getting recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VoiceCommerceService', operation: 'getRecommendations', customerId, organizationId }
+      });
       return {
         text: 'Sorry, I had trouble getting recommendations. Please try again.',
       };

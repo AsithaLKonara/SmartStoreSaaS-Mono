@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormErrorMessage } from '@/components/ui/ErrorBoundary';
+import { logger } from '@/lib/logger';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('superadmin@smartstore.com');
@@ -63,7 +64,11 @@ export default function LoginForm() {
         }, 1000);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error({
+        message: 'Login error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { email }
+      });
       setMessage('❌ Login failed. Please try again.');
     } finally {
       setIsLoading(false);

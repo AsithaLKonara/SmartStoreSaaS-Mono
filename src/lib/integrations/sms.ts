@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import { logger } from '../logger';
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -59,7 +60,11 @@ export async function sendSMS(data: SMSMessage): Promise<SMSResponse> {
       messageId: message.sid,
     };
   } catch (error: any) {
-    console.error('SMS send error:', error);
+    logger.error({
+      message: 'SMS send error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SMSIntegration', operation: 'sendSMS', to, message }
+    });
     return {
       success: false,
       error: error.message || 'Failed to send SMS',

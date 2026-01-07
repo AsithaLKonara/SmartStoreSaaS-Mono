@@ -4,6 +4,7 @@
  */
 
 import { JWT } from 'next-auth/jwt';
+import { logger } from '../logger';
 
 interface RefreshTokenResponse {
   accessToken: string;
@@ -25,7 +26,10 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
       return token;
     }
 
-    console.log('🔄 Refreshing access token...');
+    logger.info({
+      message: 'Refreshing access token',
+      context: { service: 'JWTRefresh', operation: 'refreshAccessToken' }
+    });
 
     // Call refresh endpoint
     const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/refresh`, {
@@ -44,7 +48,10 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
 
     const refreshedTokens: RefreshTokenResponse = await response.json();
 
-    console.log('✅ Token refreshed successfully');
+    logger.info({
+      message: 'Token refreshed successfully',
+      context: { service: 'JWTRefresh', operation: 'refreshAccessToken' }
+    });
 
     return {
       ...token,
@@ -53,7 +60,11 @@ export async function refreshAccessToken(token: JWT): Promise<JWT> {
       accessTokenExpires: Date.now() + refreshedTokens.expiresIn * 1000,
     };
   } catch (error) {
-    console.error('❌ Error refreshing access token:', error);
+    logger.error({
+      message: 'Error refreshing access token',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'JWTRefresh', operation: 'refreshAccessToken' }
+    });
 
     return {
       ...token,

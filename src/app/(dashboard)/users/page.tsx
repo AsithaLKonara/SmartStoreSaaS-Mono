@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Users, Plus, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface User {
   id: string;
@@ -31,7 +32,12 @@ export default function UsersPage() {
         const data = await res.json();
         setUsers(data.users || data.data || []);
       }
-    } catch (error) { console.error(error); }
+    } catch (error) {
+      logger.error({
+        message: 'Error fetching users',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+    }
     finally { setLoading(false); }
   };
 

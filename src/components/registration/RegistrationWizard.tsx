@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { BusinessInfoStep } from './BusinessInfoStep';
 import { PackageSelectionStep } from './PackageSelectionStep';
 import { PaymentTrialStep } from './PaymentTrialStep';
+import { logger } from '@/lib/logger';
 
 interface RegistrationData {
   // Step 1: Business Information
@@ -117,7 +118,11 @@ export function RegistrationWizard() {
         throw new Error('Registration failed');
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      logger.error({
+        message: 'Registration error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { step: currentStep }
+      });
       // Show error message
     } finally {
       setIsLoading(false);

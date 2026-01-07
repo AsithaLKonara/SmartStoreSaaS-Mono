@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { prisma } from '../prisma';
+import { logger } from '@/lib/logger';
 
 // Lazy initialization of OpenAI client to prevent build-time errors
 let openai: OpenAI | null = null;
@@ -95,7 +96,11 @@ export class AIInventoryService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error predicting stockout risk:', error);
+      logger.error({
+        message: 'Error predicting stockout risk',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'predictStockoutRisk', organizationId }
+      });
       return [];
     }
   }
@@ -131,7 +136,11 @@ export class AIInventoryService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error analyzing seasonal trends:', error);
+      logger.error({
+        message: 'Error analyzing seasonal trends',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'analyzeSeasonalTrends', organizationId, productId }
+      });
       return [];
     }
   }
@@ -209,7 +218,11 @@ export class AIInventoryService {
 
       return supplierPerformance;
     } catch (error) {
-      console.error('Error evaluating supplier performance:', error);
+      logger.error({
+        message: 'Error evaluating supplier performance',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'evaluateSupplierPerformance', organizationId }
+      });
       return [];
     }
   }
@@ -271,7 +284,11 @@ export class AIInventoryService {
 
       return purchaseOrders;
     } catch (error) {
-      console.error('Error generating purchase orders:', error);
+      logger.error({
+        message: 'Error generating purchase orders',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'generatePurchaseOrders', organizationId, productsCount: products.length }
+      });
       return [];
     }
   }
@@ -299,9 +316,13 @@ export class AIInventoryService {
         })
       ]);
 
-      return { products, suppliers, purchaseOrders };
+      return { products, suppliers, purchaseOrders       };
     } catch (error) {
-      console.error('Error fetching inventory data:', error);
+      logger.error({
+        message: 'Error fetching inventory data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getInventoryData', organizationId }
+      });
       return { products: [], suppliers: [], purchaseOrders: [] };
     }
   }
@@ -340,7 +361,11 @@ export class AIInventoryService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error optimizing pricing:', error);
+      logger.error({
+        message: 'Error optimizing pricing',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'optimizePricing', organizationId }
+      });
       return [];
     }
   }

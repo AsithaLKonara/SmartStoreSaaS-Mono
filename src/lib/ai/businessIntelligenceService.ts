@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { logger } from '@/lib/logger';
 
 // Lazy initialization of OpenAI client to prevent build-time errors
 let openai: OpenAI | null = null;
@@ -119,7 +120,11 @@ export class BusinessIntelligenceService {
         try {
           return JSON.parse(response) as RealTimeMetrics;
         } catch (parseError) {
-          console.error('Error parsing AI response:', parseError);
+          logger.error({
+            message: 'Error parsing AI response',
+            error: parseError instanceof Error ? parseError : new Error(String(parseError)),
+            context: { service: 'BusinessIntelligenceService', operation: 'generateRealTimeMetrics' }
+          });
         }
       }
       
@@ -136,7 +141,11 @@ export class BusinessIntelligenceService {
         revenueByHour: []
       };
     } catch (error) {
-      console.error('Error generating real-time metrics:', error);
+      logger.error({
+        message: 'Error generating real-time metrics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'generateRealTimeMetrics', organizationId }
+      });
       return {
         timestamp: new Date(),
         totalSales: 0,
@@ -195,7 +204,11 @@ export class BusinessIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error calculating performance KPIs:', error);
+      logger.error({
+        message: 'Error calculating performance KPIs',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'calculatePerformanceKPIs', organizationId, timeRange }
+      });
       return [];
     }
   }
@@ -239,7 +252,11 @@ export class BusinessIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error generating sales forecasts:', error);
+      logger.error({
+        message: 'Error generating sales forecasts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'generateSalesForecasts', organizationId, period }
+      });
       return [];
     }
   }
@@ -284,7 +301,11 @@ export class BusinessIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error analyzing market trends:', error);
+      logger.error({
+        message: 'Error analyzing market trends',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'analyzeMarketTrends', organizationId, category }
+      });
       return [];
     }
   }
@@ -325,7 +346,11 @@ export class BusinessIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error performing competitive analysis:', error);
+      logger.error({
+        message: 'Error performing competitive analysis',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'performCompetitiveAnalysis', organizationId }
+      });
       return [];
     }
   }
@@ -371,7 +396,11 @@ export class BusinessIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error assessing business risks:', error);
+      logger.error({
+        message: 'Error assessing business risks',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'assessBusinessRisks', organizationId }
+      });
       return [];
     }
   }
@@ -414,7 +443,11 @@ export class BusinessIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error generating business insights:', error);
+      logger.error({
+        message: 'Error generating business insights',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BusinessIntelligenceService', operation: 'generateBusinessInsights', organizationId }
+      });
       return [];
     }
   }

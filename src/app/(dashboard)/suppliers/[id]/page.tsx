@@ -39,11 +39,7 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSupplier();
-  }, [params.id]);
-
-  const fetchSupplier = async () => {
+  const fetchSupplier = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/suppliers/${params.id}`);
@@ -64,7 +60,11 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router, handleError]);
+
+  useEffect(() => {
+    fetchSupplier();
+  }, [fetchSupplier]);
 
   const handleDelete = async () => {
     if (!confirm('Delete this supplier? This action cannot be undone.')) return;

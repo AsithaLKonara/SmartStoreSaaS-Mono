@@ -10,10 +10,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,7 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     try {
       const orgId = getOrganizationScope(user);
 
-      const rfqs = await prisma.rfq.findMany({
+      const rfqs = await prisma.rFQ.findMany({
         where: orgId ? { organizationId: orgId } : {},
         orderBy: { createdAt: 'desc' },
         take: 100
@@ -60,7 +61,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         throw new ValidationError('User must belong to an organization');
       }
 
-      const rfq = await prisma.rfq.create({
+      const rfq = await prisma.rFQ.create({
         data: {
           organizationId,
           title,

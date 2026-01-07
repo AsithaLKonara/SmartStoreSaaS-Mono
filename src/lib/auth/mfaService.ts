@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { smsService } from '@/lib/sms/smsService';
 import { emailService } from '@/lib/email/emailService';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 export interface MFASecret {
   secret: string;
@@ -78,7 +79,11 @@ export class MFAService {
         backupCodes,
       };
     } catch (error) {
-      console.error('Error generating TOTP secret:', error);
+      logger.error({
+        message: 'Error generating TOTP secret',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'generateTOTPSecret', userId, email }
+      });
       throw new Error('Failed to generate TOTP secret');
     }
   }
@@ -126,7 +131,11 @@ export class MFAService {
 
       return { isValid };
     } catch (error) {
-      console.error('Error verifying TOTP:', error);
+      logger.error({
+        message: 'Error verifying TOTP',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'verifyTOTP', userId }
+      });
       await this.logMFAEvent(userId, 'totp_verification_error', 'error');
       return { isValid: false };
     }
@@ -173,7 +182,11 @@ export class MFAService {
 
       return false;
     } catch (error) {
-      console.error('Error enabling TOTP:', error);
+      logger.error({
+        message: 'Error enabling TOTP',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'enableTOTP', userId }
+      });
       return false;
     }
   }
@@ -200,7 +213,11 @@ export class MFAService {
 
       return false;
     } catch (error) {
-      console.error('Error disabling TOTP:', error);
+      logger.error({
+        message: 'Error disabling TOTP',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'disableTOTP', userId }
+      });
       return false;
     }
   }
@@ -240,7 +257,11 @@ export class MFAService {
       await this.logMFAEvent(userId, 'sms_code_sent', 'success');
       return true;
     } catch (error) {
-      console.error('Error sending SMS MFA code:', error);
+      logger.error({
+        message: 'Error sending SMS MFA code',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'sendSMSCode', userId, phone }
+      });
       await this.logMFAEvent(userId, 'sms_code_send_failed', 'error');
       return false;
     }
@@ -283,7 +304,11 @@ export class MFAService {
 
       return { isValid };
     } catch (error) {
-      console.error('Error verifying SMS code:', error);
+      logger.error({
+        message: 'Error verifying SMS code',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'verifySMSCode', userId }
+      });
       await this.logMFAEvent(userId, 'sms_verification_error', 'error');
       return { isValid: false };
     }
@@ -350,7 +375,11 @@ export class MFAService {
       await this.logMFAEvent(userId, 'email_code_sent', 'success');
       return true;
     } catch (error) {
-      console.error('Error sending email MFA code:', error);
+      logger.error({
+        message: 'Error sending email MFA code',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'sendEmailCode', userId, email }
+      });
       await this.logMFAEvent(userId, 'email_code_send_failed', 'error');
       return false;
     }
@@ -393,7 +422,11 @@ export class MFAService {
 
       return { isValid };
     } catch (error) {
-      console.error('Error verifying email code:', error);
+      logger.error({
+        message: 'Error verifying email code',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'verifyEmailCode', userId }
+      });
       await this.logMFAEvent(userId, 'email_verification_error', 'error');
       return { isValid: false };
     }
@@ -425,13 +458,20 @@ export class MFAService {
 
       // Backup codes not implemented in current schema
       // This would require additional fields in UserMFA model
-      console.warn('Backup codes not implemented in current schema');
+      logger.warn({
+        message: 'Backup codes not implemented in current schema',
+        context: { service: 'MFAService', operation: 'regenerateBackupCodes', userId }
+      });
 
       await this.logMFAEvent(userId, 'backup_codes_regenerated', 'success');
 
       return newBackupCodes;
     } catch (error) {
-      console.error('Error regenerating backup codes:', error);
+      logger.error({
+        message: 'Error regenerating backup codes',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'regenerateBackupCodes', userId }
+      });
       return null;
     }
   }
@@ -455,7 +495,11 @@ export class MFAService {
         lastUsedAt: record.lastUsed || undefined,
       }));
     } catch (error) {
-      console.error('Error getting user MFA methods:', error);
+      logger.error({
+        message: 'Error getting user MFA methods',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'getUserMFAMethods', userId }
+      });
       return [];
     }
   }
@@ -473,7 +517,11 @@ export class MFAService {
 
       return count > 0;
     } catch (error) {
-      console.error('Error checking MFA status:', error);
+      logger.error({
+        message: 'Error checking MFA status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'hasMFAEnabled', userId }
+      });
       return false;
     }
   }
@@ -498,7 +546,11 @@ export class MFAService {
       await this.logMFAEvent(userId, 'all_mfa_disabled', 'success');
       return true;
     } catch (error) {
-      console.error('Error disabling all MFA:', error);
+      logger.error({
+        message: 'Error disabling all MFA',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'disableAllMFA', userId }
+      });
       return false;
     }
   }
@@ -509,7 +561,10 @@ export class MFAService {
   async getMFALogs(userId: string, limit = 50): Promise<unknown[]> {
     // MFA logging not implemented in current schema
     // This would require an MfaLog model
-    console.warn('MFA logging not implemented in current schema');
+    logger.warn({
+      message: 'MFA logging not implemented in current schema',
+      context: { service: 'MFAService', operation: 'getMFALogs', userId, limit }
+    });
     return [];
   }
 
@@ -566,7 +621,10 @@ export class MFAService {
   ): Promise<void> {
     // MFA logging not implemented in current schema
     // This would require an MfaLog model
-    console.log(`MFA Event: ${action} - ${result} for user ${userId}`, details);
+    logger.info({
+      message: `MFA Event: ${action} - ${result}`,
+      context: { service: 'MFAService', operation: 'logMFAEvent', userId, action, result, details }
+    });
   }
 
   /**
@@ -583,7 +641,11 @@ export class MFAService {
 
       return await QRCode.toDataURL(otpauthUrl);
     } catch (error) {
-      console.error('Error generating manual entry QR:', error);
+      logger.error({
+        message: 'Error generating manual entry QR',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'generateManualEntryQR', email }
+      });
       throw new Error('Failed to generate QR code');
     }
   }
@@ -642,7 +704,11 @@ export class MFAService {
 
       return false;
     } catch (error) {
-      console.error('Error validating TOTP setup:', error);
+      logger.error({
+        message: 'Error validating TOTP setup',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MFAService', operation: 'validateTOTPSetup', userId }
+      });
       return false;
     }
   }

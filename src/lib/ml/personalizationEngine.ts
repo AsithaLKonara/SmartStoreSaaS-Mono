@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import * as tf from '@tensorflow/tfjs';
+import { logger } from '@/lib/logger';
 
 export interface UserProfile {
   userId: string;
@@ -205,9 +206,16 @@ export class PersonalizationEngine {
 
       this.models.set('deep_learning', deepModel);
 
-      console.log('Personalization models initialized');
+      logger.info({
+        message: 'Personalization models initialized',
+        context: { service: 'PersonalizationEngine', operation: 'initializeModels' }
+      });
     } catch (error) {
-      console.error('Error initializing ML models:', error);
+      logger.error({
+        message: 'Error initializing ML models',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'initializeModels' }
+      });
     }
   }
 
@@ -277,7 +285,11 @@ export class PersonalizationEngine {
 
       return profile;
     } catch (error) {
-      console.error('Error building user profile:', error);
+      logger.error({
+        message: 'Error building user profile',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'buildUserProfile', userId }
+      });
       throw new Error('Failed to build user profile');
     }
   }
@@ -337,7 +349,11 @@ export class PersonalizationEngine {
 
       return diversifiedRecs;
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      logger.error({
+        message: 'Error generating recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'getRecommendations', userId, count }
+      });
       return [];
     }
   }
@@ -381,7 +397,11 @@ export class PersonalizationEngine {
         messaging,
       };
     } catch (error) {
-      console.error('Error personalizing content:', error);
+      logger.error({
+        message: 'Error personalizing content',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'personalizeContent', userId, contentType }
+      });
       return {
         layout: 'default',
         content: {},
@@ -453,7 +473,11 @@ export class PersonalizationEngine {
         offers,
       };
     } catch (error) {
-      console.error('Error in real-time personalization:', error);
+      logger.error({
+        message: 'Error in real-time personalization',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'getRealTimePersonalization', userId }
+      });
       return {
         recommendations: [],
         popups: [],
@@ -485,7 +509,11 @@ export class PersonalizationEngine {
       
       return mockExperiment;
     } catch (error) {
-      console.error('Error creating experiment:', error);
+      logger.error({
+        message: 'Error creating experiment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'createExperiment', organizationId, experimentName: experimentData.name }
+      });
       throw new Error('Failed to create experiment');
     }
   }
@@ -505,7 +533,10 @@ export class PersonalizationEngine {
       // Store interaction
       // Note: userInteraction model doesn't exist in Prisma schema
       // Consider implementing this functionality when the model is available
-      console.log('User interaction logged:', { userId, interactionType, itemId, itemType, context, metadata });
+      logger.debug({
+        message: 'User interaction logged',
+        context: { service: 'PersonalizationEngine', operation: 'trackInteraction', userId, interactionType, itemId, itemType }
+      });
 
       // Update user profile in real-time
       await this.updateUserProfileRealTime(userId, interactionType, itemId, itemType);
@@ -527,7 +558,11 @@ export class PersonalizationEngine {
         source: 'personalization'
       });
     } catch (error) {
-      console.error('Error tracking interaction:', error);
+      logger.error({
+        message: 'Error tracking interaction',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PersonalizationEngine', operation: 'trackInteraction', userId, interactionType }
+      });
     }
   }
 
@@ -731,7 +766,10 @@ export class PersonalizationEngine {
   private async storeUserProfile(profile: UserProfile): Promise<void> {
     // Note: userProfile model doesn't exist in Prisma schema
     // Consider implementing this functionality when the model is available
-    console.log('User profile stored:', profile);
+    logger.debug({
+      message: 'User profile stored',
+      context: { service: 'PersonalizationEngine', operation: 'storeUserProfile', userId: profile.userId }
+    });
   }
 
   private getTopCategory(categories: string[]): string | null {
@@ -927,7 +965,10 @@ export class PersonalizationEngine {
 
   private scheduleModelRetraining(): void {
     // Schedule model retraining
-    console.log('Scheduling model retraining...');
+    logger.info({
+      message: 'Scheduling model retraining',
+      context: { service: 'PersonalizationEngine', operation: 'scheduleModelRetraining' }
+    });
   }
 }
 

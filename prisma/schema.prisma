@@ -30,6 +30,9 @@ model User {
   purchaseOrdersCreated PurchaseOrder[]
   returnsApproved       Return[]
   giftCardsIssued       GiftCard[]
+  posTransactions       posTransaction[]
+  procurementInvoices   ProcurementInvoice[]
+  rfqs                  RFQ[]
 
   @@map("users")
 }
@@ -90,6 +93,10 @@ model Organization {
   giftCards               GiftCard[]
   affiliates              Affiliate[]
   referrals               Referral[]
+  posTerminals            posTerminal[]
+  posTransactions         posTransaction[]
+  procurementInvoices     ProcurementInvoice[]
+  rfqs                    RFQ[]
 
   @@map("organizations")
 }
@@ -558,6 +565,39 @@ model iot_devices {
   sensor_readings sensor_readings[]
 }
 
+model posTerminal {
+  id             String           @id @default(cuid())
+  name           String
+  location       String?
+  type           String           @default("STANDARD")
+  isActive       Boolean          @default(true)
+  organizationId String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  transactions   posTransaction[]
+
+  @@map("pos_terminals")
+}
+
+model posTransaction {
+  id             String      @id @default(cuid())
+  organizationId String
+  terminalId     String
+  items          String      // JSON string of transaction items
+  total          Decimal
+  paymentMethod  String      @default("CASH")
+  cashierId      String
+  status         String      @default("COMPLETED")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  terminal       posTerminal @relation(fields: [terminalId], references: [id])
+  cashier        User        @relation(fields: [cashierId], references: [id])
+
+  @@map("pos_transactions")
+}
+
 model journal_entries {
   id                    String                @id
   organizationId        String
@@ -986,6 +1026,7 @@ model PurchaseOrder {
   updatedAt      DateTime            @updatedAt
 
   items PurchaseOrderItem[]
+  procurementInvoices ProcurementInvoice[]
 
   @@map("purchase_orders")
 }
@@ -1006,6 +1047,40 @@ model PurchaseOrderItem {
   updatedAt        DateTime      @updatedAt
 
   @@map("purchase_order_items")
+}
+
+model ProcurementInvoice {
+  id              String           @id @default(cuid())
+  organizationId  String
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder    @relation(fields: [purchaseOrderId], references: [id])
+  amount          Decimal
+  dueDate         DateTime?
+  status          String           @default("PENDING")
+  createdBy       String
+  createdByUser   User             @relation(fields: [createdBy], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("procurement_invoices")
+}
+
+model RFQ {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String
+  items          String       // JSON string of requested items
+  suppliers      String?      // JSON string of invited suppliers
+  deadline       DateTime?
+  status         String       @default("DRAFT")
+  createdBy      String
+  createdByUser  User         @relation(fields: [createdBy], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("rfqs")
 }
 
 // ============================================================================

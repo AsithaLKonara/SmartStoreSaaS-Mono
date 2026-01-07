@@ -35,15 +35,19 @@ export async function POST(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
+    }
+
     // Get customer's purchase history for collaborative filtering
     const customerOrders = await prisma.order.findMany({
-      where: { 
+      where: {
         customerId,
         organizationId,
         status: { in: ['COMPLETED', 'DELIVERED'] }
       },
       include: {
-        items: {
+        orderItems: {
           include: {
             product: true
           }
@@ -54,8 +58,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Get products from same categories that customer bought from
-    const purchasedProductIds = customerOrders.flatMap(order => 
-      order.items.map(item => item.productId)
+    const purchasedProductIds = customerOrders.flatMap(order =>
+      order.orderItems.map(item => item.productId)
     );
 
     const recommendations = await prisma.product.findMany({

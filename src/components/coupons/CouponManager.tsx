@@ -74,7 +74,10 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
       const data = await response.json();
       setCoupons(data.coupons || []);
     } catch (error) {
-      console.error('Error fetching coupons:', error);
+      logger.error({
+        message: 'Error fetching coupons',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
@@ -113,7 +116,11 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
         resetForm();
       }
     } catch (error) {
-      console.error('Error saving coupon:', error);
+      logger.error({
+        message: 'Error saving coupon',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { couponId: coupon?.id }
+      });
     }
   };
 
@@ -165,7 +172,11 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
         setCoupons(coupons.filter(c => c.id !== couponId));
       }
     } catch (error) {
-      console.error('Error deleting coupon:', error);
+      logger.error({
+        message: 'Error deleting coupon',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { couponId }
+      });
     }
   };
 
@@ -607,7 +618,10 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
       const data = await response.json();
       setCoupons(data.coupons || []);
     } catch (error) {
-      console.error('Error fetching coupons:', error);
+      logger.error({
+        message: 'Error fetching coupons',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
@@ -646,7 +660,11 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
         resetForm();
       }
     } catch (error) {
-      console.error('Error saving coupon:', error);
+      logger.error({
+        message: 'Error saving coupon',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { couponId: coupon?.id }
+      });
     }
   };
 
@@ -698,7 +716,11 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
         setCoupons(coupons.filter(c => c.id !== couponId));
       }
     } catch (error) {
-      console.error('Error deleting coupon:', error);
+      logger.error({
+        message: 'Error deleting coupon',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { couponId }
+      });
     }
   };
 
@@ -1140,7 +1162,10 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
       const data = await response.json();
       setCoupons(data.coupons || []);
     } catch (error) {
-      console.error('Error fetching coupons:', error);
+      logger.error({
+        message: 'Error fetching coupons',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
@@ -1179,7 +1204,11 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
         resetForm();
       }
     } catch (error) {
-      console.error('Error saving coupon:', error);
+      logger.error({
+        message: 'Error saving coupon',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { couponId: coupon?.id }
+      });
     }
   };
 
@@ -1231,7 +1260,11 @@ export default function CouponManager({ onCouponSelect }: CouponManagerProps) {
         setCoupons(coupons.filter(c => c.id !== couponId));
       }
     } catch (error) {
-      console.error('Error deleting coupon:', error);
+      logger.error({
+        message: 'Error deleting coupon',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { couponId }
+      });
     }
   };
 

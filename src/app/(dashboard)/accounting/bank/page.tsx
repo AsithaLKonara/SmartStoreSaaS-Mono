@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Plus, CreditCard, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 
 interface BankAccount {
   id: string;
@@ -36,7 +37,10 @@ export default function BankReconciliationPage() {
         setAccounts(data.data || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching bank accounts',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

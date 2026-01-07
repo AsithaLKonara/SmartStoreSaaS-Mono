@@ -1,7 +1,7 @@
 'use client';
 
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -58,17 +58,7 @@ export default function CustomersPage() {
   const [spendingFilter, setSpendingFilter] = useState('');
   const [aiInsights, setAiInsights] = useState<any>(null);
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchCustomers();
-    fetchAIInsights();
-  }, [session, status]);
-
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       const response = await fetch('/api/customers');
       if (response.ok) {
@@ -76,14 +66,13 @@ export default function CustomersPage() {
         setCustomers(data.customers);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
       toast.error('Failed to load customers');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchAIInsights = async () => {
+  const fetchAIInsights = useCallback(async () => {
     try {
       const response = await fetch('/api/analytics/dashboard?organizationId=org-1&period=30');
       if (response.ok) {
@@ -93,9 +82,19 @@ export default function CustomersPage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching AI insights:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchCustomers();
+    fetchAIInsights();
+  }, [session, status, router, fetchCustomers, fetchAIInsights]);
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = 

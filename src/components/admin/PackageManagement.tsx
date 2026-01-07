@@ -17,6 +17,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface PackageData {
   id: string;
@@ -91,7 +92,10 @@ export function PackageManagement() {
       ];
       setPackages(mockPackages);
     } catch (error) {
-      console.error('Error fetching packages:', error);
+      logger.error({
+        message: 'Error fetching packages',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

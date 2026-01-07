@@ -12,6 +12,7 @@ import { ResponsiveTable } from '@/components/MobileTable';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { SearchQuery } from '@/lib/search';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Product {
   id: string;
@@ -46,6 +47,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProducts = async (query: SearchQuery = {
@@ -84,7 +86,11 @@ export default function ProductsPage() {
       }
     } catch (err) {
       setError('Failed to fetch products');
-      console.error('Error fetching products:', err);
+      logger.error({
+        message: 'Error fetching products',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { searchQuery: query }
+      });
     } finally {
       setLoading(false);
     }

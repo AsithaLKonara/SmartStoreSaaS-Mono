@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
 import { smsService } from '@/lib/sms/smsService';
+import { logger } from '@/lib/logger';
 
 export interface SecurityAlert {
   id: string;
@@ -60,7 +61,11 @@ class SecurityMonitoringService {
 
       return this.mapToSecurityAlert(alert);
     } catch (error) {
-      console.error('Error creating security alert:', error);
+      logger.error({
+        message: 'Error creating security alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityMonitoring', operation: 'createAlert', organizationId: data.organizationId, type: data.type, severity: data.severity }
+      });
       throw error;
     }
   }
@@ -97,7 +102,11 @@ class SecurityMonitoringService {
         total,
       };
     } catch (error) {
-      console.error('Error getting security alerts:', error);
+      logger.error({
+        message: 'Error getting security alerts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityMonitoring', operation: 'getAlerts', organizationId, filters }
+      });
       throw error;
     }
   }
@@ -121,7 +130,11 @@ class SecurityMonitoringService {
 
       return this.mapToSecurityAlert(alert);
     } catch (error) {
-      console.error('Error updating alert status:', error);
+      logger.error({
+        message: 'Error updating alert status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityMonitoring', operation: 'updateAlertStatus', alertId, status, resolvedBy }
+      });
       throw error;
     }
   }
@@ -216,7 +229,11 @@ class SecurityMonitoringService {
         lastIncident: lastIncident?.createdAt,
       };
     } catch (error) {
-      console.error('Error getting security metrics:', error);
+      logger.error({
+        message: 'Error getting security metrics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityMonitoring', operation: 'getSecurityMetrics', organizationId, timeRange }
+      });
       throw error;
     }
   }
@@ -246,7 +263,11 @@ class SecurityMonitoringService {
         message: `CRITICAL Security Alert: ${alert.title} - ${alert.description}`,
       });
     } catch (error) {
-      console.error('Error sending critical alert notifications:', error);
+      logger.error({
+        message: 'Error sending critical alert notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityMonitoring', operation: 'sendCriticalAlertNotifications', alertId: alert.id, alertType: alert.type, severity: alert.severity }
+      });
     }
   }
 

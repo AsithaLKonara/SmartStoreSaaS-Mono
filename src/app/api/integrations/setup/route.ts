@@ -71,6 +71,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
       // TODO: Encrypt credentials before storing
       const integration = await prisma.channel_integrations.create({
         data: {
+          id: `integration_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId,
           name,
           type,
@@ -79,7 +80,8 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
           status: 'INACTIVE',
           credentials: JSON.stringify(credentials),
           settings: JSON.stringify(settings || {}),
-          isActive: false
+          isActive: false,
+          updatedAt: new Date()
         }
       });
 

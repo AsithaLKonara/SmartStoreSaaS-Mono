@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export enum ReturnReason {
   DEFECTIVE = 'DEFECTIVE',
@@ -97,7 +98,11 @@ export async function createReturnRequest(data: {
 
     return { success: true, returnRequest };
   } catch (error: any) {
-    console.error('Create return request error:', error);
+    logger.error({
+      message: 'Create return request error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReturnManager', operation: 'createReturnRequest', orderId: data.orderId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -121,7 +126,11 @@ export async function approveReturnRequest(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Approve return error:', error);
+    logger.error({
+      message: 'Approve return error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReturnManager', operation: 'approveReturn', returnId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -144,7 +153,11 @@ export async function rejectReturnRequest(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Reject return error:', error);
+    logger.error({
+      message: 'Reject return error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReturnManager', operation: 'rejectReturn', returnId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -187,7 +200,11 @@ export async function markReturnReceived(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Mark received error:', error);
+    logger.error({
+      message: 'Mark received error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReturnManager', operation: 'markReceived', returnId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -233,7 +250,11 @@ export async function processRefund(
 
     return { success: true, refund };
   } catch (error: any) {
-    console.error('Process refund error:', error);
+    logger.error({
+      message: 'Process refund error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReturnManager', operation: 'processRefund', returnId }
+    });
     return { success: false, error: error.message };
   }
 }

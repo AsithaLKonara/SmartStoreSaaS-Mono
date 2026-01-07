@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 export default function NewCustomerPage() {
   const { data: session, status } = useSession();
@@ -51,7 +52,7 @@ export default function NewCustomerPage() {
       router.push('/auth/signin');
       return;
     }
-  }, [session, status]);
+  }, [session, status, router]);
 
   const addTag = () => {
     if (newTag.trim() && !customerData.tags.includes(newTag.trim())) {
@@ -102,7 +103,11 @@ export default function NewCustomerPage() {
         toast.error(error.message || 'Failed to create customer');
       }
     } catch (error) {
-      console.error('Error creating customer:', error);
+      logger.error({
+        message: 'Error creating customer',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { email: customerData.email }
+      });
       toast.error('Failed to create customer');
     } finally {
       setLoading(false);

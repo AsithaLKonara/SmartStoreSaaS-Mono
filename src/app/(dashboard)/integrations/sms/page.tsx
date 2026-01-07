@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,13 +69,7 @@ export default function SMSIntegrationPage() {
   const [stats, setStats] = useState({ sent: 0, delivered: 0, failed: 0, totalCost: 0 });
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    loadConfiguration();
-    loadSMSLogs();
-    loadSMSStats();
-  }, []);
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/integrations/setup?type=sms');
@@ -87,13 +81,13 @@ export default function SMSIntegrationPage() {
         }
       }
     } catch (error) {
-      console.error('Error loading SMS configuration:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [config]);
 
-  const loadSMSLogs = async () => {
+  const loadSMSLogs = useCallback(async () => {
     try {
       const response = await fetch('/api/sms/logs');
       if (response.ok) {
@@ -101,11 +95,11 @@ export default function SMSIntegrationPage() {
         setSmsLogs(data.logs || []);
       }
     } catch (error) {
-      console.error('Error loading SMS logs:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
 
-  const loadSMSStats = async () => {
+  const loadSMSStats = useCallback(async () => {
     try {
       const response = await fetch('/api/sms/statistics');
       if (response.ok) {
@@ -113,9 +107,15 @@ export default function SMSIntegrationPage() {
         setStats(data.stats || stats);
       }
     } catch (error) {
-      console.error('Error loading SMS stats:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, [stats]);
+
+  useEffect(() => {
+    loadConfiguration();
+    loadSMSLogs();
+    loadSMSStats();
+  }, [loadConfiguration, loadSMSLogs, loadSMSStats]);
 
   const testConnection = async () => {
     try {

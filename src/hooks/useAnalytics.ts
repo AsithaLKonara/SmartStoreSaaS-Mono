@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-client';
+import { logger } from '@/lib/logger';
 
 interface DashboardData {
   revenue: {
@@ -53,7 +54,11 @@ export function useDashboardAnalytics(organizationId: string = 'org-1', period: 
         const data: DashboardData = await response.json();
         return data;
       } catch (error) {
-        console.error('[useAnalytics] Dashboard fetch error:', error);
+        logger.error({
+          message: 'Dashboard fetch error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useAnalytics', operation: 'fetchDashboardAnalytics', organizationId, period }
+        });
         // Return default data as fallback
         return {
           revenue: { total: 0, change: 0, trend: 'up' as const },
@@ -89,7 +94,11 @@ export function useRevenueAnalytics(period: string = '30d') {
         
         return response.json();
       } catch (error) {
-        console.error('[useAnalytics] Revenue fetch error:', error);
+        logger.error({
+          message: 'Revenue fetch error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useAnalytics', operation: 'fetchRevenueAnalytics', period }
+        });
         throw error; // Re-throw to let React Query handle it
       }
     },
@@ -115,7 +124,11 @@ export function useEnhancedAnalytics(timeRange: string = '30d', organizationId?:
         
         return response.json();
       } catch (error) {
-        console.error('[useAnalytics] Enhanced analytics fetch error:', error);
+        logger.error({
+          message: 'Enhanced analytics fetch error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useAnalytics', operation: 'fetchEnhancedAnalytics', timeRange, organizationId }
+        });
         throw error; // Re-throw to let React Query handle it
       }
     },

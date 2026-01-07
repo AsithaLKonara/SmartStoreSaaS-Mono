@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import { logger } from '../logger';
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -61,7 +62,11 @@ export async function sendWhatsAppMessage(
       messageId: message.sid,
     };
   } catch (error: any) {
-    console.error('WhatsApp send error:', error);
+    logger.error({
+      message: 'WhatsApp send error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'WhatsAppIntegration', operation: 'sendMessage', to, message }
+    });
     return {
       success: false,
       error: error.message || 'Failed to send WhatsApp message',
@@ -82,7 +87,11 @@ export async function verifyWhatsAppConnection(): Promise<boolean> {
     const account = await client.api.accounts(accountSid).fetch();
     return account.status === 'active';
   } catch (error) {
-    console.error('WhatsApp verification error:', error);
+    logger.error({
+      message: 'WhatsApp verification error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'WhatsAppIntegration', operation: 'verifyAccount' }
+    });
     return false;
   }
 }

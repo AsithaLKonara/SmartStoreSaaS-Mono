@@ -8,39 +8,39 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Webhook, Plus, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 
-export default function WebhooksPage() {
-  const [webhooks, setWebhooks] = useState<any[]>([]);
-  const [showForm, setShowForm] = useState(false);
+const SAMPLE_WEBHOOKS = [
+  {
+    id: '1',
+    name: 'Stripe Webhook',
+    url: 'https://smartstore-demo.vercel.app/api/webhooks/stripe',
+    events: ['payment.succeeded', 'payment.failed'],
+    status: 'active',
+    lastTriggered: '2 minutes ago',
+  },
+  {
+    id: '2',
+    name: 'WooCommerce Webhook',
+    url: 'https://smartstore-demo.vercel.app/api/webhooks/woocommerce/org123',
+    events: ['order.created', 'order.updated'],
+    status: 'active',
+    lastTriggered: '1 hour ago',
+  },
+  {
+    id: '3',
+    name: 'WhatsApp Webhook',
+    url: 'https://smartstore-demo.vercel.app/api/webhooks/whatsapp',
+    events: ['message.received', 'message.delivered'],
+    status: 'active',
+    lastTriggered: '5 minutes ago',
+  },
+];
 
-  const sampleWebhooks = [
-    {
-      id: '1',
-      name: 'Stripe Webhook',
-      url: 'https://smartstore-demo.vercel.app/api/webhooks/stripe',
-      events: ['payment.succeeded', 'payment.failed'],
-      status: 'active',
-      lastTriggered: '2 minutes ago',
-    },
-    {
-      id: '2',
-      name: 'WooCommerce Webhook',
-      url: 'https://smartstore-demo.vercel.app/api/webhooks/woocommerce/org123',
-      events: ['order.created', 'order.updated'],
-      status: 'active',
-      lastTriggered: '1 hour ago',
-    },
-    {
-      id: '3',
-      name: 'WhatsApp Webhook',
-      url: 'https://smartstore-demo.vercel.app/api/webhooks/whatsapp',
-      events: ['message.received', 'message.delivered'],
-      status: 'active',
-      lastTriggered: '5 minutes ago',
-    },
-  ];
+export default function WebhooksPage() {
+  const [showForm, setShowForm] = useState(false);
+  const [webhooks, setWebhooks] = useState<typeof SAMPLE_WEBHOOKS>([]);
 
   useEffect(() => {
-    setWebhooks(sampleWebhooks);
+    setWebhooks(SAMPLE_WEBHOOKS);
   }, []);
 
   return (

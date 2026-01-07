@@ -10,10 +10,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,14 +60,26 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         throw new ValidationError('User must belong to an organization');
       }
 
+      // Generate a unique supplier code
+      const baseCode = name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 3);
+      let code = baseCode;
+      let counter = 1;
+
+      while (await prisma.supplier.findUnique({
+        where: { organizationId_code: { organizationId, code } }
+      })) {
+        code = `${baseCode}${counter}`;
+        counter++;
+      }
+
       const supplier = await prisma.supplier.create({
         data: {
           organizationId,
+          code,
           name,
           contactName,
           email,
-          phone,
-          isActive: true
+          phone
         }
       });
 

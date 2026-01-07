@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -69,7 +70,11 @@ export function StripePaymentForm({
       // 3. Handle the result
       
     } catch (error: any) {
-      console.error('Payment error:', error);
+      logger.error({
+        message: 'Payment error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { orderId }
+      });
       toast.error(error.message || 'Payment failed');
       
       if (onError) {

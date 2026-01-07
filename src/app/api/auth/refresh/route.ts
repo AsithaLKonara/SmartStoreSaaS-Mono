@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,8 @@ interface RefreshTokenPayload {
  * Refresh an expired access token
  */
 export async function POST(request: NextRequest) {
+  const correlationId = request.headers.get('x-request-id') || uuidv4();
+  
   try {
     const body = await request.json();
     const { refreshToken } = body;
@@ -82,9 +86,20 @@ export async function POST(request: NextRequest) {
       expiresIn: 3600, // 1 hour in seconds
     });
   } catch (error: any) {
-    console.error('Token refresh error:', error);
+    logger.error({
+      message: 'Token refresh error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: {
+        errorMessage: error.message || 'Unknown error'
+      },
+      correlation: correlationId
+    });
+    
     return NextResponse.json(
-      { error: 'Failed to refresh token' },
+      { 
+        error: 'Failed to refresh token',
+        correlation: correlationId
+      },
       { status: 500 }
     );
   }

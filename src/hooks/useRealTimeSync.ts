@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SyncEvent } from '@/lib/sync/realTimeSyncService';
+import { logger } from '@/lib/logger';
 
 interface SyncStatus {
   lastSync: Date | null;
@@ -52,7 +53,10 @@ export function useRealTimeSync({
       ws.onopen = () => {
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
-        console.log('Real-time sync connected');
+        logger.info({
+          message: 'Real-time sync connected',
+          context: { organizationId }
+        });
       };
 
       ws.onmessage = (event) => {
@@ -74,14 +78,22 @@ export function useRealTimeSync({
             setConflicts(prev => [data.conflict, ...prev.slice(0, 49)]); // Keep last 50 conflicts
           }
         } catch (error) {
-          console.error('Error parsing sync message:', error);
+          logger.error({
+            message: 'Error parsing sync message',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { organizationId }
+          });
+          onError?.(error instanceof Error ? error : new Error(String(error)));
         }
       };
 
       ws.onclose = () => {
         setIsConnected(false);
         setSyncStatus(prev => ({ ...prev, isOnline: false }));
-        console.log('Real-time sync disconnected');
+        logger.info({
+          message: 'Real-time sync disconnected',
+          context: { organizationId, reconnectAttempts: reconnectAttemptsRef.current }
+        });
         
         // Attempt to reconnect
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
@@ -93,13 +105,21 @@ export function useRealTimeSync({
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        logger.error({
+          message: 'WebSocket error',
+          error: error instanceof Error ? error : new Error('WebSocket connection failed'),
+          context: { organizationId }
+        });
         onError?.(new Error('WebSocket connection failed'));
       };
 
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
-      onError?.(error as Error);
+      logger.error({
+        message: 'Error creating WebSocket connection',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { organizationId }
+      });
+      onError?.(error instanceof Error ? error : new Error(String(error)));
     }
   }, [organizationId, onEvent, onError]);
 
@@ -141,7 +161,11 @@ export function useRealTimeSync({
         onStatusChange?.(status);
       }
     } catch (error) {
-      console.error('Error fetching sync status:', error);
+      logger.error({
+        message: 'Error fetching sync status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { organizationId }
+      });
     }
   }, [organizationId, onStatusChange]);
 
@@ -161,7 +185,11 @@ export function useRealTimeSync({
         return true;
       }
     } catch (error) {
-      console.error('Error forcing sync:', error);
+      logger.error({
+        message: 'Error forcing sync',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { organizationId }
+      });
     }
     return false;
   }, [organizationId, getSyncStatus]);
@@ -180,11 +208,15 @@ export function useRealTimeSync({
       });
       
       if (response.ok) {
-        setConflicts(prev => prev.filter(c => c.id !== conflictId));
+        setConflicts(prev => prev.filter(c => (c as any).id !== conflictId));
         return true;
       }
     } catch (error) {
-      console.error('Error resolving conflict:', error);
+      logger.error({
+        message: 'Error resolving conflict',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { organizationId, conflictId }
+      });
     }
     return false;
   }, [organizationId]);

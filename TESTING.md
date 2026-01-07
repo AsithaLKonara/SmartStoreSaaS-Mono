@@ -53,13 +53,16 @@ npx playwright install --with-deps chromium
 
 ```bash
 # Create .env.test file
-cp .env.example .env.test
+cp env.test.example .env.test
 
 # Edit .env.test with test database URL
-# DATABASE_URL=postgresql://user:pass@localhost:5432/smartstore_test
+# DATABASE_URL=postgresql://smartstore:smartstore123@localhost:5432/smartstore_test
 
-# Setup test database
-pnpm db:test:setup
+# Setup test database (automatically creates, migrates, and seeds)
+pnpm test:db:setup
+
+# Or manually:
+# pnpm db:test:setup
 ```
 
 ### 3. Run Tests
@@ -121,7 +124,9 @@ describe('GET /api/products', () => {
 
 **Location:** `tests/e2e/flows/*.spec.ts`
 
-**Purpose:** Test complete user journeys with real browser
+**Purpose:** Test complete user journeys with real browser against local server
+
+**Local Testing:** E2E tests automatically start a local Next.js dev server and connect to a local PostgreSQL database. No manual server startup required!
 
 **Example:**
 
@@ -180,27 +185,56 @@ pnpm test:integration --coverage
 pnpm test:integration api.products.spec.ts
 ```
 
-### E2E Tests
+### E2E Tests (Local Server + Database)
+
+**Quick Start (Recommended):**
 
 ```bash
-# Run E2E tests (headless)
-pnpm test:e2e
+# One command: Setup database and run tests
+bash scripts/test-e2e-local.sh
+```
 
-# Headed mode (see browser)
-pnpm test:e2e:headed
+**Step-by-step:**
 
-# Debug mode (pause on each step)
-pnpm test:e2e:debug
+```bash
+# 1. Setup test database (first time or after schema changes)
+pnpm test:db:setup
 
-# Specific test file
-npx playwright test customer-registration.spec.ts
+# 2. Run E2E tests (automatically starts local dev server)
+pnpm test:e2e:local
 
-# Specific test by name
-npx playwright test -g "can register"
-
-# View HTML report
+# 3. View HTML report
 pnpm test:report
 ```
+
+**Advanced Options:**
+
+```bash
+# Headed mode (see browser)
+pnpm test:e2e:local -- --headed
+
+# Debug mode (pause on each step)
+pnpm test:e2e:local -- --debug
+
+# Run with server already running (faster)
+# Terminal 1: dotenv -e .env.test -- npm run dev
+# Terminal 2: pnpm test:e2e:server
+
+# Specific test file
+pnpm test:e2e:local -- tests/e2e/flows/customer-registration.spec.ts
+
+# Specific test by name
+pnpm test:e2e:local -- -g "can register"
+
+# CI mode (headless, uses existing server config)
+pnpm test:e2e:ci
+```
+
+**Note:** E2E tests automatically:
+- Start Next.js dev server on `http://localhost:3000`
+- Use test database from `.env.test`
+- Run global setup to verify database
+- Clean up after tests complete
 
 ### Coverage
 
@@ -432,10 +466,16 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/smartstore_test \
 
 ```bash
 # Kill process on port 3000
+# Mac/Linux:
 lsof -ti:3000 | xargs kill -9
 
-# Or use different port
-E2E_BASE_URL=http://localhost:3001 pnpm test:e2e
+# Windows:
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+
+# Or use different port in .env.test:
+# E2E_BASE_URL=http://localhost:3001
+# Then: pnpm test:e2e:local
 ```
 
 #### 4. Flaky E2E tests

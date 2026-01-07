@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Customer {
   id: string;
@@ -71,7 +72,7 @@ export default function NewOrderPage() {
     fetchCustomers();
     fetchProducts();
     generateOrderNumber();
-  }, [session, status]);
+  }, [session, status, router]);
 
   const generateOrderNumber = () => {
     const timestamp = Date.now();
@@ -87,7 +88,10 @@ export default function NewOrderPage() {
         setCustomers(data.customers || data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      logger.error({
+        message: 'Error fetching customers',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load customers');
     }
   };
@@ -100,7 +104,10 @@ export default function NewOrderPage() {
         setProducts(data.products || data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      logger.error({
+        message: 'Error fetching products',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load products');
     }
   };
@@ -200,7 +207,11 @@ export default function NewOrderPage() {
         toast.error(error.message || 'Failed to create order');
       }
     } catch (error) {
-      console.error('Error creating order:', error);
+      logger.error({
+        message: 'Error creating order',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { customerId: orderData.customerId }
+      });
       toast.error('Failed to create order');
     } finally {
       setLoading(false);

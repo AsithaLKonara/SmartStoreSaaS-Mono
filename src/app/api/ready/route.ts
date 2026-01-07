@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,11 @@ export const GET = async (req: NextRequest) => {
       }
     }, { status: 200 });
   } catch (error: any) {
-    console.error('[API /ready] Readiness check failed:', error);
+    logger.error({
+      message: 'Readiness check failed',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'ready-check' }
+    });
     return NextResponse.json({
       success: false,
       status: 'not ready',

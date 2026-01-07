@@ -10,10 +10,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,14 +61,29 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         throw new ValidationError('User must belong to an organization');
       }
 
+      // Calculate subtotal and total from items
+      let subtotal = 0;
+      for (const item of items) {
+        subtotal += item.quantity * item.unitPrice;
+      }
+      const total = subtotal; // For now, no tax/shipping calculation
+
+      // Generate order number
+      const orderNumber = `PO-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
       const po = await prisma.purchaseOrder.create({
         data: {
+          orderNumber,
           organizationId,
           supplierId,
+          subtotal,
+          tax: 0,
+          shipping: 0,
+          total,
           items,
-          expectedDelivery: expectedDelivery ? new Date(expectedDelivery) : undefined,
+          expectedDate: expectedDelivery ? new Date(expectedDelivery) : undefined,
           status: 'DRAFT',
-          createdBy: user.id
+          createdById: user.id
         }
       });
 

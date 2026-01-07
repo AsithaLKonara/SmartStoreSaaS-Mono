@@ -3,6 +3,7 @@ import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import { emailService } from '@/lib/email/emailService';
 import { smsService } from '@/lib/sms/smsService';
 import { iotLogger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 export interface IoTDevice {
   id: string;
@@ -971,9 +972,16 @@ export class IoTService {
       // Start periodic tasks
       this.startPeriodicTasks();
       
-      console.log('IoT service initialized');
+      logger.info({
+        message: 'IoT service initialized',
+        context: { service: 'IoTService', operation: 'initialize' }
+      });
     } catch (error) {
-      console.error('Error initializing IoT service:', error);
+      logger.error({
+        message: 'Error initializing IoT service',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'initialize' }
+      });
     }
   }
 
@@ -996,7 +1004,11 @@ export class IoTService {
 
       return device;
     } catch (error) {
-      console.error('Error registering IoT device:', error);
+      logger.error({
+        message: 'Error registering IoT device',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'registerDevice', deviceId: device.id, deviceType: device.type }
+      });
       throw new Error('Failed to register IoT device');
     }
   }
@@ -1011,12 +1023,21 @@ export class IoTService {
 
       // Update device status to online
       // TODO: Update when IoT models are created
-      console.log(`Device ${deviceId} connected`);
+      logger.info({
+        message: 'Device connected',
+        context: { service: 'IoTService', operation: 'connectDevice', deviceId }
+      });
 
       // Set up message handlers
       ws.onmessage = (event) => this.handleDeviceMessage(deviceId, event.data);
       ws.onclose = () => this.handleDeviceDisconnect(deviceId);
-      ws.onerror = (error) => console.error(`Device ${deviceId} WebSocket error:`, error);
+      ws.onerror = (error) => {
+        logger.error({
+          message: 'Device WebSocket error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'IoTService', operation: 'connectDevice', deviceId }
+        });
+      };
 
       // Send welcome message
       ws.send(JSON.stringify({
@@ -1025,7 +1046,11 @@ export class IoTService {
         timestamp: new Date().toISOString(),
       }));
     } catch (error) {
-      console.error('Error connecting IoT device:', error);
+      logger.error({
+        message: 'Error connecting IoT device',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'connectDevice', deviceId }
+      });
       throw new Error('Failed to connect IoT device');
     }
   }
@@ -1060,7 +1085,11 @@ export class IoTService {
 
       return sensorReading;
     } catch (error) {
-      console.error('Error processing sensor reading:', error);
+      logger.error({
+        message: 'Error processing sensor reading',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'processSensorReading', deviceId: reading.deviceId, readingType: reading.type }
+      });
       throw new Error('Failed to process sensor reading');
     }
   }
@@ -1071,7 +1100,10 @@ export class IoTService {
   async processSmartShelfData(shelfData: SmartShelfData): Promise<void> {
     try {
       // Process smart shelf data
-      console.log('Processing smart shelf data:', shelfData);
+      logger.debug({
+        message: 'Processing smart shelf data',
+        context: { service: 'IoTService', operation: 'processSmartShelfData', deviceId: shelfData.deviceId }
+      });
 
       // Update product quantities
       for (const product of shelfData.products) {
@@ -1095,7 +1127,11 @@ export class IoTService {
         }
       }
     } catch (error) {
-      console.error('Error processing smart shelf data:', error);
+      logger.error({
+        message: 'Error processing smart shelf data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'processSmartShelfData', deviceId: shelfData.deviceId }
+      });
       throw new Error('Failed to process smart shelf data');
     }
   }
@@ -1106,20 +1142,30 @@ export class IoTService {
   async processBeaconData(beaconData: BeaconData): Promise<void> {
     try {
       // Process beacon data for customer tracking
-      console.log('Processing beacon data:', beaconData);
+      logger.debug({
+        message: 'Processing beacon data',
+        context: { service: 'IoTService', operation: 'processBeaconData', beaconId: beaconData.beaconId }
+      });
 
       // Update customer interactions
       for (const customerDevice of beaconData.customerDevices) {
         if (customerDevice.userId) {
           // TODO: Create customer interaction record when models are available
-          console.log(`Customer ${customerDevice.userId} interaction at beacon ${beaconData.beaconId}`);
+          logger.info({
+            message: 'Customer interaction at beacon',
+            context: { service: 'IoTService', operation: 'processBeaconData', userId: customerDevice.userId, beaconId: beaconData.beaconId }
+          });
         }
       }
 
       // Generate location insights
       await this.generateLocationInsights(beaconData);
     } catch (error) {
-      console.error('Error processing beacon data:', error);
+      logger.error({
+        message: 'Error processing beacon data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'processBeaconData', beaconId: beaconData.beaconId }
+      });
       throw new Error('Failed to process beacon data');
     }
   }
@@ -1130,7 +1176,10 @@ export class IoTService {
   async processRFIDReading(reading: RFIDReading): Promise<void> {
     try {
       // Process RFID reading
-      console.log('Processing RFID reading:', reading);
+      logger.debug({
+        message: 'Processing RFID reading',
+        context: { service: 'IoTService', operation: 'processRFIDReading', deviceId: reading.deviceId, tagId: reading.tagId }
+      });
 
       // Update inventory if product is identified
       if (reading.productId) {
@@ -1140,7 +1189,11 @@ export class IoTService {
       // Check for security issues
       await this.checkRFIDSecurity(reading);
     } catch (error) {
-      console.error('Error processing RFID reading:', error);
+      logger.error({
+        message: 'Error processing RFID reading',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'processRFIDReading', deviceId: reading.deviceId }
+      });
       throw new Error('Failed to process RFID reading');
     }
   }
@@ -1181,7 +1234,11 @@ export class IoTService {
 
       return mockConditions;
     } catch (error) {
-      console.error('Error getting environmental conditions:', error);
+      logger.error({
+        message: 'Error getting environmental conditions',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'getEnvironmentalConditions', deviceId }
+      });
       throw new Error('Failed to get environmental conditions');
     }
   }
@@ -1216,7 +1273,11 @@ export class IoTService {
 
       return mockAnalytics;
     } catch (error) {
-      console.error('Error getting device analytics:', error);
+      logger.error({
+        message: 'Error getting device analytics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'getDeviceAnalytics', deviceId, timeRange }
+      });
       throw new Error('Failed to get device analytics');
     }
   }
@@ -1241,7 +1302,11 @@ export class IoTService {
 
       return alert;
     } catch (error) {
-      console.error('Error creating IoT alert:', error);
+      logger.error({
+        message: 'Error creating IoT alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'createAlert', deviceId, alertType: alert.type, severity: alert.severity }
+      });
       throw new Error('Failed to create IoT alert');
     }
   }
@@ -1267,7 +1332,11 @@ export class IoTService {
 
       return alert;
     } catch (error) {
-      console.error('Error resolving IoT alert:', error);
+      logger.error({
+        message: 'Error resolving IoT alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'resolveAlert', alertId }
+      });
       throw new Error('Failed to resolve IoT alert');
     }
   }
@@ -1311,10 +1380,17 @@ export class IoTService {
           await this.processRFIDReading(data.rfidReading);
           break;
         default:
-          console.log(`Unknown message type from device ${deviceId}:`, data.type);
+          logger.warn({
+            message: 'Unknown message type from device',
+            context: { service: 'IoTService', operation: 'handleDeviceMessage', deviceId, messageType: data.type }
+          });
       }
     } catch (error) {
-      console.error(`Error handling message from device ${deviceId}:`, error);
+      logger.error({
+        message: 'Error handling message from device',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'handleDeviceMessage', deviceId }
+      });
     }
   }
 
@@ -1325,9 +1401,16 @@ export class IoTService {
 
       // Update device status to offline
       // TODO: Update when IoT models are created
-      console.log(`Device ${deviceId} disconnected`);
+      logger.info({
+        message: 'Device disconnected',
+        context: { service: 'IoTService', operation: 'handleDeviceDisconnect', deviceId }
+      });
     } catch (error) {
-      console.error(`Error handling device disconnect for ${deviceId}:`, error);
+      logger.error({
+        message: 'Error handling device disconnect',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'handleDeviceDisconnect', deviceId }
+      });
     }
   }
 
@@ -1361,16 +1444,27 @@ export class IoTService {
         });
       }
     } catch (error) {
-      console.error('Error checking sensor alerts:', error);
+      logger.error({
+        message: 'Error checking sensor alerts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'checkSensorAlerts', deviceId }
+      });
     }
   }
 
   private async updateDeviceLastSeen(deviceId: string): Promise<void> {
     try {
       // TODO: Update device last seen when IoT models are created
-      console.log(`Updated last seen for device ${deviceId}`);
+      logger.debug({
+        message: 'Updated last seen for device',
+        context: { service: 'IoTService', operation: 'updateDeviceLastSeen', deviceId }
+      });
     } catch (error) {
-      console.error(`Error updating last seen for device ${deviceId}:`, error);
+      logger.error({
+        message: 'Error updating last seen for device',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'updateDeviceLastSeen', deviceId }
+      });
     }
   }
 
@@ -1386,9 +1480,16 @@ export class IoTService {
         data: { stockQuantity: quantity },
       });
 
-      console.log(`Updated product ${productId} quantity to ${quantity} from shelf device ${deviceId}`);
+      logger.info({
+        message: 'Updated product quantity from shelf device',
+        context: { service: 'IoTService', operation: 'updateProductQuantity', productId, quantity, deviceId }
+      });
     } catch (error) {
-      console.error(`Error updating product quantity for ${productId}:`, error);
+      logger.error({
+        message: 'Error updating product quantity',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'updateProductQuantity', productId, deviceId }
+      });
     }
   }
 
@@ -1401,10 +1502,17 @@ export class IoTService {
       );
 
       if (totalInteractions > 100) {
-        console.log(`High traffic detected at beacon ${beaconData.beaconId}: ${totalInteractions} interactions`);
+        logger.warn({
+          message: 'High traffic detected at beacon',
+          context: { service: 'IoTService', operation: 'generateLocationInsights', beaconId: beaconData.beaconId, totalInteractions }
+        });
       }
     } catch (error) {
-      console.error('Error generating location insights:', error);
+      logger.error({
+        message: 'Error generating location insights',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'generateLocationInsights', beaconId: beaconData.beaconId }
+      });
     }
   }
 
@@ -1433,10 +1541,17 @@ export class IoTService {
           }
         });
 
-        console.log(`Updated product ${reading.productId} from RFID reading at ${reading.location}`);
+        logger.info({
+          message: 'Updated product from RFID reading',
+          context: { service: 'IoTService', operation: 'updateInventoryFromRFID', productId: reading.productId, location: reading.location }
+        });
       }
     } catch (error) {
-      console.error('Error updating inventory from RFID:', error);
+      logger.error({
+        message: 'Error updating inventory from RFID',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'updateInventoryFromRFID', tagId: reading.tagId }
+      });
     }
   }
 
@@ -1454,7 +1569,11 @@ export class IoTService {
         });
       }
     } catch (error) {
-      console.error('Error checking RFID security:', error);
+      logger.error({
+        message: 'Error checking RFID security',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'checkRFIDSecurity', tagId }
+      });
     }
   }
 
@@ -1462,9 +1581,16 @@ export class IoTService {
     try {
       // TODO: Check for offline devices when IoT models are created
       // For now, just log the check
-      console.log('Checking for offline devices...');
+      logger.debug({
+        message: 'Checking for offline devices',
+        context: { service: 'IoTService', operation: 'checkOfflineDevices', organizationId }
+      });
     } catch (error) {
-      console.error('Error checking offline devices:', error);
+      logger.error({
+        message: 'Error checking offline devices',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'checkOfflineDevices', organizationId }
+      });
     }
   }
 
@@ -1486,7 +1612,10 @@ export class IoTService {
           // Process grouped readings
           for (const [sensorId, sensorReadings] of Array.from(groupedReadings.entries())) {
             // Process readings in batch
-            console.log(`Processing ${sensorReadings.length} buffered readings from device ${deviceId}`);
+            logger.debug({
+              message: 'Processing buffered readings from device',
+              context: { service: 'IoTService', operation: 'processSensorDataBuffer', deviceId, readingsCount: sensorReadings.length }
+            });
             
             // Clear buffer after processing
             this.sensorDataBuffer.set(deviceId, []);
@@ -1494,7 +1623,11 @@ export class IoTService {
         }
       }
     } catch (error) {
-      console.error('Error processing sensor data buffer:', error);
+      logger.error({
+        message: 'Error processing sensor data buffer',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'processSensorDataBuffer', deviceId }
+      });
     }
   }
 
@@ -1502,21 +1635,35 @@ export class IoTService {
     try {
       // TODO: Check battery levels when IoT models are created
       // For now, just log the check
-      console.log('Checking device battery levels...');
+      logger.debug({
+        message: 'Checking device battery levels',
+        context: { service: 'IoTService', operation: 'checkBatteryLevels', organizationId }
+      });
     } catch (error) {
-      console.error('Error checking battery levels:', error);
+      logger.error({
+        message: 'Error checking battery levels',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'checkBatteryLevels', organizationId }
+      });
     }
   }
 
   private async sendCriticalAlertNotifications(alert: unknown): Promise<void> {
     try {
       // TODO: Send notifications when notification services are available
-      console.log(`Critical alert: ${alert.message}`);
+      logger.error({
+        message: 'Critical alert',
+        context: { service: 'IoTService', operation: 'sendCriticalAlertNotifications', alertId: alert.id, alertType: alert.type, alertMessage: alert.message }
+      });
       
       // In production, this would send emails, SMS, or push notifications
       // to relevant staff members
     } catch (error) {
-      console.error('Error sending critical alert notifications:', error);
+      logger.error({
+        message: 'Error sending critical alert notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'IoTService', operation: 'sendCriticalAlertNotifications', alertId: alert.id }
+      });
     }
   }
 

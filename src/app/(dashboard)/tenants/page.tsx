@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
+import { logger } from '@/lib/logger';
 
 interface Tenant {
   id: string;
@@ -42,7 +43,10 @@ function TenantsPageContent() {
         setTenants(data.tenants || []);
       }
     } catch (error) {
-      console.error('Error fetching tenants:', error);
+      logger.error({
+        message: 'Error fetching tenants',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load tenants');
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
 import { smsService } from '@/lib/sms/smsService';
+import { logger } from '@/lib/logger';
 
 export interface MonitoringMetric {
   id: string;
@@ -95,7 +96,11 @@ export class ProductionMonitoringService {
       await this.checkMetricThresholds(monitoringMetric);
       await this.updateMetricsCache(monitoringMetric);
     } catch (error) {
-      console.error('Error recording metric:', error);
+      logger.error({
+        message: 'Error recording metric',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'recordMetric', metricName: monitoringMetric.name, organizationId: monitoringMetric.organizationId }
+      });
     }
   }
 
@@ -148,7 +153,11 @@ export class ProductionMonitoringService {
         apiCallsPerMinute: await this.getApiCallsPerMinute(organizationId, timeRange),
       };
     } catch (error) {
-      console.error('Error getting system metrics:', error);
+      logger.error({
+        message: 'Error getting system metrics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'getSystemMetrics', organizationId, timeRange }
+      });
       throw error;
     }
   }
@@ -207,7 +216,11 @@ export class ProductionMonitoringService {
         metadata: alert.metadata ? JSON.parse(alert.metadata) : undefined,
       }));
     } catch (error) {
-      console.error('Error getting active alerts:', error);
+      logger.error({
+        message: 'Error getting active alerts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'getActiveAlerts', organizationId }
+      });
       throw error;
     }
   }
@@ -232,7 +245,11 @@ export class ProductionMonitoringService {
 
       return newAlert;
     } catch (error) {
-      console.error('Error creating alert:', error);
+      logger.error({
+        message: 'Error creating alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'createAlert', organizationId, type: alertData.type, severity: alertData.severity }
+      });
       throw error;
     }
   }
@@ -250,7 +267,11 @@ export class ProductionMonitoringService {
         },
       });
     } catch (error) {
-      console.error('Error acknowledging alert:', error);
+      logger.error({
+        message: 'Error acknowledging alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'acknowledgeAlert', alertId, userId }
+      });
       throw error;
     }
   }
@@ -269,7 +290,11 @@ export class ProductionMonitoringService {
         },
       });
     } catch (error) {
-      console.error('Error resolving alert:', error);
+      logger.error({
+        message: 'Error resolving alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'resolveAlert', alertId, userId }
+      });
       throw error;
     }
   }
@@ -301,7 +326,11 @@ export class ProductionMonitoringService {
         lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Error getting monitoring dashboard:', error);
+      logger.error({
+        message: 'Error getting monitoring dashboard',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'getMonitoringDashboard', organizationId }
+      });
       throw error;
     }
   }
@@ -479,7 +508,11 @@ export class ProductionMonitoringService {
         },
       });
     } catch (error) {
-      console.error('Error storing metric:', error);
+      logger.error({
+        message: 'Error storing metric',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'storeMetric', metricName: metric.name }
+      });
     }
   }
 
@@ -506,7 +539,11 @@ export class ProductionMonitoringService {
         },
       });
     } catch (error) {
-      console.error('Error storing alert:', error);
+      logger.error({
+        message: 'Error storing alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'storeAlert', alertId: alert.id }
+      });
     }
   }
 
@@ -526,7 +563,11 @@ export class ProductionMonitoringService {
         });
       }
     } catch (error) {
-      console.error('Error storing health check results:', error);
+      logger.error({
+        message: 'Error storing health check results',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'storeHealthCheckResults', organizationId }
+      });
     }
   }
 
@@ -574,7 +615,10 @@ export class ProductionMonitoringService {
   }
 
   private async updateMetricsCache(metric: MonitoringMetric): Promise<void> {
-    console.log('Updating metrics cache for:', metric.name, metric.value);
+    logger.debug({
+      message: 'Updating metrics cache',
+      context: { service: 'ProductionMonitoring', operation: 'updateMetricsCache', metricName: metric.name, metricValue: metric.value }
+    });
   }
 
   private async getRecentMetrics(organizationId?: string, timeRange?: { start: Date; end: Date }) {
@@ -604,7 +648,11 @@ export class ProductionMonitoringService {
         tags: metric.tags ? JSON.parse(metric.tags) : {},
       }));
     } catch (error) {
-      console.error('Error getting recent metrics:', error);
+      logger.error({
+        message: 'Error getting recent metrics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'getRecentMetrics', organizationId }
+      });
       return [];
     }
   }
@@ -645,7 +693,11 @@ export class ProductionMonitoringService {
         await this.sendSMSNotification(alert);
       }
     } catch (error) {
-      console.error('Error sending notifications:', error);
+      logger.error({
+        message: 'Error sending notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionMonitoring', operation: 'sendNotifications', alertId: alert.id }
+      });
     }
   }
 

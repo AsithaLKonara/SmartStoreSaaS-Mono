@@ -36,13 +36,15 @@ export async function GET(request: NextRequest) {
     });
 
     const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
+    }
 
     // Get shipping configuration from organization settings
     const shippingConfig = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { 
-        settings: true,
-        country: true 
+      select: {
+        settings: true
       }
     });
 

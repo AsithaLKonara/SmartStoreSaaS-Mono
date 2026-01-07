@@ -2,12 +2,19 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
+  const correlationId = request.headers.get('x-request-id') || uuidv4();
+  
   try {
-    console.log('🌱 Starting database seeding via API...');
+    logger.info({
+      message: 'Starting database seeding via API',
+      correlation: correlationId
+    });
 
     // Create test organization with correct fields
     const organization = await prisma.organization.create({
@@ -16,12 +23,12 @@ export async function POST(request: NextRequest) {
         domain: 'smartstore-demo.com',
         plan: 'PRO',
         status: 'ACTIVE',
-        settings: {
+        settings: JSON.stringify({
           description: 'Demo organization for testing',
           website: 'https://smartstore-demo.com',
           currency: 'USD',
           timezone: 'UTC',
-        },
+        }),
       },
     });
 
@@ -32,7 +39,7 @@ export async function POST(request: NextRequest) {
         email: 'admin@smartstore.com',
         name: 'Admin User',
         password: hashedPassword,
-        role: 'ADMIN',
+        role: 'SUPER_ADMIN',
         organizationId: organization.id,
         isActive: true,
         emailVerified: new Date(),
@@ -46,14 +53,22 @@ export async function POST(request: NextRequest) {
         email: 'user@smartstore.com',
         name: 'Regular User',
         password: hashedPassword2,
-        role: 'USER',
+        role: 'STAFF',
         organizationId: organization.id,
         isActive: true,
         emailVerified: new Date(),
       },
     });
 
-    console.log('✅ Database seeded successfully');
+    logger.info({
+      message: 'Database seeded successfully',
+      context: {
+        organizationId: organization.id,
+        adminUserId: adminUser.id,
+        regularUserId: regularUser.id
+      },
+      correlation: correlationId
+    });
 
     return NextResponse.json({
       success: true,
@@ -81,12 +96,21 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Seeding error:', error);
+    logger.error({
+      message: 'Seeding error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: {
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      },
+      correlation: correlationId
+    });
+    
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to seed database',
         details: error instanceof Error ? error.message : 'Unknown error',
+        correlation: correlationId
       },
       { status: 500 }
     );

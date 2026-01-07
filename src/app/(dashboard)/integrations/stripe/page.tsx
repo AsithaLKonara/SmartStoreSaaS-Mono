@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,12 +56,7 @@ export default function StripeIntegrationPage() {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    loadConfiguration();
-    setWebhookUrl(`${window.location.origin}/api/webhooks/stripe`);
-  }, []);
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/integrations/setup?type=stripe');
@@ -77,7 +72,12 @@ export default function StripeIntegrationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadConfiguration();
+    setWebhookUrl(`${window.location.origin}/api/webhooks/stripe`);
+  }, [loadConfiguration]);
 
   const testConnection = async () => {
     try {

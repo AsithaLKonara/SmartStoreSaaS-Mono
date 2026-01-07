@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,30 +25,25 @@ export const dynamic = 'force-dynamic';
  * GET /api/customers
  * List customers with organization scoping
  */
-export async function GET(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !hasPermission(session.user.role, 'VIEW_CUSTOMERS')) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const { searchParams } = new URL(req.url);
+export const GET = requirePermission('VIEW_CUSTOMERS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search') || '';
     const skip = (page - 1) * limit;
 
-    // TODO: Get organization scoping from session
-    // const orgId = session.user.organizationId;
+    // Get organization scoping
+    const orgId = getOrganizationScope(user);
     
     // Build where clause
     const where: any = {};
     
-    // TODO: Add organization filter
-    // if (orgId) {
-    //   where.organizationId = orgId;
-    // }
+    // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
+    if (orgId) {
+      where.organizationId = orgId;
+    }
     
     // Add search filter
     if (search) {
@@ -73,8 +69,10 @@ export async function GET(req: NextRequest) {
       context: {
         count: customers.length,
         page,
-        limit
-      }
+        limit,
+        organizationId: orgId
+      },
+      correlation: req.correlationId
     });
 
     return NextResponse.json(
@@ -87,29 +85,36 @@ export async function GET(req: NextRequest) {
         hasPrev: page > 1
       })
     );
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch customers',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to fetch customers' }, { status: 500 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch customers',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch customers',
+        correlation: req.correlationId
+      }, { status: 500 });
+    }
   }
-}
+);
 
 /**
  * POST /api/customers
  * Create new customer
  */
-export async function POST(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !hasPermission(session.user.role, 'MANAGE_CUSTOMERS')) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const body = await req.json();
+export const POST = requirePermission('MANAGE_CUSTOMERS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
     const { name, email, phone, address } = body;
 
     // Validation
@@ -121,14 +126,14 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // TODO: Fix authentication - temporarily disabled for deployment
-    // const organizationId = session.user.organizationId;
-    // if (!organizationId) {
-    //   return NextResponse.json({ success: false, message: 'User must belong to an organization' }, { status: 400 });
-    // }
-
-    // Temporary fix: use a default organization ID
-    const organizationId = 'default-org';
+    // Get organizationId from user
+    const organizationId = getOrganizationScope(user);
+    if (!organizationId) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'User must belong to an organization' 
+      }, { status: 400 });
+    }
 
     // Check for duplicate email within organization
     const existing = await prisma.customer.findFirst({
@@ -163,42 +168,54 @@ export async function POST(req: NextRequest) {
       context: {
         customerId: customer.id,
         email: customer.email,
-        organizationId: customer.organizationId
-      }
+        organizationId: customer.organizationId,
+        userId: user.id
+      },
+      correlation: req.correlationId
     });
 
-    return NextResponse.json(
-      successResponse(customer),
-      { status: 201 }
-    );
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to create customer',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to create customer' }, { status: 500 });
+      return NextResponse.json(
+        successResponse(customer),
+        { status: 201 }
+      );
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create customer',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create customer',
+        correlation: req.correlationId
+      }, { status: 500 });
+    }
   }
-}
+);
 
 /**
  * PUT /api/customers
  * Update existing customer
  */
-export async function PUT(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !hasPermission(session.user.role, 'MANAGE_CUSTOMERS')) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const body = await req.json();
+export const PUT = requirePermission('MANAGE_CUSTOMERS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
     const { id, ...updateData } = body;
 
     // Validation
     if (!id) {
-      return NextResponse.json({ success: false, message: 'Customer ID is required' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Customer ID is required' 
+      }, { status: 400 });
     }
 
     // Verify customer belongs to user's organization
@@ -207,13 +224,20 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ success: false, message: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Customer not found' 
+      }, { status: 404 });
     }
 
-    // TODO: Add organization check
-    // if (existing.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-    //   return NextResponse.json({ success: false, message: 'Cannot update customers from other organizations' }, { status: 403 });
-    // }
+    // Organization check - SUPER_ADMIN can update any customer
+    const orgId = getOrganizationScope(user);
+    if (existing.organizationId !== orgId && user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Cannot update customers from other organizations' 
+      }, { status: 403 });
+    }
 
     // Update customer
     const customer = await prisma.customer.update({
@@ -228,41 +252,51 @@ export async function PUT(req: NextRequest) {
       message: 'Customer updated',
       context: {
         customerId: customer.id,
-        organizationId: customer.organizationId
-      }
+        organizationId: customer.organizationId,
+        userId: user.id
+      },
+      correlation: req.correlationId
     });
 
-    return NextResponse.json(
-      successResponse(customer)
-    );
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update customer',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to update customer' }, { status: 500 });
+      return NextResponse.json(successResponse(customer));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update customer',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to update customer',
+        correlation: req.correlationId
+      }, { status: 500 });
+    }
   }
-}
+);
 
 /**
  * DELETE /api/customers
  * Delete customer (soft delete recommended in production)
  */
-export async function DELETE(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !hasPermission(session.user.role, 'MANAGE_CUSTOMERS')) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const body = await req.json();
+export const DELETE = requirePermission('MANAGE_CUSTOMERS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
     const { id } = body;
 
     // Validation
     if (!id) {
-      return NextResponse.json({ success: false, message: 'Customer ID is required' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Customer ID is required' 
+      }, { status: 400 });
     }
 
     // Verify customer belongs to user's organization
@@ -271,13 +305,20 @@ export async function DELETE(req: NextRequest) {
     });
 
     if (!existing) {
-      return NextResponse.json({ success: false, message: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Customer not found' 
+      }, { status: 404 });
     }
 
-    // TODO: Add organization check
-    // if (existing.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-    //   return NextResponse.json({ success: false, message: 'Cannot delete customers from other organizations' }, { status: 403 });
-    // }
+    // Organization check - SUPER_ADMIN can delete any customer
+    const orgId = getOrganizationScope(user);
+    if (existing.organizationId !== orgId && user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Cannot delete customers from other organizations' 
+      }, { status: 403 });
+    }
 
     // Delete customer
     await prisma.customer.delete({
@@ -288,19 +329,33 @@ export async function DELETE(req: NextRequest) {
       message: 'Customer deleted',
       context: {
         customerId: id,
-        organizationId: existing.organizationId
-      }
+        organizationId: existing.organizationId,
+        userId: user.id
+      },
+      correlation: req.correlationId
     });
 
-    return NextResponse.json(
-      successResponse({ message: 'Customer deleted successfully' })
-    );
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to delete customer',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to delete customer' }, { status: 500 });
+      return NextResponse.json(
+        successResponse({ message: 'Customer deleted successfully' })
+      );
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to delete customer',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to delete customer',
+        correlation: req.correlationId
+      }, { status: 500 });
+    }
   }
-}
+);

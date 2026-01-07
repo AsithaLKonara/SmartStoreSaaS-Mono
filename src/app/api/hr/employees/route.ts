@@ -10,10 +10,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,8 +23,22 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     try {
       const orgId = getOrganizationScope(user);
 
-      const employees = await prisma.employee.findMany({
-        where: orgId ? { organizationId: orgId } : {},
+      const employees = await prisma.user.findMany({
+        where: {
+          ...orgId && { organizationId: orgId },
+          role: { in: ['STAFF', 'TENANT_ADMIN'] }, // Only get staff and admin users
+          isActive: true
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          roleTag: true,
+          phone: true,
+          createdAt: true,
+          updatedAt: true
+        },
         orderBy: { name: 'asc' }
       });
 
@@ -59,14 +74,24 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         throw new ValidationError('User must belong to an organization');
       }
 
-      const employee = await prisma.employee.create({
+      const employee = await prisma.user.create({
         data: {
           organizationId,
           name,
           email,
-          position,
-          department,
-          status: 'ACTIVE'
+          role: 'STAFF',
+          roleTag: position, // Store position in roleTag field
+          phone: department, // Store department in phone field (not ideal but reusing existing fields)
+          isActive: true
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          roleTag: true,
+          phone: true,
+          createdAt: true
         }
       });
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
@@ -68,11 +68,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchOrder();
-  }, [params.id]);
-
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/orders/${params.id}`);
@@ -93,7 +89,11 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router, handleError]);
+
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
 
   const handlePrintInvoice = () => {
     toast.success('Print functionality coming soon');

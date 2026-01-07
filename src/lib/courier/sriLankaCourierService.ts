@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import { EventEmitter } from 'events';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
@@ -113,7 +114,11 @@ class SriLankaCourierService extends EventEmitter {
         });
       });
     } catch (error) {
-      console.error('Error loading couriers:', error);
+      logger.error({
+        message: 'Error loading couriers',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SriLankaCourierService', operation: 'loadCouriers' }
+      });
     }
   }
 
@@ -161,7 +166,11 @@ class SriLankaCourierService extends EventEmitter {
 
       return shipmentResponse;
     } catch (error) {
-      console.error('Error creating shipment:', error);
+      logger.error({
+        message: 'Error creating shipment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SriLankaCourierService', operation: 'createShipment', courierCode: data.courierCode, orderId: data.orderId }
+      });
       throw new Error('Failed to create shipment');
     }
   }
@@ -216,7 +225,11 @@ class SriLankaCourierService extends EventEmitter {
 
       return trackingInfo;
     } catch (error) {
-      console.error('Error tracking shipment:', error);
+      logger.error({
+        message: 'Error tracking shipment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SriLankaCourierService', operation: 'trackShipment', trackingNumber }
+      });
       throw new Error('Failed to track shipment');
     }
   }
@@ -250,7 +263,11 @@ class SriLankaCourierService extends EventEmitter {
 
       return true;
     } catch (error) {
-      console.error('Error cancelling shipment:', error);
+      logger.error({
+        message: 'Error cancelling shipment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SriLankaCourierService', operation: 'cancelShipment', trackingNumber }
+      });
       return false;
     }
   }
@@ -290,7 +307,11 @@ class SriLankaCourierService extends EventEmitter {
       const response = await this.callCourierAPI(courier, 'calculate-cost', request);
       return response.cost;
     } catch (error) {
-      console.error('Error calculating cost:', error);
+      logger.error({
+        message: 'Error calculating cost',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SriLankaCourierService', operation: 'calculateCost', courierCode: data.courierCode }
+      });
       throw new Error('Failed to calculate cost');
     }
   }

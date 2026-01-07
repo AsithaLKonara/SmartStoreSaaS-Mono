@@ -6,6 +6,7 @@ import { Plus, Monitor, CreditCard, Receipt, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 export default function POSDashboard() {
   const { data: session } = useSession();
@@ -26,7 +27,10 @@ export default function POSDashboard() {
         setTerminals(data.data || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching POS terminals',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

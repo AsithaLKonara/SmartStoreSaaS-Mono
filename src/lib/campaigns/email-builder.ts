@@ -4,6 +4,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
+import { logger } from '@/lib/logger';
 
 export enum CampaignStatus {
   DRAFT = 'DRAFT',
@@ -63,7 +64,11 @@ export async function createCampaign(
 
     return { success: true, campaign };
   } catch (error: any) {
-    console.error('Create campaign error:', error);
+    logger.error({
+      message: 'Create campaign error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EmailCampaignBuilder', operation: 'createCampaign', organizationId: data.organizationId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -86,7 +91,11 @@ export async function scheduleCampaign(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Schedule campaign error:', error);
+    logger.error({
+      message: 'Schedule campaign error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EmailCampaignBuilder', operation: 'scheduleCampaign', campaignId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -170,7 +179,11 @@ export async function sendCampaign(
 
         sentCount++;
       } catch (error) {
-        console.error(`Failed to send to ${recipient.email}:`, error);
+        logger.error({
+          message: 'Failed to send campaign email to recipient',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'EmailCampaignBuilder', operation: 'sendCampaign', campaignId, recipientEmail: recipient.email }
+        });
         failedCount++;
       }
     }
@@ -193,7 +206,11 @@ export async function sendCampaign(
       },
     };
   } catch (error: any) {
-    console.error('Send campaign error:', error);
+    logger.error({
+      message: 'Send campaign error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EmailCampaignBuilder', operation: 'sendCampaign', campaignId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -253,7 +270,11 @@ export async function trackEmailOpen(
       },
     });
   } catch (error) {
-    console.error('Track open error:', error);
+    logger.error({
+      message: 'Track open error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EmailCampaignBuilder', operation: 'trackOpen', campaignId, recipientEmail }
+    });
   }
 }
 
@@ -281,7 +302,11 @@ export async function trackEmailClick(
       },
     });
   } catch (error) {
-    console.error('Track click error:', error);
+    logger.error({
+      message: 'Track click error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EmailCampaignBuilder', operation: 'trackClick', campaignId, recipientEmail, link }
+    });
   }
 }
 

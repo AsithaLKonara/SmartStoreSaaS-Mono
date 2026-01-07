@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
 import { formatCurrency } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface SalesForecast {
   period: string;
@@ -84,7 +85,11 @@ export class AIAnalyticsService {
       const clv = averageOrderValue * purchaseFrequency * customerLifespan;
       return Math.round(clv * 100) / 100;
     } catch (error) {
-      console.error('Error calculating CLV:', error);
+      logger.error({
+        message: 'Error calculating CLV',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'calculateCLV', customerId }
+      });
       return 0;
     }
   }
@@ -122,7 +127,11 @@ export class AIAnalyticsService {
 
       return Math.min(churnRisk, 1);
     } catch (error) {
-      console.error('Error predicting churn:', error);
+      logger.error({
+        message: 'Error predicting churn',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'predictChurn', customerId }
+      });
       return 0.5;
     }
   }
@@ -180,7 +189,11 @@ export class AIAnalyticsService {
 
       return segments;
     } catch (error) {
-      console.error('Error segmenting customers:', error);
+      logger.error({
+        message: 'Error segmenting customers',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'segmentCustomers', organizationId }
+      });
       return [];
     }
   }
@@ -219,7 +232,11 @@ export class AIAnalyticsService {
       const result = JSON.parse(response.choices[0].message.content || '[]');
       return result;
     } catch (error) {
-      console.error('Error forecasting sales:', error);
+      logger.error({
+        message: 'Error forecasting sales',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'forecastSales', organizationId, period }
+      });
       return [];
     }
   }
@@ -254,7 +271,11 @@ export class AIAnalyticsService {
 
       return seasonalData;
     } catch (error) {
-      console.error('Error analyzing seasonal trends:', error);
+      logger.error({
+        message: 'Error analyzing seasonal trends',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'analyzeSeasonalTrends', organizationId }
+      });
       return [];
     }
   }
@@ -284,7 +305,11 @@ export class AIAnalyticsService {
 
       return topProducts;
     } catch (error) {
-      console.error('Error identifying top performers:', error);
+      logger.error({
+        message: 'Error identifying top performers',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'identifyTopPerformers', organizationId, limit }
+      });
       return [];
     }
   }
@@ -324,7 +349,11 @@ export class AIAnalyticsService {
         })),
       }));
     } catch (error) {
-      console.error('Error optimizing delivery routes:', error);
+      logger.error({
+        message: 'Error optimizing delivery routes',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'optimizeDeliveryRoutes', organizationId, ordersCount: orders.length }
+      });
       return [];
     }
   }
@@ -375,7 +404,11 @@ export class AIAnalyticsService {
         totalDeliveries: courier.deliveries.length,
       }));
     } catch (error) {
-      console.error('Error analyzing courier performance:', error);
+      logger.error({
+        message: 'Error analyzing courier performance',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'analyzeCourierPerformance', organizationId, timeRange }
+      });
       return [];
     }
   }
@@ -415,7 +448,11 @@ export class AIAnalyticsService {
 
       return forecasts.filter(forecast => forecast.recommendedReorder > 0);
     } catch (error) {
-      console.error('Error predicting inventory needs:', error);
+      logger.error({
+        message: 'Error predicting inventory needs',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'predictInventoryNeeds', organizationId, timeRange }
+      });
       return [];
     }
   }
@@ -456,7 +493,11 @@ export class AIAnalyticsService {
         recommendations: await this.generateRecommendations(organizationId),
       };
     } catch (error) {
-      console.error('Error generating business insights:', error);
+      logger.error({
+        message: 'Error generating business insights',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'generateBusinessInsights', organizationId }
+      });
       return {};
     }
   }
@@ -484,7 +525,11 @@ export class AIAnalyticsService {
       const result = JSON.parse(response.choices[0].message.content || '[]');
       return result;
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      logger.error({
+        message: 'Error generating recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AnalyticsService', operation: 'generateRecommendations', organizationId }
+      });
       return [
         'Focus on customer retention through personalized marketing',
         'Optimize inventory levels based on demand forecasting',

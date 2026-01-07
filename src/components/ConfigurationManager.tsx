@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Settings, Save, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Configuration {
   id: string;
@@ -42,7 +43,10 @@ export function ConfigurationManager() {
       const data = await response.json();
       setConfigurations(data.data || []);
     } catch (error) {
-      console.error('Failed to fetch configurations:', error);
+      logger.error({
+        message: 'Failed to fetch configurations',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load configurations');
       // Fallback to basic configurations
       setConfigurations([
@@ -77,7 +81,10 @@ export function ConfigurationManager() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success('Configurations saved successfully');
     } catch (error) {
-      console.error('Failed to save configurations:', error);
+      logger.error({
+        message: 'Failed to save configurations',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to save configurations');
     } finally {
       setSaving(false);

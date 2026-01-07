@@ -2,6 +2,8 @@
  * Multi-Currency Support
  */
 
+import { logger } from '../logger';
+
 export interface Currency {
   code: string;
   symbol: string;
@@ -70,7 +72,10 @@ export async function updateExchangeRates(): Promise<void> {
   // - https://api.exchangerate-api.com
   // - https://openexchangerates.org
   // For now, rates are static
-  console.log('Exchange rates would be updated from API');
+  logger.debug({
+    message: 'Exchange rates would be updated from API',
+    context: { service: 'CurrencyConverter', operation: 'updateExchangeRates' }
+  });
 }
 
 /**

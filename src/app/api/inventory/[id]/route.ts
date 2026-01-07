@@ -31,28 +31,31 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
-    const inventoryId = params.id;
+    const productId = params.id;
 
-    const inventory = await prisma.inventory.findUnique({
-      where: { id: inventoryId },
-      include: { product: true }
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        category: true,
+        organization: true
+      }
     });
 
-    if (!inventory) {
-      return NextResponse.json({ success: false, error: 'Inventory item not found' }, { status: 404 });
+    if (!product) {
+      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
     // TODO: Add organization scoping check
-    if (inventory.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot view inventory from other organizations' }, { status: 403 });
+    if (product.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ success: false, error: 'Cannot view product from other organizations' }, { status: 403 });
     }
 
     logger.info({
-      message: 'Inventory item fetched',
-      context: { userId: session.user.id, inventoryId }
+      message: 'Product fetched',
+      context: { userId: session.user.id, productId }
     });
 
-    return NextResponse.json(successResponse(inventory));
+    return NextResponse.json(successResponse(product));
   } catch (error: any) {
     logger.error({
       message: 'Failed to fetch inventory item',
@@ -77,30 +80,30 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
-    const inventoryId = params.id;
+    const productId = params.id;
     const body = await request.json();
 
-    const inventory = await prisma.inventory.findUnique({
-      where: { id: inventoryId }
+    const product = await prisma.product.findUnique({
+      where: { id: productId }
     });
 
-    if (!inventory) {
-      return NextResponse.json({ success: false, error: 'Inventory item not found' }, { status: 404 });
+    if (!product) {
+      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
     // TODO: Add organization scoping check
-    if (inventory.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot update inventory from other organizations' }, { status: 403 });
+    if (product.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ success: false, error: 'Cannot update product from other organizations' }, { status: 403 });
     }
 
-    const updated = await prisma.inventory.update({
-      where: { id: inventoryId },
+    const updated = await prisma.product.update({
+      where: { id: productId },
       data: body
     });
 
     logger.info({
-      message: 'Inventory item updated',
-      context: { userId: session.user.id, inventoryId }
+      message: 'Product updated',
+      context: { userId: session.user.id, productId }
     });
 
     return NextResponse.json(successResponse(updated));

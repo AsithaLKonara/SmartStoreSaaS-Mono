@@ -9,6 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/config';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 

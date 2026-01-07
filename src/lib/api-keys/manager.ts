@@ -4,6 +4,7 @@
 
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface APIKeyData {
   id: string;
@@ -106,7 +107,11 @@ export async function validateAPIKey(key: string): Promise<{
 
     return { isValid: true, keyData };
   } catch (error) {
-    console.error('API key validation error:', error);
+    logger.error({
+      message: 'API key validation error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'APIKeyManager', operation: 'validateKey' }
+    });
     return { isValid: false, error: 'Validation failed' };
   }
 }
@@ -122,7 +127,11 @@ export async function revokeAPIKey(keyId: string): Promise<boolean> {
     });
     return true;
   } catch (error) {
-    console.error('API key revocation error:', error);
+    logger.error({
+      message: 'API key revocation error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'APIKeyManager', operation: 'revokeKey', keyId }
+    });
     return false;
   }
 }

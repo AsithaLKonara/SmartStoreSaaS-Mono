@@ -18,7 +18,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { logger } from '@/lib/logger';
 import { useRealTimeSync } from '@/hooks/useRealTimeSync';
+import { useCallback } from 'react';
 
 export interface ChartData {
   name: string;
@@ -73,6 +75,100 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Helper functions for processing event data
+  const updateOrderData = useCallback((orderData: unknown, currentData: ChartData[]): ChartData[] => {
+    const order = orderData as { total?: number };
+    const now = new Date();
+    const timeKey = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    const existingIndex = currentData.findIndex(item => item.name === timeKey);
+    
+    if (existingIndex >= 0) {
+      const updatedData = [...currentData];
+      updatedData[existingIndex].value = (updatedData[existingIndex].value as number) + (order.total || 1);
+      return updatedData;
+    } else {
+      return [...currentData.slice(-19), {
+        name: timeKey,
+        value: order.total || 1,
+        timestamp: now.getTime(),
+      }];
+    }
+  }, []);
+
+  const updateProductViewData = useCallback((productData: unknown, currentData: ChartData[]): ChartData[] => {
+    const product = productData as { name?: string; category?: string };
+    const productName = product.name || 'Unknown Product';
+    const existingIndex = currentData.findIndex(item => item.name === productName);
+    
+    if (existingIndex >= 0) {
+      const updatedData = [...currentData];
+      updatedData[existingIndex].value = (updatedData[existingIndex].value as number) + 1;
+      return updatedData;
+    } else {
+      return [...currentData, {
+        name: productName,
+        value: 1,
+        category: product.category,
+      }];
+    }
+  }, []);
+
+  const updatePaymentData = useCallback((paymentData: unknown, currentData: ChartData[]): ChartData[] => {
+    const payment = paymentData as { method?: string; amount?: number };
+    const method = payment.method || 'Unknown';
+    const existingIndex = currentData.findIndex(item => item.name === method);
+    
+    if (existingIndex >= 0) {
+      const updatedData = [...currentData];
+      updatedData[existingIndex].value = (updatedData[existingIndex].value as number) + (payment.amount || 1);
+      return updatedData;
+    } else {
+      return [...currentData, {
+        name: method,
+        value: payment.amount || 1,
+      }];
+    }
+  }, []);
+
+  const updateInventoryData = useCallback((inventoryData: unknown, currentData: ChartData[]): ChartData[] => {
+    const inventory = inventoryData as { productName?: string; stock?: number; category?: string };
+    const productName = inventory.productName || 'Unknown Product';
+    const existingIndex = currentData.findIndex(item => item.name === productName);
+    
+    if (existingIndex >= 0) {
+      const updatedData = [...currentData];
+      updatedData[existingIndex].value = inventory.stock || 0;
+      return updatedData;
+    } else {
+      return [...currentData, {
+        name: productName,
+        value: inventory.stock || 0,
+        category: inventory.category,
+      }];
+    }
+  }, []);
+
+  const processEventData = useCallback((event: unknown, currentData: ChartData[]): ChartData[] => {
+    const eventWithType = event as { type?: string; data?: unknown };
+    
+    switch (eventWithType.type) {
+      case 'order_created':
+        return updateOrderData(eventWithType.data, currentData);
+      case 'product_viewed':
+        return updateProductViewData(eventWithType.data, currentData);
+      case 'payment_completed':
+        return updatePaymentData(eventWithType.data, currentData);
+      case 'inventory_updated':
+        return updateInventoryData(eventWithType.data, currentData);
+      default:
+        return currentData;
+    }
+  }, [updateOrderData, updateProductViewData, updatePaymentData, updateInventoryData]);
+
   const handleRealTimeUpdate = useCallback((event: unknown) => {
     // Process real-time event and update chart data
     setData(prevData => {
@@ -85,7 +181,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
       
       return newData;
     });
-  }, [onDataUpdate]);
+  }, [onDataUpdate, processEventData]);
 
   const { isConnected, events } = useRealTimeSync({
     organizationId,
@@ -108,99 +204,6 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     };
   }, [config.refreshInterval]);
 
-  const processEventData = (event: unknown, currentData: ChartData[]): ChartData[] => {
-    // This is a generic processor - you might want to customize this
-    // based on your specific event types and data structure
-    
-    switch (event.type) {
-      case 'order_created':
-        return updateOrderData(event.data, currentData);
-      case 'product_viewed':
-        return updateProductViewData(event.data, currentData);
-      case 'payment_completed':
-        return updatePaymentData(event.data, currentData);
-      case 'inventory_updated':
-        return updateInventoryData(event.data, currentData);
-      default:
-        return currentData;
-    }
-  };
-
-  const updateOrderData = (orderData: unknown, currentData: ChartData[]): ChartData[] => {
-    const now = new Date();
-    const timeKey = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-
-    // Update or add data point for current time
-    const existingIndex = currentData.findIndex(item => item.name === timeKey);
-    
-    if (existingIndex >= 0) {
-      const updatedData = [...currentData];
-      updatedData[existingIndex].value += orderData.total || 1;
-      return updatedData;
-    } else {
-      // Keep only last 20 data points for performance
-      const newData = [...currentData.slice(-19), {
-        name: timeKey,
-        value: orderData.total || 1,
-        timestamp: now.getTime(),
-      }];
-      return newData;
-    }
-  };
-
-  const updateProductViewData = (productData: unknown, currentData: ChartData[]): ChartData[] => {
-    const productName = productData.name || 'Unknown Product';
-    const existingIndex = currentData.findIndex(item => item.name === productName);
-    
-    if (existingIndex >= 0) {
-      const updatedData = [...currentData];
-      updatedData[existingIndex].value += 1;
-      return updatedData;
-    } else {
-      return [...currentData, {
-        name: productName,
-        value: 1,
-        category: productData.category,
-      }];
-    }
-  };
-
-  const updatePaymentData = (paymentData: unknown, currentData: ChartData[]): ChartData[] => {
-    const method = paymentData.method || 'Unknown';
-    const existingIndex = currentData.findIndex(item => item.name === method);
-    
-    if (existingIndex >= 0) {
-      const updatedData = [...currentData];
-      updatedData[existingIndex].value += paymentData.amount || 1;
-      return updatedData;
-    } else {
-      return [...currentData, {
-        name: method,
-        value: paymentData.amount || 1,
-      }];
-    }
-  };
-
-  const updateInventoryData = (inventoryData: unknown, currentData: ChartData[]): ChartData[] => {
-    const productName = inventoryData.productName || 'Unknown Product';
-    const existingIndex = currentData.findIndex(item => item.name === productName);
-    
-    if (existingIndex >= 0) {
-      const updatedData = [...currentData];
-      updatedData[existingIndex].value = inventoryData.stock || 0;
-      return updatedData;
-    } else {
-      return [...currentData, {
-        name: productName,
-        value: inventoryData.stock || 0,
-        category: inventoryData.category,
-      }];
-    }
-  };
-
   const refreshData = async () => {
     setIsLoading(true);
     try {
@@ -209,7 +212,11 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('Error refreshing chart data:', error);
+      logger.error({
+        message: 'Error refreshing chart data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { chartType: type }
+      });
     } finally {
       setIsLoading(false);
     }

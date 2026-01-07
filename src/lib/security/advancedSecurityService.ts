@@ -5,6 +5,7 @@ import { smsService } from '@/lib/sms/smsService';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
 
 interface SecurityEvent {
   id?: string;
@@ -162,7 +163,11 @@ export class AdvancedSecurityService {
       });
 
     } catch (error) {
-      console.error('Error logging security event:', error);
+      logger.error({
+        message: 'Error logging security event',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'logSecurityEvent', eventType: event.type }
+      });
     }
   }
 
@@ -266,7 +271,11 @@ export class AdvancedSecurityService {
       }
 
     } catch (error) {
-      console.error('Error handling threat response:', error);
+      logger.error({
+        message: 'Error handling threat response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'handleThreatResponse', threatType: detection.reason }
+      });
     }
   }
 
@@ -307,10 +316,17 @@ export class AdvancedSecurityService {
           break;
         
         default:
-          console.log(`Unknown security action: ${action}`);
+          logger.warn({
+            message: 'Unknown security action',
+            context: { service: 'AdvancedSecurityService', operation: 'executeSecurityAction', action }
+          });
       }
     } catch (error) {
-      console.error(`Error executing security action ${action}:`, error);
+      logger.error({
+        message: 'Error executing security action',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'executeSecurityAction', action }
+      });
     }
   }
 
@@ -345,7 +361,11 @@ export class AdvancedSecurityService {
 
       return { score, isBlacklisted: false };
     } catch (error) {
-      console.error('Error checking IP reputation:', error);
+      logger.error({
+        message: 'Error checking IP reputation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'checkIPReputation', ipAddress }
+      });
       return { score: 50, isBlacklisted: false };
     }
   }
@@ -369,7 +389,11 @@ export class AdvancedSecurityService {
 
       return { detected, score, attempts };
     } catch (error) {
-      console.error('Error detecting brute force:', error);
+      logger.error({
+        message: 'Error detecting brute force',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'detectBruteForce', identifier }
+      });
       return { detected: false, score: 0, attempts: 0 };
     }
   }
@@ -425,7 +449,11 @@ export class AdvancedSecurityService {
       const isAnomalous = score >= 30;
       return { isAnomalous, score, reasons };
     } catch (error) {
-      console.error('Error analyzing behavior pattern:', error);
+      logger.error({
+        message: 'Error analyzing behavior pattern',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'analyzeBehaviorPattern', userId }
+      });
       return { isAnomalous: false, score: 0, reasons: [] };
     }
   }
@@ -446,7 +474,11 @@ export class AdvancedSecurityService {
 
       return { exceeded, score, requestCount };
     } catch (error) {
-      console.error('Error checking rate limit:', error);
+      logger.error({
+        message: 'Error checking rate limit',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'checkRateLimit', identifier, limit }
+      });
       return { exceeded: false, score: 0, requestCount: 0 };
     }
   }
@@ -508,7 +540,11 @@ export class AdvancedSecurityService {
         reason: isAnomalous ? `Location ${Math.round(distance)}km from usual area` : undefined
       };
     } catch (error) {
-      console.error('Error checking geographical anomaly:', error);
+      logger.error({
+        message: 'Error checking geographical anomaly',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'checkGeographicalAnomaly', userId, ipAddress }
+      });
       return { isAnomalous: false, score: 0 };
     }
   }
@@ -557,7 +593,11 @@ export class AdvancedSecurityService {
 
       return { isNew, suspicious, score };
     } catch (error) {
-      console.error('Error checking device fingerprint:', error);
+      logger.error({
+        message: 'Error checking device fingerprint',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'checkDeviceFingerprint', userId, fingerprint }
+      });
       return { isNew: false, suspicious: false, score: 0 };
     }
   }
@@ -630,7 +670,11 @@ export class AdvancedSecurityService {
         timeline
       };
     } catch (error) {
-      console.error('Error getting security metrics:', error);
+      logger.error({
+        message: 'Error getting security metrics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'getSecurityMetrics', organizationId, timeRange }
+      });
       return {
         totalEvents: 0,
         criticalThreats: 0,
@@ -676,7 +720,11 @@ export class AdvancedSecurityService {
       });
 
     } catch (error) {
-      console.error('Error blocking IP address:', error);
+      logger.error({
+        message: 'Error blocking IP address',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'blockIPAddress', ipAddress, reason }
+      });
     }
   }
 
@@ -722,11 +770,19 @@ export class AdvancedSecurityService {
           });
         }
       } catch (emailError) {
-        console.error('Error sending lock notification:', emailError);
+        logger.error({
+          message: 'Error sending lock notification',
+          error: emailError instanceof Error ? emailError : new Error(String(emailError)),
+          context: { service: 'AdvancedSecurityService', operation: 'lockUserAccount', userId }
+        });
       }
 
     } catch (error) {
-      console.error('Error locking user account:', error);
+      logger.error({
+        message: 'Error locking user account',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'lockUserAccount', userId, reason }
+      });
     }
   }
 
@@ -748,7 +804,11 @@ export class AdvancedSecurityService {
       
       return hash;
     } catch (error) {
-      console.error('Error generating device fingerprint:', error);
+      logger.error({
+        message: 'Error generating device fingerprint',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'generateDeviceFingerprint', userAgent }
+      });
       return '';
     }
   }
@@ -759,7 +819,11 @@ export class AdvancedSecurityService {
       // For now, we'll return the event as-is
       return event;
     } catch (error) {
-      console.error('Error enhancing event with location:', error);
+      logger.error({
+        message: 'Error enhancing event with location',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'enhanceEventWithLocation', ipAddress }
+      });
       return event;
     }
   }
@@ -813,7 +877,11 @@ export class AdvancedSecurityService {
         }
       });
     } catch (error) {
-      console.error('Error creating security alert:', error);
+      logger.error({
+        message: 'Error creating security alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'createSecurityAlert', type, severity }
+      });
     }
   }
 
@@ -821,9 +889,16 @@ export class AdvancedSecurityService {
     try {
       // In a real implementation, you would trigger additional verification
       // such as SMS verification, email verification, or CAPTCHA
-      console.log(`Additional verification required for user ${userId}`);
+      logger.info({
+        message: 'Additional verification required',
+        context: { service: 'AdvancedSecurityService', operation: 'requireAdditionalVerification', userId, reason }
+      });
     } catch (error) {
-      console.error('Error requiring additional verification:', error);
+      logger.error({
+        message: 'Error requiring additional verification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'requireAdditionalVerification', userId }
+      });
     }
   }
 
@@ -846,11 +921,19 @@ export class AdvancedSecurityService {
             });
           }
         } catch (emailError) {
-          console.error(`Error sending email to admin ${admin.email}:`, emailError);
+          logger.error({
+            message: 'Error sending email to admin',
+            error: emailError instanceof Error ? emailError : new Error(String(emailError)),
+            context: { service: 'AdvancedSecurityService', operation: 'notifyAdministrators', adminEmail: admin.email }
+          });
         }
       }
     } catch (error) {
-      console.error('Error notifying administrators:', error);
+      logger.error({
+        message: 'Error notifying administrators',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'notifyAdministrators', organizationId, alertType }
+      });
     }
   }
 
@@ -859,7 +942,10 @@ export class AdvancedSecurityService {
       // Send SMS alerts for critical threats
       if (detection.severity === 'critical') {
         // In a real implementation, you would send SMS to system administrators
-        console.log(`Critical threat SMS alert: ${detection.reason}`);
+        logger.warn({
+          message: 'Critical threat SMS alert',
+          context: { service: 'AdvancedSecurityService', operation: 'notifySystemAdministrators', reason: detection.reason, severity: detection.severity }
+        });
       }
 
       // Send email alerts
@@ -877,7 +963,11 @@ export class AdvancedSecurityService {
       });
 
     } catch (error) {
-      console.error('Error notifying system administrators:', error);
+      logger.error({
+        message: 'Error notifying system administrators',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'notifySystemAdministrators', detectionReason: detection.reason }
+      });
     }
   }
 
@@ -937,7 +1027,11 @@ export class AdvancedSecurityService {
       
       return timeline;
     } catch (error) {
-      console.error('Error generating timeline:', error);
+      logger.error({
+        message: 'Error generating timeline',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'generateTimeline', userId, timeRange }
+      });
       return [];
     }
   }
@@ -946,9 +1040,16 @@ export class AdvancedSecurityService {
     try {
       // In a real implementation, you would load security rules from database
       // For now, we'll use default rules
-      console.log('Loading security rules...');
+      logger.info({
+        message: 'Loading security rules',
+        context: { service: 'AdvancedSecurityService', operation: 'loadSecurityRules' }
+      });
     } catch (error) {
-      console.error('Error loading security rules:', error);
+      logger.error({
+        message: 'Error loading security rules',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedSecurityService', operation: 'loadSecurityRules' }
+      });
     }
   }
 
@@ -961,7 +1062,9 @@ export class AdvancedSecurityService {
     const whitelistArray = Array.from(this.ipWhitelist);
     const blacklistArray = Array.from(this.ipBlacklist);
     
-    console.log('IP Whitelist initialized:', whitelistArray);
-    console.log('IP Blacklist initialized:', blacklistArray);
+    logger.info({
+      message: 'IP lists initialized',
+      context: { service: 'AdvancedSecurityService', operation: 'initializeIPLists', whitelistCount: whitelistArray.length, blacklistCount: blacklistArray.length }
+    });
   }
 }

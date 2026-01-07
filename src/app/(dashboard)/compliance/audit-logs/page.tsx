@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Search, Filter, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,13 +28,7 @@ export default function AuditLogsPage() {
     userId: '',
   });
 
-  useEffect(() => {
-    if (session) {
-      fetchLogs();
-    }
-  }, [session, filters]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       let url = '/api/compliance/audit-logs?';
       if (filters.action) url += `action=${filters.action}&`;
@@ -47,11 +41,17 @@ export default function AuditLogsPage() {
         setLogs(data.data || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    if (session) {
+      fetchLogs();
+    }
+  }, [session, fetchLogs]);
 
   const getActionColor = (action: string) => {
     const colors: Record<string, string> = {

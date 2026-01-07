@@ -1,3 +1,5 @@
+import { logger } from '../logger';
+
 export interface ThemeConfig {
   mode: 'light' | 'dark' | 'system';
   primaryColor: string;
@@ -180,7 +182,11 @@ export class ThemeService {
         return { ...this.defaultConfig, ...config };
       }
     } catch (error) {
-      console.warn('Failed to load theme from localStorage:', error);
+      logger.warn({
+        message: 'Failed to load theme from localStorage',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ThemeService', operation: 'loadTheme' }
+      });
     }
 
     return this.defaultConfig;
@@ -192,7 +198,11 @@ export class ThemeService {
     try {
       localStorage.setItem('smartstore-theme', JSON.stringify(config));
     } catch (error) {
-      console.warn('Failed to save theme to localStorage:', error);
+      logger.warn({
+        message: 'Failed to save theme to localStorage',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ThemeService', operation: 'saveTheme' }
+      });
     }
   }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
 
 export default function Error({
   error,
@@ -10,7 +11,14 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Dashboard error:', error);
+    logger.error({
+      message: 'Dashboard error',
+      error: error instanceof Error ? error : new Error(error.message || 'Unknown error'),
+      context: { 
+        component: 'ErrorBoundary',
+        digest: error.digest 
+      }
+    });
   }, [error]);
 
   return (

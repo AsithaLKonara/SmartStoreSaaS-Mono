@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { CreditCard, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Subscription {
   id: string;
@@ -28,7 +29,12 @@ export default function SubscriptionsPage() {
         const data = await res.json();
         setSubscriptions(data.subscriptions || data.data || []);
       }
-    } catch (error) { console.error(error); }
+    } catch (error) {
+      logger.error({
+        message: 'Error fetching subscriptions',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+    }
     finally { setLoading(false); }
   };
 

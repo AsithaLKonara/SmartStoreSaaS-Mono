@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
@@ -26,15 +27,18 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('🔍 NextAuth: Missing credentials');
+          logger.info({
+            message: 'NextAuth: Missing credentials',
+            context: { service: 'NextAuth', operation: 'authorize' }
+          });
           return null;
         }
 
         try {
-          console.log('🔍 NextAuth: Starting authentication...');
-          console.log('🔍 NextAuth: Email:', credentials.email);
-          console.log('🔍 NextAuth: Prisma client initialized:', !!prisma);
-          console.log('🔍 NextAuth: Prisma client user property:', !!prisma?.user);
+          logger.info({
+            message: 'NextAuth: Starting authentication',
+            context: { service: 'NextAuth', operation: 'authorize', email: credentials.email }
+          });
 
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
@@ -49,24 +53,29 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          console.log('🔍 NextAuth: User found:', !!user);
-          console.log('🔍 NextAuth: User active:', user?.isActive);
-          
           if (!user || !user.isActive) {
-            console.log('🔍 NextAuth: User not found or inactive');
+            logger.warn({
+              message: 'NextAuth: User not found or inactive',
+              context: { service: 'NextAuth', operation: 'authorize', email: credentials.email }
+            });
             return null;
           }
 
           if (!user.password) {
-            console.log('🔍 NextAuth: User has no password');
+            logger.warn({
+              message: 'NextAuth: User has no password',
+              context: { service: 'NextAuth', operation: 'authorize', email: credentials.email, userId: user.id }
+            });
             return null;
           }
 
           const isValid = await bcrypt.compare(credentials.password, user.password);
-          console.log('🔍 NextAuth: Password valid:', isValid);
           
           if (!isValid) {
-            console.log('🔍 NextAuth: Invalid password');
+            logger.warn({
+              message: 'NextAuth: Invalid password',
+              context: { service: 'NextAuth', operation: 'authorize', email: credentials.email, userId: user.id }
+            });
             return null;
           }
 
@@ -78,11 +87,17 @@ export const authOptions: NextAuthOptions = {
             organizationId: user.organizationId,
           };
           
-          console.log('🔍 NextAuth: Authentication successful for user:', user.email);
-          console.log('🔍 NextAuth: Returning user object:', userObject);
+          logger.info({
+            message: 'NextAuth: Authentication successful',
+            context: { service: 'NextAuth', operation: 'authorize', email: user.email, userId: user.id, role: user.role }
+          });
           return userObject;
         } catch (error) {
-          console.error('🔍 NextAuth: Error in authorize:', error);
+          logger.error({
+            message: 'NextAuth: Error in authorize',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'NextAuth', operation: 'authorize', email: credentials?.email }
+          });
           return null;
         }
       }
@@ -98,22 +113,26 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      console.log('🔍 NextAuth: JWT callback - user:', !!user, 'token.id:', token.id);
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.organizationId = user.organizationId;
-        console.log('🔍 NextAuth: JWT callback - updated token with user data');
+        logger.debug({
+          message: 'NextAuth: JWT callback - updated token with user data',
+          context: { service: 'NextAuth', operation: 'jwt', userId: user.id, role: user.role }
+        });
       }
       return token;
     },
     async session({ session, token }) {
-      console.log('🔍 NextAuth: Session callback - token.id:', token.id, 'token.role:', token.role);
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.organizationId = token.organizationId as string;
-        console.log('🔍 NextAuth: Session callback - updated session with token data');
+        logger.debug({
+          message: 'NextAuth: Session callback - updated session with token data',
+          context: { service: 'NextAuth', operation: 'session', userId: token.id, role: token.role }
+        });
       }
       return session;
     },

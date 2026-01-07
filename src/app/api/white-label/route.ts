@@ -11,8 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
+
     const config = await prisma.organization.findUnique({
-      where: { id: session.user.organizationId },
+      where: { id: organizationId },
       select: { 
         name: true,
         settings: true
@@ -21,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     logger.info({
       message: 'White label config fetched',
-      context: { userId: session.user.id, organizationId: session.user.organizationId }
+      context: { userId: session.user.id, organizationId: organizationId }
     });
 
     return NextResponse.json({ success: true, data: config });
@@ -38,16 +43,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
+
     const body = await request.json();
     
     const updated = await prisma.organization.update({
-      where: { id: session.user.organizationId },
+      where: { id: organizationId },
       data: { settings: body }
     });
 
     logger.info({
       message: 'White label config updated',
-      context: { userId: session.user.id, organizationId: session.user.organizationId }
+      context: { userId: session.user.id, organizationId: organizationId }
     });
 
     return NextResponse.json({ success: true, data: updated });

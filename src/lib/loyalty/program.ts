@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export enum RewardType {
   POINTS = 'POINTS',
@@ -120,7 +121,11 @@ export async function addPoints(
 
     return { success: true, newPoints, newTier };
   } catch (error) {
-    console.error('Add points error:', error);
+    logger.error({
+      message: 'Add points error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'LoyaltyProgram', operation: 'addPoints', customerId, points, reason }
+    });
     return { success: false, newPoints: 0, newTier: LoyaltyTier.BRONZE };
   }
 }
@@ -166,7 +171,11 @@ export async function redeemPoints(
 
     return { success: true, newPoints };
   } catch (error) {
-    console.error('Redeem points error:', error);
+    logger.error({
+      message: 'Redeem points error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'LoyaltyProgram', operation: 'redeemPoints', customerId, points, reason }
+    });
     return { success: false, newPoints: 0, error: 'Redemption failed' };
   }
 }

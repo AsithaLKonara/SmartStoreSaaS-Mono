@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { apiLogger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
@@ -22,10 +22,17 @@ interface PasswordQueryResult {
 
 export async function POST(request: NextRequest) {
   try {
-    apiLogger.info('Working authentication endpoint...');
+    logger.info({ message: 'Working authentication endpoint called' });
 
     const body = await request.json();
     const { email, password } = body;
+
+    if (!email || !password) {
+      return NextResponse.json({
+        success: false,
+        message: 'Email and password are required',
+      }, { status: 400 });
+    }
 
     // Step 1: Set password for admin user (always do this first)
     const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -34,7 +41,7 @@ export async function POST(request: NextRequest) {
       SET password = ${hashedPassword}
       WHERE email = 'admin@smartstore.com'
     `;
-    apiLogger.debug('Password update result', { updateResult });
+    logger.debug({ message: 'Password update result', context: { updateResult } });
 
     // Step 2: Find user
     const userResult = await prisma.$queryRaw`
@@ -48,16 +55,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         message: 'User not found',
-      });
+      }, { status: 404 });
     }
 
     const user = userResult[0];
+    if (!user) {
+      return NextResponse.json({
+        success: false,
+        message: 'User not found',
+      }, { status: 404 });
+    }
 
     if (!user.isActive) {
       return NextResponse.json({
         success: false,
         message: 'Account is deactivated',
-      });
+      }, { status: 403 });
     }
 
     // Step 3: Get password
@@ -68,11 +81,11 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     ` as PasswordQueryResult[];
 
-    if (!passwordResult || passwordResult.length === 0 || !passwordResult[0].password) {
+    if (!passwordResult || passwordResult.length === 0 || !passwordResult[0]?.password) {
       return NextResponse.json({
         success: false,
         message: 'No password found',
-      });
+      }, { status: 404 });
     }
 
     // Step 4: Verify password
@@ -81,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         message: 'Invalid password',
-      });
+      }, { status: 401 });
     }
 
     // Step 5: Generate JWT token
@@ -112,8 +125,12 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    apiLogger.error('Working auth error', { 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    logger.error({ 
+      message: 'Working auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { 
+        errorMessage: error instanceof Error ? error.message : 'Unknown error' 
+      }
     });
     return NextResponse.json(
       {

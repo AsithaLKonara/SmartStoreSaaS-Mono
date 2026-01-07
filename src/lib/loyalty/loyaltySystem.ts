@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { generateRandomString } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface RewardTier {
   id: string;
@@ -84,9 +85,16 @@ export class LoyaltySystem {
         },
       });
 
-      console.log(`Awarded ${amount} points to customer ${customerId} for: ${reason}`);
+      logger.info({
+        message: 'Awarded loyalty points',
+        context: { service: 'LoyaltySystem', operation: 'awardPoints', customerId, amount, reason, orderId }
+      });
     } catch (error) {
-      console.error('Error awarding loyalty points:', error);
+      logger.error({
+        message: 'Error awarding loyalty points',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'awardPoints', customerId, amount }
+      });
       throw new Error('Failed to award loyalty points');
     }
   }
@@ -112,10 +120,17 @@ export class LoyaltySystem {
         },
       });
 
-      console.log(`Redeemed ${amount} points from customer ${customerId} for: ${reason}`);
+      logger.info({
+        message: 'Redeemed loyalty points',
+        context: { service: 'LoyaltySystem', operation: 'redeemPoints', customerId, amount, reason }
+      });
       return true;
     } catch (error) {
-      console.error('Error redeeming loyalty points:', error);
+      logger.error({
+        message: 'Error redeeming loyalty points',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'redeemPoints', customerId, amount }
+      });
       throw new Error('Failed to redeem loyalty points');
     }
   }
@@ -129,7 +144,11 @@ export class LoyaltySystem {
 
       return customer?.points || 0;
     } catch (error) {
-      console.error('Error getting customer points:', error);
+      logger.error({
+        message: 'Error getting customer points',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'getCustomerPoints', customerId }
+      });
       return 0;
     }
   }
@@ -140,7 +159,11 @@ export class LoyaltySystem {
       // In a real implementation, you'd create a LoyaltyTransaction model
       return [];
     } catch (error) {
-      console.error('Error getting points history:', error);
+      logger.error({
+        message: 'Error getting points history',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'getPointsHistory', customerId }
+      });
       return [];
     }
   }
@@ -171,9 +194,16 @@ export class LoyaltySystem {
         },
       });
 
-      console.log(`Assigned customer ${customerId} to tier ${tier.name}`);
+      logger.info({
+        message: 'Assigned customer to tier',
+        context: { service: 'LoyaltySystem', operation: 'assignCustomerToTier', customerId, tierId: tier.id, tierName: tier.name }
+      });
     } catch (error) {
-      console.error('Error assigning customer to tier:', error);
+      logger.error({
+        message: 'Error assigning customer to tier',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'assignCustomerToTier', customerId, tierId: tier.id }
+      });
       throw new Error('Failed to assign customer to tier');
     }
   }
@@ -194,7 +224,11 @@ export class LoyaltySystem {
       const tierId = tierTag.split(':')[1];
       return this.rewardTiers.find(t => t.id === tierId) || null;
     } catch (error) {
-      console.error('Error getting customer tier:', error);
+      logger.error({
+        message: 'Error getting customer tier',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'getCustomerTier', customerId }
+      });
       return null;
     }
   }
@@ -219,7 +253,11 @@ export class LoyaltySystem {
         await this.sendTierUpgradeNotification(customerId, newTier);
       }
     } catch (error) {
-      console.error('Error checking tier upgrade:', error);
+      logger.error({
+        message: 'Error checking tier upgrade',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'checkTierUpgrade', customerId }
+      });
     }
   }
 
@@ -256,7 +294,11 @@ export class LoyaltySystem {
 
       return referralCode;
     } catch (error) {
-      console.error('Error generating referral code:', error);
+      logger.error({
+        message: 'Error generating referral code',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'generateReferralCode', customerId }
+      });
       throw new Error('Failed to generate referral code');
     }
   }
@@ -297,7 +339,11 @@ export class LoyaltySystem {
 
       return true;
     } catch (error) {
-      console.error('Error processing referral:', error);
+      logger.error({
+        message: 'Error processing referral',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'processReferral', referralCode, newCustomerId }
+      });
       return false;
     }
   }
@@ -338,7 +384,11 @@ export class LoyaltySystem {
         'Welcome bonus - referred by existing customer'
       );
     } catch (error) {
-      console.error('Error completing referral:', error);
+      logger.error({
+        message: 'Error completing referral',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'completeReferral', referralCode, newCustomerId }
+      });
     }
   }
 
@@ -363,7 +413,11 @@ export class LoyaltySystem {
 
       return stats;
     } catch (error) {
-      console.error('Error getting referral stats:', error);
+      logger.error({
+        message: 'Error getting referral stats',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'getReferralStats', customerId }
+      });
       return {
         totalReferrals: 0,
         completedReferrals: 0,
@@ -398,7 +452,11 @@ export class LoyaltySystem {
 
       return promotionId;
     } catch (error) {
-      console.error('Error creating promotion:', error);
+      logger.error({
+        message: 'Error creating promotion',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'createPromotion', organizationId, name: promotionData.name }
+      });
       throw new Error('Failed to create promotion');
     }
   }
@@ -442,7 +500,11 @@ export class LoyaltySystem {
 
       return bonusPoints;
     } catch (error) {
-      console.error('Error applying promotion to order:', error);
+      logger.error({
+        message: 'Error applying promotion to order',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'applyPromotionToOrder', orderId, promotionId }
+      });
       return 0;
     }
   }
@@ -451,24 +513,38 @@ export class LoyaltySystem {
     try {
       // Since we don't have a metadata field with expiry dates,
       // this is a simplified implementation
-      console.log('Checking for expired points...');
+      logger.debug({
+        message: 'Checking for expired points',
+        context: { service: 'LoyaltySystem', operation: 'expirePoints' }
+      });
       
       // In a real implementation, you'd have a separate table for point transactions
       // with expiry dates and would expire points based on those dates
     } catch (error) {
-      console.error('Error expiring points:', error);
+      logger.error({
+        message: 'Error expiring points',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'expirePoints' }
+      });
     }
   }
 
   private async sendTierUpgradeNotification(customerId: string, tier: RewardTier): Promise<void> {
     try {
       // TODO: Send notification when notification service is available
-      console.log(`Customer ${customerId} upgraded to ${tier.name} tier!`);
+      logger.info({
+        message: 'Customer upgraded to tier',
+        context: { service: 'LoyaltySystem', operation: 'sendTierUpgradeNotification', customerId, tierId: tier.id, tierName: tier.name }
+      });
       
       // In production, this would send an email, SMS, or push notification
       // to congratulate the customer on their tier upgrade
     } catch (error) {
-      console.error('Error sending tier upgrade notification:', error);
+      logger.error({
+        message: 'Error sending tier upgrade notification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'sendTierUpgradeNotification', customerId, tierId: tier.id }
+      });
     }
   }
 
@@ -512,7 +588,11 @@ export class LoyaltySystem {
 
       return analytics;
     } catch (error) {
-      console.error('Error getting loyalty analytics:', error);
+      logger.error({
+        message: 'Error getting loyalty analytics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'LoyaltySystem', operation: 'getLoyaltyAnalytics', organizationId }
+      });
       return {
         totalCustomers: 0,
         totalPointsIssued: 0,

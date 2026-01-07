@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 export interface SecurityAudit {
   id: string;
@@ -77,7 +78,11 @@ export class SecurityService {
         isEnabled: true,
       };
     } catch (error) {
-      console.error('Error setting up MFA:', error);
+      logger.error({
+        message: 'Error setting up MFA',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'setupMFA', userId }
+      });
       throw new Error('Failed to setup MFA');
     }
   }
@@ -108,7 +113,11 @@ export class SecurityService {
       // Verify TOTP token
       return this.verifyTOTP(user.mfaSecret, token);
     } catch (error) {
-      console.error('Error verifying MFA token:', error);
+      logger.error({
+        message: 'Error verifying MFA token',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'verifyMFAToken', userId }
+      });
       return false;
     }
   }
@@ -138,7 +147,11 @@ export class SecurityService {
       // For now, we'll return the role data without persisting
       return roleData;
     } catch (error) {
-      console.error('Error creating role:', error);
+      logger.error({
+        message: 'Error creating role',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'createRole', roleName }
+      });
       throw new Error('Failed to create role');
     }
   }
@@ -154,7 +167,11 @@ export class SecurityService {
         }
       });
     } catch (error) {
-      console.error('Error assigning role to user:', error);
+      logger.error({
+        message: 'Error assigning role to user',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'assignRoleToUser', userId, roleId }
+      });
       throw new Error('Failed to assign role to user');
     }
   }
@@ -177,7 +194,11 @@ export class SecurityService {
       // In a real implementation, you'd check the user's role permissions
       return false;
     } catch (error) {
-      console.error('Error checking permission:', error);
+      logger.error({
+        message: 'Error checking permission',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'checkPermission', userId, permission }
+      });
       return false;
     }
   }
@@ -207,7 +228,11 @@ export class SecurityService {
         }
       });
     } catch (error) {
-      console.error('Error logging security event:', error);
+      logger.error({
+        message: 'Error logging security event',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'logSecurityEvent', userId, action, resource }
+      });
     }
   }
 
@@ -252,7 +277,11 @@ export class SecurityService {
         details: (audit.metadata as unknown)?.details || {}
       }));
     } catch (error) {
-      console.error('Error getting audit logs:', error);
+      logger.error({
+        message: 'Error getting audit logs',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'getAuditLogs', filters }
+      });
       return [];
     }
   }
@@ -305,7 +334,11 @@ export class SecurityService {
         details: details || {}
       };
     } catch (error) {
-      console.error('Error creating security alert:', error);
+      logger.error({
+        message: 'Error creating security alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'createSecurityAlert', type, severity, userId }
+      });
       throw new Error('Failed to create security alert');
     }
   }
@@ -363,7 +396,11 @@ export class SecurityService {
 
       return suspicious;
     } catch (error) {
-      console.error('Error detecting suspicious activity:', error);
+      logger.error({
+        message: 'Error detecting suspicious activity',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'detectSuspiciousActivity', userId, ipAddress, action }
+      });
       return false;
     }
   }
@@ -379,10 +416,17 @@ export class SecurityService {
       for (const admin of admins) {
         // For now, just log the notification
         // In production, you'd send email/SMS notifications
-        console.log(`Security alert sent to admin ${admin.email}:`, alert);
+        logger.info({
+          message: 'Security alert sent to admin',
+          context: { service: 'SecurityService', operation: 'sendSecurityNotification', adminEmail: admin.email, alertType: alert.type, severity: alert.severity }
+        });
       }
     } catch (error) {
-      console.error('Error sending security notification:', error);
+      logger.error({
+        message: 'Error sending security notification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'sendSecurityNotification', alertType: alert.type }
+      });
     }
   }
 
@@ -398,7 +442,11 @@ export class SecurityService {
       
       return iv.toString('hex') + ':' + encrypted;
     } catch (error) {
-      console.error('Error encrypting data:', error);
+      logger.error({
+        message: 'Error encrypting data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'encryptSensitiveData' }
+      });
       throw new Error('Failed to encrypt data');
     }
   }
@@ -417,7 +465,11 @@ export class SecurityService {
       
       return decrypted;
     } catch (error) {
-      console.error('Error decrypting data:', error);
+      logger.error({
+        message: 'Error decrypting data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'decryptSensitiveData' }
+      });
       throw new Error('Failed to decrypt data');
     }
   }
@@ -445,7 +497,11 @@ export class SecurityService {
         // Add other non-sensitive fields
       };
     } catch (error) {
-      console.error('Error exporting user data:', error);
+      logger.error({
+        message: 'Error exporting user data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'exportUserData', userId }
+      });
       throw new Error('Failed to export user data');
     }
   }
@@ -463,7 +519,11 @@ export class SecurityService {
         }
       });
     } catch (error) {
-      console.error('Error deleting user data:', error);
+      logger.error({
+        message: 'Error deleting user data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SecurityService', operation: 'deleteUserData', userId }
+      });
       throw new Error('Failed to delete user data');
     }
   }

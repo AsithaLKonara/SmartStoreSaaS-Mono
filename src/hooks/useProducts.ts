@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, invalidateProducts } from '@/lib/query-client';
+import { logger } from '@/lib/logger';
 
 export interface Product {
   id: string;
@@ -42,7 +43,11 @@ export function useProducts(filters?: { search?: string; category?: string; acti
         
         return response.json();
       } catch (error) {
-        console.error('[useProducts] Fetch products error:', error);
+        logger.error({
+          message: 'Fetch products error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useProducts', operation: 'fetchProducts', filters }
+        });
         throw error;
       }
     },
@@ -68,7 +73,11 @@ export function useProduct(id: string) {
         
         return response.json();
       } catch (error) {
-        console.error('[useProducts] Fetch single product error:', error);
+        logger.error({
+          message: 'Fetch single product error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useProducts', operation: 'fetchProduct', productId: id }
+        });
         throw error;
       }
     },
@@ -100,7 +109,11 @@ export function useCreateProduct() {
         
         return response.json();
       } catch (error) {
-        console.error('[useProducts] Create product error:', error);
+        logger.error({
+          message: 'Create product error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useProducts', operation: 'createProduct', productName: product.name }
+        });
         throw error;
       }
     },
@@ -133,7 +146,11 @@ export function useUpdateProduct() {
         
         return response.json();
       } catch (error) {
-        console.error('[useProducts] Update product error:', error);
+        logger.error({
+          message: 'Update product error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useProducts', operation: 'updateProduct', productId: id }
+        });
         throw error;
       }
     },
@@ -165,7 +182,11 @@ export function useDeleteProduct() {
         
         return response.json();
       } catch (error) {
-        console.error('[useProducts] Delete product error:', error);
+        logger.error({
+          message: 'Delete product error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useProducts', operation: 'deleteProduct', productId: id }
+        });
         throw error;
       }
     },

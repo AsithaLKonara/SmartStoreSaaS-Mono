@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 
 interface TaxRate {
   id: string;
@@ -36,7 +37,10 @@ export default function TaxManagementPage() {
         setTaxRates(data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching tax rates:', error);
+      logger.error({
+        message: 'Error fetching tax rates',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

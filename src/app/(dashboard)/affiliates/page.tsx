@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { logger } from '@/lib/logger';
 import {
   Users,
   DollarSign,
@@ -87,7 +88,10 @@ export default function AffiliatesPage() {
         ]);
       }
     } catch (error) {
-      console.error('Error fetching affiliates:', error);
+      logger.error({
+        message: 'Error fetching affiliates',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

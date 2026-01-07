@@ -1,4 +1,5 @@
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
+import { logger } from '../logger';
 
 interface WooCommerceConfig {
   url: string;
@@ -24,7 +25,10 @@ export class WooCommerceService {
       });
       this.isConfigured = true;
     } else {
-      console.warn('WooCommerce not configured. Set environment variables.');
+      logger.warn({
+        message: 'WooCommerce not configured. Set environment variables.',
+        context: { service: 'WooCommerceIntegration', operation: 'constructor' }
+      });
       this.isConfigured = false;
     }
   }
@@ -59,7 +63,11 @@ export class WooCommerceService {
         })),
       };
     } catch (error: any) {
-      console.error('WooCommerce product sync error:', error);
+      logger.error({
+        message: 'WooCommerce product sync error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceIntegration', operation: 'syncProducts' }
+      });
       throw new Error(`Failed to sync products: ${error.message}`);
     }
   }
@@ -106,7 +114,11 @@ export class WooCommerceService {
         })),
       };
     } catch (error: any) {
-      console.error('WooCommerce order sync error:', error);
+      logger.error({
+        message: 'WooCommerce order sync error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceIntegration', operation: 'syncOrders' }
+      });
       throw new Error(`Failed to sync orders: ${error.message}`);
     }
   }
@@ -139,7 +151,11 @@ export class WooCommerceService {
         permalink: response.data.permalink,
       };
     } catch (error: any) {
-      console.error('WooCommerce product export error:', error);
+      logger.error({
+        message: 'WooCommerce product export error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceIntegration', operation: 'exportProduct', productId }
+      });
       throw new Error(`Failed to export product: ${error.message}`);
     }
   }
@@ -162,7 +178,11 @@ export class WooCommerceService {
         updated: response.data.stock_quantity,
       };
     } catch (error: any) {
-      console.error('WooCommerce inventory update error:', error);
+      logger.error({
+        message: 'WooCommerce inventory update error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceIntegration', operation: 'updateInventory', productId, quantity }
+      });
       throw new Error(`Failed to update inventory: ${error.message}`);
     }
   }

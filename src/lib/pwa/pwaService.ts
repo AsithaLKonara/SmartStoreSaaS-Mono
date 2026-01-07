@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface PWAConfig {
   name: string;
@@ -71,7 +72,10 @@ export class PWAService {
           scope: '/',
         });
         
-        console.log('Service Worker registered successfully');
+        logger.info({
+          message: 'Service Worker registered successfully',
+          context: { service: 'PWAService', operation: 'initializePWA' }
+        });
         
         // Listen for updates
         this.swRegistration.addEventListener('updatefound', () => {
@@ -95,7 +99,10 @@ export class PWAService {
 
       // Handle app installed
       window.addEventListener('appinstalled', () => {
-        console.log('PWA was installed');
+        logger.info({
+          message: 'PWA was installed',
+          context: { service: 'PWAService', operation: 'initializePWA' }
+        });
         this.trackInstallation();
       });
 
@@ -106,7 +113,11 @@ export class PWAService {
       await this.initializeOfflineStorage();
 
     } catch (error) {
-      console.error('Error initializing PWA:', error);
+      logger.error({
+        message: 'Error initializing PWA',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'initializePWA' }
+      });
     }
   }
 
@@ -197,15 +208,25 @@ export class PWAService {
       const { outcome } = await this.deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
+        logger.info({
+          message: 'User accepted the install prompt',
+          context: { service: 'PWAService', operation: 'install' }
+        });
         this.deferredPrompt = null;
         return true;
       } else {
-        console.log('User dismissed the install prompt');
+        logger.info({
+          message: 'User dismissed the install prompt',
+          context: { service: 'PWAService', operation: 'install' }
+        });
         return false;
       }
     } catch (error) {
-      console.error('Error during installation:', error);
+      logger.error({
+        message: 'Error during installation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'install' }
+      });
       return false;
     }
   }
@@ -215,7 +236,10 @@ export class PWAService {
    */
   private async initializePushNotifications(): Promise<void> {
     if (!('Notification' in window) || !this.swRegistration) {
-      console.log('Push notifications not supported');
+      logger.info({
+        message: 'Push notifications not supported',
+        context: { service: 'PWAService', operation: 'initializePushNotifications' }
+      });
       return;
     }
 
@@ -235,9 +259,16 @@ export class PWAService {
         // Send subscription to server
         await this.sendSubscriptionToServer(subscription);
         
-        console.log('Push notifications initialized');
+        logger.info({
+          message: 'Push notifications initialized',
+          context: { service: 'PWAService', operation: 'initializePushNotifications' }
+        });
       } catch (error) {
-        console.error('Error initializing push notifications:', error);
+        logger.error({
+          message: 'Error initializing push notifications',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'PWAService', operation: 'initializePushNotifications' }
+        });
       }
     }
   }
@@ -258,20 +289,29 @@ export class PWAService {
       });
 
       if (!user) {
-        console.log('User not found');
+        logger.warn({
+          message: 'User not found',
+          context: { service: 'PWAService', operation: 'sendPushNotification', userId }
+        });
         return false;
       }
 
       // For now, we'll assume the user has push notifications enabled
       // In a real implementation, you would store this in a separate table or user preferences
-      console.log('User found, proceeding with push notification');
+      logger.debug({
+        message: 'User found, proceeding with push notification',
+        context: { service: 'PWAService', operation: 'sendPushNotification', userId }
+      });
 
       // Send notification via web push
       const payload = JSON.stringify(notification);
       
       // This would use a web push library like 'web-push'
       // For now, we'll simulate the notification
-      console.log('Sending push notification:', payload);
+      logger.debug({
+        message: 'Sending push notification',
+        context: { service: 'PWAService', operation: 'sendPushNotification', userId, notificationTitle: notification.title }
+      });
 
       // Store notification in database using existing Notification model
       await prisma.notification.create({
@@ -291,7 +331,11 @@ export class PWAService {
 
       return true;
     } catch (error) {
-      console.error('Error sending push notification:', error);
+      logger.error({
+        message: 'Error sending push notification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'sendPushNotification', userId, notificationTitle: notification.title }
+      });
       return false;
     }
   }
@@ -301,7 +345,10 @@ export class PWAService {
    */
   private async initializeOfflineStorage(): Promise<void> {
     if (!('indexedDB' in window)) {
-      console.log('IndexedDB not supported');
+      logger.info({
+        message: 'IndexedDB not supported',
+        context: { service: 'PWAService', operation: 'initializeOfflineStorage' }
+      });
       return;
     }
 
@@ -310,11 +357,17 @@ export class PWAService {
       const request = indexedDB.open('SmartStoreOffline', 1);
       
       request.onerror = () => {
-        console.error('Error opening IndexedDB');
+        logger.error({
+          message: 'Error opening IndexedDB',
+          context: { service: 'PWAService', operation: 'initializeOfflineStorage' }
+        });
       };
 
       request.onsuccess = () => {
-        console.log('Offline storage initialized');
+        logger.info({
+          message: 'Offline storage initialized',
+          context: { service: 'PWAService', operation: 'initializeOfflineStorage' }
+        });
       };
 
       request.onupgradeneeded = (event) => {
@@ -340,7 +393,11 @@ export class PWAService {
         }
       };
     } catch (error) {
-      console.error('Error initializing offline storage:', error);
+      logger.error({
+        message: 'Error initializing offline storage',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'initializeOfflineStorage' }
+      });
     }
   }
 
@@ -359,11 +416,18 @@ export class PWAService {
         store.put(data);
         
         transaction.oncomplete = () => {
-          console.log(`Stored ${type} data offline:`, data.id);
+          logger.debug({
+            message: 'Stored data offline',
+            context: { service: 'PWAService', operation: 'storeOfflineData', type, dataId: (data as { id?: string }).id }
+          });
         };
       };
     } catch (error) {
-      console.error('Error storing offline data:', error);
+      logger.error({
+        message: 'Error storing offline data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'storeOfflineData', type }
+      });
     }
   }
 
@@ -417,10 +481,17 @@ export class PWAService {
           syncStatus: 'pending',
         });
         
-        console.log('Added to sync queue:', action);
+        logger.debug({
+          message: 'Added to sync queue',
+          context: { service: 'PWAService', operation: 'addToSyncQueue', action }
+        });
       };
     } catch (error) {
-      console.error('Error adding to sync queue:', error);
+      logger.error({
+        message: 'Error adding to sync queue',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'addToSyncQueue', action }
+      });
     }
   }
 
@@ -429,7 +500,10 @@ export class PWAService {
    */
   async syncOfflineData(): Promise<void> {
     if (!navigator.onLine) {
-      console.log('Device is offline, skipping sync');
+      logger.info({
+        message: 'Device is offline, skipping sync',
+        context: { service: 'PWAService', operation: 'syncOfflineData' }
+      });
       return;
     }
 
@@ -443,14 +517,25 @@ export class PWAService {
           // Mark as synced
           await this.updateSyncStatus(action.id, 'synced');
           
-          console.log('Synced action:', action.action);
+          logger.debug({
+            message: 'Synced action',
+            context: { service: 'PWAService', operation: 'syncOfflineData', action: action.action }
+          });
         } catch (error) {
-          console.error('Error syncing action:', error);
+          logger.error({
+            message: 'Error syncing action',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'PWAService', operation: 'syncOfflineData', action: action.action }
+          });
           await this.updateSyncStatus(action.id, 'error');
         }
       }
     } catch (error) {
-      console.error('Error syncing offline data:', error);
+      logger.error({
+        message: 'Error syncing offline data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PWAService', operation: 'syncOfflineData' }
+      });
     }
   }
 
@@ -522,17 +607,26 @@ export class PWAService {
 
   private showInstallBanner(): void {
     // This would show a custom install banner
-    console.log('App can be installed');
+    logger.info({
+      message: 'App can be installed',
+      context: { service: 'PWAService', operation: 'showInstallBanner' }
+    });
   }
 
   private showUpdateAvailable(): void {
     // This would show an update notification
-    console.log('App update available');
+    logger.info({
+      message: 'App update available',
+      context: { service: 'PWAService', operation: 'showUpdateAvailable' }
+    });
   }
 
   private trackInstallation(): void {
     // Track installation analytics
-    console.log('PWA installed successfully');
+    logger.info({
+      message: 'PWA installed successfully',
+      context: { service: 'PWAService', operation: 'trackInstallation' }
+    });
   }
 
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -552,7 +646,10 @@ export class PWAService {
 
   private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
     // Send subscription to your server
-    console.log('Push subscription:', subscription);
+    logger.debug({
+      message: 'Push subscription',
+      context: { service: 'PWAService', operation: 'sendSubscriptionToServer', endpoint: subscription.endpoint }
+    });
   }
 
   private async executeSyncAction(action: unknown): Promise<void> {
@@ -565,7 +662,10 @@ export class PWAService {
         // Sync cart updates
         break;
       default:
-        console.log('Unknown sync action:', action.action);
+        logger.warn({
+          message: 'Unknown sync action',
+          context: { service: 'PWAService', operation: 'executeSyncAction', action: action.action }
+        });
     }
   }
 

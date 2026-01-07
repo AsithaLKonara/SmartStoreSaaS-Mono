@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { prisma } from '../prisma';
 import * as crypto from 'crypto';
+import { logger } from '../logger';
 
 export interface BlockchainTransaction {
   id: string;
@@ -120,7 +121,11 @@ export class BlockchainService {
         this.wallet = new ethers.Wallet(process.env.BLOCKCHAIN_PRIVATE_KEY, this.provider);
       }
     } catch (error) {
-      console.error('Failed to initialize blockchain provider:', error);
+      logger.error({
+        message: 'Failed to initialize blockchain provider',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'initializeProvider' }
+      });
     }
   }
 
@@ -169,7 +174,11 @@ export class BlockchainService {
 
       return contractInfo;
     } catch (error) {
-      console.error('Error deploying smart contract:', error);
+      logger.error({
+        message: 'Error deploying smart contract',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'deploySmartContract', contractType }
+      });
       throw new Error('Failed to deploy smart contract');
     }
   }
@@ -232,7 +241,11 @@ export class BlockchainService {
         createdAt: payment.createdAt,
       };
     } catch (error) {
-      console.error('Error processing crypto payment:', error);
+      logger.error({
+        message: 'Error processing crypto payment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'processCryptoPayment', orderId, amount, currency }
+      });
       throw new Error('Failed to process crypto payment');
     }
   }
@@ -290,7 +303,11 @@ export class BlockchainService {
         metadata: record.metadata as unknown,
       };
     } catch (error) {
-      console.error('Error recording supply chain event:', error);
+      logger.error({
+        message: 'Error recording supply chain event',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'recordSupplyChainEvent', productId, eventType: event.type }
+      });
       throw new Error('Failed to record supply chain event');
     }
   }
@@ -329,7 +346,11 @@ export class BlockchainService {
 
       return collection;
     } catch (error) {
-      console.error('Error creating NFT collection:', error);
+      logger.error({
+        message: 'Error creating NFT collection',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'createNFTCollection', organizationId, name: collectionData.name }
+      });
       throw new Error('Failed to create NFT collection');
     }
   }
@@ -383,7 +404,11 @@ export class BlockchainService {
 
       return nftToken;
     } catch (error) {
-      console.error('Error minting NFT:', error);
+      logger.error({
+        message: 'Error minting NFT',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'mintNFT', collectionId, productId }
+      });
       throw new Error('Failed to mint NFT');
     }
   }
@@ -444,7 +469,11 @@ export class BlockchainService {
         verificationScore,
       };
     } catch (error) {
-      console.error('Error verifying product authenticity:', error);
+      logger.error({
+        message: 'Error verifying product authenticity',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'verifyProductAuthenticity', productId }
+      });
       throw new Error('Failed to verify product authenticity');
     }
   }
@@ -487,7 +516,11 @@ export class BlockchainService {
 
       return mockRates[crypto] || 1;
     } catch (error) {
-      console.error('Error getting exchange rate:', error);
+      logger.error({
+        message: 'Error getting exchange rate',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'getExchangeRate', crypto, fiat }
+      });
       return 1;
     }
   }
@@ -503,7 +536,10 @@ export class BlockchainService {
   ): Promise<void> {
     // In production, implement blockchain monitoring
     // For now, just log the monitoring start
-    console.log(`Monitoring payment ${paymentId} at address ${address}`);
+    logger.info({
+      message: 'Monitoring payment',
+      context: { service: 'BlockchainService', operation: 'monitorPayment', paymentId, address }
+    });
     
     // Simulate payment confirmation after 30 seconds
     setTimeout(async () => {
@@ -531,7 +567,11 @@ export class BlockchainService {
         },
       });
     } catch (error) {
-      console.error('Error confirming crypto payment:', error);
+      logger.error({
+        message: 'Error confirming crypto payment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'confirmCryptoPayment', paymentId, transactionHash }
+      });
     }
   }
 
@@ -607,7 +647,11 @@ export class BlockchainService {
         isConnected: true,
       };
     } catch (error) {
-      console.error('Error getting network status:', error);
+      logger.error({
+        message: 'Error getting network status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BlockchainService', operation: 'getNetworkStatus' }
+      });
       return {
         network: 'unknown',
         blockNumber: 0,

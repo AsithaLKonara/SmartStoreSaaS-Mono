@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // Security headers configuration
 export const securityHeaders = {
@@ -232,13 +233,19 @@ export function logSecurityEvent(
     userId: details.userId || 'anonymous'
   };
   
-  console.warn(`[SECURITY-${severity.toUpperCase()}] ${JSON.stringify(logEntry)}`);
+  if (severity === 'critical') {
+    logger.error({
+      message: 'CRITICAL SECURITY EVENT',
+      context: { service: 'SecurityHeaders', operation: 'logSecurityEvent', event, severity, logEntry }
+    });
+  } else {
+    logger.warn({
+      message: `Security event: ${event}`,
+      context: { service: 'SecurityHeaders', operation: 'logSecurityEvent', event, severity, details }
+    });
+  }
   
   // In production, you might want to send this to a security monitoring service
-  if (process.env.NODE_ENV === 'production' && severity === 'critical') {
-    // Send to monitoring service
-    console.error('CRITICAL SECURITY EVENT:', logEntry);
-  }
 }
 
 

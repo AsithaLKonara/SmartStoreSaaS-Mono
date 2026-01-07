@@ -9,10 +9,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 

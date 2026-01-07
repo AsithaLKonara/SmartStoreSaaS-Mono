@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 // Input validation schema
 const signinSchema = z.object({
@@ -121,7 +122,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Signin error:', error);
+    logger.error({
+      message: 'Signin error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'working-signin' }
+    });
     return NextResponse.json(
       { 
         success: false, 

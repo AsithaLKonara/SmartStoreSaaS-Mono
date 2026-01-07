@@ -98,7 +98,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
           orderNumber,
           supplierId,
           organizationId,
-          createdBy: user.id,
+          createdById: user.id,
           status: 'DRAFT',
           orderDate: new Date(),
           expectedDate: expectedDate ? new Date(expectedDate) : null,

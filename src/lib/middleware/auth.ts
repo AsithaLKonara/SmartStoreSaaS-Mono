@@ -163,8 +163,8 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
 /**
  * Require authentication middleware
  */
-export function requireAuth(handler: (req: AuthenticatedRequest, user: AuthenticatedUser) => Promise<NextResponse>) {
-  return async (request: NextRequest): Promise<NextResponse> => {
+export function requireAuth(handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) {
+  return async (request: NextRequest, params?: any): Promise<NextResponse> => {
     const user = await getAuthenticatedUser(request);
     
     if (!user) {
@@ -189,8 +189,8 @@ export function requireAuth(handler: (req: AuthenticatedRequest, user: Authentic
     
     // Attach user to request
     (request as AuthenticatedRequest).user = user;
-    
-    return handler(request as AuthenticatedRequest, user);
+
+    return handler(request as AuthenticatedRequest, user, params);
   };
 }
 
@@ -199,9 +199,9 @@ export function requireAuth(handler: (req: AuthenticatedRequest, user: Authentic
  */
 export function requireRole(allowedRoles: UserRole | UserRole[]) {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-  
-  return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser) => Promise<NextResponse>) => {
-    return requireAuth(async (request, user) => {
+
+  return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) => {
+    return requireAuth(async (request, user, params) => {
       if (!roles.includes(user.role)) {
         logger.warn({
           message: 'Unauthorized role access attempt',
@@ -213,7 +213,7 @@ export function requireRole(allowedRoles: UserRole | UserRole[]) {
             requiredRoles: roles
           }
         });
-        
+
         return NextResponse.json(
           {
             success: false,
@@ -223,8 +223,8 @@ export function requireRole(allowedRoles: UserRole | UserRole[]) {
           { status: 403 }
         );
       }
-      
-      return handler(request, user);
+
+      return handler(request, user, params);
     });
   };
 }

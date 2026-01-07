@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface ReviewData {
   productId: string;
@@ -72,7 +73,11 @@ export async function createReview(
 
     return { success: true, review };
   } catch (error: any) {
-    console.error('Create review error:', error);
+    logger.error({
+      message: 'Create review error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReviewManager', operation: 'createReview', productId: data.productId, customerId: data.customerId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -124,7 +129,11 @@ export async function approveReview(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Approve review error:', error);
+    logger.error({
+      message: 'Approve review error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReviewManager', operation: 'approveReview', reviewId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -147,7 +156,11 @@ export async function rejectReview(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Reject review error:', error);
+    logger.error({
+      message: 'Reject review error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReviewManager', operation: 'rejectReview', reviewId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -188,7 +201,11 @@ export async function markReviewHelpful(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Mark helpful error:', error);
+    logger.error({
+      message: 'Mark helpful error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReviewManager', operation: 'markHelpful', reviewId, customerId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -311,7 +328,11 @@ export async function respondToReview(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Respond to review error:', error);
+    logger.error({
+      message: 'Respond to review error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ReviewManager', operation: 'respondToReview', reviewId }
+    });
     return { success: false, error: error.message };
   }
 }

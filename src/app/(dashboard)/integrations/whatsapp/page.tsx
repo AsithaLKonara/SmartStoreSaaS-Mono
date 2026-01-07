@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Phone, Settings, CheckCircle, XCircle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export default function WhatsAppIntegrationPage() {
   const [isConnected, setIsConnected] = useState(false);
@@ -26,11 +27,19 @@ export default function WhatsAppIntegrationPage() {
       if (data.success && data.connected) {
         setIsConnected(true);
       } else {
-        console.error('WhatsApp connection failed:', data.error);
+        logger.error({
+          message: 'WhatsApp connection failed',
+          error: new Error(data.error || 'Connection failed'),
+          context: { phoneNumber }
+        });
         alert('Failed to connect WhatsApp. Please check your credentials.');
       }
     } catch (error) {
-      console.error('Failed to connect WhatsApp:', error);
+      logger.error({
+        message: 'Failed to connect WhatsApp',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { phoneNumber }
+      });
       alert('Failed to connect WhatsApp. Please check your configuration.');
     } finally {
       setIsLoading(false);

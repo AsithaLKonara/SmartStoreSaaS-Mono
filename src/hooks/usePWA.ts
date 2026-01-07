@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface PWAStatus {
   isInstalled: boolean;
@@ -69,13 +70,19 @@ export function usePWA() {
   // Register service worker
   const registerServiceWorker = useCallback(async () => {
     if (!('serviceWorker' in navigator)) {
-      console.log('Service Worker not supported');
+      logger.info({
+        message: 'Service Worker not supported',
+        context: { hook: 'usePWA', operation: 'registerServiceWorker' }
+      });
       return false;
     }
 
     try {
       const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered:', registration);
+      logger.info({
+        message: 'Service Worker registered',
+        context: { hook: 'usePWA', operation: 'registerServiceWorker', scope: registration.scope }
+      });
 
       // Check for updates
       registration.addEventListener('updatefound', () => {
@@ -92,7 +99,11 @@ export function usePWA() {
 
       return true;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      logger.error({
+        message: 'Service Worker registration failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { hook: 'usePWA', operation: 'registerServiceWorker' }
+      });
       return false;
     }
   }, []);
@@ -120,7 +131,11 @@ export function usePWA() {
       }
       return false;
     } catch (error) {
-      console.error('PWA installation failed:', error);
+      logger.error({
+        message: 'PWA installation failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { hook: 'usePWA', operation: 'installPWA' }
+      });
       toast.error('Installation failed');
       return false;
     }
@@ -145,7 +160,11 @@ export function usePWA() {
         return false;
       }
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      logger.error({
+        message: 'Error requesting notification permission',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { hook: 'usePWA', operation: 'requestNotificationPermission' }
+      });
       return false;
     }
   }, [notificationPermission.isSupported]);
@@ -172,7 +191,11 @@ export function usePWA() {
 
       return true;
     } catch (error) {
-      console.error('Error sending notification:', error);
+      logger.error({
+        message: 'Error sending notification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { hook: 'usePWA', operation: 'sendPushNotification', title }
+      });
       return false;
     }
   }, [notificationPermission.permission, requestNotificationPermission]);
@@ -206,7 +229,11 @@ export function usePWA() {
         return false;
       }
     } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
+      logger.error({
+        message: 'Error subscribing to push notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { hook: 'usePWA', operation: 'subscribeToPushNotifications' }
+      });
       toast.error('Failed to enable push notifications');
       return false;
     }
@@ -238,7 +265,11 @@ export function usePWA() {
         return false;
       }
     } catch (error) {
-      console.error('Error registering background sync:', error);
+      logger.error({
+        message: 'Error registering background sync',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { hook: 'usePWA', operation: 'requestBackgroundSync' }
+      });
       toast.error('Background sync registration failed');
       return false;
     }

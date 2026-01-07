@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
@@ -79,7 +80,11 @@ export class StripeService {
         paymentMethodTypes: paymentIntent.payment_method_types,
       };
     } catch (error) {
-      console.error('Error creating payment intent:', error);
+      logger.error({
+        message: 'Error creating payment intent',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'createPaymentIntent', amount, currency, customerId }
+      });
       throw new Error('Failed to create payment intent');
     }
   }
@@ -101,7 +106,11 @@ export class StripeService {
 
       return customer.id;
     } catch (error) {
-      console.error('Error creating Stripe customer:', error);
+      logger.error({
+        message: 'Error creating Stripe customer',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'createCustomer', email, name }
+      });
       throw new Error('Failed to create customer');
     }
   }
@@ -128,7 +137,11 @@ export class StripeService {
         billing_details: pm.billing_details,
       }));
     } catch (error) {
-      console.error('Error retrieving payment methods:', error);
+      logger.error({
+        message: 'Error retrieving payment methods',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'getPaymentMethods', customerId }
+      });
       throw new Error('Failed to retrieve payment methods');
     }
   }
@@ -153,7 +166,11 @@ export class StripeService {
 
       return subscription;
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      logger.error({
+        message: 'Error creating subscription',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'createSubscription', customerId, priceId }
+      });
       throw new Error('Failed to create subscription');
     }
   }
@@ -165,7 +182,11 @@ export class StripeService {
     try {
       return await stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      logger.error({
+        message: 'Error canceling subscription',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'cancelSubscription', subscriptionId }
+      });
       throw new Error('Failed to cancel subscription');
     }
   }
@@ -190,7 +211,11 @@ export class StripeService {
 
       return await stripe.refunds.create(refundData);
     } catch (error) {
-      console.error('Error creating refund:', error);
+      logger.error({
+        message: 'Error creating refund',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'createRefund', paymentIntentId, amount, reason }
+      });
       throw new Error('Failed to create refund');
     }
   }
@@ -227,10 +252,17 @@ export class StripeService {
           await this.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
           break;
         default:
-          console.log(`Unhandled event type: ${event.type}`);
+          logger.warn({
+            message: 'Unhandled event type',
+            context: { service: 'StripeService', operation: 'handleWebhook', eventType: event.type }
+          });
       }
     } catch (error) {
-      console.error('Error handling webhook:', error);
+      logger.error({
+        message: 'Error handling webhook',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'handleWebhook' }
+      });
       throw new Error('Webhook signature verification failed');
     }
   }
@@ -249,9 +281,16 @@ export class StripeService {
 
       // Trigger order fulfillment workflow
       // This would integrate with your workflow engine
-      console.log(`Payment succeeded for order: ${paymentIntent.metadata?.orderId}`);
+      logger.info({
+        message: 'Payment succeeded',
+        context: { service: 'StripeService', operation: 'handlePaymentSucceeded', paymentIntentId: paymentIntent.id, orderId: paymentIntent.metadata?.orderId }
+      });
     } catch (error) {
-      console.error('Error handling payment succeeded:', error);
+      logger.error({
+        message: 'Error handling payment succeeded',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'handlePaymentSucceeded', paymentIntentId: paymentIntent.id }
+      });
     }
   }
 
@@ -267,9 +306,16 @@ export class StripeService {
         },
       });
 
-      console.log(`Payment failed for order: ${paymentIntent.metadata?.orderId}`);
+      logger.warn({
+        message: 'Payment failed',
+        context: { service: 'StripeService', operation: 'handlePaymentFailed', paymentIntentId: paymentIntent.id, orderId: paymentIntent.metadata?.orderId }
+      });
     } catch (error) {
-      console.error('Error handling payment failed:', error);
+      logger.error({
+        message: 'Error handling payment failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'handlePaymentFailed', paymentIntentId: paymentIntent.id }
+      });
     }
   }
 
@@ -287,9 +333,16 @@ export class StripeService {
         },
       });
 
-      console.log(`Subscription created: ${subscription.id}`);
+      logger.info({
+        message: 'Subscription created',
+        context: { service: 'StripeService', operation: 'handleSubscriptionCreated', subscriptionId: subscription.id, customerId: subscription.customer as string }
+      });
     } catch (error) {
-      console.error('Error handling subscription created:', error);
+      logger.error({
+        message: 'Error handling subscription created',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'handleSubscriptionCreated', subscriptionId: subscription.id }
+      });
     }
   }
 
@@ -306,9 +359,16 @@ export class StripeService {
         },
       });
 
-      console.log(`Subscription updated: ${subscription.id}`);
+      logger.info({
+        message: 'Subscription updated',
+        context: { service: 'StripeService', operation: 'handleSubscriptionUpdated', subscriptionId: subscription.id, status: subscription.status }
+      });
     } catch (error) {
-      console.error('Error handling subscription updated:', error);
+      logger.error({
+        message: 'Error handling subscription updated',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'handleSubscriptionUpdated', subscriptionId: subscription.id }
+      });
     }
   }
 
@@ -323,18 +383,31 @@ export class StripeService {
         },
       });
 
-      console.log(`Subscription canceled: ${subscription.id}`);
+      logger.info({
+        message: 'Subscription canceled',
+        context: { service: 'StripeService', operation: 'handleSubscriptionDeleted', subscriptionId: subscription.id }
+      });
     } catch (error) {
-      console.error('Error handling subscription deleted:', error);
+      logger.error({
+        message: 'Error handling subscription deleted',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'handleSubscriptionDeleted', subscriptionId: subscription.id }
+      });
     }
   }
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-    console.log(`Invoice payment succeeded: ${invoice.id}`);
+    logger.info({
+      message: 'Invoice payment succeeded',
+      context: { service: 'StripeService', operation: 'handleInvoicePaymentSucceeded', invoiceId: invoice.id, customerId: invoice.customer as string }
+    });
   }
 
   private async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-    console.log(`Invoice payment failed: ${invoice.id}`);
+    logger.warn({
+      message: 'Invoice payment failed',
+      context: { service: 'StripeService', operation: 'handleInvoicePaymentFailed', invoiceId: invoice.id, customerId: invoice.customer as string }
+    });
   }
 
   /**
@@ -362,7 +435,11 @@ export class StripeService {
         };
       });
     } catch (error) {
-      console.error('Error retrieving subscription plans:', error);
+      logger.error({
+        message: 'Error retrieving subscription plans',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'getSubscriptionPlans' }
+      });
       throw new Error('Failed to retrieve subscription plans');
     }
   }
@@ -381,7 +458,11 @@ export class StripeService {
         clientSecret: setupIntent.client_secret!,
       };
     } catch (error) {
-      console.error('Error creating setup intent:', error);
+      logger.error({
+        message: 'Error creating setup intent',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'StripeService', operation: 'createSetupIntent', customerId }
+      });
       throw new Error('Failed to create setup intent');
     }
   }

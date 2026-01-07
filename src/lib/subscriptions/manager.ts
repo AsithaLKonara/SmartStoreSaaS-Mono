@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export enum SubscriptionStatus {
   ACTIVE = 'ACTIVE',
@@ -73,7 +74,11 @@ export async function createSubscription(data: {
 
     return { success: true, subscription };
   } catch (error: any) {
-    console.error('Create subscription error:', error);
+    logger.error({
+      message: 'Create subscription error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SubscriptionManager', operation: 'createSubscription', customerId: data.customerId, planId: data.planId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -129,7 +134,11 @@ export async function cancelSubscription(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Cancel subscription error:', error);
+    logger.error({
+      message: 'Cancel subscription error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SubscriptionManager', operation: 'cancelSubscription', subscriptionId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -149,7 +158,11 @@ export async function pauseSubscription(subscriptionId: string): Promise<{ succe
 
     return { success: true };
   } catch (error: any) {
-    console.error('Pause subscription error:', error);
+    logger.error({
+      message: 'Pause subscription error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SubscriptionManager', operation: 'pauseSubscription', subscriptionId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -169,7 +182,11 @@ export async function resumeSubscription(subscriptionId: string): Promise<{ succ
 
     return { success: true };
   } catch (error: any) {
-    console.error('Resume subscription error:', error);
+    logger.error({
+      message: 'Resume subscription error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SubscriptionManager', operation: 'resumeSubscription', subscriptionId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -199,7 +216,11 @@ export async function changeSubscriptionPlan(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Change plan error:', error);
+    logger.error({
+      message: 'Change plan error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SubscriptionManager', operation: 'changePlan', subscriptionId, newPlanId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -268,7 +289,11 @@ export async function processSubscriptionBilling(subscriptionId: string): Promis
 
     return { success: true, invoice };
   } catch (error: any) {
-    console.error('Process billing error:', error);
+    logger.error({
+      message: 'Process billing error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'SubscriptionManager', operation: 'processBilling', subscriptionId }
+    });
     return { success: false, error: error.message };
   }
 }

@@ -1,4 +1,5 @@
 import { usePWA } from '@/hooks/usePWA';
+import { logger } from '@/lib/logger';
 
 export interface PushNotification {
   id: string;
@@ -116,7 +117,11 @@ export class AdvancedPWAService {
 
       return subscription;
     } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
+      logger.error({
+        message: 'Error subscribing to push notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'subscribeToPushNotifications' }
+      });
       return null;
     }
   }
@@ -149,7 +154,11 @@ export class AdvancedPWAService {
       // Store notification in IndexedDB
       await this.storeNotification(notification);
     } catch (error) {
-      console.error('Error sending push notification:', error);
+      logger.error({
+        message: 'Error sending push notification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'sendPushNotification', notificationId: notification.id }
+      });
     }
   }
 
@@ -229,7 +238,11 @@ export class AdvancedPWAService {
       // Store task data
       await this.storeBackgroundSyncTask(task);
     } catch (error) {
-      console.error('Error registering background sync:', error);
+      logger.error({
+        message: 'Error registering background sync',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'registerBackgroundSync', tag: task.tag }
+      });
       // Fallback to IndexedDB
       await this.storeBackgroundSyncTask(task);
     }
@@ -276,7 +289,11 @@ export class AdvancedPWAService {
       
       return qrCodeUrl;
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      logger.error({
+        message: 'Error generating QR code',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'generateQRCode', data }
+      });
       throw new Error('Failed to generate QR code');
     }
   }
@@ -302,7 +319,11 @@ export class AdvancedPWAService {
         }, 2000);
       });
     } catch (error) {
-      console.error('Error scanning barcode:', error);
+      logger.error({
+        message: 'Error scanning barcode',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'scanBarcode' }
+      });
       return null;
     }
   }
@@ -328,7 +349,11 @@ export class AdvancedPWAService {
         );
       });
     } catch (error) {
-      console.error('Error getting location:', error);
+      logger.error({
+        message: 'Error getting location',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'getLocation' }
+      });
       return null;
     }
   }
@@ -358,7 +383,11 @@ export class AdvancedPWAService {
 
       recognition.start();
     } catch (error) {
-      console.error('Error initializing voice commands:', error);
+      logger.error({
+        message: 'Error initializing voice commands',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'initializeVoiceCommands' }
+      });
     }
   }
 
@@ -420,17 +449,26 @@ export class AdvancedPWAService {
 
   private handleSwipeRight(): void {
     // Navigate back or open sidebar
-    console.log('Swipe right detected');
+    logger.debug({
+      message: 'Swipe right detected',
+      context: { service: 'AdvancedPWAService', operation: 'handleSwipeRight' }
+    });
   }
 
   private handleSwipeLeft(): void {
     // Navigate forward or close sidebar
-    console.log('Swipe left detected');
+    logger.debug({
+      message: 'Swipe left detected',
+      context: { service: 'AdvancedPWAService', operation: 'handleSwipeLeft' }
+    });
   }
 
   private handleLongPress(): void {
     // Show context menu or additional options
-    console.log('Long press detected');
+    logger.debug({
+      message: 'Long press detected',
+      context: { service: 'AdvancedPWAService', operation: 'handleLongPress' }
+    });
   }
 
   /**
@@ -461,7 +499,11 @@ export class AdvancedPWAService {
         body: JSON.stringify(subscription),
       });
     } catch (error) {
-      console.error('Error sending subscription to server:', error);
+      logger.error({
+        message: 'Error sending subscription to server',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedPWAService', operation: 'sendSubscriptionToServer' }
+      });
     }
   }
 
@@ -501,7 +543,10 @@ export class AdvancedPWAService {
 
   async showNotification(title: string, options: NotificationOptions = {}): Promise<void> {
     if (!('Notification' in window)) {
-      console.warn('Notifications not supported');
+      logger.warn({
+        message: 'Notifications not supported',
+        context: { service: 'AdvancedPWAService', operation: 'showNotification' }
+      });
       return;
     }
 
@@ -517,7 +562,10 @@ export class AdvancedPWAService {
         (options as unknown).actions.forEach((action: unknown) => {
           // Handle action clicks
           notification.addEventListener('click', () => {
-            console.log('Notification action clicked:', action.action);
+            logger.debug({
+              message: 'Notification action clicked',
+              context: { service: 'AdvancedPWAService', operation: 'showNotification', action: (action as { action: string }).action }
+            });
           });
         });
       }
@@ -539,10 +587,16 @@ export class AdvancedPWAService {
       if ('sync' in registration) {
         await (registration as unknown).sync.register(tag);
       } else {
-        console.warn('Background sync not supported');
+        logger.warn({
+          message: 'Background sync not supported',
+          context: { service: 'AdvancedPWAService', operation: 'registerBackgroundSync', tag }
+        });
       }
     } else {
-      console.warn('Service Worker or Background Sync not supported');
+      logger.warn({
+        message: 'Service Worker or Background Sync not supported',
+        context: { service: 'AdvancedPWAService', operation: 'registerBackgroundSync', tag }
+      });
     }
   }
 }

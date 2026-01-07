@@ -4,6 +4,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { notificationService } from '@/lib/notifications/service';
+import { logger } from '@/lib/logger';
 
 export enum FulfillmentStatus {
   PENDING = 'PENDING',
@@ -89,7 +90,11 @@ export async function startFulfillment(
 
     return { success: true, fulfillment };
   } catch (error: any) {
-    console.error('Start fulfillment error:', error);
+    logger.error({
+      message: 'Start fulfillment error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'FulfillmentAutomation', operation: 'startFulfillment', orderId: data.orderId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -169,7 +174,11 @@ export async function markItemsPicked(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Mark picked error:', error);
+    logger.error({
+      message: 'Mark picked error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'FulfillmentAutomation', operation: 'markPicked', fulfillmentId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -198,7 +207,11 @@ export async function markAsPacked(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Mark packed error:', error);
+    logger.error({
+      message: 'Mark packed error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'FulfillmentAutomation', operation: 'markPacked', fulfillmentId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -245,7 +258,11 @@ export async function markAsShipped(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Mark shipped error:', error);
+    logger.error({
+      message: 'Mark shipped error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'FulfillmentAutomation', operation: 'markShipped', fulfillmentId, trackingNumber }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -255,7 +272,10 @@ export async function markAsShipped(
  */
 async function notifyCustomerOrderProcessing(order: any): Promise<void> {
   // Would send email/SMS notification
-  console.log(`Notify customer ${order.customer.email}: Order ${order.orderNumber} is being processed`);
+  logger.info({
+    message: 'Notify customer order processing',
+    context: { service: 'FulfillmentAutomation', operation: 'notifyCustomerOrderProcessing', orderId: order.id, orderNumber: order.orderNumber, customerEmail: order.customer.email }
+  });
 }
 
 /**
@@ -263,7 +283,10 @@ async function notifyCustomerOrderProcessing(order: any): Promise<void> {
  */
 async function notifyCustomerShipped(order: any, trackingNumber: string): Promise<void> {
   // Would send email/SMS notification
-  console.log(`Notify customer ${order.customer.email}: Order ${order.orderNumber} shipped. Tracking: ${trackingNumber}`);
+  logger.info({
+    message: 'Notify customer order shipped',
+    context: { service: 'FulfillmentAutomation', operation: 'notifyCustomerShipped', orderId: order.id, orderNumber: order.orderNumber, customerEmail: order.customer.email, trackingNumber }
+  });
 }
 
 /**

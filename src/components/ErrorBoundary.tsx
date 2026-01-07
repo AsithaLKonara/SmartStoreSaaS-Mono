@@ -17,6 +17,7 @@
 
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '@/lib/logger';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -146,10 +147,15 @@ export class ErrorBoundary extends Component<
       correlation
     });
 
-    // Log to console in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
+    // Log error with structured logger
+    logger.error({
+      message: 'ErrorBoundary caught an error',
+      error,
+      context: {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true
+      }
+    });
 
     // Send error to server
     this.logErrorToServer(error, errorInfo, correlation);
@@ -195,7 +201,10 @@ export class ErrorBoundary extends Component<
       });
     } catch (loggingError) {
       // Failed to log error to server
-      console.error('Failed to log error to server:', loggingError);
+      logger.error({
+        message: 'Failed to log error to server',
+        error: loggingError instanceof Error ? loggingError : new Error(String(loggingError))
+      });
     }
   }
 
@@ -265,7 +274,10 @@ export function useErrorReporter() {
         })
       });
     } catch (loggingError) {
-      console.error('Failed to report error:', loggingError);
+      logger.error({
+        message: 'Failed to report error',
+        error: loggingError instanceof Error ? loggingError : new Error(String(loggingError))
+      });
     }
 
     return correlation;

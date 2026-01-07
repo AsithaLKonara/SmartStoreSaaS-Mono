@@ -26,7 +26,12 @@ export default function LoyaltyPage() {
         const data = await res.json();
         setPrograms(data.programs || data.data || []);
       }
-    } catch (error) { console.error(error); }
+    } catch (error) {
+      logger.error({
+        message: 'Error fetching loyalty programs',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+    }
     finally { setLoading(false); }
   };
 

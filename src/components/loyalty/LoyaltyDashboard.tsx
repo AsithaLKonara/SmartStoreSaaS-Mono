@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Gift, Star, TrendingUp, Users, Award, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
@@ -58,21 +58,24 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
   const [loading, setLoading] = useState(true);
   const [selectedReward, setSelectedReward] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLoyaltyData();
-  }, [customerId]);
-
-  const fetchLoyaltyData = async () => {
+  const fetchLoyaltyData = useCallback(async () => {
     try {
       const response = await fetch(`/api/loyalty?customerId=${customerId}`);
       const data = await response.json();
       setLoyaltyData(data);
     } catch (error) {
-      console.error('Error fetching loyalty data:', error);
+      logger.error({
+        message: 'Error fetching loyalty data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchLoyaltyData();
+  }, [fetchLoyaltyData]);
 
   const redeemReward = async (rewardId: string) => {
     try {
@@ -100,7 +103,11 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
         alert(error.error || 'Failed to redeem reward');
       }
     } catch (error) {
-      console.error('Error redeeming reward:', error);
+      logger.error({
+        message: 'Error redeeming reward',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { rewardId }
+      });
       alert('Failed to redeem reward');
     }
   };
@@ -385,7 +392,7 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
   );
 }
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Gift, Star, TrendingUp, Users, Award, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
@@ -442,21 +449,24 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
   const [loading, setLoading] = useState(true);
   const [selectedReward, setSelectedReward] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLoyaltyData();
-  }, [customerId]);
-
-  const fetchLoyaltyData = async () => {
+  const fetchLoyaltyData = useCallback(async () => {
     try {
       const response = await fetch(`/api/loyalty?customerId=${customerId}`);
       const data = await response.json();
       setLoyaltyData(data);
     } catch (error) {
-      console.error('Error fetching loyalty data:', error);
+      logger.error({
+        message: 'Error fetching loyalty data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchLoyaltyData();
+  }, [fetchLoyaltyData]);
 
   const redeemReward = async (rewardId: string) => {
     try {
@@ -484,7 +494,11 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
         alert(error.error || 'Failed to redeem reward');
       }
     } catch (error) {
-      console.error('Error redeeming reward:', error);
+      logger.error({
+        message: 'Error redeeming reward',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { rewardId }
+      });
       alert('Failed to redeem reward');
     }
   };
@@ -769,7 +783,7 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
   );
 }
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Gift, Star, TrendingUp, Users, Award, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
@@ -826,21 +840,24 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
   const [loading, setLoading] = useState(true);
   const [selectedReward, setSelectedReward] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLoyaltyData();
-  }, [customerId]);
-
-  const fetchLoyaltyData = async () => {
+  const fetchLoyaltyData = useCallback(async () => {
     try {
       const response = await fetch(`/api/loyalty?customerId=${customerId}`);
       const data = await response.json();
       setLoyaltyData(data);
     } catch (error) {
-      console.error('Error fetching loyalty data:', error);
+      logger.error({
+        message: 'Error fetching loyalty data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchLoyaltyData();
+  }, [fetchLoyaltyData]);
 
   const redeemReward = async (rewardId: string) => {
     try {
@@ -868,7 +885,11 @@ export default function LoyaltyDashboard({ customerId }: LoyaltyDashboardProps) 
         alert(error.error || 'Failed to redeem reward');
       }
     } catch (error) {
-      console.error('Error redeeming reward:', error);
+      logger.error({
+        message: 'Error redeeming reward',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { rewardId }
+      });
       alert('Failed to redeem reward');
     }
   };

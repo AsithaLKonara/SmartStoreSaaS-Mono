@@ -1,37 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (req: AuthenticatedRequest, user) => {
+    const { searchParams } = new URL(req.url);
     const timeRange = searchParams.get('timeRange') || '24h';
     const metric = searchParams.get('metric') || 'all';
 
     logger.info({
       message: 'Performance metrics requested',
       context: {
-        userId: session.user.id,
+        userId: user.id,
         timeRange,
         metric
-      }
+      },
+      correlation: req.correlationId
     });
 
-    const organizationId = session.user.organizationId;
+    const organizationId = getOrganizationScope(user);
+
+    if (!organizationId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'User must belong to an organization' 
+      }, { status: 400 });
+    }
+
+    try {
 
     // Query actual business metrics from database with fallbacks
     let totalUsers = 0, totalOrders = 0, recentOrders = 0;
@@ -94,23 +91,29 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    return NextResponse.json({
-      success: true,
-      data: performanceData,
-      note: 'System metrics require monitoring infrastructure. Business metrics are from actual data.'
-    });
+      return NextResponse.json({
+        success: true,
+        data: performanceData,
+        note: 'System metrics require monitoring infrastructure. Business metrics are from actual data.'
+      });
 
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch performance metrics',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch performance metrics',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch performance metrics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { 
+          path: req.nextUrl.pathname,
+          organizationId,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to fetch performance metrics',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
+    }
   }
-}
+);

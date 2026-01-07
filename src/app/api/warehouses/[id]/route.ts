@@ -11,8 +11,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
+
     const warehouse = await prisma.warehouse.findUnique({
-      where: { id: params.id, organizationId: session.user.organizationId }
+      where: { id: params.id, organizationId }
     });
 
     if (!warehouse) {
@@ -33,9 +38,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
+
     const body = await request.json();
     const warehouse = await prisma.warehouse.update({
-      where: { id: params.id, organizationId: session.user.organizationId },
+      where: { id: params.id, organizationId },
       data: body
     });
 
@@ -54,8 +64,13 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
+
     const warehouse = await prisma.warehouse.findUnique({
-      where: { id: params.id, organizationId: session.user.organizationId }
+      where: { id: params.id, organizationId }
     });
 
     if (!warehouse) {

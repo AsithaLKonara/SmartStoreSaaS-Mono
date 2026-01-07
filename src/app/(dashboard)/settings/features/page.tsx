@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Feature {
   id: string;
@@ -303,7 +304,7 @@ export default function FeaturesPage() {
       return;
     }
     fetchFeatureSettings();
-  }, [session, status]);
+  }, [session, status, router]);
 
   const fetchFeatureSettings = async () => {
     try {
@@ -315,7 +316,10 @@ export default function FeaturesPage() {
         setCategories(data.categories || featureCategories);
       }
     } catch (error) {
-      console.error('Error fetching feature settings:', error);
+      logger.error({
+        message: 'Error fetching feature settings',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load feature settings');
     } finally {
       setLoading(false);
@@ -373,7 +377,11 @@ export default function FeaturesPage() {
       await saveFeatureSettings(categoryId, featureId, !feature.enabled);
       
     } catch (error) {
-      console.error('Error toggling feature:', error);
+      logger.error({
+        message: 'Error toggling feature',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { categoryId, featureId }
+      });
       toast.error('Failed to update feature');
     }
   };
@@ -396,7 +404,11 @@ export default function FeaturesPage() {
 
       toast.success('Feature settings updated');
     } catch (error) {
-      console.error('Error saving feature settings:', error);
+      logger.error({
+        message: 'Error saving feature settings',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { categoryId, featureId }
+      });
       toast.error('Failed to save feature settings');
     }
   };
@@ -416,7 +428,10 @@ export default function FeaturesPage() {
         throw new Error('Failed to save settings');
       }
     } catch (error) {
-      console.error('Error saving all settings:', error);
+      logger.error({
+        message: 'Error saving all settings',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to save all settings');
     } finally {
       setSaving(false);

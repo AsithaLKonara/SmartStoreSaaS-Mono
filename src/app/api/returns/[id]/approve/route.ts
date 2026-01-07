@@ -9,10 +9,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         where: { id: returnId },
         data: {
           status: 'APPROVED',
-          approvedBy: user.id,
+          approvedById: user.id,
           approvedAt: new Date()
         }
       });

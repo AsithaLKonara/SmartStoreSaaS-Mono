@@ -1,5 +1,6 @@
 import Quagga from 'quagga';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface BarcodeResult {
   code: string;
@@ -69,7 +70,11 @@ export class BarcodeService {
 
         Quagga.init(config, (err: unknown) => {
           if (err) {
-            console.error('Error initializing Quagga:', err);
+            logger.error({
+              message: 'Error initializing Quagga',
+              error: err instanceof Error ? err : new Error(String(err)),
+              context: { service: 'BarcodeService', operation: 'initialize' }
+            });
             reject(err);
             return;
           }
@@ -79,7 +84,11 @@ export class BarcodeService {
           resolve();
         });
       } catch (error) {
-        console.error('Error initializing barcode service:', error);
+        logger.error({
+          message: 'Error initializing barcode service',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'BarcodeService', operation: 'initialize' }
+        });
         reject(error);
       }
     });
@@ -243,7 +252,11 @@ export class BarcodeService {
 
       return null;
     } catch (error) {
-      console.error('Error looking up product:', error);
+      logger.error({
+        message: 'Error looking up product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'lookupProduct', barcode }
+      });
       return null;
     }
   }
@@ -276,7 +289,11 @@ export class BarcodeService {
         source: 'internal',
       };
     } catch (error) {
-      console.error('Error looking up internal product:', error);
+      logger.error({
+        message: 'Error looking up internal product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'lookupInternalProduct', barcode }
+      });
       return null;
     }
   }
@@ -297,14 +314,22 @@ export class BarcodeService {
             return result;
           }
         } catch (error) {
-          console.error('External API lookup failed:', error);
+          logger.error({
+            message: 'External API lookup failed',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'BarcodeService', operation: 'lookupExternalProduct', barcode, apiName: api.name }
+          });
           continue;
         }
       }
 
       return null;
     } catch (error) {
-      console.error('Error looking up external product:', error);
+      logger.error({
+        message: 'Error looking up external product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'lookupExternalProduct', barcode }
+      });
       return null;
     }
   }
@@ -347,7 +372,11 @@ export class BarcodeService {
 
       return null;
     } catch (error) {
-      console.error('UPC Database lookup failed:', error);
+      logger.error({
+        message: 'UPC Database lookup failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'lookupUPC', barcode }
+      });
       return null;
     }
   }
@@ -390,7 +419,11 @@ export class BarcodeService {
 
       return null;
     } catch (error) {
-      console.error('Open Food Facts lookup failed:', error);
+      logger.error({
+        message: 'Open Food Facts lookup failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'lookupOpenFoodFacts', barcode }
+      });
       return null;
     }
   }
@@ -431,7 +464,11 @@ export class BarcodeService {
 
       return null;
     } catch (error) {
-      console.error('Barcode Lookup API failed:', error);
+      logger.error({
+        message: 'Barcode Lookup API failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'lookupBarcodeAPI', barcode }
+      });
       return null;
     }
   }
@@ -440,9 +477,16 @@ export class BarcodeService {
     try {
       // Remove caching functionality since productLookupCache model doesn't exist
       // This could be implemented with a different approach if needed
-      console.log('Product lookup caching disabled - model not available');
+      logger.debug({
+        message: 'Product lookup caching disabled - model not available',
+        context: { service: 'BarcodeService', operation: 'cacheProductLookup', barcode }
+      });
     } catch (error) {
-      console.error('Error caching product lookup:', error);
+      logger.error({
+        message: 'Error caching product lookup',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BarcodeService', operation: 'cacheProductLookup', barcode }
+      });
     }
   }
 

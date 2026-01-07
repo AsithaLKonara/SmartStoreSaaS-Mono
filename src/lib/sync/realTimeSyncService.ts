@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { EventEmitter } from 'events';
 import type { WebSocket } from 'ws';
+import { logger } from '../logger';
 
 // Conditional imports for server-side only
 let WebSocketServer: any;
@@ -14,7 +15,11 @@ if (typeof window === 'undefined') {
     Redis = ioredis.Redis || ioredis.default;
   } catch (e) {
     // Fallback if modules not available
-    console.warn('WebSocket or Redis not available:', e);
+    logger.warn({
+      message: 'WebSocket or Redis not available',
+      error: e instanceof Error ? e : new Error(String(e)),
+      context: { service: 'RealTimeSyncService', operation: 'conditionalImport' }
+    });
   }
 }
 
@@ -86,25 +91,42 @@ export class RealTimeSyncService extends EventEmitter {
         const connectionId = `${organizationId}-${Date.now()}`;
         this.connections.set(connectionId, ws);
 
-        console.log(`WebSocket connected: ${connectionId}`);
+        logger.info({
+          message: 'WebSocket connected',
+          context: { service: 'RealTimeSyncService', operation: 'initialize', connectionId }
+        });
 
         // Send initial state
         this.sendInitialState(organizationId, ws);
 
         ws.on('close', () => {
           this.connections.delete(connectionId);
-          console.log(`WebSocket disconnected: ${connectionId}`);
+          logger.info({
+            message: 'WebSocket disconnected',
+            context: { service: 'RealTimeSyncService', operation: 'close', connectionId }
+          });
         });
 
         ws.on('error', (error) => {
-          console.error(`WebSocket error: ${connectionId}`, error);
+          logger.error({
+            message: 'WebSocket error',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'RealTimeSyncService', operation: 'error', connectionId }
+          });
           this.connections.delete(connectionId);
         });
       });
 
-      console.log('WebSocket server initialized on port 3001');
+      logger.info({
+        message: 'WebSocket server initialized',
+        context: { service: 'RealTimeSyncService', operation: 'initialize', port: 3001 }
+      });
     } catch (error) {
-      console.error('Failed to initialize WebSocket server:', error);
+      logger.error({
+        message: 'Failed to initialize WebSocket server',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'RealTimeSyncService', operation: 'initialize' }
+      });
       this.isInitialized = false;
     }
   }
@@ -131,7 +153,11 @@ export class RealTimeSyncService extends EventEmitter {
         pendingEvents: pendingEvents.length
       }));
     } catch (error) {
-      console.error('Error sending initial state:', error);
+      logger.error({
+        message: 'Error sending initial state',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'RealTimeSyncService', operation: 'sendInitialState', organizationId }
+      });
     }
   }
 
@@ -160,7 +186,11 @@ export class RealTimeSyncService extends EventEmitter {
 
       this.emit('event_processed', event);
     } catch (error) {
-      console.error('Error handling sync event:', error);
+      logger.error({
+        message: 'Error handling sync event',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'RealTimeSyncService', operation: 'handleIncomingEvent', eventType: event.type, eventId: event.id, organizationId: event.organizationId }
+      });
       this.emit('event_error', { event, error });
     }
   }
@@ -196,7 +226,11 @@ export class RealTimeSyncService extends EventEmitter {
         }
       }
     } catch (error) {
-      console.error('Error detecting conflicts:', error);
+      logger.error({
+        message: 'Error detecting conflicts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'RealTimeSyncService', operation: 'detectConflicts', eventType: event.type, eventId: event.id }
+      });
     }
 
     return conflicts;
@@ -464,7 +498,11 @@ export class RealTimeSyncService extends EventEmitter {
           await this.handleIncomingEvent(event);
         }
       } catch (error) {
-        console.error('Error processing sync queue:', error);
+        logger.error({
+          message: 'Error processing sync queue',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'RealTimeSyncService', operation: 'processSyncQueue' }
+        });
       } finally {
         this.isProcessing = false;
       }

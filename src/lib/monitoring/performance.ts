@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '../logger';
 
 export interface PerformanceMetrics {
   timestamp: string;
@@ -49,7 +50,10 @@ class PerformanceMonitor {
 
   // Track Web Vitals
   trackWebVitals(vital: WebVitals): void {
-    console.log(`[Web Vital] ${vital.name}: ${vital.value}ms`);
+    logger.info({
+      message: 'Web Vital tracked',
+      context: { service: 'PerformanceMonitoring', operation: 'trackWebVitals', name: vital.name, value: vital.value }
+    });
     
     // Send to analytics service in production
     if (process.env.NODE_ENV === 'production') {
@@ -68,12 +72,18 @@ class PerformanceMonitor {
 
     // Log slow requests
     if (metric.responseTime > 5000) { // 5 seconds
-      console.warn(`[Slow Request] ${metric.method} ${metric.url}: ${metric.responseTime}ms`);
+      logger.warn({
+        message: 'Slow request detected',
+        context: { service: 'PerformanceMonitoring', operation: 'trackAPI', method: metric.method, url: metric.url, responseTime: metric.responseTime }
+      });
     }
 
     // Log errors
     if (metric.statusCode >= 400) {
-      console.error(`[API Error] ${metric.method} ${metric.url}: ${metric.statusCode}`);
+      logger.error({
+        message: 'API error detected',
+        context: { service: 'PerformanceMonitoring', operation: 'trackAPI', method: metric.method, url: metric.url, statusCode: metric.statusCode }
+      });
     }
   }
 
@@ -128,7 +138,11 @@ class PerformanceMonitor {
           timestamp: new Date().toISOString(),
         }),
       }).catch(error => {
-        console.error('Failed to send analytics:', error);
+        logger.error({
+          message: 'Failed to send analytics',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'PerformanceMonitoring', operation: 'sendAnalytics' }
+        });
       });
     }
   }
@@ -226,7 +240,11 @@ export function trackWebVitals(vital: WebVitals): void {
       },
       body: JSON.stringify(vital),
     }).catch(error => {
-      console.error('Failed to track web vital:', error);
+      logger.error({
+        message: 'Failed to track web vital',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PerformanceMonitoring', operation: 'trackWebVital', name: vital.name }
+      });
     });
   }
 }

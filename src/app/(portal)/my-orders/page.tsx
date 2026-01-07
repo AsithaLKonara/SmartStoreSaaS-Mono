@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Package, Eye, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Order {
   id: string;
@@ -30,7 +31,10 @@ export default function PortalOrdersPage() {
         setOrders(data.orders || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching orders',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

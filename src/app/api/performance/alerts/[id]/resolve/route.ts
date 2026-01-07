@@ -12,13 +12,16 @@ import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
 export const POST = requireRole('SUPER_ADMIN')(
-  async (request, user, { params }: { params: { id: string } }) => {
+  async (request, user) => {
     try {
-      const alertId = params.id;
+      // Extract alert ID from URL path
+      const url = new URL(request.url);
+      const alertId = url.pathname.split('/').pop();
       const body = await request.json();
       const { resolution } = body;
 

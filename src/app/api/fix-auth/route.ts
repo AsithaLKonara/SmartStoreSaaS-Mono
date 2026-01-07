@@ -2,16 +2,23 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔧 Fixing authentication...');
+    logger.info({
+      message: 'Fixing authentication',
+      context: { operation: 'fix-auth' }
+    });
 
     // Step 1: Set password for admin user
     const hashedPassword = await bcrypt.hash('admin123', 10);
-    console.log('Hashed password:', hashedPassword.substring(0, 20) + '...');
+    logger.debug({
+      message: 'Password hashed',
+      context: { operation: 'fix-auth', hashPrefix: hashedPassword.substring(0, 20) + '...' }
+    });
 
     // Update password using raw query
     const updateResult = await prisma.$executeRaw`
@@ -19,7 +26,10 @@ export async function POST(request: NextRequest) {
       SET password = ${hashedPassword}
       WHERE email = 'admin@smartstore.com'
     `;
-    console.log('Update result:', updateResult);
+    logger.debug({
+      message: 'Password update result',
+      context: { operation: 'fix-auth', updateResult }
+    });
 
     // Step 2: Verify the password was set
     const passwordCheck = await prisma.$queryRaw`
@@ -29,7 +39,10 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     ` as any[];
 
-    console.log('Password check result:', passwordCheck.length);
+    logger.debug({
+      message: 'Password check result',
+      context: { operation: 'fix-auth', passwordCheckLength: passwordCheck.length }
+    });
 
     if (passwordCheck.length === 0) {
       return NextResponse.json({
@@ -40,7 +53,10 @@ export async function POST(request: NextRequest) {
 
     // Step 3: Test password verification
     const isPasswordValid = await bcrypt.compare('admin123', passwordCheck[0].password);
-    console.log('Password verification:', isPasswordValid);
+    logger.debug({
+      message: 'Password verification result',
+      context: { operation: 'fix-auth', isPasswordValid }
+    });
 
     return NextResponse.json({
       success: true,
@@ -55,7 +71,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Fix auth error:', error);
+    logger.error({
+      message: 'Fix auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'fix-auth' }
+    });
     return NextResponse.json(
       {
         success: false,

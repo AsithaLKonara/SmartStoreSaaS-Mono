@@ -5,6 +5,7 @@ import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface WishlistItem {
   id: string;
@@ -32,7 +33,10 @@ export default function WishlistPage() {
         setItems(data.items || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching wishlist',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

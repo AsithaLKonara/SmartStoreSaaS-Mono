@@ -22,6 +22,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
@@ -100,7 +101,10 @@ function AdminPackagesPageContent() {
       ];
       setPackages(mockPackages);
     } catch (error) {
-      console.error('Error loading packages:', error);
+      logger.error({
+        message: 'Error loading packages',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
@@ -111,7 +115,10 @@ function AdminPackagesPageContent() {
   };
 
   const handleViewPackage = (pkg: Package) => {
-    console.log('View package:', pkg);
+    logger.info({
+      message: 'View package',
+      context: { packageId: pkg.id, packageName: pkg.name }
+    });
   };
 
   const handleEditPackage = (pkg: Package) => {
@@ -124,7 +131,11 @@ function AdminPackagesPageContent() {
       try {
         setPackages(packages.filter(p => p.id !== packageId));
       } catch (error) {
-        console.error('Error deleting package:', error);
+        logger.error({
+          message: 'Error deleting package',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { packageId }
+        });
       }
     }
   };

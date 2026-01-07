@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Loader2, Package, Printer, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface PackingModalProps {
   isOpen: boolean;
@@ -69,7 +70,11 @@ export function FulfillmentPackingModal({
 
       toast.success('Shipping label generated');
     } catch (error) {
-      console.error('Label generation error:', error);
+      logger.error({
+        message: 'Label generation error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { orderId, orderNumber }
+      });
       toast.error('Failed to generate shipping label');
     } finally {
       setLoading(false);
@@ -97,7 +102,11 @@ export function FulfillmentPackingModal({
       onComplete();
       onClose();
     } catch (error) {
-      console.error('Packing error:', error);
+      logger.error({
+        message: 'Packing error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { orderId, orderNumber }
+      });
       toast.error('Failed to complete packing');
     } finally {
       setLoading(false);

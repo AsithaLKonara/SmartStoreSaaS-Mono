@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface BulkOperation {
   id: string;
@@ -75,7 +76,10 @@ export default function BulkOperationsPage() {
         setTemplates(templatesData);
       }
     } catch (error) {
-      console.error('Error fetching bulk operation data:', error);
+      logger.error({
+        message: 'Error fetching bulk operation data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load bulk operation data');
     } finally {
       setLoading(false);
@@ -173,7 +177,11 @@ export default function BulkOperationsPage() {
         toast.error('Failed to start bulk operation');
       }
     } catch (error) {
-      console.error('Error starting bulk operation:', error);
+      logger.error({
+        message: 'Error starting bulk operation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { operationType: operationData.type }
+      });
       toast.error('Failed to start bulk operation');
     }
   };
@@ -191,7 +199,11 @@ export default function BulkOperationsPage() {
         toast.error('Failed to cancel operation');
       }
     } catch (error) {
-      console.error('Error cancelling operation:', error);
+      logger.error({
+        message: 'Error cancelling operation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { operationId }
+      });
       toast.error('Failed to cancel operation');
     }
   };

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Search, Filter, X, ChevronDown } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface SearchResult {
   id: string;
@@ -66,7 +67,11 @@ export function AdvancedSearch({
       const data = await response.json();
       setSuggestions(data.suggestions || []);
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      logger.error({
+        message: 'Error fetching suggestions',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { query: searchQuery }
+      });
     }
   }, []);
 
@@ -102,12 +107,16 @@ export function AdvancedSearch({
       setResults(data.results || []);
       setAnalytics(data.analytics || null);
     } catch (error) {
-      console.error('Error performing search:', error);
+      logger.error({
+        message: 'Error performing search',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { query, filters }
+      });
       setResults([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [query, filters]);
 
   // Handle debounced search
   useEffect(() => {

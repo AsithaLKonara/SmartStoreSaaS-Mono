@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
+import { logger } from './logger';
 
 // Initialize Redis client
 const redis = new Redis({
@@ -117,7 +118,11 @@ export async function checkRateLimit(
     };
     
   } catch (error) {
-    console.error('Rate limiting error:', error);
+    logger.error({
+      message: 'Rate limiting error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'RateLimit', operation: 'checkRateLimit', identifier }
+    });
     // On Redis error, allow request (fail open for availability)
     return {
       success: true,
@@ -207,7 +212,11 @@ export async function getRateLimitInfo(
       window: config.window,
     };
   } catch (error) {
-    console.error('Error getting rate limit info:', error);
+    logger.error({
+      message: 'Error getting rate limit info',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'RateLimit', operation: 'getRateLimitInfo', identifier }
+    });
     return {
       limit: config.max,
       remaining: config.max,

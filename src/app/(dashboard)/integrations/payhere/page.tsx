@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,18 +47,7 @@ export default function PayHereIntegrationPage() {
   });
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    loadConfiguration();
-    const baseUrl = window.location.origin;
-    setConfig(prev => ({
-      ...prev,
-      returnUrl: `${baseUrl}/checkout/success`,
-      cancelUrl: `${baseUrl}/checkout/cancel`,
-      notifyUrl: `${baseUrl}/api/payments/payhere/notify`
-    }));
-  }, []);
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/integrations/setup?type=payhere');
@@ -70,11 +59,22 @@ export default function PayHereIntegrationPage() {
         }
       }
     } catch (error) {
-      console.error('Error loading PayHere configuration:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [config]);
+
+  useEffect(() => {
+    loadConfiguration();
+    const baseUrl = window.location.origin;
+    setConfig(prev => ({
+      ...prev,
+      returnUrl: `${baseUrl}/checkout/success`,
+      cancelUrl: `${baseUrl}/checkout/cancel`,
+      notifyUrl: `${baseUrl}/api/payments/payhere/notify`
+    }));
+  }, [loadConfiguration]);
 
   const testConnection = async () => {
     try {

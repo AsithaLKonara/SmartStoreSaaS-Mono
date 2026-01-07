@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Filter, Download, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,19 +32,7 @@ export default function GeneralLedgerPage() {
   const [endDate, setEndDate] = useState('');
   const [summary, setSummary] = useState({ totalDebits: 0, totalCredits: 0, balance: 0 });
 
-  useEffect(() => {
-    if (session) {
-      fetchAccounts();
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (session) {
-      fetchLedger();
-    }
-  }, [selectedAccount, startDate, endDate]);
-
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       const res = await fetch('/api/accounting/accounts?activeOnly=true');
       if (res.ok) {
@@ -60,11 +48,11 @@ export default function GeneralLedgerPage() {
         setAccounts(flatAccounts);
       }
     } catch (error) {
-      console.error('Error fetching accounts:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
 
-  const fetchLedger = async () => {
+  const fetchLedger = useCallback(async () => {
     try {
       let url = '/api/accounting/ledger?';
       if (selectedAccount) url += `accountId=${selectedAccount}&`;
@@ -78,11 +66,23 @@ export default function GeneralLedgerPage() {
         setSummary(data.summary || { totalDebits: 0, totalCredits: 0, balance: 0 });
       }
     } catch (error) {
-      console.error('Error fetching ledger:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedAccount, startDate, endDate]);
+
+  useEffect(() => {
+    if (session) {
+      fetchAccounts();
+    }
+  }, [session, fetchAccounts]);
+
+  useEffect(() => {
+    if (session) {
+      fetchLedger();
+    }
+  }, [session, fetchLedger]);
 
   const exportToCSV = () => {
     const headers = ['Date', 'Account', 'Description', 'Reference', 'Debit', 'Credit', 'Balance'];

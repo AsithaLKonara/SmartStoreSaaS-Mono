@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface VisualSearchResult {
   productId: string;
@@ -47,15 +48,25 @@ export class VisualSearchService {
    */
   private async initializeModel(): Promise<void> {
     try {
-      console.log('Loading visual search model...');
+      logger.info({
+        message: 'Loading visual search model',
+        context: { service: 'VisualSearchService', operation: 'initializeModel' }
+      });
       
       // Load MobileNetV2 for feature extraction
       this.model = await tf.loadLayersModel('/models/mobilenet/model.json');
       this.isModelLoaded = true;
       
-      console.log('Visual search model loaded successfully');
+      logger.info({
+        message: 'Visual search model loaded successfully',
+        context: { service: 'VisualSearchService', operation: 'initializeModel' }
+      });
     } catch (error) {
-      console.error('Error loading visual search model:', error);
+      logger.error({
+        message: 'Error loading visual search model',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'initializeModel' }
+      });
       
       // Fallback: Create a simple model for demonstration
       this.model = tf.sequential({
@@ -105,7 +116,11 @@ export class VisualSearchService {
       
       return Array.from(featureArray);
     } catch (error) {
-      console.error('Error extracting image features:', error);
+      logger.error({
+        message: 'Error extracting image features',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'extractImageFeatures' }
+      });
       throw new Error('Failed to extract image features');
     }
   }
@@ -148,7 +163,11 @@ export class VisualSearchService {
 
       return batched;
     } catch (error) {
-      console.error('Error preprocessing image:', error);
+      logger.error({
+        message: 'Error preprocessing image',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'preprocessImage' }
+      });
       throw new Error('Failed to preprocess image');
     }
   }
@@ -202,7 +221,11 @@ export class VisualSearchService {
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit);
     } catch (error) {
-      console.error('Error searching by image:', error);
+      logger.error({
+        message: 'Error searching by image',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'searchByImage', limit }
+      });
       throw new Error('Failed to search by image');
     }
   }
@@ -216,7 +239,10 @@ export class VisualSearchService {
         where: { organizationId },
       });
 
-      console.log(`Generating embeddings for ${products.length} products...`);
+      logger.info({
+        message: 'Generating embeddings for products',
+        context: { service: 'VisualSearchService', operation: 'generateProductEmbeddings', organizationId, productCount: products.length }
+      });
 
       for (const product of products) {
         if (product.images.length === 0) continue;
@@ -247,15 +273,29 @@ export class VisualSearchService {
             },
           });
 
-          console.log(`Generated embedding for product: ${product.name}`);
+          logger.debug({
+            message: 'Generated embedding for product',
+            context: { service: 'VisualSearchService', operation: 'generateProductEmbeddings', productId: product.id, productName: product.name }
+          });
         } catch (error) {
-          console.error(`Error generating embedding for product ${product.id}:`, error);
+          logger.error({
+            message: 'Error generating embedding for product',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'VisualSearchService', operation: 'generateProductEmbeddings', productId: product.id }
+          });
         }
       }
 
-      console.log('Finished generating product embeddings');
+      logger.info({
+        message: 'Finished generating product embeddings',
+        context: { service: 'VisualSearchService', operation: 'generateProductEmbeddings', organizationId }
+      });
     } catch (error) {
-      console.error('Error generating product embeddings:', error);
+      logger.error({
+        message: 'Error generating product embeddings',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'generateProductEmbeddings', organizationId }
+      });
       throw new Error('Failed to generate product embeddings');
     }
   }
@@ -283,7 +323,11 @@ export class VisualSearchService {
         },
       }));
     } catch (error) {
-      console.error('Error recognizing products:', error);
+      logger.error({
+        message: 'Error recognizing products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'recognizeProducts' }
+      });
       throw new Error('Failed to recognize products');
     }
   }
@@ -315,7 +359,11 @@ export class VisualSearchService {
         subcategories: this.getSubcategories(randomCategory),
       };
     } catch (error) {
-      console.error('Error categorizing product:', error);
+      logger.error({
+        message: 'Error categorizing product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'categorizeProduct' }
+      });
       throw new Error('Failed to categorize product');
     }
   }
@@ -345,7 +393,11 @@ export class VisualSearchService {
       return descriptions[category.category as keyof typeof descriptions] || 
              'High-quality product with excellent features and design.';
     } catch (error) {
-      console.error('Error generating product description:', error);
+      logger.error({
+        message: 'Error generating product description',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'generateProductDescription' }
+      });
       throw new Error('Failed to generate product description');
     }
   }
@@ -402,7 +454,10 @@ export class VisualSearchService {
     organizationId: string
   ): Promise<void> {
     try {
-      console.log(`Batch processing ${images.length} images...`);
+      logger.info({
+        message: 'Batch processing images',
+        context: { service: 'VisualSearchService', operation: 'batchProcessImages', imageCount: images.length }
+      });
 
       for (const image of images) {
         try {
@@ -428,13 +483,24 @@ export class VisualSearchService {
             },
           });
         } catch (error) {
-          console.error(`Error processing image for product ${image.productId}:`, error);
+          logger.error({
+            message: 'Error processing image for product',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'VisualSearchService', operation: 'batchProcessImages', productId: image.productId }
+          });
         }
       }
 
-      console.log('Batch processing completed');
+      logger.info({
+        message: 'Batch processing completed',
+        context: { service: 'VisualSearchService', operation: 'batchProcessImages', imageCount: images.length }
+      });
     } catch (error) {
-      console.error('Error in batch processing:', error);
+      logger.error({
+        message: 'Error in batch processing',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'batchProcessImages' }
+      });
       throw new Error('Failed to batch process images');
     }
   }
@@ -472,7 +538,11 @@ export class VisualSearchService {
         threshold
       );
     } catch (error) {
-      console.error('Error finding similar products:', error);
+      logger.error({
+        message: 'Error finding similar products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'VisualSearchService', operation: 'findSimilarProducts', productId, limit }
+      });
       throw new Error('Failed to find similar products');
     }
   }

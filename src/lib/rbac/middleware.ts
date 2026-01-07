@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { UserRole, Permission, hasPermission, canAccessRoute } from './roles';
+import { logger } from '@/lib/logger';
 
 export async function checkPermission(
   request: NextRequest,
@@ -23,7 +24,11 @@ export async function checkPermission(
     
     return { authorized: true, user: token };
   } catch (error) {
-    console.error('Permission check error:', error);
+    logger.error({
+      message: 'Permission check error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'RBAC', operation: 'checkPermission', requiredPermission }
+    });
     return { authorized: false, error: 'Permission check failed' };
   }
 }
@@ -47,7 +52,11 @@ export async function checkRole(
     
     return { authorized: true, user: token };
   } catch (error) {
-    console.error('Role check error:', error);
+    logger.error({
+      message: 'Role check error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'RBAC', operation: 'checkRole', allowedRoles }
+    });
     return { authorized: false, error: 'Role check failed' };
   }
 }

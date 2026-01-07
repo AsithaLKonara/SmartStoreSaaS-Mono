@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
 
     // Define standard support tags (can be enhanced with DB table)
     const standardTags = [
@@ -89,15 +92,19 @@ export async function POST(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
 
     // Create tag record (using activities for now, can create dedicated tags table)
     await prisma.activities.create({
       data: {
+        id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         userId: session.user.id,
         organizationId,
         type: 'TAG_CREATED',
         description: `Support tag '${name}' created`,
-        metadata: { tagName: name, color: color || '#6B7280' }
+        metadata: JSON.stringify({ tagName: name, color: color || '#6B7280' })
       }
     });
 

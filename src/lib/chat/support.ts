@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export enum ChatStatus {
   ACTIVE = 'ACTIVE',
@@ -54,7 +55,11 @@ export async function startChatSession(data: {
 
     return { success: true, chat };
   } catch (error: any) {
-    console.error('Start chat error:', error);
+    logger.error({
+      message: 'Start chat error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ChatSupport', operation: 'startChat', customerId: data.customerId, organizationId: data.organizationId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -90,7 +95,11 @@ export async function sendChatMessage(data: {
 
     return { success: true, message };
   } catch (error: any) {
-    console.error('Send message error:', error);
+    logger.error({
+      message: 'Send message error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ChatSupport', operation: 'sendMessage', chatId: data.chatId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -113,7 +122,11 @@ export async function assignChatToAgent(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Assign chat error:', error);
+    logger.error({
+      message: 'Assign chat error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ChatSupport', operation: 'assignChat', chatId, agentId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -137,7 +150,11 @@ export async function resolveChat(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Resolve chat error:', error);
+    logger.error({
+      message: 'Resolve chat error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ChatSupport', operation: 'resolveChat', chatId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -157,7 +174,11 @@ export async function closeChat(chatId: string): Promise<{ success: boolean; err
 
     return { success: true };
   } catch (error: any) {
-    console.error('Close chat error:', error);
+    logger.error({
+      message: 'Close chat error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ChatSupport', operation: 'closeChat', chatId }
+    });
     return { success: false, error: error.message };
   }
 }

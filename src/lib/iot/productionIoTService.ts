@@ -7,6 +7,7 @@
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
 import { smsService } from '@/lib/sms/smsService';
+import { logger } from '@/lib/logger';
 
 export interface IoTDevice {
   id: string;
@@ -310,7 +311,11 @@ export class ProductionIoTService {
         }
       }
     } catch (error) {
-      console.error('Error sending alert notifications:', error);
+      logger.error({
+        message: 'Error sending alert notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ProductionIoTService', operation: 'sendAlertNotifications', alertId: alert.id }
+      });
     }
   }
 

@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface BackupData {
   version: string;
@@ -70,7 +71,11 @@ export async function createBackup(organizationId: string): Promise<BackupData> 
 
     return backup;
   } catch (error) {
-    console.error('Backup creation error:', error);
+    logger.error({
+      message: 'Backup creation error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'BackupService', operation: 'createBackup', organizationId }
+    });
     throw new Error('Failed to create backup');
   }
 }
@@ -192,7 +197,11 @@ export async function restoreBackup(
       errors,
     };
   } catch (error: any) {
-    console.error('Restore error:', error);
+    logger.error({
+      message: 'Restore error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'BackupService', operation: 'restoreBackup', backupId }
+    });
     return {
       success: false,
       restored,

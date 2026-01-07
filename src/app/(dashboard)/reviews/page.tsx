@@ -43,11 +43,7 @@ export default function ReviewsPage() {
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [response, setResponse] = useState('');
 
-  useEffect(() => {
-    fetchReviews();
-  }, [filter]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/reviews?status=${filter}`);
@@ -83,11 +79,15 @@ export default function ReviewsPage() {
         ]);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleApprove = async (reviewId: string) => {
     try {

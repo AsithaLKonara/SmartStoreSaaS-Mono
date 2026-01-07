@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
+import { logger } from '@/lib/logger';
 
 interface BillingData {
   totalRevenue: number;
@@ -37,7 +38,10 @@ function BillingDashboardContent() {
         setData(result.data);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching billing data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load billing data');
     } finally {
       setLoading(false);

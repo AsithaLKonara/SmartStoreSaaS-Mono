@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
 
     // Build where clause for search
-    const where = search ? {
+    const where: any = search ? {
       OR: [
-        { name: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-        { barcode: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search, mode: 'insensitive' as any } },
+        { sku: { contains: search, mode: 'insensitive' as any } },
+        { barcode: { contains: search, mode: 'insensitive' as any } }
       ]
     } : {};
 
@@ -110,24 +110,24 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
+    }
+
     // Create new product
     const product = await prisma.product.create({
       data: {
-        id: `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name,
         description: description || '',
         price: parseFloat(price),
         cost: cost ? parseFloat(cost) : 0,
         sku,
-        barcode: barcode || '',
+        stock: stockQuantity ? parseInt(stockQuantity) : 0,
+        minStock: minStockLevel ? parseInt(minStockLevel) : 0,
         categoryId: categoryId || null,
         isActive: true,
-        trackInventory: true,
-        stockQuantity: stockQuantity ? parseInt(stockQuantity) : 0,
-        minStockLevel: minStockLevel ? parseInt(minStockLevel) : 0,
-        maxStockLevel: maxStockLevel ? parseInt(maxStockLevel) : 1000,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        organizationId
       },
       include: {
         category: true

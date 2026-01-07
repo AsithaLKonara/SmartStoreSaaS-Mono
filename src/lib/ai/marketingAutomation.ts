@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { AIRecommendationEngine } from './recommendationEngine';
+import { logger } from '@/lib/logger';
 
 export interface AutomationTrigger {
   id: string;
@@ -62,7 +63,11 @@ export class MarketingAutomationEngine {
         await this.processTrigger(trigger);
       }
     } catch (error) {
-      console.error('Error processing automation triggers:', error);
+      logger.error({
+        message: 'Error processing automation triggers',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'processTriggers', organizationId }
+      });
     }
   }
 
@@ -82,7 +87,10 @@ export class MarketingAutomationEngine {
           await this.handleReEngagement(trigger);
           break;
         default:
-          console.log(`Unknown trigger type: ${trigger.type}`);
+          logger.warn({
+            message: 'Unknown trigger type',
+            context: { service: 'MarketingAutomation', operation: 'processTrigger', triggerId: trigger.id, triggerType: trigger.type }
+          });
       }
 
       // Mark as processed
@@ -97,7 +105,11 @@ export class MarketingAutomationEngine {
         }
       });
     } catch (error) {
-      console.error(`Error processing trigger ${trigger.id}:`, error);
+      logger.error({
+        message: 'Error processing trigger',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'processTrigger', triggerId: trigger.id, triggerType: trigger.type }
+      });
     }
   }
 
@@ -150,7 +162,11 @@ export class MarketingAutomationEngine {
       await this.addLoyaltyPoints(customerId, 50, 'Abandoned cart recovery incentive');
 
     } catch (error) {
-      console.error('Error handling abandoned cart:', error);
+      logger.error({
+        message: 'Error handling abandoned cart',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'handleAbandonedCart', customerId: trigger.customerId }
+      });
     }
   }
 
@@ -194,7 +210,11 @@ export class MarketingAutomationEngine {
       await this.addLoyaltyPoints(customerId, 100, 'Birthday bonus');
 
     } catch (error) {
-      console.error('Error handling birthday campaign:', error);
+      logger.error({
+        message: 'Error handling birthday campaign',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'handleBirthdayCampaign', customerId: trigger.customerId }
+      });
     }
   }
 
@@ -242,7 +262,11 @@ export class MarketingAutomationEngine {
       await this.addLoyaltyPoints(customerId, 75, 'Re-engagement bonus');
 
     } catch (error) {
-      console.error('Error handling re-engagement:', error);
+      logger.error({
+        message: 'Error handling re-engagement',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'handleReEngagement', customerId: trigger.customerId }
+      });
     }
   }
 
@@ -386,10 +410,17 @@ export class MarketingAutomationEngine {
       });
 
       // In a real implementation, you would integrate with an email service
-      console.log(`Email campaign scheduled for customer ${campaign.customerId}`);
+      logger.info({
+        message: 'Email campaign scheduled',
+        context: { service: 'MarketingAutomation', operation: 'scheduleEmailCampaign', customerId: campaign.customerId, campaignType: campaign.type }
+      });
       
     } catch (error) {
-      console.error('Error scheduling email campaign:', error);
+      logger.error({
+        message: 'Error scheduling email campaign',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'scheduleEmailCampaign', customerId: campaign.customerId }
+      });
     }
   }
 
@@ -413,10 +444,17 @@ export class MarketingAutomationEngine {
           points
         }
       });
-
-      console.log(`Added ${points} loyalty points to customer ${customerId} for: ${reason}`);
+      
+      logger.info({
+        message: 'Added loyalty points',
+        context: { service: 'MarketingAutomation', operation: 'addLoyaltyPoints', customerId, points, reason }
+      });
     } catch (error) {
-      console.error('Error adding loyalty points:', error);
+      logger.error({
+        message: 'Error adding loyalty points',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'addLoyaltyPoints', customerId, points }
+      });
     }
   }
 
@@ -498,7 +536,11 @@ export class MarketingAutomationEngine {
 
       return segments;
     } catch (error) {
-      console.error('Error creating customer segments:', error);
+      logger.error({
+        message: 'Error creating customer segments',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'createCustomerSegments', organizationId }
+      });
       return [];
     }
   }
@@ -536,7 +578,11 @@ export class MarketingAutomationEngine {
         totalAutomations: abandonedCarts + birthdayCampaigns + reEngagement
       };
     } catch (error) {
-      console.error('Error getting automation stats:', error);
+      logger.error({
+        message: 'Error getting automation stats',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketingAutomation', operation: 'getAutomationStats', organizationId }
+      });
       return {};
     }
   }

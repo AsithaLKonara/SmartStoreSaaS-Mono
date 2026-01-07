@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface OrganizationSettings {
   id: string;
@@ -129,7 +130,11 @@ export function useSettings() {
       const data = await response.json();
       setOrganization(data);
     } catch (err) {
-      console.error('Error fetching organization settings:', err);
+      logger.error({
+        message: 'Error fetching organization settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchOrganizationSettings' }
+      });
       setError('Failed to fetch organization settings');
     }
   }, []);
@@ -150,7 +155,11 @@ export function useSettings() {
       toast.success('Organization settings updated successfully');
       return updatedData;
     } catch (err) {
-      console.error('Error updating organization settings:', err);
+      logger.error({
+        message: 'Error updating organization settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateOrganizationSettings', data }
+      });
       toast.error('Failed to update organization settings');
       throw err;
     }
@@ -164,7 +173,11 @@ export function useSettings() {
       const data = await response.json();
       setUsers(data);
     } catch (err) {
-      console.error('Error fetching users:', err);
+      logger.error({
+        message: 'Error fetching users',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchUsers' }
+      });
       setError('Failed to fetch users');
     }
   }, []);
@@ -185,7 +198,11 @@ export function useSettings() {
       toast.success('User created successfully');
       return newUser;
     } catch (err) {
-      console.error('Error creating user:', err);
+      logger.error({
+        message: 'Error creating user',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'createUser', userData: { email: userData.email, role: userData.role } }
+      });
       toast.error('Failed to create user');
       throw err;
     }
@@ -207,7 +224,11 @@ export function useSettings() {
       toast.success('User updated successfully');
       return updatedUser;
     } catch (err) {
-      console.error('Error updating user:', err);
+      logger.error({
+        message: 'Error updating user',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateUser', userId }
+      });
       toast.error('Failed to update user');
       throw err;
     }
@@ -225,7 +246,11 @@ export function useSettings() {
       setUsers(prev => prev.filter(user => user.id !== userId));
       toast.success('User deactivated successfully');
     } catch (err) {
-      console.error('Error deleting user:', err);
+      logger.error({
+        message: 'Error deleting user',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'deleteUser', userId }
+      });
       toast.error('Failed to delete user');
       throw err;
     }
@@ -239,7 +264,11 @@ export function useSettings() {
       const data = await response.json();
       setAiSettings(data);
     } catch (err) {
-      console.error('Error fetching AI settings:', err);
+      logger.error({
+        message: 'Error fetching AI settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchAISettings' }
+      });
       setError('Failed to fetch AI settings');
     }
   }, []);
@@ -258,7 +287,11 @@ export function useSettings() {
       setAiSettings(data);
       toast.success('AI settings updated successfully');
     } catch (err) {
-      console.error('Error updating AI settings:', err);
+      logger.error({
+        message: 'Error updating AI settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateAISettings' }
+      });
       toast.error('Failed to update AI settings');
       throw err;
     }
@@ -272,7 +305,11 @@ export function useSettings() {
       const data = await response.json();
       setSecuritySettings(data);
     } catch (err) {
-      console.error('Error fetching security settings:', err);
+      logger.error({
+        message: 'Error fetching security settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchSecuritySettings' }
+      });
       setError('Failed to fetch security settings');
     }
   }, []);
@@ -291,7 +328,11 @@ export function useSettings() {
       setSecuritySettings(data);
       toast.success('Security settings updated successfully');
     } catch (err) {
-      console.error('Error updating security settings:', err);
+      logger.error({
+        message: 'Error updating security settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateSecuritySettings' }
+      });
       toast.error('Failed to update security settings');
       throw err;
     }
@@ -305,7 +346,11 @@ export function useSettings() {
       const data = await response.json();
       setNotificationSettings(data);
     } catch (err) {
-      console.error('Error fetching notification settings:', err);
+      logger.error({
+        message: 'Error fetching notification settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchNotificationSettings' }
+      });
       setError('Failed to fetch notification settings');
     }
   }, []);
@@ -324,7 +369,11 @@ export function useSettings() {
       setNotificationSettings(data);
       toast.success('Notification settings updated successfully');
     } catch (err) {
-      console.error('Error updating notification settings:', err);
+      logger.error({
+        message: 'Error updating notification settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateNotificationSettings' }
+      });
       toast.error('Failed to update notification settings');
       throw err;
     }
@@ -338,7 +387,11 @@ export function useSettings() {
       const data = await response.json();
       setBillingData(data);
     } catch (err) {
-      console.error('Error fetching billing data:', err);
+      logger.error({
+        message: 'Error fetching billing data',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchBillingData' }
+      });
       setError('Failed to fetch billing data');
     }
   }, []);
@@ -357,7 +410,11 @@ export function useSettings() {
       setBillingData(prev => prev ? { ...prev, settings: { ...prev.settings, ...data } } : null);
       toast.success('Billing settings updated successfully');
     } catch (err) {
-      console.error('Error updating billing settings:', err);
+      logger.error({
+        message: 'Error updating billing settings',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateBillingSettings', data }
+      });
       toast.error('Failed to update billing settings');
       throw err;
     }
@@ -371,7 +428,11 @@ export function useSettings() {
       const data = await response.json();
       setIntegrations(data);
     } catch (err) {
-      console.error('Error fetching integrations:', err);
+      logger.error({
+        message: 'Error fetching integrations',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'fetchIntegrations' }
+      });
       setError('Failed to fetch integrations');
     }
   }, []);
@@ -395,7 +456,11 @@ export function useSettings() {
       
       return result;
     } catch (err) {
-      console.error('Error updating integration:', err);
+      logger.error({
+        message: 'Error updating integration',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { hook: 'useSettings', operation: 'updateIntegration', integrationType, integrationId, action }
+      });
       toast.error('Failed to update integration');
       throw err;
     }
@@ -419,7 +484,11 @@ export function useSettings() {
             fetchIntegrations()
           ]);
         } catch (err) {
-          console.error('Error loading settings:', err);
+          logger.error({
+            message: 'Error loading settings',
+            error: err instanceof Error ? err : new Error(String(err)),
+            context: { hook: 'useSettings', operation: 'loadAllSettings' }
+          });
         } finally {
           setLoading(false);
         }

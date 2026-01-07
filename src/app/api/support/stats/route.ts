@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     }
 
     const organizationId = session.user.organizationId;
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
+    }
 
     // Query actual statistics from database
     const [

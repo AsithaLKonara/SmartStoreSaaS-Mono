@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cacheGet, cacheSet, cacheKeys } from '@/lib/cache';
+import { logger } from '@/lib/logger';
 
 export interface CacheConfig {
   enabled: boolean;
@@ -94,7 +95,11 @@ export class ApiCacheMiddleware {
       
       return response;
     } catch (error) {
-      console.error('Error getting cached response:', error);
+      logger.error({
+        message: 'Error getting cached response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'getCachedResponse' }
+      });
       return null;
     }
   }
@@ -146,7 +151,11 @@ export class ApiCacheMiddleware {
       response.headers.set('X-Cache', 'MISS');
       
     } catch (error) {
-      console.error('Error caching response:', error);
+      logger.error({
+        message: 'Error caching response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'cacheResponse' }
+      });
     }
   }
 
@@ -158,7 +167,11 @@ export class ApiCacheMiddleware {
       const cacheKeyPattern = `api:*:${pattern}`;
       return await cacheDeletePattern(cacheKeyPattern);
     } catch (error) {
-      console.error('Error invalidating cache:', error);
+      logger.error({
+        message: 'Error invalidating cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'invalidateCache' }
+      });
       return 0;
     }
   }
@@ -419,7 +432,11 @@ export class ApiCacheMiddleware {
       
       return response;
     } catch (error) {
-      console.error('Error getting cached response:', error);
+      logger.error({
+        message: 'Error getting cached response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'getCachedResponse' }
+      });
       return null;
     }
   }
@@ -471,7 +488,11 @@ export class ApiCacheMiddleware {
       response.headers.set('X-Cache', 'MISS');
       
     } catch (error) {
-      console.error('Error caching response:', error);
+      logger.error({
+        message: 'Error caching response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'cacheResponse' }
+      });
     }
   }
 
@@ -483,7 +504,11 @@ export class ApiCacheMiddleware {
       const cacheKeyPattern = `api:*:${pattern}`;
       return await cacheDeletePattern(cacheKeyPattern);
     } catch (error) {
-      console.error('Error invalidating cache:', error);
+      logger.error({
+        message: 'Error invalidating cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'invalidateCache' }
+      });
       return 0;
     }
   }
@@ -744,7 +769,11 @@ export class ApiCacheMiddleware {
       
       return response;
     } catch (error) {
-      console.error('Error getting cached response:', error);
+      logger.error({
+        message: 'Error getting cached response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'getCachedResponse' }
+      });
       return null;
     }
   }
@@ -796,7 +825,11 @@ export class ApiCacheMiddleware {
       response.headers.set('X-Cache', 'MISS');
       
     } catch (error) {
-      console.error('Error caching response:', error);
+      logger.error({
+        message: 'Error caching response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'cacheResponse' }
+      });
     }
   }
 
@@ -808,7 +841,11 @@ export class ApiCacheMiddleware {
       const cacheKeyPattern = `api:*:${pattern}`;
       return await cacheDeletePattern(cacheKeyPattern);
     } catch (error) {
-      console.error('Error invalidating cache:', error);
+      logger.error({
+        message: 'Error invalidating cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'invalidateCache' }
+      });
       return 0;
     }
   }
@@ -1069,7 +1106,11 @@ export class ApiCacheMiddleware {
       
       return response;
     } catch (error) {
-      console.error('Error getting cached response:', error);
+      logger.error({
+        message: 'Error getting cached response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'getCachedResponse' }
+      });
       return null;
     }
   }
@@ -1121,7 +1162,11 @@ export class ApiCacheMiddleware {
       response.headers.set('X-Cache', 'MISS');
       
     } catch (error) {
-      console.error('Error caching response:', error);
+      logger.error({
+        message: 'Error caching response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'cacheResponse' }
+      });
     }
   }
 
@@ -1133,7 +1178,11 @@ export class ApiCacheMiddleware {
       const cacheKeyPattern = `api:*:${pattern}`;
       return await cacheDeletePattern(cacheKeyPattern);
     } catch (error) {
-      console.error('Error invalidating cache:', error);
+      logger.error({
+        message: 'Error invalidating cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'invalidateCache' }
+      });
       return 0;
     }
   }
@@ -1394,7 +1443,11 @@ export class ApiCacheMiddleware {
       
       return response;
     } catch (error) {
-      console.error('Error getting cached response:', error);
+      logger.error({
+        message: 'Error getting cached response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'getCachedResponse' }
+      });
       return null;
     }
   }
@@ -1446,7 +1499,11 @@ export class ApiCacheMiddleware {
       response.headers.set('X-Cache', 'MISS');
       
     } catch (error) {
-      console.error('Error caching response:', error);
+      logger.error({
+        message: 'Error caching response',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'cacheResponse' }
+      });
     }
   }
 
@@ -1458,7 +1515,11 @@ export class ApiCacheMiddleware {
       const cacheKeyPattern = `api:*:${pattern}`;
       return await cacheDeletePattern(cacheKeyPattern);
     } catch (error) {
-      console.error('Error invalidating cache:', error);
+      logger.error({
+        message: 'Error invalidating cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'APICacheMiddleware', operation: 'invalidateCache' }
+      });
       return 0;
     }
   }

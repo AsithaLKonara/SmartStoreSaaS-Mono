@@ -66,11 +66,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
   const [po, setPo] = useState<PurchaseOrder | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPurchaseOrder();
-  }, [params.id]);
-
-  const fetchPurchaseOrder = async () => {
+  const fetchPurchaseOrder = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/procurement/purchase-orders/${params.id}`);
@@ -91,7 +87,11 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, handleError, router]);
+
+  useEffect(() => {
+    fetchPurchaseOrder();
+  }, [fetchPurchaseOrder]);
 
   const handleApprove = async () => {
     if (!confirm('Approve this purchase order?')) return;

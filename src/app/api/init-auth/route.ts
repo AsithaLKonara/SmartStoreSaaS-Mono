@@ -2,12 +2,16 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   let prisma: PrismaClient | null = null;
   
   try {
-    console.log('🔧 Initializing authentication...');
+    logger.info({
+      message: 'Initializing authentication',
+      context: { operation: 'init-auth' }
+    });
 
     // Create a fresh Prisma client
     prisma = new PrismaClient({
@@ -83,7 +87,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Init auth error:', error);
+    logger.error({
+      message: 'Init auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'init-auth' }
+    });
     return NextResponse.json(
       {
         success: false,

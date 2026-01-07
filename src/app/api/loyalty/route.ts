@@ -88,16 +88,29 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Get or create customer loyalty record
+    let customerLoyalty = await prisma.customerLoyalty.findFirst({
+      where: { customerId }
+    });
+
+    if (!customerLoyalty) {
+      customerLoyalty = await prisma.customerLoyalty.create({
+        data: {
+          customerId,
+          points: 0
+        }
+      });
+    }
+
     // Create loyalty transaction
-    const loyaltyTransaction = await prisma.customerLoyalty.create({
+    const loyaltyTransaction = await prisma.loyalty_transactions.create({
       data: {
-        id: `loyalty_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `loyalty_txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         customerId,
+        loyaltyId: customerLoyalty.id,
+        type: action,
         points: parseInt(points),
-        action,
-        description: description || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        description: description || ''
       }
     });
 

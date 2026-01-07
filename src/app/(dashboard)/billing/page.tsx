@@ -19,6 +19,7 @@ import {
   Package,
   Loader2
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 
 interface BillingDashboard {
@@ -68,7 +69,10 @@ export default function BillingPage() {
       const data = await response.json();
       setDashboard(data);
     } catch (error) {
-      console.error('Error loading billing dashboard:', error);
+      logger.error({
+        message: 'Error loading billing dashboard',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       setError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { logger } from '../logger';
 
 // Enhanced Loyalty System for SmartStore SaaS
 export interface LoyaltyTier {
@@ -375,7 +376,10 @@ export class EnhancedLoyaltySystem extends EventEmitter {
   // Database operations (would integrate with Prisma)
   private async updateCustomerPoints(customerId: string, points: number): Promise<void> {
     // Update customer points in database
-    console.log(`Updating customer ${customerId} points by ${points}`);
+    logger.debug({
+      message: 'Updating customer points',
+      context: { service: 'EnhancedLoyaltySystem', operation: 'updateCustomerPoints', customerId, points }
+    });
   }
 
   private async getCustomerPoints(customerId: string): Promise<number> {
@@ -403,7 +407,10 @@ export class EnhancedLoyaltySystem extends EventEmitter {
 
   private async updateRewardUsage(rewardId: string, quantity: number): Promise<void> {
     // Update reward usage count in database
-    console.log(`Updating reward ${rewardId} usage by ${quantity}`);
+    logger.debug({
+      message: 'Updating reward usage',
+      context: { service: 'EnhancedLoyaltySystem', operation: 'updateRewardUsage', rewardId, quantity }
+    });
   }
 
   // Get all tiers
@@ -800,7 +807,10 @@ export class EnhancedLoyaltySystem extends EventEmitter {
   // Database operations (would integrate with Prisma)
   private async updateCustomerPoints(customerId: string, points: number): Promise<void> {
     // Update customer points in database
-    console.log(`Updating customer ${customerId} points by ${points}`);
+    logger.debug({
+      message: 'Updating customer points',
+      context: { service: 'EnhancedLoyaltySystem', operation: 'updateCustomerPoints', customerId, points }
+    });
   }
 
   private async getCustomerPoints(customerId: string): Promise<number> {
@@ -828,7 +838,10 @@ export class EnhancedLoyaltySystem extends EventEmitter {
 
   private async updateRewardUsage(rewardId: string, quantity: number): Promise<void> {
     // Update reward usage count in database
-    console.log(`Updating reward ${rewardId} usage by ${quantity}`);
+    logger.debug({
+      message: 'Updating reward usage',
+      context: { service: 'EnhancedLoyaltySystem', operation: 'updateRewardUsage', rewardId, quantity }
+    });
   }
 
   // Get all tiers
@@ -1225,7 +1238,10 @@ export class EnhancedLoyaltySystem extends EventEmitter {
   // Database operations (would integrate with Prisma)
   private async updateCustomerPoints(customerId: string, points: number): Promise<void> {
     // Update customer points in database
-    console.log(`Updating customer ${customerId} points by ${points}`);
+    logger.debug({
+      message: 'Updating customer points',
+      context: { service: 'EnhancedLoyaltySystem', operation: 'updateCustomerPoints', customerId, points }
+    });
   }
 
   private async getCustomerPoints(customerId: string): Promise<number> {
@@ -1253,7 +1269,10 @@ export class EnhancedLoyaltySystem extends EventEmitter {
 
   private async updateRewardUsage(rewardId: string, quantity: number): Promise<void> {
     // Update reward usage count in database
-    console.log(`Updating reward ${rewardId} usage by ${quantity}`);
+    logger.debug({
+      message: 'Updating reward usage',
+      context: { service: 'EnhancedLoyaltySystem', operation: 'updateRewardUsage', rewardId, quantity }
+    });
   }
 
   // Get all tiers

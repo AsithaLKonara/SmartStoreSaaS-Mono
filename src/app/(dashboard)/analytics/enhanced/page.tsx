@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
@@ -91,16 +91,7 @@ export default function EnhancedAnalyticsPage() {
   const [selectedMetric, setSelectedMetric] = useState('revenue');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchAnalyticsData();
-  }, [session, status, timeRange]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/analytics/enhanced?period=${timeRange}&organizationId=${session?.user?.organizationId}`);
@@ -115,12 +106,20 @@ export default function EnhancedAnalyticsPage() {
         setAlerts(data.alerts);
       }
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
       toast.error('Failed to load analytics data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange, session?.user?.organizationId]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchAnalyticsData();
+  }, [session, status, router, fetchAnalyticsData]);
 
   const getGrowthIcon = (growth: number) => {
     return growth >= 0 ? (

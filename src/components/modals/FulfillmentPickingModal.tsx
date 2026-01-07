@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Loader2, Package, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface PickingModalProps {
   isOpen: boolean;
@@ -66,7 +67,11 @@ export function FulfillmentPickingModal({
       onComplete();
       onClose();
     } catch (error) {
-      console.error('Picking error:', error);
+      logger.error({
+        message: 'Picking error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { orderId, orderNumber }
+      });
       toast.error('Failed to complete picking');
     } finally {
       setLoading(false);

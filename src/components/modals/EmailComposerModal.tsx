@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Loader2, Mail, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface EmailComposerModalProps {
   isOpen: boolean;
@@ -79,7 +80,11 @@ export function EmailComposerModal({
         template: '',
       });
     } catch (error) {
-      console.error('Email send error:', error);
+      logger.error({
+        message: 'Email send error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { recipientEmail, recipientName }
+      });
       toast.error('Failed to send email');
     } finally {
       setLoading(false);

@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, invalidateOrders } from '@/lib/query-client';
+import { logger } from '@/lib/logger';
 
 export interface Order {
   id: string;
@@ -40,7 +41,11 @@ export function useOrders(filters?: { status?: string; search?: string }) {
         
         return response.json();
       } catch (error) {
-        console.error('[useOrders] Fetch orders error:', error);
+        logger.error({
+          message: 'Fetch orders error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useOrders', operation: 'fetchOrders', filters }
+        });
         throw error;
       }
     },
@@ -66,7 +71,11 @@ export function useOrder(id: string) {
         
         return response.json();
       } catch (error) {
-        console.error('[useOrders] Fetch single order error:', error);
+        logger.error({
+          message: 'Fetch single order error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useOrders', operation: 'fetchOrder', orderId: id }
+        });
         throw error;
       }
     },
@@ -98,7 +107,11 @@ export function useCreateOrder() {
         
         return response.json();
       } catch (error) {
-        console.error('[useOrders] Create order error:', error);
+        logger.error({
+          message: 'Create order error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useOrders', operation: 'createOrder', customerId: order.customerId }
+        });
         throw error;
       }
     },
@@ -131,7 +144,11 @@ export function useUpdateOrderStatus() {
         
         return response.json();
       } catch (error) {
-        console.error('[useOrders] Update order status error:', error);
+        logger.error({
+          message: 'Update order status error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useOrders', operation: 'updateOrderStatus', orderId: id, status }
+        });
         throw error;
       }
     },

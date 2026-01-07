@@ -8,35 +8,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !hasPermission(session.user.role, 'VIEW_ANALYTICS')) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
+export const GET = requirePermission('VIEW_ANALYTICS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const { searchParams } = new URL(req.url);
+      const period = searchParams.get('period') || '30';
 
-    const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || '30';
-
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const organizationId = session.user.organizationId;
-
-    if (!organizationId) {
-      return NextResponse.json({ success: false, message: 'Organization not found' }, { status: 400 });
-    }
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'Organization not found',
+          correlation: req.correlationId
+        }, { status: 400 });
+      }
 
     // Calculate date range
     const startDate = new Date();
@@ -121,21 +113,36 @@ export async function GET(request: NextRequest) {
       generatedAt: new Date().toISOString()
     };
 
-    logger.info({
-      message: 'Analytics dashboard fetched',
-      context: {
-        period
-      }
-    });
+      logger.info({
+        message: 'Analytics dashboard fetched',
+        context: {
+          period,
+          organizationId,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
 
-    return NextResponse.json(successResponse(analytics));
-  } catch (error: any) {
-    logger.error({
-      message: 'Analytics dashboard error',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Analytics dashboard error' }, { status: 500 });
+      return NextResponse.json(successResponse(analytics));
+    } catch (error: any) {
+      logger.error({
+        message: 'Analytics dashboard error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { 
+          path: req.nextUrl.pathname,
+          organizationId: user.organizationId,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({ 
+        success: false, 
+        code: 'ERR_INTERNAL',
+        message: 'Analytics dashboard error',
+        correlation: req.correlationId
+      }, { status: 500 });
+    }
   }
-}
+);
 

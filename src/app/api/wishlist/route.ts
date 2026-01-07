@@ -1,106 +1,137 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
+import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const wishlist = await prisma.wishlists.findFirst({
-      where: { customerId: session.user.id },
-      include: {
-        items: {
-          include: {
-            product: true
-          }
+export const GET = requireAuth(async (req: AuthenticatedRequest, user) => {
+  const wishlist = await prisma.wishlists.findFirst({
+    where: { customerId: user.id },
+    include: {
+      wishlist_items: {
+        include: {
+          products: true
         }
       }
-    });
+    }
+  });
 
-    return NextResponse.json({ success: true, data: wishlist });
-  } catch (error: any) {
-    logger.error({ message: 'Failed to fetch wishlist', error: error.message });
-    return NextResponse.json({ success: false, error: 'Failed to fetch wishlist' }, { status: 500 });
+  logger.info({
+    message: 'Wishlist fetched',
+    context: {
+      userId: user.id,
+      itemCount: wishlist?.wishlist_items.length || 0
+    },
+    correlation: req.correlationId
+  });
+
+  return NextResponse.json(successResponse(wishlist));
+});
+
+export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
+  const body = await req.json();
+  const { productId } = body;
+
+  if (!productId) {
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Product ID is required' 
+    }, { status: 400 });
   }
-}
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { productId } = body;
-
-    if (!productId) {
-      return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
-    }
-
-    let wishlist = await prisma.wishlists.findFirst({
-      where: { customerId: session.user.id }
-    });
-
-    if (!wishlist) {
-      wishlist = await prisma.wishlists.create({
-        data: { customerId: session.user.id }
-      });
-    }
-
-    const item = await prisma.wishlist_items.create({
-      data: {
-        wishlistId: wishlist.id,
-        productId
-      }
-    });
-
-    logger.info({ message: 'Item added to wishlist', context: { userId: session.user.id, productId } });
-    return NextResponse.json({ success: true, data: item, message: 'Item added to wishlist' });
-  } catch (error: any) {
-    logger.error({ message: 'Failed to add to wishlist', error: error.message });
-    return NextResponse.json({ success: false, error: 'Failed to add to wishlist' }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const productId = searchParams.get('productId');
-
-    if (!productId) {
-      return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
-    }
-
-    const wishlist = await prisma.wishlists.findFirst({
-      where: { customerId: session.user.id }
-    });
-
-    if (!wishlist) {
-      return NextResponse.json({ success: false, error: 'Wishlist not found' }, { status: 404 });
-    }
-
-    await prisma.wishlist_items.deleteMany({
+  // Verify product belongs to user's organization (if user has organizationId)
+  if (user.organizationId) {
+    const product = await prisma.product.findFirst({
       where: {
-        wishlistId: wishlist.id,
-        productId
+        id: productId,
+        organizationId: user.organizationId
       }
     });
 
-    logger.info({ message: 'Item removed from wishlist', context: { userId: session.user.id, productId } });
-    return NextResponse.json({ success: true, message: 'Item removed' });
-  } catch (error: any) {
-    logger.error({ message: 'Failed to remove from wishlist', error: error.message });
-    return NextResponse.json({ success: false, error: 'Failed to remove from wishlist' }, { status: 500 });
+    if (!product) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Product not found or not accessible' 
+      }, { status: 404 });
+    }
   }
-}
+
+  let wishlist = await prisma.wishlists.findFirst({
+    where: { customerId: user.id }
+  });
+
+  if (!wishlist) {
+    wishlist = await prisma.wishlists.create({
+      data: { 
+        id: crypto.randomUUID(),
+        customerId: user.id,
+        updatedAt: new Date()
+      }
+    });
+  }
+
+  const item = await prisma.wishlist_items.create({
+    data: {
+      id: crypto.randomUUID(),
+      wishlistId: wishlist.id,
+      productId
+    }
+  });
+
+  logger.info({ 
+    message: 'Item added to wishlist', 
+    context: { 
+      userId: user.id, 
+      productId,
+      wishlistId: wishlist.id
+    },
+    correlation: req.correlationId
+  });
+  
+  return NextResponse.json(
+    successResponse(item, { message: 'Item added to wishlist' }),
+    { status: 201 }
+  );
+});
+
+export const DELETE = requireAuth(async (req: AuthenticatedRequest, user) => {
+  const { searchParams } = new URL(req.url);
+  const productId = searchParams.get('productId');
+
+  if (!productId) {
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Product ID is required' 
+    }, { status: 400 });
+  }
+
+  const wishlist = await prisma.wishlists.findFirst({
+    where: { customerId: user.id }
+  });
+
+  if (!wishlist) {
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Wishlist not found' 
+    }, { status: 404 });
+  }
+
+  await prisma.wishlist_items.deleteMany({
+    where: {
+      wishlistId: wishlist.id,
+      productId
+    }
+  });
+
+  logger.info({ 
+    message: 'Item removed from wishlist', 
+    context: { 
+      userId: user.id, 
+      productId,
+      wishlistId: wishlist.id
+    },
+    correlation: req.correlationId
+  });
+  
+  return NextResponse.json(successResponse(null, { message: 'Item removed' }));
+});

@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { logger } from '../logger';
 
 export interface SocialPlatform {
   id: string;
@@ -155,7 +156,11 @@ export class SocialCommerceService {
             lastSync: socialProduct.lastSync
           });
         } catch (error) {
-          console.error(`Failed to sync product ${product.id} to platform:`, error);
+          logger.error({
+            message: 'Failed to sync product to platform',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'SocialCommerceService', operation: 'syncProducts', productId: product.id, platformId }
+          });
           
           // Update social product with error status
           await prisma.socialProduct.upsert({
@@ -457,7 +462,11 @@ export class SocialCommerceService {
             data: { lastSync: new Date() }
           });
         } catch (error) {
-          console.error(`Failed to sync inventory for product ${socialProduct.productId}:`, error);
+          logger.error({
+            message: 'Failed to sync inventory for product',
+            error: error instanceof Error ? error : new Error(String(error)),
+            context: { service: 'SocialCommerceService', operation: 'syncInventory', productId: socialProduct.productId, platformId }
+          });
           
           await prisma.socialProduct.update({
             where: { id: socialProduct.id },

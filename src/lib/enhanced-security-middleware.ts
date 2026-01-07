@@ -3,6 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { applySecurityHeaders, secureResponse } from './security';
 import { AdvancedSecurityService } from './security/advancedSecurityService';
 import { ROLES, PERMISSIONS, hasRole, hasPermission, hasAnyPermission, hasAllPermissions } from './auth-middleware';
+import { logger } from '@/lib/logger';
 
 const securityService = new AdvancedSecurityService();
 
@@ -290,7 +291,11 @@ export function withEnhancedSecurity<T extends any[]>(
       return applySecurityHeaders(response);
 
     } catch (error) {
-      console.error('Enhanced security middleware error:', error);
+      logger.error({
+        message: 'Enhanced security middleware error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EnhancedSecurityMiddleware', operation: 'middleware', path: request.nextUrl.pathname }
+      });
       
       await logSecurityEvent({
         type: 'security_middleware_error',
@@ -356,7 +361,11 @@ async function authenticateUser(request: NextRequest): Promise<EnhancedAuthUser 
 
     return null;
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error({
+      message: 'Authentication error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'authenticateRequest' }
+    });
     return null;
   }
 }
@@ -390,7 +399,11 @@ async function logSecurityEvent(event: any) {
   try {
     await securityService.logSecurityEvent(event);
   } catch (error) {
-    console.error('Failed to log security event:', error);
+    logger.error({
+      message: 'Failed to log security event',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'logSecurityEvent' }
+    });
   }
 }
 
@@ -740,7 +753,11 @@ export function withEnhancedSecurity<T extends any[]>(
       return applySecurityHeaders(response);
 
     } catch (error) {
-      console.error('Enhanced security middleware error:', error);
+      logger.error({
+        message: 'Enhanced security middleware error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EnhancedSecurityMiddleware', operation: 'middleware', path: request.nextUrl.pathname }
+      });
       
       await logSecurityEvent({
         type: 'security_middleware_error',
@@ -806,7 +823,11 @@ async function authenticateUser(request: NextRequest): Promise<EnhancedAuthUser 
 
     return null;
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error({
+      message: 'Authentication error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'authenticateRequest' }
+    });
     return null;
   }
 }
@@ -840,7 +861,11 @@ async function logSecurityEvent(event: any) {
   try {
     await securityService.logSecurityEvent(event);
   } catch (error) {
-    console.error('Failed to log security event:', error);
+    logger.error({
+      message: 'Failed to log security event',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'logSecurityEvent' }
+    });
   }
 }
 
@@ -1190,7 +1215,11 @@ export function withEnhancedSecurity<T extends any[]>(
       return applySecurityHeaders(response);
 
     } catch (error) {
-      console.error('Enhanced security middleware error:', error);
+      logger.error({
+        message: 'Enhanced security middleware error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EnhancedSecurityMiddleware', operation: 'middleware', path: request.nextUrl.pathname }
+      });
       
       await logSecurityEvent({
         type: 'security_middleware_error',
@@ -1256,7 +1285,11 @@ async function authenticateUser(request: NextRequest): Promise<EnhancedAuthUser 
 
     return null;
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error({
+      message: 'Authentication error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'authenticateRequest' }
+    });
     return null;
   }
 }
@@ -1290,7 +1323,11 @@ async function logSecurityEvent(event: any) {
   try {
     await securityService.logSecurityEvent(event);
   } catch (error) {
-    console.error('Failed to log security event:', error);
+    logger.error({
+      message: 'Failed to log security event',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'logSecurityEvent' }
+    });
   }
 }
 
@@ -1640,7 +1677,11 @@ export function withEnhancedSecurity<T extends any[]>(
       return applySecurityHeaders(response);
 
     } catch (error) {
-      console.error('Enhanced security middleware error:', error);
+      logger.error({
+        message: 'Enhanced security middleware error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EnhancedSecurityMiddleware', operation: 'middleware', path: request.nextUrl.pathname }
+      });
       
       await logSecurityEvent({
         type: 'security_middleware_error',
@@ -1706,7 +1747,11 @@ async function authenticateUser(request: NextRequest): Promise<EnhancedAuthUser 
 
     return null;
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error({
+      message: 'Authentication error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'authenticateRequest' }
+    });
     return null;
   }
 }
@@ -1740,7 +1785,11 @@ async function logSecurityEvent(event: any) {
   try {
     await securityService.logSecurityEvent(event);
   } catch (error) {
-    console.error('Failed to log security event:', error);
+    logger.error({
+      message: 'Failed to log security event',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'logSecurityEvent' }
+    });
   }
 }
 
@@ -2090,7 +2139,11 @@ export function withEnhancedSecurity<T extends any[]>(
       return applySecurityHeaders(response);
 
     } catch (error) {
-      console.error('Enhanced security middleware error:', error);
+      logger.error({
+        message: 'Enhanced security middleware error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EnhancedSecurityMiddleware', operation: 'middleware', path: request.nextUrl.pathname }
+      });
       
       await logSecurityEvent({
         type: 'security_middleware_error',
@@ -2156,7 +2209,11 @@ async function authenticateUser(request: NextRequest): Promise<EnhancedAuthUser 
 
     return null;
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error({
+      message: 'Authentication error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'authenticateRequest' }
+    });
     return null;
   }
 }
@@ -2190,7 +2247,11 @@ async function logSecurityEvent(event: any) {
   try {
     await securityService.logSecurityEvent(event);
   } catch (error) {
-    console.error('Failed to log security event:', error);
+    logger.error({
+      message: 'Failed to log security event',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'EnhancedSecurityMiddleware', operation: 'logSecurityEvent' }
+    });
   }
 }
 

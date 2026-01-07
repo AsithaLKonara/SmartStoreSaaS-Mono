@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from '../logger';
 
 const prisma = new PrismaClient();
 
@@ -179,7 +180,11 @@ export class BillingService {
         }
       };
     } catch (error) {
-      console.error('Error fetching billing dashboard:', error);
+      logger.error({
+        message: 'Error fetching billing dashboard',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'BillingService', operation: 'getBillingDashboard', organizationId }
+      });
       throw error;
     }
   }

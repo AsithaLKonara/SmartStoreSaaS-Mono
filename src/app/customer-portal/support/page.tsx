@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface SupportTicket {
   id: string;
@@ -76,7 +77,11 @@ export default function CustomerSupportPage() {
         setTickets(data.tickets || data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching tickets:', error);
+      logger.error({
+        message: 'Error fetching tickets',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { component: 'CustomerSupportPage' }
+      });
       toast.error('Failed to load support tickets');
     } finally {
       setLoading(false);
@@ -106,7 +111,11 @@ export default function CustomerSupportPage() {
       setNewTicket({ subject: '', description: '', priority: 'MEDIUM' });
       setShowCreateForm(false);
     } catch (error) {
-      console.error('Error creating ticket:', error);
+      logger.error({
+        message: 'Error creating ticket',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { component: 'CustomerSupportPage' }
+      });
       toast.error('Failed to create support ticket');
     }
   };
@@ -130,7 +139,11 @@ export default function CustomerSupportPage() {
       setReplyMessage('');
       await fetchTickets();
     } catch (error) {
-      console.error('Error sending reply:', error);
+      logger.error({
+        message: 'Error sending reply',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { component: 'CustomerSupportPage', ticketId }
+      });
       toast.error('Failed to send reply');
     }
   };

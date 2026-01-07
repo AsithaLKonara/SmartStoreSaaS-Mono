@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { barcodeService, BarcodeResult, ProductLookup } from '@/lib/barcode/barcodeService';
 import { Camera, X, Upload, Loader2, Package, AlertCircle, CheckCircle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface BarcodeScannerProps {
   onResult: (result: BarcodeResult, product?: ProductLookup) => void;
@@ -30,14 +31,35 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   const [productInfo, setProductInfo] = useState<ProductLookup | null>(null);
   const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
 
-  useEffect(() => {
-    initializeScanner();
-    return () => {
-      barcodeService.destroy();
-    };
-  }, []);
+  const handleBarcodeDetected = useCallback(async (result: BarcodeResult) => {
+    // Avoid duplicate scans
+    if (result.code === lastScan) return;
+    
+    setLastScan(result.code);
+    setIsLoading(true);
 
-  const initializeScanner = async () => {
+    try {
+      let product: ProductLookup | null = null;
+
+      if (showProductLookup) {
+        product = await barcodeService.lookupProduct(result.code, organizationId);
+        setProductInfo(product);
+      }
+
+      onResult(result, product || undefined);
+    } catch (err) {
+      logger.error({
+        message: 'Error processing barcode',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { organizationId, code: result.code }
+      });
+      setError('Failed to process barcode');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [lastScan, showProductLookup, organizationId, onResult]);
+
+  const initializeScanner = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -70,35 +92,22 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
       setIsScanning(true);
       setIsLoading(false);
     } catch (err) {
-      console.error('Failed to initialize scanner:', err);
+      logger.error({
+        message: 'Failed to initialize scanner',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { organizationId }
+      });
       setError('Failed to initialize barcode scanner. Please try again.');
       setIsLoading(false);
     }
-  };
+  }, [organizationId, handleBarcodeDetected]);
 
-  const handleBarcodeDetected = async (result: BarcodeResult) => {
-    // Avoid duplicate scans
-    if (result.code === lastScan) return;
-    
-    setLastScan(result.code);
-    setIsLoading(true);
-
-    try {
-      let product: ProductLookup | null = null;
-
-      if (showProductLookup) {
-        product = await barcodeService.lookupProduct(result.code, organizationId);
-        setProductInfo(product);
-      }
-
-      onResult(result, product || undefined);
-    } catch (err) {
-      console.error('Error processing barcode:', err);
-      setError('Failed to process barcode');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    initializeScanner();
+    return () => {
+      barcodeService.destroy();
+    };
+  }, [initializeScanner]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -122,7 +131,10 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         setError('No barcode found in the image. Please try a clearer image.');
       }
     } catch (err) {
-      console.error('Error scanning image:', err);
+      logger.error({
+        message: 'Error scanning image',
+        error: err instanceof Error ? err : new Error(String(err))
+      });
       setError('Failed to scan barcode from image');
     } finally {
       setIsLoading(false);

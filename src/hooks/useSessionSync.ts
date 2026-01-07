@@ -5,9 +5,10 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { logger } from '@/lib/logger';
 
 const SESSION_STORAGE_KEY = 'smartstore-session-state';
 const SESSION_CHANGE_EVENT = 'session-changed';
@@ -24,6 +25,14 @@ interface SessionState {
 export function useSessionSync() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const routerRef = useRef(router);
+  const sessionRef = useRef(session);
+
+  // Keep refs updated
+  useEffect(() => {
+    routerRef.current = router;
+    sessionRef.current = session;
+  }, [router, session]);
 
   useEffect(() => {
     // Update session state in localStorage when it changes
@@ -57,19 +66,32 @@ export function useSessionSync() {
           newState?.isAuthenticated !== currentState?.isAuthenticated ||
           newState?.userId !== currentState?.userId
         ) {
-          console.log('🔄 Session changed in another tab, syncing...');
+          logger.info({
+            message: 'Session changed in another tab, syncing',
+            context: { 
+              wasAuthenticated: currentState?.isAuthenticated,
+              isAuthenticated: newState?.isAuthenticated,
+              userId: newState?.userId
+            }
+          });
 
           // If logged out in another tab, refresh to update UI
           if (!newState?.isAuthenticated && currentState?.isAuthenticated) {
-            console.log('🚪 Logged out in another tab, redirecting...');
-            router.push('/login');
-            router.refresh();
+            logger.info({
+              message: 'Logged out in another tab, redirecting',
+              context: { userId: currentState?.userId }
+            });
+            routerRef.current.push('/login');
+            routerRef.current.refresh();
           }
 
           // If logged in in another tab, refresh to update UI
           if (newState?.isAuthenticated && !currentState?.isAuthenticated) {
-            console.log('🔑 Logged in in another tab, refreshing...');
-            router.refresh();
+            logger.info({
+              message: 'Logged in in another tab, refreshing',
+              context: { userId: newState?.userId }
+            });
+            routerRef.current.refresh();
           }
         }
       }
@@ -82,12 +104,18 @@ export function useSessionSync() {
         const stored = localStorage.getItem(SESSION_STORAGE_KEY);
         if (stored) {
           const state: SessionState = JSON.parse(stored);
-          const currentUserId = (session?.user as any)?.id;
+          const currentUserId = (sessionRef.current?.user as any)?.id;
 
           // If user changed, refresh
           if (state.userId !== currentUserId) {
-            console.log('🔄 User changed, refreshing...');
-            router.refresh();
+            logger.info({
+              message: 'User changed, refreshing',
+              context: { 
+                previousUserId: currentUserId,
+                newUserId: state.userId
+              }
+            });
+            routerRef.current.refresh();
           }
         }
       }, 100);
@@ -100,7 +128,7 @@ export function useSessionSync() {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener(SESSION_CHANGE_EVENT, handleSessionChange);
     };
-  }, [session, router]);
+  }, []); // Empty deps - using refs for router and session
 
   useEffect(() => {
     // Heartbeat to detect tab closure

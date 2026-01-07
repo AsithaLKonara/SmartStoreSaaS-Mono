@@ -9,38 +9,44 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
 export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
-  async (request, user, { params }: { params: { id: string } }) => {
+  async (request, user) => {
     try {
-      const reviewId = params.id;
+      // Extract review ID from URL path
+    const url = new URL(request.url);
+    const reviewId = url.pathname.split('/').pop();
 
-      const review = await prisma.review.findUnique({
-        where: { id: reviewId }
-      });
+      // TODO: Implement Review model and re-enable
+      throw new ValidationError('Review functionality not yet implemented - Review model missing');
 
-      if (!review) {
-        throw new ValidationError('Review not found');
-      }
+      // const review = await prisma.review.findUnique({
+      //   where: { id: reviewId }
+      // });
 
-      if (review.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
-        throw new ValidationError('Cannot mark reviews from other organizations');
-      }
+      // if (!review) {
+      //   throw new ValidationError('Review not found');
+      // }
 
-      await prisma.review.update({
-        where: { id: reviewId },
-        data: {
-          isSpam: true,
-          markedSpamBy: user.id,
-          markedSpamAt: new Date()
-        }
-      });
+      // if (review.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+      //   throw new ValidationError('Cannot mark reviews from other organizations');
+      // }
+
+      // await prisma.review.update({
+      //   where: { id: reviewId },
+      //   data: {
+      //     isSpam: true,
+      //     markedSpamBy: user.id,
+      //     markedSpamAt: new Date()
+      //   }
+      // });
 
       logger.info({
         message: 'Review marked as spam',

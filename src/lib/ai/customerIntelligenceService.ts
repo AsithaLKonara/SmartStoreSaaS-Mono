@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { prisma } from '../prisma';
+import { logger } from '@/lib/logger';
 
 // Lazy initialization of OpenAI client to prevent build-time errors
 let openai: OpenAI | null = null;
@@ -102,7 +103,11 @@ export class CustomerIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error predicting customer LTV:', error);
+      logger.error({
+        message: 'Error predicting customer LTV',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'predictCustomerLTV', organizationId }
+      });
       return [];
     }
   }
@@ -142,7 +147,11 @@ export class CustomerIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error assessing churn risk:', error);
+      logger.error({
+        message: 'Error assessing churn risk',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'assessChurnRisk', organizationId }
+      });
       return [];
     }
   }
@@ -181,7 +190,11 @@ export class CustomerIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error creating customer segments:', error);
+      logger.error({
+        message: 'Error creating customer segments',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'createCustomerSegments', organizationId }
+      });
       return [];
     }
   }
@@ -220,7 +233,11 @@ export class CustomerIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error generating product recommendations:', error);
+      logger.error({
+        message: 'Error generating product recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'generateProductRecommendations', customerId }
+      });
       return [];
     }
   }
@@ -262,7 +279,11 @@ export class CustomerIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error analyzing customer sentiment:', error);
+      logger.error({
+        message: 'Error analyzing customer sentiment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'analyzeCustomerSentiment', organizationId }
+      });
       return [];
     }
   }
@@ -299,9 +320,13 @@ export class CustomerIntelligenceService {
         })
       ]);
 
-      return { reviews, supportTickets, customerSegments, customerOffers };
+      return { reviews, supportTickets, customerSegments, customerOffers       };
     } catch (error) {
-      console.error('Error fetching customer sentiment data:', error);
+      logger.error({
+        message: 'Error fetching customer sentiment data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'getCustomerSentimentData', organizationId }
+      });
       return { reviews: [], supportTickets: [], customerSegments: [], customerOffers: [] };
     }
   }
@@ -339,7 +364,11 @@ export class CustomerIntelligenceService {
       const response = completion.choices[0]?.message?.content;
       return response ? JSON.parse(response) : [];
     } catch (error) {
-      console.error('Error analyzing purchase patterns:', error);
+      logger.error({
+        message: 'Error analyzing purchase patterns',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'CustomerIntelligenceService', operation: 'analyzePurchasePatterns', organizationId }
+      });
       return [];
     }
   }

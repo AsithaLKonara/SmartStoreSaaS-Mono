@@ -70,7 +70,11 @@ export async function recordStockMovement(
 
     return { success: true, newStock };
   } catch (error: any) {
-    console.error('Stock movement error:', error);
+    logger.error({
+      message: 'Stock movement error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'InventoryManagement', operation: 'recordStockMovement', productId: movement.productId, organizationId }
+    });
     return { success: false, error: error.message };
   }
 }

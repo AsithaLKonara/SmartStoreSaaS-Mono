@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
@@ -106,7 +107,11 @@ export class PayPalService {
       
       return this.accessToken!; // Use non-null assertion since we just set it
     } catch (error) {
-      console.error('Error getting PayPal access token:', error);
+      logger.error({
+        message: 'Error getting PayPal access token',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'getAccessToken', environment: this.config.environment }
+      });
       throw new Error('Failed to authenticate with PayPal');
     }
   }
@@ -189,7 +194,11 @@ export class PayPalService {
 
       return validatedOrder;
     } catch (error) {
-      console.error('Error creating PayPal order:', error);
+      logger.error({
+        message: 'Error creating PayPal order',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'createOrder', orderId, amount, currency }
+      });
       throw new Error('Failed to create PayPal order');
     }
   }
@@ -244,7 +253,11 @@ export class PayPalService {
         },
       };
     } catch (error) {
-      console.error('Error capturing PayPal order:', error);
+      logger.error({
+        message: 'Error capturing PayPal order',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'captureOrder', paypalOrderId }
+      });
       throw new Error('Failed to capture PayPal payment');
     }
   }
@@ -288,7 +301,11 @@ export class PayPalService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error creating PayPal refund:', error);
+      logger.error({
+        message: 'Error creating PayPal refund',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'createRefund', paymentId, amount, currency }
+      });
       throw new Error('Failed to create PayPal refund');
     }
   }
@@ -314,7 +331,11 @@ export class PayPalService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error getting PayPal order:', error);
+      logger.error({
+        message: 'Error getting PayPal order',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'getOrder', paypalOrderId }
+      });
       throw new Error('Failed to get PayPal order details');
     }
   }
@@ -343,10 +364,17 @@ export class PayPalService {
           await this.handlePaymentRefunded(event);
           break;
         default:
-          console.log(`Unhandled PayPal webhook event: ${event.event_type}`);
+          logger.warn({
+            message: 'Unhandled PayPal webhook event',
+            context: { service: 'PayPalService', operation: 'handleWebhook', eventType: event.event_type }
+          });
       }
     } catch (error) {
-      console.error('Error handling PayPal webhook:', error);
+      logger.error({
+        message: 'Error handling PayPal webhook',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'handleWebhook' }
+      });
       throw error;
     }
   }
@@ -377,7 +405,11 @@ export class PayPalService {
       const result = await response.json();
       return result.verification_status === 'SUCCESS';
     } catch (error) {
-      console.error('Error verifying PayPal webhook signature:', error);
+      logger.error({
+        message: 'Error verifying PayPal webhook signature',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'verifyWebhookSignature' }
+      });
       return false;
     }
   }
@@ -396,7 +428,10 @@ export class PayPalService {
       });
     }
 
-    console.log(`PayPal payment captured: ${paymentId}`);
+    logger.info({
+      message: 'PayPal payment captured',
+      context: { service: 'PayPalService', operation: 'handlePaymentCaptured', paymentId, orderId }
+    });
   }
 
   private async handlePaymentDenied(event: unknown): Promise<void> {
@@ -411,14 +446,20 @@ export class PayPalService {
       });
     }
 
-    console.log(`PayPal payment denied: ${event.resource.id}`);
+    logger.warn({
+      message: 'PayPal payment denied',
+      context: { service: 'PayPalService', operation: 'handlePaymentDenied', orderId, paymentId: event.resource.id }
+    });
   }
 
   private async handlePaymentRefunded(event: unknown): Promise<void> {
     const paymentId = event.resource.id;
     
     // Update refund status in database
-    console.log(`PayPal payment refunded: ${paymentId}`);
+    logger.info({
+      message: 'PayPal payment refunded',
+      context: { service: 'PayPalService', operation: 'handlePaymentRefunded', paymentId }
+    });
   }
 
   /**
@@ -476,7 +517,11 @@ export class PayPalService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error creating PayPal billing plan:', error);
+      logger.error({
+        message: 'Error creating PayPal billing plan',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PayPalService', operation: 'createBillingPlan', name, amount, currency, interval }
+      });
       throw new Error('Failed to create PayPal billing plan');
     }
   }

@@ -6,6 +6,7 @@ import { Plus, Search, Download, Eye, CheckCircle, Clock, XCircle } from 'lucide
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface PurchaseOrder {
   id: string;
@@ -35,7 +36,10 @@ export default function PurchaseOrdersPage() {
         setOrders(data.orders || []);
       }
     } catch (error) {
-      console.error('Error fetching purchase orders:', error);
+      logger.error({
+        message: 'Error fetching purchase orders',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load purchase orders');
     } finally {
       setLoading(false);

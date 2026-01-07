@@ -3,15 +3,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔐 Comprehensive authentication test...');
+    logger.info({
+      message: 'Comprehensive authentication test',
+      context: { operation: 'comprehensive-auth' }
+    });
 
     const body = await request.json();
     const { email, password } = body;
 
-    console.log('Looking for user:', email);
+    logger.debug({
+      message: 'Looking for user',
+      context: { operation: 'comprehensive-auth', email }
+    });
 
     // Use the shared Prisma instance
     const user = await prisma.user.findUnique({
@@ -28,9 +35,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('User found:', !!user);
-    console.log('User active:', user?.isActive);
-    console.log('User has password:', !!user?.password);
+    logger.debug({
+      message: 'User lookup result',
+      context: { 
+        operation: 'comprehensive-auth', 
+        userFound: !!user,
+        isActive: user?.isActive,
+        hasPassword: !!user?.password,
+        email
+      }
+    });
 
     if (!user) {
       return NextResponse.json({
@@ -67,9 +81,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify password
-    console.log('Verifying password...');
+    logger.debug({
+      message: 'Verifying password',
+      context: { operation: 'comprehensive-auth', email }
+    });
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('Password valid:', isPasswordValid);
+    logger.debug({
+      message: 'Password verification result',
+      context: { operation: 'comprehensive-auth', isPasswordValid, email }
+    });
 
     if (!isPasswordValid) {
       return NextResponse.json({
@@ -85,7 +105,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    console.log('Generating JWT token...');
+    logger.debug({
+      message: 'Generating JWT token',
+      context: { operation: 'comprehensive-auth', email, userId: user.id }
+    });
     const token = jwt.sign(
       {
         userId: user.id,
@@ -97,7 +120,10 @@ export async function POST(request: NextRequest) {
       { expiresIn: '15m' }
     );
 
-    console.log('Token generated successfully');
+    logger.info({
+      message: 'Token generated successfully',
+      context: { operation: 'comprehensive-auth', email, userId: user.id }
+    });
 
     return NextResponse.json({
       success: true,
@@ -115,7 +141,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Comprehensive auth error:', error);
+    logger.error({
+      message: 'Comprehensive auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'comprehensive-auth' }
+    });
     return NextResponse.json(
       {
         success: false,

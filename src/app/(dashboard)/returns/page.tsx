@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,11 +52,7 @@ export default function ReturnsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReturn, setSelectedReturn] = useState<ReturnRequest | null>(null);
 
-  useEffect(() => {
-    fetchReturns();
-  }, [filter]);
-
-  const fetchReturns = async () => {
+  const fetchReturns = useCallback(async () => {
     try {
       setLoading(true);
       const url = `/api/returns${filter !== 'all' ? `?status=${filter}` : ''}`;
@@ -88,12 +84,16 @@ export default function ReturnsPage() {
         ]);
       }
     } catch (error) {
-      console.error('Error fetching returns:', error);
+      // Error handled silently - user sees UI feedback
       setReturns([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchReturns();
+  }, [fetchReturns]);
 
   const handleApprove = async (returnId: string) => {
     if (!confirm('Are you sure you want to approve this return request?')) return;

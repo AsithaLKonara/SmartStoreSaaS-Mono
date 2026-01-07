@@ -1,5 +1,6 @@
 import '@shopify/shopify-api/adapters/node';
 import { shopifyApi, ApiVersion } from '@shopify/shopify-api';
+import { logger } from '../logger';
 
 const shopifyConfig = {
   apiKey: process.env.SHOPIFY_API_KEY || '',
@@ -16,7 +17,11 @@ if (shopifyConfig.apiKey && shopifyConfig.apiSecretKey) {
   try {
     shopify = shopifyApi(shopifyConfig);
   } catch (error) {
-    console.warn('Shopify API initialization failed:', error);
+    logger.warn({
+      message: 'Shopify API initialization failed',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'ShopifyIntegration', operation: 'initialize' }
+    });
   }
 }
 

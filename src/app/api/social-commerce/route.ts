@@ -26,8 +26,6 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         select: {
           id: true,
           platform: true,
-          accountName: true,
-          status: true,
           lastSync: true,
           isActive: true
         }

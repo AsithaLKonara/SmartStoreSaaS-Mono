@@ -3,12 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔧 Setting up authentication...');
+    logger.info({
+      message: 'Setting up authentication',
+      context: { operation: 'setup-auth' }
+    });
 
     // Step 1: Find the admin user
     const user = await prisma.user.findUnique({
@@ -94,7 +98,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Setup auth error:', error);
+    logger.error({
+      message: 'Setup auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'setup-auth' }
+    });
     return NextResponse.json(
       {
         success: false,

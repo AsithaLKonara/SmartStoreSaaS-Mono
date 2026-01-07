@@ -3,6 +3,7 @@ import { stripeService } from '@/lib/payments/stripeService';
 import { emailService } from '@/lib/email/emailService';
 import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 export interface SubscriptionPlan {
   id: string;
@@ -198,7 +199,11 @@ export class SubscriptionService {
           }
         });
       } catch (syncError) {
-        console.warn('Failed to broadcast subscription event:', syncError);
+        logger.warn({
+          message: 'Failed to broadcast subscription event',
+          error: syncError instanceof Error ? syncError : new Error(String(syncError)),
+          context: { service: 'SubscriptionService', operation: 'createSubscription', subscriptionId: subscription.id }
+        });
       }
 
       return subscription as Subscription;
@@ -245,7 +250,11 @@ export class SubscriptionService {
           }
         });
       } catch (syncError) {
-        console.warn('Failed to broadcast subscription update event:', syncError);
+        logger.warn({
+          message: 'Failed to broadcast subscription update event',
+          error: syncError instanceof Error ? syncError : new Error(String(syncError)),
+          context: { service: 'SubscriptionService', operation: 'updateSubscription', subscriptionId }
+        });
       }
 
       return updatedSubscription as Subscription;
@@ -278,7 +287,11 @@ export class SubscriptionService {
         try {
           await stripeService.cancelSubscription(subscription.stripeSubscriptionId);
         } catch (stripeError) {
-          console.warn('Failed to cancel Stripe subscription:', stripeError);
+          logger.warn({
+            message: 'Failed to cancel Stripe subscription',
+            error: stripeError instanceof Error ? stripeError : new Error(String(stripeError)),
+            context: { service: 'SubscriptionService', operation: 'cancelSubscription', subscriptionId, stripeSubscriptionId: subscription.stripeSubscriptionId }
+          });
         }
       }
 
@@ -300,7 +313,11 @@ export class SubscriptionService {
         // Send cancellation email
         await this.sendCancellationEmail(subscription.id);
       } catch (emailError) {
-        console.warn('Failed to send cancellation email:', emailError);
+        logger.warn({
+          message: 'Failed to send cancellation email',
+          error: emailError instanceof Error ? emailError : new Error(String(emailError)),
+          context: { service: 'SubscriptionService', operation: 'cancelSubscription', subscriptionId }
+        });
       }
 
       // Broadcast real-time sync event
@@ -321,7 +338,11 @@ export class SubscriptionService {
           }
         });
       } catch (syncError) {
-        console.warn('Failed to broadcast subscription cancellation event:', syncError);
+        logger.warn({
+          message: 'Failed to broadcast subscription cancellation event',
+          error: syncError instanceof Error ? syncError : new Error(String(syncError)),
+          context: { service: 'SubscriptionService', operation: 'cancelSubscription', subscriptionId }
+        });
       }
 
       return updatedSubscription as Subscription;
@@ -452,7 +473,10 @@ export class SubscriptionService {
 
       // Update customer metadata with membership info
       // Note: Customer model doesn't have metadata field, so we'll log this info
-      console.log(`Customer ${customerId} membership status: Tier ${currentTier}, Progress ${progress}%, Next tier requires $${requiredForNextTier}`);
+      logger.info({
+        message: 'Customer membership status updated',
+        context: { service: 'SubscriptionService', operation: 'updateMembershipStatus', customerId, currentTier, progress, requiredForNextTier }
+      });
 
       // Update total spent
       await prisma.customer.update({
@@ -478,7 +502,11 @@ export class SubscriptionService {
       });
 
     } catch (error) {
-      console.error('Error updating membership status:', error);
+      logger.error({
+        message: 'Error updating membership status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'updateMembershipStatus', customerId }
+      });
       throw error;
     }
   }
@@ -513,10 +541,17 @@ export class SubscriptionService {
     try {
       // Note: SubscriptionBox model doesn't exist in the schema
       // This functionality needs to be implemented with actual models
-      console.warn('SubscriptionBox model not found in schema - returning empty array');
+      logger.warn({
+        message: 'SubscriptionBox model not found in schema - returning empty array',
+        context: { service: 'SubscriptionService', operation: 'getSubscriptionBoxes', customerId }
+      });
       return [];
     } catch (error) {
-      console.error('Error getting subscription boxes:', error);
+      logger.error({
+        message: 'Error getting subscription boxes',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'getSubscriptionBoxes', customerId }
+      });
       throw error;
     }
   }
@@ -543,7 +578,10 @@ export class SubscriptionService {
 
       const plan = (subscription.metadata as unknown)?.plan;
       if (!plan) {
-        console.warn('No plan information found in subscription metadata');
+        logger.warn({
+          message: 'No plan information found in subscription metadata',
+          context: { service: 'SubscriptionService', operation: 'sendWelcomeEmail', subscriptionId }
+        });
         return;
       }
 
@@ -591,7 +629,11 @@ export class SubscriptionService {
         }
       });
     } catch (error) {
-      console.error('Error sending welcome email:', error);
+      logger.error({
+        message: 'Error sending welcome email',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'sendWelcomeEmail', subscriptionId }
+      });
       throw error;
     }
   }
@@ -626,7 +668,11 @@ export class SubscriptionService {
         }
       });
     } catch (error) {
-      console.error('Error sending cancellation email:', error);
+      logger.error({
+        message: 'Error sending cancellation email',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'sendCancellationEmail', subscriptionId }
+      });
       throw error;
     }
   }
@@ -662,7 +708,11 @@ export class SubscriptionService {
         }
       });
     } catch (error) {
-      console.error('Error sending usage limit email:', error);
+      logger.error({
+        message: 'Error sending usage limit email',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'sendUsageLimitEmail', subscriptionId, metricType }
+      });
       throw error;
     }
   }
@@ -679,7 +729,11 @@ export class SubscriptionService {
       const usage = (subscription.metadata as unknown)?.usage || {};
       return usage[metricType] || 0;
     } catch (error) {
-      console.warn('Failed to get current usage:', error);
+      logger.warn({
+        message: 'Failed to get current usage',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'getCurrentUsage', subscriptionId, metricType }
+      });
       return 0;
     }
   }

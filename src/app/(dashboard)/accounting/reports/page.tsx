@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download, Calendar, TrendingUp, DollarSign, BarChart3 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,11 @@ export default function ReportsPage() {
         toast.error(`Failed to generate ${type}`);
       }
     } catch (error) {
-      console.error('Report generation error:', error);
+      logger.error({
+        message: 'Report generation error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { reportType: type }
+      });
       toast.error('Error generating report');
     } finally {
       setLoading(false);

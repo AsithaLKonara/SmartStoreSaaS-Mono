@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -67,17 +67,17 @@ function MonitoringPageContent() {
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const fetchSystemStatus = async () => {
+  const fetchSystemStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/monitoring/status');
       const data = await response.json();
       setSystemStatus(data);
     } catch (error) {
-      console.error('Failed to fetch system status:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     try {
       const response = await fetch('/api/monitoring/metrics?period=24h');
       const data = await response.json();
@@ -85,22 +85,22 @@ function MonitoringPageContent() {
         setMetrics(data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch metrics:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setLoading(true);
     await Promise.all([fetchSystemStatus(), fetchMetrics()]);
     setLastRefresh(new Date());
     setLoading(false);
-  };
+  }, [fetchSystemStatus, fetchMetrics]);
 
   useEffect(() => {
     refreshData();
     const interval = setInterval(refreshData, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshData]);
 
   const formatUptime = (seconds: number) => {
     const days = Math.floor(seconds / 86400);

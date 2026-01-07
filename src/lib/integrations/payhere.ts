@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { logger } from '../logger';
 
 const merchantId = process.env.PAYHERE_MERCHANT_ID || '';
 const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET || '';
@@ -77,7 +78,11 @@ export async function initiatePayHerePayment(
       hash,
     };
   } catch (error: any) {
-    console.error('PayHere initiation error:', error);
+    logger.error({
+      message: 'PayHere initiation error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PayHereIntegration', operation: 'initiatePayment', orderId: data.orderId, amount: data.amount }
+    });
     return {
       success: false,
       error: error.message || 'Failed to initiate PayHere payment',
@@ -101,7 +106,10 @@ export async function verifyPayHereCallback(data: any): Promise<boolean> {
 
     // Verify merchant ID
     if (merchant_id !== merchantId) {
-      console.error('Invalid merchant ID');
+      logger.error({
+        message: 'Invalid merchant ID',
+        context: { service: 'PayHereIntegration', operation: 'verifyPayment', merchantId: merchant_id }
+      });
       return false;
     }
 
@@ -119,19 +127,29 @@ export async function verifyPayHereCallback(data: any): Promise<boolean> {
 
     // Verify hash
     if (md5sig !== expectedHash) {
-      console.error('Invalid hash signature');
+      logger.error({
+        message: 'Invalid hash signature',
+        context: { service: 'PayHereIntegration', operation: 'verifyPayment', orderId: order_id }
+      });
       return false;
     }
 
     // Check payment status
     if (status_code !== '2') {
-      console.error('Payment not successful. Status code:', status_code);
+      logger.error({
+        message: 'Payment not successful',
+        context: { service: 'PayHereIntegration', operation: 'verifyPayment', orderId: order_id, statusCode: status_code }
+      });
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('PayHere verification error:', error);
+    logger.error({
+      message: 'PayHere verification error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PayHereIntegration', operation: 'verifyPayment' }
+    });
     return false;
   }
 }

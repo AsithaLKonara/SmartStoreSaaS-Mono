@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface EmailTemplate {
   id: string;
@@ -114,7 +115,11 @@ export class EmailService {
         return await this.sendWithSES(options);
       }
     } catch (error) {
-      console.error('Error sending email:', error);
+      logger.error({
+        message: 'Error sending email',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'sendEmail', to: options.to, subject: options.subject }
+      });
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -154,7 +159,10 @@ export class EmailService {
     try {
       // Check if SendGrid is configured
       if (!process.env.SENDGRID_API_KEY) {
-        console.warn('SendGrid API key not configured, using mock processing');
+        logger.warn({
+          message: 'SendGrid API key not configured, using mock processing',
+          context: { service: 'EmailService', operation: 'sendWithSendGrid', to: options.to }
+        });
         return { success: true, messageId: `sg_mock_${Date.now()}` };
       }
 
@@ -192,7 +200,11 @@ export class EmailService {
         messageId: response[0].headers['x-message-id'] || `sg_${Date.now()}`,
       };
     } catch (error: any) {
-      console.error('SendGrid email error:', error);
+      logger.error({
+        message: 'SendGrid email error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'sendWithSendGrid', to: options.to, subject: options.subject }
+      });
       return {
         success: false,
         error: error.message || 'Unknown error',
@@ -204,15 +216,17 @@ export class EmailService {
     try {
       // Check if AWS SES is configured
       if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-        console.warn('AWS SES credentials not configured, using mock processing');
+        logger.warn({
+          message: 'AWS SES credentials not configured, using mock processing',
+          context: { service: 'EmailService', operation: 'sendWithSES', to: options.to }
+        });
         return { success: true, messageId: `ses_mock_${Date.now()}` };
       }
 
       // Mock AWS SES implementation for build compatibility
-      console.log('AWS SES email would be sent:', {
-        to: options.to,
-        subject: options.subject,
-        from: options.from || process.env.FROM_EMAIL || 'noreply@smartstore.lk'
+      logger.debug({
+        message: 'AWS SES email would be sent',
+        context: { service: 'EmailService', operation: 'sendWithSES', to: options.to, subject: options.subject, from: options.from || process.env.FROM_EMAIL || 'noreply@smartstore.lk' }
       });
 
       return {
@@ -220,7 +234,11 @@ export class EmailService {
         messageId: `ses_mock_${Date.now()}`,
       };
     } catch (error: any) {
-      console.error('AWS SES email error:', error);
+      logger.error({
+        message: 'AWS SES email error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'sendWithSES', to: options.to, subject: options.subject }
+      });
       return {
         success: false,
         error: error.message || 'Unknown error',
@@ -239,7 +257,11 @@ export class EmailService {
         return await this.sendBulkWithSES(options);
       }
     } catch (error) {
-      console.error('Error sending bulk email:', error);
+      logger.error({
+        message: 'Error sending bulk email',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'sendBulkEmail', recipientsCount: options.recipients.length, templateId: options.templateId }
+      });
       return { success: false, results: [], error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -320,7 +342,11 @@ export class EmailService {
         variables: createdTemplate.variables,
       };
     } catch (error) {
-      console.error('Error creating email template:', error);
+      logger.error({
+        message: 'Error creating email template',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'createTemplate', templateName: templateData.name }
+      });
       throw new Error('Failed to create email template');
     }
   }
@@ -333,7 +359,10 @@ export class EmailService {
     };
 
     // This would require additional SendGrid API calls
-    console.log('Creating SendGrid template:', templateData);
+    logger.debug({
+      message: 'Creating SendGrid template',
+      context: { service: 'EmailService', operation: 'createSendGridTemplate', templateName: templateData.name }
+    });
   }
 
   private async createSESTemplate(template: unknown): Promise<void> {
@@ -347,7 +376,10 @@ export class EmailService {
       },
     };
 
-    console.log('Creating SES template:', templateData);
+    logger.debug({
+      message: 'Creating SES template',
+      context: { service: 'EmailService', operation: 'createSESTemplate', templateName: templateData.name }
+    });
   }
 
   /**
@@ -507,7 +539,11 @@ export class EmailService {
         },
       });
     } catch (error) {
-      console.error('Error adding to mailing list:', error);
+      logger.error({
+        message: 'Error adding to mailing list',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'addToMailingList', email, listId }
+      });
       throw new Error('Failed to add to mailing list');
     }
   }
@@ -519,7 +555,11 @@ export class EmailService {
         data: { isActive: false },
       });
     } catch (error) {
-      console.error('Error removing from mailing list:', error);
+      logger.error({
+        message: 'Error removing from mailing list',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'removeFromMailingList', email, listId }
+      });
       throw new Error('Failed to remove from mailing list');
     }
   }
@@ -572,7 +612,11 @@ export class EmailService {
         recipientCount: recipients.length,
       };
     } catch (error) {
-      console.error('Error sending campaign:', error);
+      logger.error({
+        message: 'Error sending campaign',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'EmailService', operation: 'sendCampaign', campaignId }
+      });
       throw new Error('Failed to send campaign');
     }
   }

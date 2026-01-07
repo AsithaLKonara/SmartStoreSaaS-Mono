@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Truck
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface IntegrationStatus {
   whatsapp: {
@@ -66,11 +67,7 @@ export function IntegrationManager({ organizationId }: IntegrationManagerProps) 
     apiSecret: ''
   });
 
-  useEffect(() => {
-    loadIntegrationStatus();
-  }, [organizationId]);
-
-  const loadIntegrationStatus = async () => {
+  const loadIntegrationStatus = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/integrations/setup?organizationId=${organizationId}`);
@@ -79,11 +76,18 @@ export function IntegrationManager({ organizationId }: IntegrationManagerProps) 
         setStatus(data);
       }
     } catch (error) {
-      console.error('Error loading integration status:', error);
+      logger.error({
+        message: 'Error loading integration status',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId]);
+
+  useEffect(() => {
+    loadIntegrationStatus();
+  }, [loadIntegrationStatus]);
 
   const setupIntegration = async (type: string, config: unknown) => {
     try {

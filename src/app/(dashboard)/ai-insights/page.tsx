@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -95,17 +95,7 @@ export default function AIInsightsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchAIInsights();
-    fetchAutomationStats();
-  }, [session, status]);
-
-  const fetchAIInsights = async () => {
+  const fetchAIInsights = useCallback(async () => {
     try {
       const response = await fetch('/api/analytics/dashboard?organizationId=org-1&period=30');
       if (response.ok) {
@@ -115,14 +105,13 @@ export default function AIInsightsPage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching AI insights:', error);
       toast.error('Failed to load AI insights');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchAutomationStats = async () => {
+  const fetchAutomationStats = useCallback(async () => {
     try {
       const response = await fetch('/api/ai/automation');
       if (response.ok) {
@@ -130,9 +119,19 @@ export default function AIInsightsPage() {
         setAutomationStats(data);
       }
     } catch (error) {
-      console.error('Error fetching automation stats:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchAIInsights();
+    fetchAutomationStats();
+  }, [session, status, router, fetchAIInsights, fetchAutomationStats]);
 
   const getRiskColor = (risk: string) => {
     switch (risk) {

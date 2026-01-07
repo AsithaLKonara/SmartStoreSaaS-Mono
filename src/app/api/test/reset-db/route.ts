@@ -5,15 +5,19 @@
  * Clears test data for clean test runs
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 // Guard: Only allow in test environment
 if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
   throw new Error('Test endpoints are disabled in production');
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const correlationId = request.headers.get('x-request-id') || uuidv4();
+  
   try {
     // Delete in correct order to respect foreign key constraints
     
@@ -31,14 +35,14 @@ export async function POST() {
     await prisma.category.deleteMany({});
     
     // Delete customer-related data
-    await prisma.loyaltyTransactions.deleteMany({});
+    await prisma.loyalty_transactions.deleteMany({});
     await prisma.customerLoyalty.deleteMany({});
-    await prisma.wishlistItems.deleteMany({});
+    await prisma.wishlist_items.deleteMany({});
     await prisma.wishlists.deleteMany({});
     await prisma.customer.deleteMany({});
     
     // Delete warehouse data
-    await prisma.warehouseInventory.deleteMany({});
+    await prisma.warehouse_inventory.deleteMany({});
     await prisma.warehouse.deleteMany({});
     
     // Delete procurement data
@@ -60,7 +64,7 @@ export async function POST() {
     await prisma.referral.deleteMany({});
     
     // Delete integration data
-    await prisma.whatsappMessages.deleteMany({});
+    await prisma.whatsapp_messages.deleteMany({});
     await prisma.whatsAppIntegration.deleteMany({});
     await prisma.wooCommerceIntegration.deleteMany({});
     
@@ -102,9 +106,21 @@ export async function POST() {
       message: 'Database reset successfully',
     });
   } catch (error: any) {
-    console.error('Reset error:', error);
+    logger.error({
+      message: 'Reset error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: {
+        errorMessage: error.message
+      },
+      correlation: correlationId
+    });
+    
     return NextResponse.json(
-      { success: false, error: error.message },
+      { 
+        success: false, 
+        error: error.message,
+        correlation: correlationId
+      },
       { status: 500 }
     );
   }

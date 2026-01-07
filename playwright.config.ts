@@ -11,6 +11,10 @@ import path from 'path';
 export default defineConfig({
   testDir: './tests/e2e/flows',
   
+  // Global setup and teardown
+  globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
+  globalTeardown: require.resolve('./tests/e2e/global-teardown.ts'),
+  
   // Test timeout
   timeout: 60_000, // 60 seconds per test
   expect: {
@@ -35,30 +39,30 @@ export default defineConfig({
   
   // Global test configuration
   use: {
-    // Base URL - LIVE DEPLOYMENT
-    baseURL: process.env.E2E_BASE_URL ?? 'https://smart-store-saas-demo.vercel.app',
+    // Base URL - Use local server by default, allow override via E2E_BASE_URL
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     
-    // Browser options - VISIBLE BROWSER FOR USER VIEWING
-    headless: false,
+    // Browser options - Headless in CI, visible locally for debugging
+    headless: process.env.CI ? true : false,
     viewport: { width: 1280, height: 800 },
     
-    // Timeout for actions
-    actionTimeout: 15_000, // Increased for live server
+    // Timeout for actions - Adjust for local server performance
+    actionTimeout: process.env.CI ? 15_000 : 10_000,
     
-    // Screenshot ALL actions
-    screenshot: 'on',
+    // Screenshot on failure (more efficient than 'on' for all actions)
+    screenshot: 'only-on-failure',
     
-    // Video recording ALL tests
-    video: 'on',
+    // Video on failure (saves disk space)
+    video: 'retain-on-failure',
     
-    // Trace ALL tests
-    trace: 'on',
+    // Trace on failure for debugging
+    trace: 'on-first-retry',
     
     // Ignore HTTPS errors (for local testing)
     ignoreHTTPSErrors: true,
     
-    // Slow down for visibility
-    slowMo: 500, // 500ms delay between actions for viewing
+    // Slow down for visibility (only in local non-headless mode)
+    slowMo: process.env.CI || process.env.HEADLESS ? 0 : 300,
   },
   
   // Configure projects for different browsers
@@ -90,13 +94,18 @@ export default defineConfig({
   ],
   
   // Web server configuration
-  // Uncomment to auto-start dev server before running tests
-  // webServer: {
-  //   command: 'pnpm dev',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 120_000,
-  // },
+  // Auto-start local dev server before running tests
+  // Only enable if E2E_BASE_URL is not explicitly set or is localhost
+  webServer: process.env.E2E_BASE_URL && !process.env.E2E_BASE_URL.includes('localhost') ? undefined : {
+    command: 'dotenv -e .env.test -- npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI, // Reuse if server already running (for local dev)
+    timeout: 180_000, // 3 minutes for initial build
+    stdout: 'pipe',
+    stderr: 'pipe',
+    // Wait for server to be ready by checking health endpoint
+    // Fallback to just checking if port is open
+  },
   
   // Output directory
   outputDir: 'test-results/',

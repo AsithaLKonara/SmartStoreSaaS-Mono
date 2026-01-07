@@ -14,8 +14,9 @@ import { logger } from '@/lib/logger';
 export const dynamic = 'force-dynamic';
 
 export const POST = withErrorHandlerApp(
-  async (req: NextRequest, { params }: { params: { organizationId: string } }) => {
-    const organizationId = params.organizationId;
+  async (req: NextRequest) => {
+    const url = new URL(req.url);
+    const organizationId = url.pathname.split('/').slice(-2)[0]; // Extract from URL path
     const body = await req.json();
 
     logger.info({

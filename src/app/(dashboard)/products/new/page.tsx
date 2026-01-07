@@ -70,7 +70,7 @@ export default function NewProductPage() {
     }
     fetchCategories();
     generateNewSKU();
-  }, [session, status]);
+  }, [session, status, router]);
 
   const fetchCategories = async () => {
     try {

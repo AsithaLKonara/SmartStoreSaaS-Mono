@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -79,16 +79,7 @@ export default function OrdersPage() {
   const [paymentFilter, setPaymentFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchOrders();
-  }, [session, status]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await fetch('/api/orders');
       if (response.ok) {
@@ -96,12 +87,21 @@ export default function OrdersPage() {
         setOrders(data.orders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
       toast.error('Failed to load orders');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, status, router]);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         include: {
           sms_templates: {
-            select: { name: true, message: true }
+            select: { name: true, content: true }
           }
         }
       }),

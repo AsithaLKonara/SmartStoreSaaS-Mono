@@ -38,6 +38,15 @@ export default function SyncPage() {
   const [loading, setLoading] = useState(true);
   const [organizationId, setOrganizationId] = useState<string>('');
 
+  const handleEvent = useCallback((event: any) => {
+    // Sync event received - could implement proper logging
+    setEvents(prev => [event, ...prev.slice(0, 99)]);
+  }, []);
+
+  const handleStatusChange = useCallback((status: SyncStatus) => {
+    setSyncStatus(status);
+  }, []);
+
   const {
     isConnected,
     syncStatus: realTimeStatus,
@@ -50,15 +59,13 @@ export default function SyncPage() {
   } = useRealTimeSync({
     organizationId,
     autoConnect: true,
-    onEvent: (event) => {
-      // Sync event received - could implement proper logging
-    },
-    onStatusChange: (status) => {
-      setSyncStatus(status);
-    }
+    onEvent: handleEvent,
+    onStatusChange: handleStatusChange
   });
 
   const loadSyncStatus = useCallback(async () => {
+    if (!organizationId) return;
+    
     try {
       setLoading(true);
       const response = await fetch(`/api/sync/status?organizationId=${organizationId}`);

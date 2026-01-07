@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { sendWhatsAppMessage } from '@/lib/integrations/whatsapp';
 import { sendSMS } from '@/lib/integrations/sms';
 import { emailService } from '@/lib/email/emailService';
+import { logger } from '@/lib/logger';
 
 export interface Notification {
   userId: string;
@@ -61,7 +62,11 @@ export class NotificationService {
         results,
       };
     } catch (error) {
-      console.error('Notification send error:', error);
+      logger.error({
+        message: 'Notification send error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'send', userId: notification.userId, organizationId: notification.organizationId, channel: notification.channel }
+      });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -77,10 +82,17 @@ export class NotificationService {
     try {
       // Would save to database notifications table
       // For now, just log it
-      console.log('In-app notification:', notification.title);
+      logger.info({
+        message: 'In-app notification',
+        context: { service: 'NotificationService', operation: 'sendInApp', userId: notification.userId, title: notification.title }
+      });
       return true;
     } catch (error) {
-      console.error('In-app notification error:', error);
+      logger.error({
+        message: 'In-app notification error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'sendInApp', userId: notification.userId }
+      });
       return false;
     }
   }
@@ -104,7 +116,11 @@ export class NotificationService {
 
       return result.success;
     } catch (error) {
-      console.error('Email notification error:', error);
+      logger.error({
+        message: 'Email notification error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'sendEmail', userId: notification.userId, email }
+      });
       return false;
     }
   }
@@ -121,7 +137,11 @@ export class NotificationService {
 
       return result.success;
     } catch (error) {
-      console.error('SMS notification error:', error);
+      logger.error({
+        message: 'SMS notification error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'sendSMSNotification', userId: notification.userId, phone }
+      });
       return false;
     }
   }
@@ -138,7 +158,11 @@ export class NotificationService {
 
       return result.success;
     } catch (error) {
-      console.error('WhatsApp notification error:', error);
+      logger.error({
+        message: 'WhatsApp notification error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'sendWhatsApp', userId: notification.userId, phone }
+      });
       return false;
     }
   }
@@ -204,7 +228,11 @@ export class NotificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Order notification error:', error);
+      logger.error({
+        message: 'Order notification error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'sendOrderNotification', orderId, status }
+      });
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -250,7 +278,11 @@ export class NotificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Low stock alert error:', error);
+      logger.error({
+        message: 'Low stock alert error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'NotificationService', operation: 'sendLowStockAlert', productId }
+      });
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }

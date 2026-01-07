@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import React from 'react';
+import { logger } from '../logger';
 
 export interface ErrorEvent {
   id: string;
@@ -122,11 +123,23 @@ class ErrorTracker {
 
     // Log critical errors
     if (error.severity === 'critical') {
-      console.error(`[CRITICAL ERROR] ${error.message}`, error);
+      logger.error({
+        message: 'Critical error tracked',
+        error: error.error instanceof Error ? error.error : new Error(String(error.error)),
+        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message, source: error.source }
+      });
     } else if (error.severity === 'high') {
-      console.error(`[HIGH ERROR] ${error.message}`, error);
+      logger.error({
+        message: 'High severity error tracked',
+        error: error.error instanceof Error ? error.error : new Error(String(error.error)),
+        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message, source: error.source }
+      });
     } else {
-      console.warn(`[ERROR] ${error.message}`, error);
+      logger.warn({
+        message: 'Error tracked',
+        error: error.error instanceof Error ? error.error : new Error(String(error.error)),
+        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message, source: error.source }
+      });
     }
 
     // Send to external service in production
@@ -179,7 +192,11 @@ class ErrorTracker {
         },
         body: JSON.stringify(error),
       }).catch(err => {
-        console.error('Failed to send error to service:', err);
+        logger.error({
+          message: 'Failed to send error to service',
+          error: err instanceof Error ? err : new Error(String(err)),
+          context: { service: 'ErrorTracking', operation: 'sendErrorToService', errorId: error.id }
+        });
       });
     }
   }
@@ -292,7 +309,11 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     errorTracker.trackJSError(error, 'react-error-boundary');
-    console.error('Error caught by boundary:', error, errorInfo);
+    logger.error({
+      message: 'Error caught by boundary',
+      error,
+      context: { service: 'ErrorTracking', operation: 'componentDidCatch', componentStack: errorInfo.componentStack }
+    });
   }
 
   render() {

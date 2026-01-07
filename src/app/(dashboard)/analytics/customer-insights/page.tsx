@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -55,16 +55,7 @@ export default function CustomerInsightsPage() {
   const [dateRange, setDateRange] = useState('30days');
   const [segmentFilter, setSegmentFilter] = useState('');
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchCustomerInsights();
-  }, [session, status, dateRange]);
-
-  const fetchCustomerInsights = async () => {
+  const fetchCustomerInsights = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/analytics/customer-insights?dateRange=${dateRange}`);
@@ -74,12 +65,20 @@ export default function CustomerInsightsPage() {
         setSegments(data.segments);
       }
     } catch (error) {
-      console.error('Error fetching customer insights:', error);
       toast.error('Failed to load customer insights');
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchCustomerInsights();
+  }, [session, status, router, fetchCustomerInsights]);
 
   const getSegmentColor = (segment: string) => {
     switch (segment) {

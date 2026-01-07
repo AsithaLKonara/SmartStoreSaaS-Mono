@@ -3,12 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔐 Testing raw authentication...');
+    logger.info({
+      message: 'Testing raw authentication',
+      context: { operation: 'raw-auth' }
+    });
 
     const body = await request.json();
     const { email, password } = body;
@@ -90,7 +94,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Raw auth error:', error);
+    logger.error({
+      message: 'Raw auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'raw-auth' }
+    });
     return NextResponse.json(
       {
         success: false,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,12 +68,7 @@ export default function WooCommerceIntegrationPage() {
   const [syncHistory, setSyncHistory] = useState<SyncHistory[]>([]);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    loadConfiguration();
-    loadSyncHistory();
-  }, []);
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/integrations/setup?type=woocommerce');
@@ -90,9 +85,9 @@ export default function WooCommerceIntegrationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [config]);
 
-  const loadSyncHistory = async () => {
+  const loadSyncHistory = useCallback(async () => {
     try {
       const response = await fetch('/api/integrations/woocommerce/sync/history');
       if (response.ok) {
@@ -102,7 +97,12 @@ export default function WooCommerceIntegrationPage() {
     } catch (error) {
       // Error loading sync history - could implement proper error handling
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadConfiguration();
+    loadSyncHistory();
+  }, [loadConfiguration, loadSyncHistory]);
 
   const testConnection = async () => {
     try {

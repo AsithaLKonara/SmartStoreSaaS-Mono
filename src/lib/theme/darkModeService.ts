@@ -1,3 +1,5 @@
+import { logger } from '../logger';
+
 export type Theme = 'light' | 'dark' | 'system';
 
 export interface ThemeConfig {
@@ -132,7 +134,11 @@ export class DarkModeService {
       try {
         listener(config);
       } catch (error) {
-        console.error('Theme listener error:', error);
+        logger.error({
+          message: 'Theme listener error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'DarkModeService', operation: 'notifyListeners' }
+        });
       }
     });
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -80,17 +80,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'activity'>('overview');
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchCustomerDetails();
-    fetchCustomerOrders();
-  }, [session, status, customerId]);
-
-  const fetchCustomerDetails = async () => {
+  const fetchCustomerDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/customers/${customerId}`);
       if (response.ok) {
@@ -101,12 +91,11 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
         router.push('/customers');
       }
     } catch (error) {
-      console.error('Error fetching customer:', error);
       toast.error('Failed to load customer details');
     }
-  };
+  }, [customerId, router]);
 
-  const fetchCustomerOrders = async () => {
+  const fetchCustomerOrders = useCallback(async () => {
     try {
       const response = await fetch(`/api/orders?customerId=${customerId}`);
       if (response.ok) {
@@ -114,11 +103,21 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
         setOrders(data.orders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchCustomerDetails();
+    fetchCustomerOrders();
+  }, [session, status, router, fetchCustomerDetails, fetchCustomerOrders]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

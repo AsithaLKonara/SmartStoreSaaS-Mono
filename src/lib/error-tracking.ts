@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from './prisma';
 import { productionMonitoringService } from './production-monitoring';
+import { logger } from './logger';
 
 export interface ErrorEvent {
   id: string;
@@ -92,7 +93,11 @@ export class ErrorTrackingService {
 
       return errorEvent;
     } catch (error) {
-      console.error('Error tracking error:', error);
+      logger.error({
+        message: 'Error tracking error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorTracking', operation: 'trackError', errorType: errorData.type }
+      });
       throw error;
     }
   }
@@ -176,7 +181,11 @@ export class ErrorTrackingService {
         resolutionTime,
       };
     } catch (error) {
-      console.error('Error getting error analytics:', error);
+      logger.error({
+        message: 'Error getting error analytics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorTracking', operation: 'getErrorAnalytics', organizationId }
+      });
       throw error;
     }
   }
@@ -216,7 +225,11 @@ export class ErrorTrackingService {
         tags: error.tags ? error.tags.split(',') : [],
       };
     } catch (error) {
-      console.error('Error getting error details:', error);
+      logger.error({
+        message: 'Error getting error details',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorTracking', operation: 'getErrorDetails', errorId }
+      });
       throw error;
     }
   }
@@ -236,7 +249,11 @@ export class ErrorTrackingService {
         },
       });
     } catch (error) {
-      console.error('Error resolving error:', error);
+      logger.error({
+        message: 'Error resolving error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorTracking', operation: 'resolveError', errorId, userId }
+      });
       throw error;
     }
   }
@@ -264,7 +281,11 @@ export class ErrorTrackingService {
         },
       });
     } catch (error) {
-      console.error('Error storing error event:', error);
+      logger.error({
+        message: 'Error storing error event',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorTracking', operation: 'storeErrorEvent', errorId: errorEvent.id }
+      });
     }
   }
 
@@ -443,7 +464,11 @@ export class ErrorTrackingService {
         affectedOrganizations: agg.affectedOrganizations.size,
       })).sort((a, b) => b.count - a.count).slice(0, 10);
     } catch (error) {
-      console.error('Error getting top errors:', error);
+      logger.error({
+        message: 'Error getting top errors',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorTracking', operation: 'getTopErrors', organizationId }
+      });
       return [];
     }
   }

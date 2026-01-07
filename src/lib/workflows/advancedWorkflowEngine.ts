@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface WorkflowNode {
   id: string;
@@ -103,7 +104,11 @@ export class AdvancedWorkflowEngine {
         config: workflow.config,
       };
     } catch (error) {
-      console.error('Error creating workflow:', error);
+      logger.error({
+        message: 'Error creating workflow',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'createWorkflow', organizationId: workflowData.organizationId }
+      });
       throw new Error('Failed to create workflow');
     }
   }
@@ -157,7 +162,11 @@ export class AdvancedWorkflowEngine {
         logs: []
       };
     } catch (error) {
-      console.error('Error executing workflow:', error);
+      logger.error({
+        message: 'Error executing workflow',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'executeWorkflow', workflowId }
+      });
       throw new Error('Failed to execute workflow');
     }
   }
@@ -277,7 +286,11 @@ export class AdvancedWorkflowEngine {
       }
 
     } catch (error) {
-      console.error('Error running workflow execution:', error);
+      logger.error({
+        message: 'Error running workflow execution',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'runWorkflowExecution', executionId }
+      });
       await prisma.workflowExecution.update({
         where: { id: executionId },
         data: {
@@ -379,7 +392,10 @@ export class AdvancedWorkflowEngine {
     
     // Send email using your email service
     // This is a placeholder implementation
-    console.log(`Sending email to ${recipients}: ${subject}`);
+    logger.debug({
+      message: 'Sending email',
+      context: { service: 'AdvancedWorkflowEngine', operation: 'sendEmail', recipients, subject }
+    });
     
     return { emailSent: true, recipients };
   }
@@ -390,7 +406,10 @@ export class AdvancedWorkflowEngine {
     
     // Send SMS using your SMS service
     // This is a placeholder implementation
-    console.log(`Sending SMS to ${recipients}: ${message}`);
+    logger.debug({
+      message: 'Sending SMS',
+      context: { service: 'AdvancedWorkflowEngine', operation: 'sendSMS', recipients }
+    });
     
     return { smsSent: true, recipients };
   }
@@ -447,7 +466,10 @@ export class AdvancedWorkflowEngine {
     const { userId, message, type } = data;
     
     // Send notification using your notification service
-    console.log(`Sending ${type} notification to user ${userId}: ${message}`);
+    logger.debug({
+      message: 'Sending notification',
+      context: { service: 'AdvancedWorkflowEngine', operation: 'sendNotification', userId, type }
+    });
     
     return { notificationSent: true, userId, type };
   }
@@ -456,7 +478,10 @@ export class AdvancedWorkflowEngine {
     const { userId, task, priority } = data;
     
     // Assign task to user
-    console.log(`Assigning task to user ${userId}: ${task} (${priority})`);
+    logger.debug({
+      message: 'Assigning task to user',
+      context: { service: 'AdvancedWorkflowEngine', operation: 'assignTask', userId, task, priority }
+    });
     
     return { taskAssigned: true, userId, task };
   }
@@ -490,7 +515,11 @@ export class AdvancedWorkflowEngine {
       // Evaluate the condition
       return eval(evaluatedCondition);
     } catch (error) {
-      console.error('Error evaluating condition:', error);
+      logger.error({
+        message: 'Error evaluating condition',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'evaluateCondition', condition }
+      });
       return false;
     }
   }
@@ -526,7 +555,11 @@ export class AdvancedWorkflowEngine {
         config: workflowTemplate.config,
       };
     } catch (error) {
-      console.error('Error creating workflow template:', error);
+      logger.error({
+        message: 'Error creating workflow template',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'createWorkflowTemplate', organizationId: templateData.organizationId }
+      });
       throw error;
     }
   }
@@ -554,7 +587,11 @@ export class AdvancedWorkflowEngine {
         config: template.config,
       }));
     } catch (error) {
-      console.error('Error getting workflow templates:', error);
+      logger.error({
+        message: 'Error getting workflow templates',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'getWorkflowTemplates', organizationId }
+      });
       throw error;
     }
   }
@@ -594,7 +631,11 @@ export class AdvancedWorkflowEngine {
         logs: execution.logs || [], // Initialize logs array
       }));
     } catch (error) {
-      console.error('Error getting workflow executions:', error);
+      logger.error({
+        message: 'Error getting workflow executions',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'getWorkflowExecutions', organizationId }
+      });
       throw error;
     }
   }
@@ -632,7 +673,11 @@ export class AdvancedWorkflowEngine {
         },
       };
     } catch (error) {
-      console.error('Error getting workflow analytics:', error);
+      logger.error({
+        message: 'Error getting workflow analytics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AdvancedWorkflowEngine', operation: 'getWorkflowAnalytics', organizationId }
+      });
       return {};
     }
   }

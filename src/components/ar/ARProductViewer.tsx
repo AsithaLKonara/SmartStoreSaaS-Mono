@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Camera, X, RotateCcw, ZoomIn, ZoomOut, Move3D, Maximize } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface ARProductViewerProps {
   productId: string;
@@ -46,6 +47,174 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
   const [isARMode, setIsARMode] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
 
+  const initializeScene = useCallback(() => {
+    if (!mountRef.current) return;
+
+    try {
+      // Scene
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+      sceneRef.current = scene;
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        mountRef.current.clientWidth / mountRef.current.clientHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(0, 0, 5);
+      cameraRef.current = camera;
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({ 
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true,
+      });
+      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      rendererRef.current = renderer;
+
+      mountRef.current.appendChild(renderer.domElement);
+
+      // Controls
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.enableZoom = true;
+      controls.enableRotate = true;
+      controls.enablePan = true;
+      controlsRef.current = controls;
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(10, 10, 5);
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = 2048;
+      directionalLight.shadow.mapSize.height = 2048;
+      scene.add(directionalLight);
+
+      const pointLight = new THREE.PointLight(0xffffff, 0.5);
+      pointLight.position.set(-10, -10, -5);
+      scene.add(pointLight);
+
+      // Ground plane (for shadows)
+      const groundGeometry = new THREE.PlaneGeometry(20, 20);
+      const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      // Animation loop
+      const animate = () => {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      // Handle resize
+      const handleResize = () => {
+        if (!mountRef.current || !camera || !renderer) return;
+        
+        camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      };
+
+      window.addEventListener('resize', handleResize);
+      setIsLoading(false);
+
+    } catch (err) {
+      logger.error({
+        message: 'Error initializing 3D scene',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { productId }
+      });
+      setError('Failed to initialize 3D viewer');
+      setIsLoading(false);
+    }
+  }, [productId]);
+
+  const loadModel = useCallback(async (url: string) => {
+    if (!sceneRef.current) return;
+
+    setIsLoading(true);
+    
+    try {
+      const loader = new GLTFLoader();
+      
+      const gltf = await new Promise<unknown>((resolve, reject) => {
+        loader.load(
+          url,
+          resolve,
+          (progress: { loaded: number; total: number }) => {
+            logger.debug({
+              message: 'Loading 3D model progress',
+              context: { 
+                productId,
+                progress: (progress.loaded / progress.total) * 100 
+              }
+            });
+          },
+          reject
+        );
+      }) as { scene: THREE.Group };
+
+      // Remove previous model
+      if (modelRef.current && sceneRef.current) {
+        sceneRef.current.remove(modelRef.current);
+      }
+
+      // Add new model
+      const model = gltf.scene;
+      model.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+      
+      // Center and scale model
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const scale = 2 / maxDim;
+      
+      model.scale.multiplyScalar(scale);
+      model.position.sub(center.multiplyScalar(scale));
+      model.position.y = -1;
+      
+      sceneRef.current.add(model);
+      modelRef.current = model;
+      setModelLoaded(true);
+      setIsLoading(false);
+
+      logger.info({
+        message: '3D model loaded successfully',
+        context: { productId, url }
+      });
+
+    } catch (err) {
+      logger.error({
+        message: 'Error loading 3D model',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { productId, url }
+      });
+      setError('Failed to load 3D model');
+      setIsLoading(false);
+    }
+  }, [productId]);
+
   useEffect(() => {
     checkARCapabilities();
     initializeScene();
@@ -53,7 +222,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     return () => {
       cleanup();
     };
-  }, []);
+  }, [initializeScene]);
 
   useEffect(() => {
     if (modelUrl && sceneRef.current) {
@@ -61,7 +230,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     } else if (images.length > 0) {
       createImagePlane(images[0]);
     }
-  }, [modelUrl, images]);
+  }, [modelUrl, images, loadModel, createImagePlane]);
 
   const checkARCapabilities = async () => {
     const capabilities: ARCapabilities = {
@@ -161,7 +330,11 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
       setIsLoading(false);
 
     } catch (err) {
-      console.error('Error initializing 3D scene:', err);
+      logger.error({
+        message: 'Error initializing 3D scene',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { productId }
+      });
       setError('Failed to initialize 3D viewer');
       setIsLoading(false);
     }
@@ -180,7 +353,13 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
           url,
           resolve,
                 (progress: { loaded: number; total: number }) => {
-        console.log('Loading progress:', (progress.loaded / progress.total) * 100 + '%');
+        logger.debug({
+          message: 'Loading 3D model progress',
+          context: { 
+            productId,
+            progress: (progress.loaded / progress.total) * 100 
+          }
+        });
       },
           reject
         );
@@ -218,13 +397,17 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
       setIsLoading(false);
 
     } catch (err) {
-      console.error('Error loading 3D model:', err);
+      logger.error({
+        message: 'Error loading 3D model',
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { productId, modelUrl }
+      });
       setError('Failed to load 3D model');
       setIsLoading(false);
     }
   };
 
-  const createImagePlane = (imageUrl: string) => {
+  const createImagePlane = useCallback((imageUrl: string) => {
     if (!sceneRef.current) return;
 
     const loader = new THREE.TextureLoader();
@@ -250,12 +433,16 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
       },
       undefined,
       (err) => {
-        console.error('Error loading image:', err);
+        logger.error({
+          message: 'Error loading image',
+          error: err instanceof Error ? err : new Error(String(err)),
+          context: { productId, imageUrl }
+        });
         setError('Failed to load product image');
         setIsLoading(false);
       }
     );
-  };
+  }, [productId]);
 
   const resetView = () => {
     if (!cameraRef.current || !controlsRef.current) return;
@@ -300,7 +487,11 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error toggling AR mode:', error);
+      logger.error({
+        message: 'Error toggling AR mode',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { productId }
+      });
       alert('Failed to enter AR mode');
     }
   };

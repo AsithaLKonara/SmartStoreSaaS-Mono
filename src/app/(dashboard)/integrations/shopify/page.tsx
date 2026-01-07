@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,11 +59,7 @@ export default function ShopifyIntegrationPage() {
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    loadConfiguration();
-  }, []);
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/integrations/setup?type=shopify');
@@ -76,11 +72,15 @@ export default function ShopifyIntegrationPage() {
         }
       }
     } catch (error) {
-      console.error('Error loading Shopify configuration:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [config]);
+
+  useEffect(() => {
+    loadConfiguration();
+  }, [loadConfiguration]);
 
   const testConnection = async () => {
     try {

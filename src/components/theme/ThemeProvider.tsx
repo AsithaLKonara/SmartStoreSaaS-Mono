@@ -37,7 +37,7 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
     if (defaultTheme && darkMode.isLoaded && darkMode.theme === 'system') {
       darkMode.setTheme(defaultTheme);
     }
-  }, [defaultTheme, darkMode.isLoaded, darkMode.theme, darkMode.setTheme]);
+  }, [defaultTheme, darkMode.isLoaded, darkMode.theme, darkMode.setTheme, darkMode]);
 
   useEffect(() => {
     // Apply theme classes to body for global styling
@@ -49,6 +49,7 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
       body.classList.add('light');
       body.classList.remove('dark');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- darkMode.isDark is sufficient, full darkMode object would cause unnecessary re-renders
   }, [darkMode.isDark]);
 
   // Prevent flash of unstyled content

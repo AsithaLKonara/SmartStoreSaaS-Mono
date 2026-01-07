@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Truck, Package, MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Shipment {
   id: string;
@@ -32,7 +33,10 @@ export default function ShippingPage() {
         setShipments(data.shipments || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching shipments',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

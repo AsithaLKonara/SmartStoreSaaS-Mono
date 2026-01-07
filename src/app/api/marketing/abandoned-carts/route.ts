@@ -25,6 +25,10 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.user.organizationId;
 
+    if (!organizationId) {
+      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
+    }
+
     // Calculate cutoff time for abandoned carts
     const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
 
@@ -43,7 +47,7 @@ export async function GET(request: NextRequest) {
           customer: {
             select: { name: true, email: true }
           },
-          items: {
+          orderItems: {
             include: {
               product: {
                 select: { name: true, price: true }

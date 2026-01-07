@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
 import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import { stripeService } from '@/lib/payments/stripeService';
+import { logger } from '@/lib/logger';
 
 export interface Vendor {
   id: string;
@@ -242,7 +243,11 @@ export class MarketplaceService {
         settings: this.getDefaultVendorSettings()
       };
     } catch (error) {
-      console.error('Error registering vendor:', error);
+      logger.error({
+        message: 'Error registering vendor',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'registerVendor', userId: vendorData.userId, businessName: vendorData.businessName }
+      });
       throw new Error('Failed to register vendor');
     }
   }
@@ -274,7 +279,11 @@ export class MarketplaceService {
         organizationId: 'marketplace',
       });
     } catch (error) {
-      console.error('Error approving vendor:', error);
+      logger.error({
+        message: 'Error approving vendor',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'approveVendor', vendorId }
+      });
       throw new Error('Failed to approve vendor');
     }
   }
@@ -311,7 +320,11 @@ export class MarketplaceService {
 
       return this.mapVendorProductFromDB(product);
     } catch (error) {
-      console.error('Error adding vendor product:', error);
+      logger.error({
+        message: 'Error adding vendor product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'addVendorProduct', vendorId, productName: productData.name }
+      });
       throw new Error('Failed to add vendor product');
     }
   }
@@ -342,9 +355,16 @@ export class MarketplaceService {
       // 3. Send notifications to vendors
       // 4. Update marketplace analytics
 
-      console.log('Processing marketplace order:', orderId);
+      logger.info({
+        message: 'Processing marketplace order',
+        context: { service: 'MarketplaceService', operation: 'processMarketplaceOrder', orderId }
+      });
     } catch (error) {
-      console.error('Error processing marketplace order:', error);
+      logger.error({
+        message: 'Error processing marketplace order',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'processMarketplaceOrder', orderId }
+      });
     }
   }
 
@@ -390,7 +410,11 @@ export class MarketplaceService {
         commissionRate: commissionStructure.type === 'percentage' ? commissionRate : 0,
       };
     } catch (error) {
-      console.error('Error calculating vendor payout:', error);
+      logger.error({
+        message: 'Error calculating vendor payout',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'calculateVendorPayout', vendorId, period }
+      });
       throw new Error('Failed to calculate vendor payout');
     }
   }
@@ -413,7 +437,11 @@ export class MarketplaceService {
         await this.processVendorPayout(vendor.id, period);
       }
     } catch (error) {
-      console.error('Error processing vendor payouts:', error);
+      logger.error({
+        message: 'Error processing vendor payouts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'processVendorPayouts', period }
+      });
       throw new Error('Failed to process vendor payouts');
     }
   }
@@ -501,7 +529,11 @@ export class MarketplaceService {
         customerSatisfaction,
       };
     } catch (error) {
-      console.error('Error getting vendor analytics:', error);
+      logger.error({
+        message: 'Error getting vendor analytics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'getVendorAnalytics', vendorId, period }
+      });
       throw new Error('Failed to get vendor analytics');
     }
   }
@@ -548,7 +580,11 @@ export class MarketplaceService {
 
       return vendors.map(this.mapVendorFromDB);
     } catch (error) {
-      console.error('Error searching vendors:', error);
+      logger.error({
+        message: 'Error searching vendors',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MarketplaceService', operation: 'searchVendors', query }
+      });
       throw new Error('Failed to search vendors');
     }
   }
@@ -623,17 +659,26 @@ export class MarketplaceService {
 
   private async createStripeConnectAccount(vendorId: string): Promise<void> {
     // Create Stripe Connect account for vendor
-    console.log(`Creating Stripe Connect account for vendor: ${vendorId}`);
+    logger.debug({
+      message: 'Creating Stripe Connect account for vendor',
+      context: { service: 'MarketplaceService', operation: 'createStripeConnectAccount', vendorId }
+    });
   }
 
   private async enableStripeConnectAccount(vendorId: string): Promise<void> {
     // Enable Stripe Connect account
-    console.log(`Enabling Stripe Connect account for vendor: ${vendorId}`);
+    logger.debug({
+      message: 'Enabling Stripe Connect account for vendor',
+      context: { service: 'MarketplaceService', operation: 'enableStripeConnectAccount', vendorId }
+    });
   }
 
   private async processStripePayout(vendorId: string, amount: number): Promise<void> {
     // Process payout via Stripe Connect
-    console.log(`Processing payout of $${amount} for vendor: ${vendorId}`);
+    logger.debug({
+      message: 'Processing payout for vendor',
+      context: { service: 'MarketplaceService', operation: 'processStripePayout', vendorId, amount }
+    });
   }
 
   private async sendVendorWelcomeEmail(userId: string): Promise<void> {

@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +20,8 @@ const signinSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const correlationId = request.headers.get('x-request-id') || uuidv4();
+  
   try {
     const body = await request.json();
     
@@ -127,11 +131,20 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Signin error:', error);
+    logger.error({
+      message: 'Signin error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: {
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      },
+      correlation: correlationId
+    });
+    
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Internal server error' 
+        message: 'Internal server error',
+        correlation: correlationId
       }, 
       { status: 500 }
     );

@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { logger } from './logger';
 
 /**
  * Standard error response structure
@@ -218,7 +219,11 @@ export function withValidation<T extends z.ZodType>(
         );
       }
       
-      console.error('Validation error:', error);
+      logger.error({
+        message: 'Validation error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorHandling', operation: 'validateRequest', url: request.url }
+      });
       return CommonErrors.INTERNAL_ERROR(request.url, generateRequestId());
     }
   };
@@ -253,7 +258,11 @@ export function withErrorHandling<T extends any[], R>(
     try {
       return await handler(...args);
     } catch (error) {
-      console.error('Handler error:', error);
+      logger.error({
+        message: 'Handler error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ErrorHandling', operation: 'withErrorHandler' }
+      });
       
       // Handle specific error types
       if (error instanceof Error) {
@@ -300,18 +309,22 @@ export function asyncErrorBoundary<T extends any[], R>(
     try {
       return await handler(...args);
     } catch (error) {
-      console.error('Route handler error:', error);
-      
       const path = getRequestPath(args[0] as Request);
       const requestId = generateRequestId();
       
       // Log error with context
-      console.error('Error details:', {
-        path,
-        requestId,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString(),
+      logger.error({
+        message: 'Route handler error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          service: 'ErrorHandling',
+          operation: 'asyncErrorBoundary',
+          path,
+          requestId,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString(),
+        },
       });
       
       // Return appropriate error response

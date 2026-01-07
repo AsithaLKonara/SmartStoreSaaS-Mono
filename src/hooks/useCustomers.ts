@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, invalidateCustomers } from '@/lib/query-client';
+import { logger } from '@/lib/logger';
 
 export interface Customer {
   id: string;
@@ -43,7 +44,11 @@ export function useCustomers(filters?: { search?: string; active?: boolean }) {
         
         return response.json();
       } catch (error) {
-        console.error('[useCustomers] Fetch error:', error);
+        logger.error({
+          message: 'Fetch customers error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useCustomers', operation: 'fetchCustomers', filters }
+        });
         throw error;
       }
     },
@@ -69,7 +74,11 @@ export function useCustomer(id: string) {
         
         return response.json();
       } catch (error) {
-        console.error('[useCustomers] Fetch single customer error:', error);
+        logger.error({
+          message: 'Fetch single customer error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useCustomers', operation: 'fetchCustomer', customerId: id }
+        });
         throw error;
       }
     },
@@ -101,7 +110,11 @@ export function useCreateCustomer() {
         
         return response.json();
       } catch (error) {
-        console.error('[useCustomers] Create customer error:', error);
+        logger.error({
+          message: 'Create customer error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useCustomers', operation: 'createCustomer', customerEmail: customer.email }
+        });
         throw error;
       }
     },
@@ -134,7 +147,11 @@ export function useUpdateCustomer() {
         
         return response.json();
       } catch (error) {
-        console.error('[useCustomers] Update customer error:', error);
+        logger.error({
+          message: 'Update customer error',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { hook: 'useCustomers', operation: 'updateCustomer', customerId: id }
+        });
         throw error;
       }
     },

@@ -3,6 +3,7 @@ import { AIChatService } from '../ai/chatService';
 import { emailService } from '../email';
 import { whatsAppService } from '../messaging';
 import { createNotification } from '../notifications';
+import { logger } from '../logger';
 
 interface WorkflowStep {
   id: string;
@@ -225,7 +226,10 @@ export class WorkflowEngine {
 
         // Check conditions
         if (step.conditions && !this.evaluateConditions(step.conditions, execution.data)) {
-          console.log(`Step ${step.name} conditions not met, skipping`);
+          logger.debug({
+            message: 'Step conditions not met, skipping',
+            context: { service: 'WorkflowEngine', operation: 'execute', workflowName: workflow.name, stepName: step.name }
+          });
           continue;
         }
 
@@ -244,7 +248,11 @@ export class WorkflowEngine {
       execution.status = 'failed';
       execution.error = error instanceof Error ? error.message : 'Unknown error';
       execution.completedAt = new Date();
-      console.error(`Workflow ${workflow.name} failed:`, error);
+      logger.error({
+        message: 'Workflow failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WorkflowEngine', operation: 'execute', workflowName: workflow.name, workflowId: workflow.id }
+      });
     }
 
     // Save execution to database
@@ -253,7 +261,10 @@ export class WorkflowEngine {
 
   // Execute a single workflow step
   private async executeStep(step: WorkflowStep, data: Record<string, unknown>): Promise<void> {
-    console.log(`Executing step: ${step.name}`);
+    logger.debug({
+      message: 'Executing workflow step',
+      context: { service: 'WorkflowEngine', operation: 'executeStep', stepName: step.name, action: step.action }
+    });
 
     switch (step.action) {
       case 'validateOrder':
@@ -480,17 +491,26 @@ export class WorkflowEngine {
 
   private async createPurchaseOrder(data: Record<string, unknown>): Promise<void> {
     // Create purchase order logic
-    console.log('Creating purchase order for low stock items');
+    logger.debug({
+      message: 'Creating purchase order for low stock items',
+      context: { service: 'WorkflowEngine', operation: 'createPurchaseOrder', data }
+    });
   }
 
   private async notifySupplier(data: Record<string, unknown>): Promise<void> {
     // Notify supplier logic
-    console.log('Notifying supplier about low stock');
+    logger.debug({
+      message: 'Notifying supplier about low stock',
+      context: { service: 'WorkflowEngine', operation: 'notifySupplier', data }
+    });
   }
 
   private async updateInventoryStatus(data: Record<string, unknown>): Promise<void> {
     // Update inventory status logic
-    console.log('Updating inventory status');
+    logger.debug({
+      message: 'Updating inventory status',
+      context: { service: 'WorkflowEngine', operation: 'updateInventoryStatus', data }
+    });
   }
 
   // Customer Engagement Actions
@@ -532,23 +552,35 @@ export class WorkflowEngine {
 
   private async createCustomerProfile(data: Record<string, unknown>): Promise<void> {
     // Create customer profile logic
-    console.log('Creating customer profile');
+    logger.debug({
+      message: 'Creating customer profile',
+      context: { service: 'WorkflowEngine', operation: 'createCustomerProfile', data }
+    });
   }
 
   private async assignCustomerSegment(data: Record<string, unknown>): Promise<void> {
     // Assign customer segment logic
-    console.log('Assigning customer segment');
+    logger.debug({
+      message: 'Assigning customer segment',
+      context: { service: 'WorkflowEngine', operation: 'assignCustomerSegment', data }
+    });
   }
 
   private async scheduleFollowUp(data: Record<string, unknown>): Promise<void> {
     // Schedule follow-up logic
-    console.log('Scheduling follow-up');
+    logger.debug({
+      message: 'Scheduling follow-up',
+      context: { service: 'WorkflowEngine', operation: 'scheduleFollowUp', data }
+    });
   }
 
   // Payment Processing Actions
   private async validatePayment(data: Record<string, unknown>): Promise<void> {
     // Validate payment logic
-    console.log('Validating payment');
+    logger.debug({
+      message: 'Validating payment',
+      context: { service: 'WorkflowEngine', operation: 'validatePayment', data }
+    });
   }
 
   private async sendReceipt(data: Record<string, unknown>): Promise<void> {
@@ -572,13 +604,19 @@ export class WorkflowEngine {
 
   private async triggerFulfillment(data: Record<string, unknown>): Promise<void> {
     // Trigger fulfillment logic
-    console.log('Triggering fulfillment');
+    logger.debug({
+      message: 'Triggering fulfillment',
+      context: { service: 'WorkflowEngine', operation: 'triggerFulfillment', data }
+    });
   }
 
   // Save workflow execution to database
   private async saveWorkflowExecution(execution: WorkflowExecution): Promise<void> {
     // This would save to a workflow_executions table
-    console.log('Saving workflow execution:', execution);
+    logger.debug({
+      message: 'Saving workflow execution',
+      context: { service: 'WorkflowEngine', operation: 'saveWorkflowExecution', executionId: execution.id, workflowId: execution.workflowId }
+    });
   }
 
   // Get workflow statistics

@@ -13,12 +13,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,25 +25,15 @@ export const dynamic = 'force-dynamic';
  * GET /api/users
  * List users with organization scoping
  */
-export async function GET(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (req: AuthenticatedRequest, user) => {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = (page - 1) * limit;
 
-    const session = await getServerSession(authOptions);
-    if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const orgId = session.user.organizationId;
+    // SUPER_ADMIN can see all users, TENANT_ADMIN sees only their organization
+    const orgId = getOrganizationScope(user);
     const where = orgId ? { organizationId: orgId } : {};
 
     // Query users
@@ -74,8 +63,11 @@ export async function GET(req: NextRequest) {
       context: {
         count: users.length,
         page,
-        limit
-      }
+        limit,
+        organizationId: orgId,
+        userRole: user.role
+      },
+      correlation: req.correlationId
     });
 
     return NextResponse.json(
@@ -86,30 +78,17 @@ export async function GET(req: NextRequest) {
         totalPages: Math.ceil(total / limit)
       })
     );
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch users',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to fetch users' }, { status: 500 });
   }
-}
+);
 
 /**
  * POST /api/users
  * Create new user with proper authorization
  */
-export async function POST(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
+export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
+  async (req: AuthenticatedRequest, user) => {
     const body = await req.json();
-    const { name, email, password, role, roleTag } = body;
+    const { name, email, password, role, roleTag, organizationId: requestedOrgId } = body;
 
     // Validation
     if (!email || !password) {
@@ -120,23 +99,28 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // TODO: Role validation
-    // if (role === 'SUPER_ADMIN' && session.user.role !== 'SUPER_ADMIN') {
-    //   return NextResponse.json({ success: false, message: 'Only SUPER_ADMIN can create SUPER_ADMIN users' }, { status: 403 });
-    // }
+    // Role validation - Only SUPER_ADMIN can create SUPER_ADMIN users
+    if (role === 'SUPER_ADMIN' && user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Only SUPER_ADMIN can create SUPER_ADMIN users' 
+      }, { status: 403 });
+    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const session = await getServerSession(authOptions);
-    if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
     // Determine organization - SUPER_ADMIN can create users for any org, others create for their own
-    const organizationId = session.user.role === 'SUPER_ADMIN' 
-      ? body.organizationId || session.user.organizationId
-      : session.user.organizationId;
+    const organizationId = user.role === 'SUPER_ADMIN' 
+      ? requestedOrgId || user.organizationId
+      : getOrganizationScope(user);
+
+    if (!organizationId) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Organization ID is required' 
+      }, { status: 400 });
+    }
 
     // Create user
     const newUser = await prisma.user.create({
@@ -167,20 +151,15 @@ export async function POST(req: NextRequest) {
       context: {
         newUserId: newUser.id,
         newUserRole: newUser.role,
-        organizationId: newUser.organizationId
-      }
+        organizationId: newUser.organizationId,
+        createdBy: user.id
+      },
+      correlation: req.correlationId
     });
 
     return NextResponse.json(
       successResponse(newUser),
       { status: 201 }
     );
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to create user',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to create user' }, { status: 500 });
   }
-}
+);

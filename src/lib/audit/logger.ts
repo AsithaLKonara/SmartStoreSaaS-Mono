@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export enum AuditAction {
   CREATE = 'CREATE',
@@ -54,7 +55,11 @@ export async function createAuditLog(entry: AuditLogEntry): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('Audit log error:', error);
+    logger.error({
+      message: 'Audit log error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'AuditLogger', operation: 'log', action: auditData.action, entityType: auditData.entityType }
+    });
     // Don't throw - audit logging should not break the main flow
   }
 }

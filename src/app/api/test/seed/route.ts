@@ -8,6 +8,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 import usersFixture from '../../../../../tests/e2e/fixtures/users.json';
 import productsFixture from '../../../../../tests/e2e/fixtures/products.json';
 
@@ -17,6 +19,8 @@ if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) 
 }
 
 export async function POST(request: NextRequest) {
+  const correlationId = request.headers.get('x-request-id') || uuidv4();
+  
   try {
     const { seed } = await request.json();
     
@@ -51,9 +55,22 @@ export async function POST(request: NextRequest) {
       organizationId: testOrg.id,
     });
   } catch (error: any) {
-    console.error('Seed error:', error);
+    logger.error({
+      message: 'Seed error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: {
+        errorMessage: error.message,
+        seedType: (await request.json()).seed
+      },
+      correlation: correlationId
+    });
+    
     return NextResponse.json(
-      { success: false, error: error.message },
+      { 
+        success: false, 
+        error: error.message,
+        correlation: correlationId
+      },
       { status: 500 }
     );
   }
@@ -150,16 +167,29 @@ async function seedCustomers(orgId: string) {
   });
   
   for (const customer of customers) {
-    await prisma.customerLoyalty.upsert({
-      where: { customerId: customer.id },
-      update: {},
-      create: {
-        customerId: customer.id,
-        points: 100,
-        tier: 'BRONZE',
-        totalSpent: 0,
-      },
+    const existingLoyalty = await prisma.customerLoyalty.findFirst({
+      where: { customerId: customer.id }
     });
+
+    if (existingLoyalty) {
+      await prisma.customerLoyalty.update({
+        where: { id: existingLoyalty.id },
+        data: {
+          points: 100,
+          tier: 'BRONZE',
+          totalSpent: 0,
+        }
+      });
+    } else {
+      await prisma.customerLoyalty.create({
+        data: {
+          customerId: customer.id,
+          points: 100,
+          tier: 'BRONZE',
+          totalSpent: 0,
+        }
+      });
+    }
   }
 }
 

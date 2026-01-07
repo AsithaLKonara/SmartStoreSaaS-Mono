@@ -1,6 +1,7 @@
 import { prisma } from '../prisma';
 import { realTimeSyncService, SyncEvent } from '../sync/realTimeSyncService';
 import { EventEmitter } from 'events';
+import { logger } from '../logger';
 
 export interface WooCommerceConfig {
   siteUrl: string;
@@ -46,7 +47,11 @@ export class WooCommerceService extends EventEmitter {
         });
       });
     } catch (error) {
-      console.error('Error loading WooCommerce configs:', error);
+      logger.error({
+        message: 'Error loading WooCommerce configs',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceService', operation: 'loadConfigs' }
+      });
     }
   }
 
@@ -101,7 +106,11 @@ export class WooCommerceService extends EventEmitter {
       this.emit('products_synced', { organizationId, count: products.length });
 
     } catch (error) {
-      console.error('Error syncing products to WooCommerce:', error);
+      logger.error({
+        message: 'Error syncing products to WooCommerce',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceService', operation: 'syncProducts', organizationId }
+      });
       throw error;
     }
   }
@@ -147,7 +156,11 @@ export class WooCommerceService extends EventEmitter {
       await this.syncProductEvent(product, 'update', config.organizationId);
 
     } catch (error) {
-      console.error(`Error syncing product ${product.id} to WooCommerce:`, error);
+      logger.error({
+        message: 'Error syncing product to WooCommerce',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WooCommerceService', operation: 'syncProduct', productId: product.id }
+      });
     }
   }
 

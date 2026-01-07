@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface ProductRecommendation {
   productId: string;
@@ -97,7 +98,11 @@ export class AIRecommendationEngine {
 
       return rankedRecs.slice(0, limit);
     } catch (error) {
-      console.error('Error getting recommendations:', error);
+      logger.error({
+        message: 'Error getting recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'getRecommendations', userId, organizationId }
+      });
       return await this.getPopularProducts(organizationId, limit);
     }
   }
@@ -148,7 +153,11 @@ export class AIRecommendationEngine {
         confidence: 0.7
       }));
     } catch (error) {
-      console.error('Error getting popular products:', error);
+      logger.error({
+        message: 'Error getting popular products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'getPopularProducts', organizationId, limit }
+      });
       return [];
     }
   }
@@ -201,7 +210,11 @@ export class AIRecommendationEngine {
         .slice(0, 10)
         .map(([customerId]) => customerId);
     } catch (error) {
-      console.error('Error finding similar customers:', error);
+      logger.error({
+        message: 'Error finding similar customers',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'findSimilarCustomers', userId, organizationId }
+      });
       return [];
     }
   }
@@ -238,7 +251,11 @@ export class AIRecommendationEngine {
         confidence: 0.8
       }));
     } catch (error) {
-      console.error('Error getting content-based recommendations:', error);
+      logger.error({
+        message: 'Error getting content-based recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'getContentBasedRecommendations', userId, organizationId }
+      });
       return [];
     }
   }
@@ -294,7 +311,11 @@ export class AIRecommendationEngine {
         confidence: 0.75
       }));
     } catch (error) {
-      console.error('Error getting collaborative recommendations:', error);
+      logger.error({
+        message: 'Error getting collaborative recommendations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'getCollaborativeRecommendations', userId, organizationId }
+      });
       return [];
     }
   }
@@ -364,7 +385,11 @@ export class AIRecommendationEngine {
         confidence: 0.9
       }));
     } catch (error) {
-      console.error('Error getting trending products:', error);
+      logger.error({
+        message: 'Error getting trending products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'getTrendingProducts', organizationId, limit }
+      });
       return [];
     }
   }
@@ -426,7 +451,11 @@ export class AIRecommendationEngine {
         confidence: 0.85
       }));
     } catch (error) {
-      console.error('Error getting frequently bought together products:', error);
+      logger.error({
+        message: 'Error getting frequently bought together products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'AIRecommendationEngine', operation: 'getFrequentlyBoughtTogether', productId, organizationId }
+      });
       return [];
     }
   }

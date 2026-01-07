@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { 
@@ -57,11 +57,7 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchCampaign();
-  }, [params.id]);
-
-  const fetchCampaign = async () => {
+  const fetchCampaign = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/campaigns/${params.id}`);
@@ -82,7 +78,11 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, handleError, router]);
+
+  useEffect(() => {
+    fetchCampaign();
+  }, [fetchCampaign]);
 
   const handleSend = async () => {
     if (!confirm('Send this campaign now?')) return;

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import axios, { AxiosInstance } from 'axios';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 export interface MessengerMessage {
   id: string;
@@ -183,7 +184,11 @@ export class MessengerService {
 
       return message;
     } catch (error) {
-      console.error('Error sending Messenger text message:', error);
+      logger.error({
+        message: 'Error sending Messenger text message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'sendTextMessage', recipientId, message: text.substring(0, 50) }
+      });
       throw new Error('Failed to send Messenger message');
     }
   }
@@ -251,7 +256,11 @@ export class MessengerService {
 
       return message;
     } catch (error) {
-      console.error('Error sending Messenger template:', error);
+      logger.error({
+        message: 'Error sending Messenger template',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'sendTemplate', recipientId, templateName }
+      });
       throw new Error('Failed to send Messenger template');
     }
   }
@@ -325,7 +334,11 @@ export class MessengerService {
 
       return message;
     } catch (error) {
-      console.error('Error sending Messenger attachment:', error);
+      logger.error({
+        message: 'Error sending Messenger attachment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'sendAttachment', recipientId, attachmentType: attachment.type }
+      });
       throw new Error('Failed to send Messenger attachment');
     }
   }
@@ -344,7 +357,11 @@ export class MessengerService {
 
       return response.data;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      logger.error({
+        message: 'Error getting user profile',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'getUserProfile', userId }
+      });
       return null;
     }
   }
@@ -361,7 +378,11 @@ export class MessengerService {
         params: { access_token: this.pageAccessToken },
       });
     } catch (error) {
-      console.error('Error setting typing indicator:', error);
+      logger.error({
+        message: 'Error setting typing indicator',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'setTypingIndicator', recipientId }
+      });
     }
   }
 
@@ -377,7 +398,11 @@ export class MessengerService {
         params: { access_token: this.pageAccessToken },
       });
     } catch (error) {
-      console.error('Error marking message as seen:', error);
+      logger.error({
+        message: 'Error marking message as seen',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'markMessageAsSeen', recipientId, messageId }
+      });
     }
   }
 
@@ -401,7 +426,11 @@ export class MessengerService {
         params: { access_token: this.pageAccessToken },
       });
     } catch (error) {
-      console.error('Error setting persistent menu:', error);
+      logger.error({
+        message: 'Error setting persistent menu',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'setPersistentMenu' }
+      });
       throw new Error('Failed to set persistent menu');
     }
   }
@@ -420,7 +449,11 @@ export class MessengerService {
         params: { access_token: this.pageAccessToken },
       });
     } catch (error) {
-      console.error('Error setting greeting:', error);
+      logger.error({
+        message: 'Error setting greeting',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'setGreeting' }
+      });
       throw new Error('Failed to set greeting');
     }
   }
@@ -436,7 +469,11 @@ export class MessengerService {
         params: { access_token: this.pageAccessToken },
       });
     } catch (error) {
-      console.error('Error setting get started button:', error);
+      logger.error({
+        message: 'Error setting get started button',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'setGetStartedButton' }
+      });
       throw new Error('Failed to set get started button');
     }
   }
@@ -469,7 +506,11 @@ export class MessengerService {
         }
       }
     } catch (error) {
-      console.error('Error handling Messenger webhook:', error);
+      logger.error({
+        message: 'Error handling Messenger webhook',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'handleWebhook' }
+      });
       throw error;
     }
   }
@@ -483,7 +524,11 @@ export class MessengerService {
 
       return signature === `sha256=${expectedSignature}`;
     } catch (error) {
-      console.error('Error verifying webhook signature:', error);
+      logger.error({
+        message: 'Error verifying webhook signature',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'verifyWebhookSignature' }
+      });
       return false;
     }
   }
@@ -507,7 +552,11 @@ export class MessengerService {
         await this.processReadReceipt(event, organizationId);
       }
     } catch (error) {
-      console.error('Error processing messaging event:', error);
+      logger.error({
+        message: 'Error processing messaging event',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'processMessagingEvent', pageId }
+      });
     }
   }
 
@@ -560,7 +609,11 @@ export class MessengerService {
       });
 
     } catch (error) {
-      console.error('Error processing incoming message:', error);
+      logger.error({
+        message: 'Error processing incoming message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'processIncomingMessage', senderId: event.sender?.id }
+      });
     }
   }
 
@@ -589,7 +642,11 @@ export class MessengerService {
           await this.handleCustomPostback(senderId, payload, title, organizationId);
       }
     } catch (error) {
-      console.error('Error processing postback:', error);
+      logger.error({
+        message: 'Error processing postback',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'processPostback', senderId: event.sender?.id }
+      });
     }
   }
 
@@ -598,9 +655,16 @@ export class MessengerService {
       // Update message delivery status
       // Note: messengerMessage model doesn't exist in Prisma schema
       // Consider implementing this functionality when the model is available
-      console.log('Delivery receipt processed:', event.delivery);
+      logger.debug({
+        message: 'Delivery receipt processed',
+        context: { service: 'MessengerService', operation: 'processDeliveryReceipt', delivery: event.delivery }
+      });
     } catch (error) {
-      console.error('Error processing delivery receipt:', error);
+      logger.error({
+        message: 'Error processing delivery receipt',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'processDeliveryReceipt' }
+      });
     }
   }
 
@@ -609,9 +673,16 @@ export class MessengerService {
       // Update message read status
       // Note: messengerMessage model doesn't exist in Prisma schema
       // Consider implementing this functionality when the model is available
-      console.log('Read receipt processed:', event.read);
+      logger.debug({
+        message: 'Read receipt processed',
+        context: { service: 'MessengerService', operation: 'processReadReceipt', read: event.read }
+      });
     } catch (error) {
-      console.error('Error processing read receipt:', error);
+      logger.error({
+        message: 'Error processing read receipt',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'processReadReceipt' }
+      });
     }
   }
 
@@ -636,7 +707,11 @@ export class MessengerService {
         await this.handleContactSupport(message.senderId, message.organizationId);
       }
     } catch (error) {
-      console.error('Error processing auto-reply:', error);
+      logger.error({
+        message: 'Error processing auto-reply',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'processAutoReply', senderId }
+      });
     }
   }
 
@@ -712,7 +787,11 @@ What would you like to do today?`;
 
       await this.sendTemplateMessage(senderId, template, organizationId);
     } catch (error) {
-      console.error('Error sending catalog:', error);
+      logger.error({
+        message: 'Error sending catalog',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'sendCatalog', senderId, organizationId }
+      });
       await this.sendTextMessage(
         senderId,
         'Sorry, I encountered an error while fetching our product catalog. Please try again later.',
@@ -801,7 +880,11 @@ How would you prefer to get help?`;
         ]
       );
     } catch (error) {
-      console.error('Error handling add to cart:', error);
+      logger.error({
+        message: 'Error handling add to cart',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'handleAddToCart', senderId, productId }
+      });
       await this.sendTextMessage(
         senderId,
         'Sorry, I encountered an error. Please try again.',
@@ -834,9 +917,16 @@ How would you prefer to get help?`;
     try {
       // Note: messengerMessage model doesn't exist in Prisma schema
       // Consider implementing this functionality when the model is available
-      console.log('Message stored:', message);
+      logger.debug({
+        message: 'Message stored',
+        context: { service: 'MessengerService', operation: 'storeMessage', messageId: message.id, senderId: message.senderId }
+      });
     } catch (error) {
-      console.error('Error storing Messenger message:', error);
+      logger.error({
+        message: 'Error storing Messenger message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'MessengerService', operation: 'storeMessage', messageId: message.id }
+      });
     }
   }
 

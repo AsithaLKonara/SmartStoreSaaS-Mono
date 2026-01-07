@@ -10,10 +10,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,21 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
       const orgId = getOrganizationScope(user);
 
       const movements = await prisma.inventoryMovement.findMany({
-        where: orgId ? { organizationId: orgId } : {},
+        where: orgId ? {
+          product: {
+            organizationId: orgId
+          }
+        } : {},
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+              organizationId: true
+            }
+          }
+        },
         orderBy: { createdAt: 'desc' },
         take: 100
       });
@@ -62,12 +77,11 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       const movement = await prisma.inventoryMovement.create({
         data: {
-          organizationId,
           productId,
           quantity,
           type,
           reason,
-          createdBy: user.id
+          reference: `User: ${user.id}`
         }
       });
 

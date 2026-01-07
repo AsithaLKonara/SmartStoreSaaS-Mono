@@ -3,6 +3,7 @@ import { realTimeSyncService } from '../sync/realTimeSyncService';
 import { emailService } from '../email/emailService';
 import { smsService } from '../sms/smsService';
 import { whatsAppService } from '../whatsapp/whatsappService';
+import { logger } from '@/lib/logger';
 
 export interface InventoryItem {
   id: string;
@@ -174,7 +175,11 @@ export class InventoryService {
 
       return inventoryItems;
     } catch (error) {
-      console.error('Error getting product inventory:', error);
+      logger.error({
+        message: 'Error getting product inventory',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getProductInventory', productId, warehouseId }
+      });
       throw error;
     }
   }
@@ -309,7 +314,11 @@ export class InventoryService {
 
       return stockMovement;
     } catch (error) {
-      console.error('Error updating inventory:', error);
+      logger.error({
+        message: 'Error updating inventory',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'updateInventory', productId, warehouseId, quantity, type }
+      });
       throw error;
     }
   }
@@ -379,7 +388,11 @@ export class InventoryService {
 
       return true;
     } catch (error) {
-      console.error('Error reserving inventory:', error);
+      logger.error({
+        message: 'Error reserving inventory',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'reserveInventory', orderId, productId, warehouseId, quantity }
+      });
       throw error;
     }
   }
@@ -392,12 +405,19 @@ export class InventoryService {
     try {
       // Since we don't have metadata for tracking reservations, this method needs to be implemented differently
       // For now, we'll just log that this method needs to be implemented with proper reservation tracking
-      console.log('Note: releaseReservation method needs to be implemented with proper reservation tracking');
+      logger.warn({
+        message: 'Note: releaseReservation method needs to be implemented with proper reservation tracking',
+        context: { service: 'InventoryService', operation: 'releaseReservation', orderId, organizationId, fulfill }
+      });
       
       // For now, return true as a placeholder
       return true;
     } catch (error) {
-      console.error('Error releasing inventory reservation:', error);
+      logger.error({
+        message: 'Error releasing inventory reservation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'releaseReservation', orderId, organizationId }
+      });
       throw error;
     }
   }
@@ -452,7 +472,11 @@ export class InventoryService {
         await this.resolveIrrelevantAlerts(productId, warehouseId, currentQuantity);
       }
     } catch (error) {
-      console.error('Error checking stock alerts:', error);
+      logger.error({
+        message: 'Error checking stock alerts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'checkStockAlerts', productId, warehouseId }
+      });
     }
   }
 
@@ -468,7 +492,10 @@ export class InventoryService {
     try {
       // Since we don't have a dedicated StockAlert model or Product metadata, we'll log the alert
       // For now, we'll just log that this method needs to be implemented differently
-      console.log(`Stock alert: ${type} for product ${productId} at warehouse ${warehouseId}, quantity: ${currentQuantity}, severity: ${severity}`);
+      logger.warn({
+        message: 'Stock alert',
+        context: { service: 'InventoryService', operation: 'createOrUpdateAlert', productId, warehouseId, type, currentQuantity, severity, threshold }
+      });
       
       // Store stock alert in database
       const alert: StockAlert = {
@@ -501,13 +528,20 @@ export class InventoryService {
           },
         });
       } catch (error) {
-        console.log('StockAlert model not available, using in-memory alerts');
+        logger.warn({
+          message: 'StockAlert model not available, using in-memory alerts',
+          context: { service: 'InventoryService', operation: 'createOrUpdateAlert', productId, warehouseId }
+        });
       }
 
       // Send notifications
       await this.sendStockAlertNotifications(alert, organizationId);
     } catch (error) {
-      console.error('Error creating/updating stock alert:', error);
+      logger.error({
+        message: 'Error creating/updating stock alert',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'createOrUpdateAlert', productId, warehouseId, type }
+      });
     }
   }
 
@@ -535,12 +569,22 @@ export class InventoryService {
             resolvedAt: new Date(),
           },
         });
-        console.log(`Alert resolution check: product ${productId} at warehouse ${warehouseId}, quantity: ${currentQuantity}`);
+        logger.debug({
+          message: 'Alert resolution check',
+          context: { service: 'InventoryService', operation: 'resolveIrrelevantAlerts', productId, warehouseId, currentQuantity }
+        });
       } catch (error) {
-        console.log('StockAlert model not available, using in-memory alert resolution');
+        logger.warn({
+          message: 'StockAlert model not available, using in-memory alert resolution',
+          context: { service: 'InventoryService', operation: 'resolveIrrelevantAlerts', productId, warehouseId }
+        });
       }
     } catch (error) {
-      console.error('Error resolving irrelevant alerts:', error);
+      logger.error({
+        message: 'Error resolving irrelevant alerts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'resolveIrrelevantAlerts', productId, warehouseId }
+      });
     }
   }
 
@@ -573,7 +617,11 @@ export class InventoryService {
           }
         });
       } catch (error) {
-        console.error('Failed to send email notification:', error);
+        logger.error({
+          message: 'Failed to send email notification',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id, alertType: alert.type }
+        });
       }
 
       // Send SMS notification (placeholder)
@@ -583,7 +631,11 @@ export class InventoryService {
           message: alertMessage
         });
       } catch (error) {
-        console.error('Failed to send SMS notification:', error);
+        logger.error({
+          message: 'Failed to send SMS notification',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id, alertType: alert.type }
+        });
       }
 
       // Send WhatsApp notification (placeholder)
@@ -595,7 +647,11 @@ export class InventoryService {
           'default' // organizationId placeholder
         );
       } catch (error) {
-        console.error('Failed to send WhatsApp notification:', error);
+        logger.error({
+          message: 'Failed to send WhatsApp notification',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id, alertType: alert.type }
+        });
       }
 
       // Update alert notification count - store in ProductActivity since Product doesn't have metadata
@@ -614,7 +670,11 @@ export class InventoryService {
         }
       });
     } catch (error) {
-      console.error('Error sending stock alert notifications:', error);
+      logger.error({
+        message: 'Error sending stock alert notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id }
+      });
     }
   }
 
@@ -690,7 +750,11 @@ export class InventoryService {
         confidence
       };
     } catch (error) {
-      console.error('Error getting inventory forecast:', error);
+      logger.error({
+        message: 'Error getting inventory forecast',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getInventoryForecast', productId, warehouseId, daysToForecast }
+      });
       return null;
     }
   }
@@ -764,7 +828,11 @@ export class InventoryService {
         byWarehouse
       };
     } catch (error) {
-      console.error('Error getting stock valuation:', error);
+      logger.error({
+        message: 'Error getting stock valuation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getStockValuation', organizationId, warehouseId }
+      });
       throw error;
     }
   }
@@ -889,7 +957,11 @@ export class InventoryService {
         alerts
       };
     } catch (error) {
-      console.error('Error generating inventory report:', error);
+      logger.error({
+        message: 'Error generating inventory report',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'generateInventoryReport', organizationId, warehouseId }
+      });
       throw error;
     }
   }
@@ -917,7 +989,11 @@ export class InventoryService {
         value: (product.stockQuantity || 0) * (product.costPrice || 0)
       }));
     } catch (error) {
-      console.error('Error getting top products by value:', error);
+      logger.error({
+        message: 'Error getting top products by value',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getTopProductsByValue', organizationId, limit }
+      });
       return [];
     }
   }
@@ -947,7 +1023,11 @@ export class InventoryService {
         }))
         .slice(0, 10);
     } catch (error) {
-      console.error('Error getting slow moving products:', error);
+      logger.error({
+        message: 'Error getting slow moving products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getSlowMovingProducts', organizationId, daysThreshold }
+      });
       return [];
     }
   }
@@ -1001,7 +1081,11 @@ export class InventoryService {
 
       return movements;
     } catch (error) {
-      console.error('Error performing cycle count:', error);
+      logger.error({
+        message: 'Error performing cycle count',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'performCycleCount', warehouseId, organizationId, itemsCount: items.length }
+      });
       throw error;
     }
   }
@@ -1042,7 +1126,11 @@ export class InventoryService {
         };
       });
     } catch (error) {
-      console.error('Error getting movement history:', error);
+      logger.error({
+        message: 'Error getting movement history',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'InventoryService', operation: 'getMovementHistory', productId, warehouseId, organizationId, limit }
+      });
       throw error;
     }
   }

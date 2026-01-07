@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Report {
   id: string;
@@ -70,7 +71,10 @@ export default function ReportsPage() {
         setTemplates(templatesData);
       }
     } catch (error) {
-      console.error('Error fetching report data:', error);
+      logger.error({
+        message: 'Error fetching report data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load report data');
     } finally {
       setLoading(false);
@@ -156,7 +160,11 @@ export default function ReportsPage() {
         toast.error('Failed to generate report');
       }
     } catch (error) {
-      console.error('Error generating report:', error);
+      logger.error({
+        message: 'Error generating report',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { reportType: reportData.type }
+      });
       toast.error('Failed to generate report');
     }
   };
@@ -179,7 +187,11 @@ export default function ReportsPage() {
         toast.error('Failed to download report');
       }
     } catch (error) {
-      console.error('Error downloading report:', error);
+      logger.error({
+        message: 'Error downloading report',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { reportId }
+      });
       toast.error('Failed to download report');
     }
   };

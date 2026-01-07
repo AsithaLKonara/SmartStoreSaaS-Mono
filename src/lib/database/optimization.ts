@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from '../logger';
 
 export interface QueryMetrics {
   query: string;
@@ -314,7 +315,10 @@ class DatabaseOptimizer {
 
     // Log slow queries
     if (executionTime > this.slowQueryThreshold) {
-      console.warn(`[SLOW QUERY] ${query}: ${executionTime}ms`, parameters);
+      logger.warn({
+        message: 'Slow query detected',
+        context: { service: 'DatabaseOptimizer', operation: 'logQuery', query, executionTime, parameters }
+      });
     }
 
     // Keep only last 1000 metrics

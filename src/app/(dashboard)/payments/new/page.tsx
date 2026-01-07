@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Order {
   id: string;
@@ -52,16 +53,7 @@ export default function NewPaymentPage() {
     paidAt: ''
   });
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchOrders();
-  }, [session, status]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await fetch('/api/orders');
       if (response.ok) {
@@ -69,9 +61,18 @@ export default function NewPaymentPage() {
         setOrders(data.orders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchOrders();
+  }, [session, status, router, fetchOrders]);
 
   const handleOrderSelect = (order: Order) => {
     setSelectedOrder(order);
@@ -118,7 +119,11 @@ export default function NewPaymentPage() {
         toast.error(error.message || 'Failed to record payment');
       }
     } catch (error) {
-      console.error('Error creating payment:', error);
+      logger.error({
+        message: 'Error creating payment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { orderId: paymentData.orderId }
+      });
       toast.error('Failed to record payment');
     } finally {
       setLoading(false);

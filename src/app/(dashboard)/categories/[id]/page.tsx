@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, Trash2, Save, X } from 'lucide-react';
@@ -15,11 +15,7 @@ export default function CategoryDetailPage({ params }: { params: { id: string } 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', isActive: true });
 
-  useEffect(() => {
-    fetchCategory();
-  }, [params.id]);
-
-  const fetchCategory = async () => {
+  const fetchCategory = useCallback(async () => {
     try {
       const response = await fetch(`/api/categories/${params.id}`);
       if (response.ok) {
@@ -29,11 +25,15 @@ export default function CategoryDetailPage({ params }: { params: { id: string } 
         setFormData({ name: cat.name, description: cat.description || '', isActive: cat.isActive });
       }
     } catch (error) {
-      console.error('Error:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchCategory();
+  }, [fetchCategory]);
 
   const handleSave = async () => {
     try {

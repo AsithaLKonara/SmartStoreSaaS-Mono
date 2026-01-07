@@ -8,6 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
@@ -22,7 +24,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     // }
 
-    const invoiceId = params.id;
+    // Extract invoice ID from URL path
+    const url = new URL(request.url);
+    const invoiceId = url.pathname.split('/').pop();
     const body = await request.json();
     const { paymentMethod, amount } = body;
 

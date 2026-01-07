@@ -103,7 +103,11 @@ class DatabasePerformanceOptimizer {
         fromCache: false,
       };
     } catch (error) {
-      console.error('Error executing optimized query:', error);
+      logger.error({
+        message: 'Error executing optimized query',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'executeOptimizedQuery', organizationId }
+      });
       throw error;
     }
   }
@@ -236,7 +240,11 @@ class DatabasePerformanceOptimizer {
         indexRecommendations,
       };
     } catch (error) {
-      console.error('Error generating optimization report:', error);
+      logger.error({
+        message: 'Error generating optimization report',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'generateOptimizationReport', organizationId }
+      });
       throw error;
     }
   }
@@ -246,7 +254,10 @@ class DatabasePerformanceOptimizer {
    */
   async warmUpCache(organizationId: string): Promise<void> {
     try {
-      console.log(`Warming up cache for organization: ${organizationId}`);
+      logger.info({
+        message: 'Warming up cache for organization',
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'warmUpCache', organizationId }
+      });
 
       await this.getOptimizedOrganization(organizationId);
       await this.getOptimizedProducts(organizationId, 1, 10);
@@ -258,9 +269,16 @@ class DatabasePerformanceOptimizer {
         this.getOptimizedAnalytics(organizationId, 'products', '30d'),
       ]);
 
-      console.log(`Cache warm-up completed for organization: ${organizationId}`);
+      logger.info({
+        message: 'Cache warm-up completed for organization',
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'warmUpCache', organizationId }
+      });
     } catch (error) {
-      console.error('Error warming up cache:', error);
+      logger.error({
+        message: 'Error warming up cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'warmUpCache', organizationId }
+      });
     }
   }
 
@@ -280,9 +298,16 @@ class DatabasePerformanceOptimizer {
         await cacheDeletePattern(pattern);
       }
 
-      console.log(`Cache cleared for organization: ${organizationId}`);
+      logger.info({
+        message: 'Cache cleared for organization',
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'clearOrganizationCache', organizationId }
+      });
     } catch (error) {
-      console.error('Error clearing organization cache:', error);
+      logger.error({
+        message: 'Error clearing organization cache',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'DatabasePerformanceOptimizer', operation: 'clearOrganizationCache', organizationId }
+      });
     }
   }
 

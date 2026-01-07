@@ -1,4 +1,6 @@
 // Notifications service exports
+import { logger } from '@/lib/logger';
+
 export const createNotification = async (data: {
   title: string;
   message: string;
@@ -6,7 +8,10 @@ export const createNotification = async (data: {
   userId?: string;
 }) => {
   // Simple notification creation
-  console.log('Notification:', data);
+  logger.debug({
+    message: 'Notification created',
+    context: { service: 'NotificationService', operation: 'createNotification', userId: data.userId, type: data.type, title: data.title }
+  });
   return { id: Date.now().toString(), ...data };
 };
 

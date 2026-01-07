@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export interface DemandForecast {
   productId: string;
@@ -61,7 +62,11 @@ export class PredictiveAnalyticsEngine {
 
       return forecasts.sort((a, b) => b.predictedDemand - a.predictedDemand);
     } catch (error) {
-      console.error('Error predicting demand:', error);
+      logger.error({
+        message: 'Error predicting demand',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PredictiveAnalytics', operation: 'predictDemand', organizationId, timeRange }
+      });
       return [];
     }
   }
@@ -92,7 +97,11 @@ export class PredictiveAnalyticsEngine {
 
       return predictions.sort((a, b) => b.churnProbability - a.churnProbability);
     } catch (error) {
-      console.error('Error predicting customer churn:', error);
+      logger.error({
+        message: 'Error predicting customer churn',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PredictiveAnalytics', operation: 'predictCustomerChurn', organizationId }
+      });
       return [];
     }
   }
@@ -149,7 +158,11 @@ export class PredictiveAnalyticsEngine {
 
       return forecasts;
     } catch (error) {
-      console.error('Error forecasting revenue:', error);
+      logger.error({
+        message: 'Error forecasting revenue',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PredictiveAnalytics', operation: 'forecastRevenue', organizationId, period }
+      });
       return [];
     }
   }
@@ -205,7 +218,11 @@ export class PredictiveAnalyticsEngine {
         nextPeriod: '30 days'
       };
     } catch (error) {
-      console.error('Error forecasting product demand:', error);
+      logger.error({
+        message: 'Error forecasting product demand',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PredictiveAnalytics', operation: 'forecastProductDemand', productId, timeRange }
+      });
       return null;
     }
   }
@@ -295,7 +312,11 @@ export class PredictiveAnalyticsEngine {
         factors
       };
     } catch (error) {
-      console.error('Error calculating churn probability:', error);
+      logger.error({
+        message: 'Error calculating churn probability',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'PredictiveAnalytics', operation: 'calculateChurnProbability', customerId }
+      });
       return null;
     }
   }

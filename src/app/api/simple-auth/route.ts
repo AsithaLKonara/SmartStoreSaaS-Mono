@@ -3,13 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
 
 // Use the EXACT same pattern as working debug endpoints
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔐 Simple authentication...');
+    logger.info({
+      message: 'Simple authentication',
+      context: { operation: 'simple-auth' }
+    });
 
     const body = await request.json();
     const { email, password } = body;
@@ -101,7 +105,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Simple auth error:', error);
+    logger.error({
+      message: 'Simple auth error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { operation: 'simple-auth' }
+    });
     return NextResponse.json(
       {
         success: false,

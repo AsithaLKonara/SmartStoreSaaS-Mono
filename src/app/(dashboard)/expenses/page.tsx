@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Expense {
   id: string;
@@ -59,7 +60,10 @@ export default function ExpensesPage() {
         setExpenses(data);
       }
     } catch (error) {
-      console.error('Error fetching expense data:', error);
+      logger.error({
+        message: 'Error fetching expense data',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load expense data');
     } finally {
       setLoading(false);
@@ -129,7 +133,11 @@ export default function ExpensesPage() {
         toast.error(`Failed to ${action} expense`);
       }
     } catch (error) {
-      console.error(`Error ${action}ing expense:`, error);
+      logger.error({
+        message: `Error ${action}ing expense`,
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { action, expenseId }
+      });
       toast.error(`Failed to ${action} expense`);
     }
   };

@@ -5,6 +5,7 @@
 import { prisma } from '@/lib/prisma';
 import { notificationService } from '@/lib/notifications/service';
 import { emailService } from '@/lib/email/emailService';
+import { logger } from '@/lib/logger';
 
 export enum TriggerEvent {
   ORDER_CREATED = 'ORDER_CREATED',
@@ -71,7 +72,11 @@ export async function executeWorkflow(
       }
     }
   } catch (error) {
-    console.error('Workflow execution error:', error);
+    logger.error({
+      message: 'Workflow execution error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'AutomationWorkflow', operation: 'executeWorkflow', workflowId: workflow.id }
+    });
   }
 }
 
@@ -126,7 +131,11 @@ async function executeAction(
       // Add more action types as needed
     }
   } catch (error) {
-    console.error(`Action execution error (${action.type}):`, error);
+    logger.error({
+      message: 'Action execution error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'AutomationWorkflow', operation: 'executeAction', actionType: action.type }
+    });
   }
 }
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
+import { logger } from '@/lib/logger';
 
 interface Backup {
   id: string;
@@ -42,7 +43,10 @@ function BackupPageContent() {
         setBackups(data.backups || []);
       }
     } catch (error) {
-      console.error('Error fetching backups:', error);
+      logger.error({
+        message: 'Error fetching backups',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load backups');
     } finally {
       setLoading(false);

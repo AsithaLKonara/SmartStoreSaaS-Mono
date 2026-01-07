@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { logger } from '@/lib/logger';
 
 interface PerformanceMetrics {
   loadTime: number;
@@ -72,7 +73,10 @@ export const PerformanceMonitor: React.FC = () => {
       try {
         observer.observe({ entryTypes: ['paint', 'largest-contentful-paint', 'first-input', 'layout-shift'] });
       } catch (error) {
-        console.warn('Performance monitoring not fully supported:', error);
+        logger.warn({
+          message: 'Performance monitoring not fully supported',
+          error: error instanceof Error ? error : new Error(String(error))
+        });
       }
 
       // Set up keyboard shortcut to toggle visibility

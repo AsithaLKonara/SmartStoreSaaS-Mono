@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { SuperAdminOnly } from '@/components/auth/RoleProtectedPage';
+import { logger } from '@/lib/logger';
 
 interface AuditLog {
   id: string;
@@ -46,7 +47,10 @@ function AuditPageContent() {
         setLogs(data.logs || []);
       }
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      logger.error({
+        message: 'Error fetching audit logs',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load audit logs');
     } finally {
       setLoading(false);

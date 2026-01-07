@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Loader2, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface StockAdjustmentModalProps {
   isOpen: boolean;
@@ -81,7 +82,11 @@ export function StockAdjustmentModal({
       onComplete();
       onClose();
     } catch (error) {
-      console.error('Stock adjustment error:', error);
+      logger.error({
+        message: 'Stock adjustment error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { productId, adjustment }
+      });
       toast.error('Failed to adjust stock');
     } finally {
       setLoading(false);

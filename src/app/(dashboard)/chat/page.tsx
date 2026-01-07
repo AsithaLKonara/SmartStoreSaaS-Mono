@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatDate, formatTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface ChatMessage {
   id: string;
@@ -70,6 +71,45 @@ export default function ChatPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [channelFilter, setChannelFilter] = useState('');
 
+  const fetchConversations = async () => {
+    try {
+      const response = await fetch('/api/chat/conversations');
+      if (response.ok) {
+        const data = await response.json();
+        setConversations(data.conversations);
+      }
+    } catch (error) {
+      logger.error({
+        message: 'Error fetching conversations',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+      toast.error('Failed to load conversations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages);
+      }
+    } catch (error) {
+      logger.error({
+        message: 'Error fetching messages',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { conversationId }
+      });
+      toast.error('Failed to load messages');
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) {
@@ -77,7 +117,7 @@ export default function ChatPage() {
       return;
     }
     fetchConversations();
-  }, [session, status]);
+  }, [session, status, router]);
 
   useEffect(() => {
     const customerId = searchParams.get('customer');
@@ -94,37 +134,6 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const fetchConversations = async () => {
-    try {
-      const response = await fetch('/api/chat/conversations');
-      if (response.ok) {
-        const data = await response.json();
-        setConversations(data.conversations);
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      toast.error('Failed to load conversations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMessages = async (conversationId: string) => {
-    try {
-      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`);
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data.messages);
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      toast.error('Failed to load messages');
-    }
-  };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
@@ -152,7 +161,11 @@ export default function ChatPage() {
         ));
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error({
+        message: 'Error sending message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { conversationId: selectedConversation?.id }
+      });
       toast.error('Failed to send message');
     }
   };

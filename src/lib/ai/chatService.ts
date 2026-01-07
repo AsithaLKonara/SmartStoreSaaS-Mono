@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
 import { generateOrderNumber } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface SentimentScore {
   positive: number;
@@ -87,7 +88,11 @@ export class AIChatService {
       const result = JSON.parse(response.choices[0].message.content || '[]');
       return result;
     } catch (error) {
-      console.error('Error finding products:', error);
+      logger.error({
+        message: 'Error finding products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'findProducts', query }
+      });
       return [];
     }
   }
@@ -134,7 +139,11 @@ export class AIChatService {
       const result = JSON.parse(response.choices[0].message.content || '[]');
       return result;
     } catch (error) {
-      console.error('Error recommending products:', error);
+      logger.error({
+        message: 'Error recommending products',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'recommendProducts', customerId }
+      });
       return [];
     }
   }
@@ -166,7 +175,11 @@ export class AIChatService {
       const result = JSON.parse(response.choices[0].message.content || '{}');
       return result;
     } catch (error) {
-      console.error('Error creating order from chat:', error);
+      logger.error({
+        message: 'Error creating order from chat',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'createOrderFromChat', customerId, itemsCount: items.length }
+      });
       return null;
     }
   }
@@ -178,7 +191,11 @@ export class AIChatService {
         data: { status: status as unknown },
       });
     } catch (error) {
-      console.error('Error updating order status:', error);
+      logger.error({
+        message: 'Error updating order status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'updateOrderStatus', orderId, status }
+      });
     }
   }
 
@@ -204,7 +221,11 @@ export class AIChatService {
 
       return response.choices[0].message.content || 'I apologize, but I cannot answer that question at the moment.';
     } catch (error) {
-      console.error('Error answering FAQ:', error);
+      logger.error({
+        message: 'Error answering FAQ',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'answerFAQ', question }
+      });
       return 'I apologize, but I cannot answer that question at the moment.';
     }
   }
@@ -251,7 +272,11 @@ export class AIChatService {
 
       return response.choices[0].message.content || 'Order status information is currently unavailable.';
     } catch (error) {
-      console.error('Error providing order status:', error);
+      logger.error({
+        message: 'Error providing order status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'provideOrderStatus', orderNumber }
+      });
       return 'Order status information is currently unavailable.';
     }
   }
@@ -278,7 +303,11 @@ export class AIChatService {
       const result = JSON.parse(response.choices[0].message.content || '{}');
       return result;
     } catch (error) {
-      console.error('Error analyzing sentiment:', error);
+      logger.error({
+        message: 'Error analyzing sentiment',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'analyzeSentiment', text }
+      });
       return {
         positive: 0.5,
         negative: 0.5,
@@ -314,7 +343,11 @@ export class AIChatService {
       const result = JSON.parse(response.choices[0].message.content || '{}');
       return result.isUrgent || false;
     } catch (error) {
-      console.error('Error detecting urgent issues:', error);
+      logger.error({
+        message: 'Error detecting urgent issues',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'detectUrgentIssues', message }
+      });
       return false;
     }
   }
@@ -350,7 +383,11 @@ export class AIChatService {
         updatedAt: conversation.updatedAt
       };
     } catch (error) {
-      console.error('Error fetching chat conversation:', error);
+      logger.error({
+        message: 'Error fetching chat conversation',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'getConversation', conversationId }
+      });
       return null;
     }
   }
@@ -370,7 +407,11 @@ export class AIChatService {
         }
       });
     } catch (error) {
-      console.error('Error updating chat conversation status:', error);
+      logger.error({
+        message: 'Error updating chat conversation status',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'ChatService', operation: 'updateConversationStatus', conversationId, status }
+      });
     }
   }
 

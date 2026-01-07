@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Loader2, Truck, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface ShippingModalProps {
   isOpen: boolean;
@@ -70,7 +71,11 @@ export function FulfillmentShippingModal({
       onComplete();
       onClose();
     } catch (error) {
-      console.error('Shipping error:', error);
+      logger.error({
+        message: 'Shipping error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { orderId, orderNumber }
+      });
       toast.error('Failed to mark order as shipped');
     } finally {
       setLoading(false);

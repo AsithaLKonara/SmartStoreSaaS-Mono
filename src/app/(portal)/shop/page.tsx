@@ -5,6 +5,7 @@ import { Search, ShoppingCart, Heart, Star, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Product {
   id: string;
@@ -33,7 +34,10 @@ export default function ShopPage() {
         setProducts(data.products || data.data || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching products',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
     } finally {
       setLoading(false);
     }

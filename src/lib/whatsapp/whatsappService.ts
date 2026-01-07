@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { realTimeSyncService, SyncEvent } from '@/lib/sync/realTimeSyncService';
 import { EventEmitter } from 'events';
+import { logger } from '@/lib/logger';
 
 export interface WhatsAppMessage {
   id: string;
@@ -354,7 +355,10 @@ We'll process your order and send you tracking details soon! 🚚`;
     type: string
   ): Promise<void> {
     // TODO: Create message log table and log the message
-    console.log('WhatsApp message logged:', { organizationId, from, to, message, type });
+    logger.debug({
+      message: 'WhatsApp message logged',
+      context: { service: 'WhatsAppService', operation: 'logMessage', organizationId, from, to, type }
+    });
   }
 
   /**
@@ -382,7 +386,11 @@ We'll process your order and send you tracking details soon! 🚚`;
         type: message.type || 'text'
       };
     } catch (error) {
-      console.error('Error parsing webhook message:', error);
+      logger.error({
+        message: 'Error parsing webhook message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WhatsAppService', operation: 'parseWebhookMessage' }
+      });
       return null;
     }
   }

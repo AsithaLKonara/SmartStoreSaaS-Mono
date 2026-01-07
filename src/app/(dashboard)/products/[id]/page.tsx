@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, Trash2, Save, X, Package, DollarSign, Tag, Archive } from 'lucide-react';
@@ -35,11 +35,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [isEditing, setIsEditing] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [params.id]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/products/${params.id}`);
@@ -60,7 +56,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, handleError, router]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
 
   const handleSave = async (productData: any) => {
     try {

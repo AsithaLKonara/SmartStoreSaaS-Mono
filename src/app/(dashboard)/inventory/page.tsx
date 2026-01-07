@@ -5,6 +5,7 @@ import { Package, AlertTriangle, TrendingDown, TrendingUp, Search } from 'lucide
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface InventoryItem {
   id: string;
@@ -32,7 +33,10 @@ export default function InventoryPage() {
         setItems(data.items || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        message: 'Error fetching inventory',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load inventory');
     } finally {
       setLoading(false);

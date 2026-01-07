@@ -131,7 +131,10 @@ export function convertCurrency(
   const rate = rates[rateKey];
   
   if (!rate) {
-    console.warn(`Exchange rate not found for ${from} to ${to}`);
+    logger.warn({
+      message: 'Exchange rate not found',
+      context: { service: 'Currency', operation: 'convert', from, to }
+    });
     return amount;
   }
 

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface BulkOperationsModalProps {
   isOpen: boolean;
@@ -84,7 +85,11 @@ export function BulkOperationsModal({
       onComplete();
       onClose();
     } catch (error) {
-      console.error('Bulk operation error:', error);
+      logger.error({
+        message: 'Bulk operation error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { entityType, operation: operationType, selectedIds: selectedIds.length }
+      });
       toast.error('Bulk operation failed');
     } finally {
       setLoading(false);

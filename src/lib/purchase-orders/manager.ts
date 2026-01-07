@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export enum PurchaseOrderStatus {
   DRAFT = 'DRAFT',
@@ -82,7 +83,11 @@ export async function createPurchaseOrder(data: {
 
     return { success: true, purchaseOrder };
   } catch (error: any) {
-    console.error('Create PO error:', error);
+    logger.error({
+      message: 'Create PO error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PurchaseOrderManager', operation: 'createPurchaseOrder', organizationId: data.organizationId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -106,7 +111,11 @@ export async function approvePurchaseOrder(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Approve PO error:', error);
+    logger.error({
+      message: 'Approve PO error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PurchaseOrderManager', operation: 'approvePurchaseOrder', purchaseOrderId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -130,11 +139,18 @@ export async function sendPurchaseOrder(
     });
 
     // Would send email to supplier
-    console.log(`Sending PO ${po.orderNumber} to ${po.supplier.email}`);
+    logger.info({
+      message: 'Sending PO to supplier',
+      context: { service: 'PurchaseOrderManager', operation: 'sendPurchaseOrder', purchaseOrderId, orderNumber: po.orderNumber, supplierEmail: po.supplier.email }
+    });
 
     return { success: true };
   } catch (error: any) {
-    console.error('Send PO error:', error);
+    logger.error({
+      message: 'Send PO error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PurchaseOrderManager', operation: 'sendPurchaseOrder', purchaseOrderId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -210,7 +226,11 @@ export async function receivePurchaseOrderItems(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Receive items error:', error);
+    logger.error({
+      message: 'Receive items error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PurchaseOrderManager', operation: 'receiveItems', purchaseOrderId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -251,7 +271,11 @@ export async function completePurchaseOrder(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Complete PO error:', error);
+    logger.error({
+      message: 'Complete PO error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PurchaseOrderManager', operation: 'completePurchaseOrder', purchaseOrderId }
+    });
     return { success: false, error: error.message };
   }
 }
@@ -275,7 +299,11 @@ export async function cancelPurchaseOrder(
 
     return { success: true };
   } catch (error: any) {
-    console.error('Cancel PO error:', error);
+    logger.error({
+      message: 'Cancel PO error',
+      error: error instanceof Error ? error : new Error(String(error)),
+      context: { service: 'PurchaseOrderManager', operation: 'cancelPurchaseOrder', purchaseOrderId }
+    });
     return { success: false, error: error.message };
   }
 }

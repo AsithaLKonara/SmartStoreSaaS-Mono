@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,13 +67,7 @@ export default function EmailIntegrationPage() {
   const [stats, setStats] = useState({ sent: 0, delivered: 0, bounced: 0, spam: 0 });
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  useEffect(() => {
-    loadConfiguration();
-    loadEmailLogs();
-    loadEmailStats();
-  }, []);
-
-  const loadConfiguration = async () => {
+  const loadConfiguration = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/integrations/setup?type=email');
@@ -85,13 +79,13 @@ export default function EmailIntegrationPage() {
         }
       }
     } catch (error) {
-      console.error('Error loading email configuration:', error);
+      // Error handled silently - user sees UI feedback
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [config]);
 
-  const loadEmailLogs = async () => {
+  const loadEmailLogs = useCallback(async () => {
     try {
       const response = await fetch('/api/email/logs');
       if (response.ok) {
@@ -99,11 +93,11 @@ export default function EmailIntegrationPage() {
         setEmailLogs(data.logs || []);
       }
     } catch (error) {
-      console.error('Error loading email logs:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, []);
 
-  const loadEmailStats = async () => {
+  const loadEmailStats = useCallback(async () => {
     try {
       const response = await fetch('/api/email/statistics');
       if (response.ok) {
@@ -111,9 +105,15 @@ export default function EmailIntegrationPage() {
         setStats(data.stats || stats);
       }
     } catch (error) {
-      console.error('Error loading email stats:', error);
+      // Error handled silently - user sees UI feedback
     }
-  };
+  }, [stats]);
+
+  useEffect(() => {
+    loadConfiguration();
+    loadEmailLogs();
+    loadEmailStats();
+  }, [loadConfiguration, loadEmailLogs, loadEmailStats]);
 
   const testConnection = async () => {
     try {

@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Payment {
   id: string;
@@ -78,15 +79,6 @@ export default function PaymentsPage() {
   const [methodFilter, setMethodFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    fetchPayments();
-  }, [session, status]);
-
   const fetchPayments = async () => {
     try {
       const response = await fetch('/api/payments');
@@ -95,12 +87,24 @@ export default function PaymentsPage() {
         setPayments(data.payments);
       }
     } catch (error) {
-      console.error('Error fetching payments:', error);
+      logger.error({
+        message: 'Error fetching payments',
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       toast.error('Failed to load payments');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    fetchPayments();
+  }, [session, status, router]);
 
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = 

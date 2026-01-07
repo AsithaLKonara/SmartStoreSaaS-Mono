@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
@@ -32,6 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { logger } from '@/lib/logger';
 
 interface Campaign {
   id: string;
@@ -72,15 +73,7 @@ export default function CampaignsPage() {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  useEffect(() => {
-    if (!session?.user?.organizationId) {
-      router.push('/signin');
-      return;
-    }
-    fetchCampaignData();
-  }, [session, router]);
-
-  const fetchCampaignData = async () => {
+  const fetchCampaignData = useCallback(async () => {
     try {
       setLoading(true);
       const [campaignsRes, templatesRes] = await Promise.all([
@@ -98,12 +91,19 @@ export default function CampaignsPage() {
         setTemplates(templatesData);
       }
     } catch (error) {
-      console.error('Error fetching campaign data:', error);
       toast.error('Failed to load campaign data');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user?.organizationId) {
+      router.push('/signin');
+      return;
+    }
+    fetchCampaignData();
+  }, [session, router, fetchCampaignData]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -178,7 +178,11 @@ export default function CampaignsPage() {
         toast.error(`Failed to ${action} campaign`);
       }
     } catch (error) {
-      console.error(`Error ${action}ing campaign:`, error);
+      logger.error({
+        message: `Error ${action}ing campaign`,
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { action, campaignId }
+      });
       toast.error(`Failed to ${action} campaign`);
     }
   };
