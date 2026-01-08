@@ -16,6 +16,16 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production'
       }
+    },
+    sessionToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60, // 24 hours
+      }
     }
   },
   providers: [
@@ -115,6 +125,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.sub = user.id; // Set sub for getToken compatibility
+        token.email = user.email;
+        token.name = user.name;
         token.role = user.role;
         token.organizationId = user.organizationId;
         logger.debug({
@@ -135,6 +148,19 @@ export const authOptions: NextAuthOptions = {
         });
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle redirect after sign in
+      // If redirecting to a relative URL, use baseUrl
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // If redirecting to the same origin, allow it
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      // Default to dashboard
+      return `${baseUrl}/dashboard`;
     },
   },
   debug: true, // Enable debug logging

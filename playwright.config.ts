@@ -15,10 +15,10 @@ export default defineConfig({
   globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
   globalTeardown: require.resolve('./tests/e2e/global-teardown.ts'),
   
-  // Test timeout
-  timeout: 60_000, // 60 seconds per test
+  // Test timeout - Increased for comprehensive tests
+  timeout: 600_000, // 10 minutes per test (comprehensive tests need more time)
   expect: {
-    timeout: 5_000, // 5 seconds for assertions
+    timeout: 10_000, // 10 seconds for assertions
   },
   
   // Run tests in parallel
@@ -46,8 +46,8 @@ export default defineConfig({
     headless: process.env.CI ? true : false,
     viewport: { width: 1280, height: 800 },
     
-    // Timeout for actions - Adjust for local server performance
-    actionTimeout: process.env.CI ? 15_000 : 10_000,
+    // Timeout for actions - Increased for comprehensive testing
+    actionTimeout: process.env.CI ? 20_000 : 15_000,
     
     // Screenshot on failure (more efficient than 'on' for all actions)
     screenshot: 'only-on-failure',

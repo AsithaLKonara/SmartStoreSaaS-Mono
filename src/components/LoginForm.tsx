@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,11 +12,22 @@ import { FormErrorMessage } from '@/components/ui/ErrorBoundary';
 import { logger } from '@/lib/logger';
 
 export default function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState('superadmin@smartstore.com');
   const [password, setPassword] = useState('SuperAdmin123!');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      router.push(callbackUrl);
+    }
+  }, [status, session, router, searchParams]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -48,20 +60,21 @@ export default function LoginForm() {
     setErrors({});
 
     try {
+      // Get callback URL from query params or default to dashboard
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: callbackUrl,
       });
 
+      // If redirect is true, NextAuth handles the redirect automatically
+      // This code won't execute if redirect succeeds, but we keep it for error handling
       if (result?.error) {
         setMessage('❌ Invalid credentials. Please try again.');
-      } else if (result?.ok) {
-        setMessage('✅ Login successful! Redirecting...');
-        // Redirect to dashboard
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+        setIsLoading(false);
       }
     } catch (error) {
       logger.error({
@@ -70,7 +83,6 @@ export default function LoginForm() {
         context: { email }
       });
       setMessage('❌ Login failed. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };

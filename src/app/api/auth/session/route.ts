@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { JWTUtils } from '@/lib/auth/jwt';
+import { getToken } from 'next-auth/jwt';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -7,9 +7,13 @@ export async function GET(request: NextRequest) {
   const correlationId = request.headers.get('x-request-id') || uuidv4();
   
   try {
-    const user = await JWTUtils.getUserFromCookie();
+    // Use NextAuth's getToken to get the JWT token (same as middleware)
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET
+    });
 
-    if (!user) {
+    if (!token) {
       return NextResponse.json(
         { success: false, message: 'Not authenticated' },
         { status: 401 }
@@ -19,11 +23,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        organizationId: user.organizationId,
+        id: token.id as string || token.sub,
+        email: token.email as string,
+        name: token.name as string,
+        role: token.role as string,
+        organizationId: token.organizationId as string,
       },
     });
 

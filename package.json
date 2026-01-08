@@ -17,6 +17,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:ci": "playwright test",
+    "test:e2e:comprehensive": "playwright test tests/e2e/flows/comprehensive-browser-test.spec.ts",
+    "test:e2e:comprehensive:headed": "playwright test tests/e2e/flows/comprehensive-browser-test.spec.ts --headed",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:coverage": "pnpm test:unit --coverage && pnpm test:integration --coverage",
     "test:correlation": "jest --testPathPattern=correlation",
