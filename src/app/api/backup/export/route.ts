@@ -8,51 +8,66 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+/**
+ * POST /api/backup/export
+ * Export backup file (SUPER_ADMIN only)
+ */
+export const POST = requireRole('SUPER_ADMIN')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { backupId, format = 'sql' } = body;
 
-    // TODO: Add role check for SUPER_ADMIN
-    if (session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
+      // Validation
+      if (!backupId) {
+        throw new ValidationError('Backup ID is required', {
+          fields: { backupId: !backupId }
+        });
+      }
 
-    const body = await request.json();
-    const { backupId, format = 'sql' } = body;
+      logger.info({
+        message: 'Backup export initiated',
+        context: {
+          userId: user.id,
+          backupId,
+          format
+        },
+        correlation: req.correlationId
+      });
 
-    logger.info({
-      message: 'Backup export initiated',
-      context: {
-        userId: session.user.id,
+      // TODO: Export actual backup
+      return NextResponse.json(successResponse({
+        exportUrl: `/backups/export_${backupId}.${format}`,
         backupId,
         format
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Backup export failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-    // TODO: Export actual backup
-    return NextResponse.json(successResponse({
-      exportUrl: `/backups/export_${backupId}.${format}`,
-      backupId,
-      format
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Backup export failed',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Backup export failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

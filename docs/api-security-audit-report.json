@@ -1,0 +1,1542 @@
+{
+  "timestamp": "2026-01-08T10:45:53.614Z",
+  "totalFiles": 265,
+  "totalEndpoints": 150,
+  "filesWithIssues": 18,
+  "criticalIssues": 42,
+  "highIssues": 0,
+  "mediumIssues": 0,
+  "lowIssues": 0,
+  "endpoints": [
+    {
+      "file": "src/app/api/workflows/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/wishlist/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "DELETE"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/wishlist/route.ts",
+          "line": 8,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const wishlist = await prisma.wishlists.findFirst({"
+        },
+        {
+          "file": "src/app/api/wishlist/route.ts",
+          "line": 59,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "let wishlist = await prisma.wishlists.findFirst({"
+        },
+        {
+          "file": "src/app/api/wishlist/route.ts",
+          "line": 64,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "wishlist = await prisma.wishlists.create({"
+        },
+        {
+          "file": "src/app/api/wishlist/route.ts",
+          "line": 73,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const item = await prisma.wishlist_items.create({"
+        },
+        {
+          "file": "src/app/api/wishlist/route.ts",
+          "line": 108,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const wishlist = await prisma.wishlists.findFirst({"
+        },
+        {
+          "file": "src/app/api/wishlist/route.ts",
+          "line": 119,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.wishlist_items.deleteMany({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/webhook-handler/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/warehouses/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/users/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/upload/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/suppliers/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/status/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/social-commerce/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/setup-password/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/set-password/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/set-password/route.ts",
+          "line": 35,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.user.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/reviews/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/readyz/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/purchase-orders/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/ready/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/products/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/packages/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/migrate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/me/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/me/route.ts",
+          "line": 61,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const updated = await prisma.user.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/logout/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/inventory/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/expenses/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/orders/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/customers/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/configuration/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/checkout/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/checkout/route.ts",
+          "line": 51,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const cart = await prisma.order.findFirst({"
+        },
+        {
+          "file": "src/app/api/checkout/route.ts",
+          "line": 78,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const order = await prisma.order.update({"
+        },
+        {
+          "file": "src/app/api/checkout/route.ts",
+          "line": 92,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.product.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/cart/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 27,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "let cart = await prisma.order.findFirst({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 103,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const product = await prisma.product.findUnique({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 118,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "let cart = await prisma.order.findFirst({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 147,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.orderItem.update({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 155,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.orderItem.create({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 167,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const items = await prisma.orderItem.findMany({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 176,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.order.update({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 211,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const item = await prisma.orderItem.findUnique({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 229,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.orderItem.update({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 237,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const cart = await prisma.order.findUnique({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 244,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.order.update({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 282,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const item = await prisma.orderItem.findUnique({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 296,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.orderItem.delete({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 300,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const cart = await prisma.order.findUnique({"
+        },
+        {
+          "file": "src/app/api/cart/route.ts",
+          "line": 308,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.order.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/api-keys/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "DELETE"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/webhooks/stripe/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/webhooks/endpoints/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/webhooks/whatsapp/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/warehouses/movements/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/sms/statistics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/sms/send/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/sms/otp/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/security/audit/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/shipping/track/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/shipping/track/route.ts",
+          "line": 30,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const order = await prisma.order.findUnique({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/shipping/statistics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/shipping/shipments/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/shipping/labels/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/registration/request/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/reports/templates/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/reports/sales/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/reports/inventory/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/reports/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/procurement/suppliers/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/procurement/rfq/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/procurement/purchase-orders/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/procurement/invoices/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/pricing/calculate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/pos/transactions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/pos/terminals/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/pos/cash-drawer/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/web-vitals/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/reports/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/optimize/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/monitoring/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/metrics/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/alerts/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/payments/transactions/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/payments/refund/route.ts",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/payments/confirm/route.ts",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/monitoring/health/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/inventory/value/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/inventory/movement/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/integrations/setup/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/hr/employees/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/email/send/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/documentation/generate/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/deployment/trigger/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/deployment/status/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/analytics/dashboard/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/analytics/dashboard/route-fixed.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/admin/packages/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/accounting/ledger/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/accounting/financial-reports/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/accounting/accounts/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/webhooks/woocommerce/[organizationId]/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/webhooks/endpoints/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/reviews/[id]/spam/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/reviews/[id]/spam/route.ts",
+          "line": 42,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "// await prisma.review.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/reviews/[id]/reject/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/reviews/[id]/reject/route.ts",
+          "line": 42,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "// await prisma.review.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/reviews/[id]/approve/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/reviews/[id]/approve/route.ts",
+          "line": 26,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "// const review = await prisma.review.findUnique({"
+        },
+        {
+          "file": "src/app/api/reviews/[id]/approve/route.ts",
+          "line": 42,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "// await prisma.review.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/returns/[id]/reject/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/returns/[id]/reject/route.ts",
+          "line": 39,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.return.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/returns/[id]/refund/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/returns/[id]/refund/route.ts",
+          "line": 43,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.return.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/returns/[id]/approve/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/returns/[id]/approve/route.ts",
+          "line": 37,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.return.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/procurement/suppliers/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/procurement/suppliers/[id]/route.ts",
+          "line": 74,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const updated = await prisma.supplier.update({"
+        },
+        {
+          "file": "src/app/api/procurement/suppliers/[id]/route.ts",
+          "line": 113,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.supplier.delete({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/payments/stripe/create-intent/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/payments/stripe/create-intent/route.ts",
+          "line": 29,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const order = await prisma.order.findUnique({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/payments/payhere/notify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/inventory/[id]/adjust/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/inventory/[id]/adjust/route.ts",
+          "line": 45,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "const updated = await prisma.product.update({"
+        },
+        {
+          "file": "src/app/api/inventory/[id]/adjust/route.ts",
+          "line": 53,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.inventoryMovement.create({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/integrations/woocommerce/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/integrations/whatsapp/webhook/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "hasCentralizedAuth": false,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/integrations/whatsapp/send/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/integrations/shopify/verify/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/integrations/shopify/sync/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/fulfillment/[id]/ship/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/fulfillment/[id]/ship/route.ts",
+          "line": 44,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.delivery.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/fulfillment/[id]/pick/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/fulfillment/[id]/pick/route.ts",
+          "line": 42,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.delivery.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/fulfillment/[id]/pack/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": [
+        {
+          "file": "src/app/api/fulfillment/[id]/pack/route.ts",
+          "line": 42,
+          "type": "MISSING_ORG_SCOPE",
+          "severity": "CRITICAL",
+          "description": "Database query missing organization scoping",
+          "code": "await prisma.delivery.update({"
+        }
+      ]
+    },
+    {
+      "file": "src/app/api/fulfillment/[id]/label/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/accounting/reports/profit-loss/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/accounting/reports/balance-sheet/route.ts",
+      "methods": [
+        "GET"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": true,
+      "hasTodoComments": false,
+      "issues": []
+    },
+    {
+      "file": "src/app/api/performance/alerts/[id]/resolve/route.ts",
+      "methods": [
+        "POST"
+      ],
+      "hasCentralizedAuth": true,
+      "hasManualAuth": false,
+      "hasOrgScoping": false,
+      "hasTodoComments": false,
+      "issues": []
+    }
+  ],
+  "summary": {
+    "todoAuthComments": 0,
+    "manualAuthChecks": 0,
+    "missingOrgScoping": 42,
+    "inconsistentErrorHandling": 0
+  }
+}

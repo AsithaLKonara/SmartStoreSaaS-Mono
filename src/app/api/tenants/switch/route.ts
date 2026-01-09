@@ -1,35 +1,80 @@
+/**
+ * Tenant Switch API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN only (MANAGE_ORGANIZATIONS permission)
+ * 
+ * System-wide: Switch context to different tenant
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError, NotFoundError } from '@/lib/middleware/withErrorHandler';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { logger } from '@/lib/logger';
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/tenants/switch
+ * Switch tenant context (SUPER_ADMIN only)
+ */
+export const POST = requireRole('SUPER_ADMIN')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { tenantId } = body;
+
+      // Validation
+      if (!tenantId) {
+        throw new ValidationError('Tenant ID is required', {
+          fields: { tenantId: !tenantId }
+        });
+      }
+
+      const tenant = await prisma.organization.findUnique({
+        where: { id: tenantId }
+      });
+
+      if (!tenant) {
+        throw new NotFoundError('Tenant not found');
+      }
+
+      logger.info({
+        message: 'Tenant switched',
+        context: {
+          userId: user.id,
+          tenantId,
+          tenantName: tenant.name
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Tenant switched successfully',
+        tenant
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Tenant switch failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Tenant switch failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    const body = await request.json();
-    const { tenantId } = body;
-
-    if (!tenantId) {
-      return NextResponse.json({ success: false, error: 'Tenant ID is required' }, { status: 400 });
-    }
-
-    const tenant = await prisma.organization.findUnique({
-      where: { id: tenantId }
-    });
-
-    if (!tenant) {
-      return NextResponse.json({ success: false, error: 'Tenant not found' }, { status: 404 });
-    }
-
-    logger.info({ message: 'Tenant switched', context: { userId: session.user.id, tenantId } });
-    return NextResponse.json({ success: true, message: 'Tenant switched', tenant });
-  } catch (error: any) {
-    logger.error({ message: 'Tenant switch failed', error: error.message });
-    return NextResponse.json({ success: false, error: 'Tenant switch failed' }, { status: 500 });
   }
-}
+);

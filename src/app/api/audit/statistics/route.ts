@@ -9,47 +9,56 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * GET /api/audit/statistics
+ * Get audit statistics with organization scoping
+ */
+export const GET = requirePermission('VIEW_AUDIT_LOGS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      // Get organization scoping (SUPER_ADMIN can see all)
+      const orgId = getOrganizationScope(user);
+
+      logger.info({
+        message: 'Audit statistics requested',
+        context: {
+          userId: user.id,
+          organizationId: orgId
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Calculate actual statistics from audit log table
+      return NextResponse.json(successResponse({
+        totalLogs: 0,
+        byAction: {},
+        byUser: {},
+        recentActivity: [],
+        message: 'Audit statistics - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Audit statistics failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Audit statistics failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const orgId = session.user.organizationId;
-
-    logger.info({
-      message: 'Audit statistics requested',
-      context: { userId: session.user.id, organizationId: orgId }
-    });
-
-    // TODO: Calculate actual statistics
-    return NextResponse.json(successResponse({
-      totalLogs: 0,
-      byAction: {},
-      byUser: {},
-      recentActivity: [],
-      message: 'Audit statistics - implementation pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Audit statistics failed',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+);

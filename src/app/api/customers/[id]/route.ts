@@ -11,158 +11,239 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { withErrorHandlerApp } from '@/lib/middleware/withErrorHandlerApp';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, NotFoundError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * GET /api/customers/[id]
+ * Get single customer with organization scoping
+ */
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const customerId = resolvedParams.id;
+  
+  const handler = requirePermission('VIEW_CUSTOMERS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const customer = await prisma.customer.findUnique({
+          where: { id: customerId }
+        });
+
+        if (!customer) {
+          throw new NotFoundError('Customer not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, customer.organizationId)) {
+          return NextResponse.json({
+            success: false,
+            code: 'ERR_FORBIDDEN',
+            message: 'Cannot view customers from other organizations',
+            correlation: req.correlationId || 'unknown'
+          }, { status: 403 });
+        }
+
+        logger.info({
+          message: 'Customer fetched',
+          context: {
+            userId: user.id,
+            customerId,
+            organizationId: customer.organizationId
+          },
+          correlation: req.correlationId
+        });
+
+        return NextResponse.json(successResponse(customer));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to fetch customer',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: req.correlationId
+        });
+        
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to fetch customer',
+          correlation: req.correlationId || 'unknown'
+        }, { status: 500 });
+      }
     }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN, STAFF
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const customerId = params.id;
-
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId }
-    });
-
-    if (!customer) {
-      return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 });
-    }
-
-    // TODO: Add organization scoping check
-    if (customer.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot view customers from other organizations' }, { status: 403 });
-    }
-
-    logger.info({
-      message: 'Customer fetched',
-      context: { userId: session.user.id, customerId }
-    });
-
-    return NextResponse.json(successResponse(customer));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch customer',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+  );
+  
+  const req = request as AuthenticatedRequest;
+  req.correlationId = correlationId;
+  return handler(req, {} as any);
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * PUT /api/customers/[id]
+ * Update customer with organization scoping
+ */
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const customerId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_CUSTOMERS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
+
+        const customer = await prisma.customer.findUnique({
+          where: { id: customerId }
+        });
+
+        if (!customer) {
+          throw new NotFoundError('Customer not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, customer.organizationId)) {
+          return NextResponse.json({
+            success: false,
+            code: 'ERR_FORBIDDEN',
+            message: 'Cannot update customers from other organizations',
+            correlation: req.correlationId || 'unknown'
+          }, { status: 403 });
+        }
+
+        const updated = await prisma.customer.update({
+          where: { id: customerId },
+          data: body
+        });
+
+        logger.info({
+          message: 'Customer updated',
+          context: {
+            userId: user.id,
+            customerId,
+            organizationId: customer.organizationId
+          },
+          correlation: req.correlationId
+        });
+
+        return NextResponse.json(successResponse(updated));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to update customer',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: req.correlationId
+        });
+        
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to update customer',
+          correlation: req.correlationId || 'unknown'
+        }, { status: 500 });
+      }
     }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const customerId = params.id;
-    const body = await request.json();
-
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId }
-    });
-
-    if (!customer) {
-      return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 });
-    }
-
-    // TODO: Add organization scoping check
-    if (customer.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot update customers from other organizations' }, { status: 403 });
-    }
-
-    const updated = await prisma.customer.update({
-      where: { id: customerId },
-      data: body
-    });
-
-    logger.info({
-      message: 'Customer updated',
-      context: { userId: session.user.id, customerId }
-    });
-
-    return NextResponse.json(successResponse(updated));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update customer',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+  );
+  
+  const req = request as AuthenticatedRequest;
+  req.correlationId = correlationId;
+  return handler(req, {} as any);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * DELETE /api/customers/[id]
+ * Delete customer with organization scoping
+ */
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const customerId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_CUSTOMERS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const customer = await prisma.customer.findUnique({
+          where: { id: customerId }
+        });
+
+        if (!customer) {
+          throw new NotFoundError('Customer not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, customer.organizationId)) {
+          return NextResponse.json({
+            success: false,
+            code: 'ERR_FORBIDDEN',
+            message: 'Cannot delete customers from other organizations',
+            correlation: req.correlationId || 'unknown'
+          }, { status: 403 });
+        }
+
+        await prisma.customer.delete({
+          where: { id: customerId }
+        });
+
+        logger.info({
+          message: 'Customer deleted',
+          context: {
+            userId: user.id,
+            customerId,
+            organizationId: customer.organizationId
+          },
+          correlation: req.correlationId
+        });
+
+        return NextResponse.json(successResponse({
+          message: 'Customer deleted',
+          customerId
+        }));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to delete customer',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: req.correlationId
+        });
+        
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to delete customer',
+          correlation: req.correlationId || 'unknown'
+        }, { status: 500 });
+      }
     }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const customerId = params.id;
-
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId }
-    });
-
-    if (!customer) {
-      return NextResponse.json({ success: false, error: 'Customer not found' }, { status: 404 });
-    }
-
-    // TODO: Add organization scoping check
-    if (customer.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot delete customers from other organizations' }, { status: 403 });
-    }
-
-    await prisma.customer.delete({
-      where: { id: customerId }
-    });
-
-    logger.info({
-      message: 'Customer deleted',
-      context: { userId: session.user.id, customerId }
-    });
-
-    return NextResponse.json(successResponse({
-      message: 'Customer deleted',
-      customerId
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to delete customer',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+  );
+  
+  const req = request as AuthenticatedRequest;
+  req.correlationId = correlationId;
+  return handler(req, {} as any);
 }

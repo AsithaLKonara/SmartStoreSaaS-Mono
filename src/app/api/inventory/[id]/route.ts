@@ -10,109 +10,164 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, NotFoundError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+/**
+ * GET /api/inventory/[id]
+ * Get single inventory item with organization scoping
+ */
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const productId = resolvedParams.id;
+  
+  const handler = requirePermission('VIEW_INVENTORY')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const product = await prisma.product.findUnique({
+          where: { id: productId },
+          include: {
+            category: true,
+            organization: true
+          }
+        });
 
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN, STAFF
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
+        if (!product) {
+          throw new NotFoundError('Product not found');
+        }
 
-    const productId = params.id;
+        // Validate organization access
+        if (!validateOrganizationAccess(user, product.organizationId)) {
+          return NextResponse.json({
+            success: false,
+            code: 'ERR_FORBIDDEN',
+            message: 'Cannot view product from other organizations',
+            correlation: req.correlationId || 'unknown'
+          }, { status: 403 });
+        }
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      include: {
-        category: true,
-        organization: true
+        logger.info({
+          message: 'Product fetched',
+          context: {
+            userId: user.id,
+            productId,
+            organizationId: product.organizationId
+          },
+          correlation: req.correlationId
+        });
+
+        return NextResponse.json(successResponse(product));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to fetch inventory item',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: req.correlationId
+        });
+        
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to fetch inventory item',
+          correlation: req.correlationId || 'unknown'
+        }, { status: 500 });
       }
-    });
-
-    if (!product) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
-
-    // TODO: Add organization scoping check
-    if (product.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot view product from other organizations' }, { status: 403 });
-    }
-
-    logger.info({
-      message: 'Product fetched',
-      context: { userId: session.user.id, productId }
-    });
-
-    return NextResponse.json(successResponse(product));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch inventory item',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+  );
+  
+  const req = request as AuthenticatedRequest;
+  req.correlationId = correlationId;
+  return handler(req, {} as any);
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * PUT /api/inventory/[id]
+ * Update inventory item with organization scoping
+ */
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const productId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_INVENTORY')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
+
+        const product = await prisma.product.findUnique({
+          where: { id: productId }
+        });
+
+        if (!product) {
+          throw new NotFoundError('Product not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, product.organizationId)) {
+          return NextResponse.json({
+            success: false,
+            code: 'ERR_FORBIDDEN',
+            message: 'Cannot update product from other organizations',
+            correlation: req.correlationId || 'unknown'
+          }, { status: 403 });
+        }
+
+        const updated = await prisma.product.update({
+          where: { id: productId },
+          data: body
+        });
+
+        logger.info({
+          message: 'Product updated',
+          context: {
+            userId: user.id,
+            productId,
+            organizationId: product.organizationId
+          },
+          correlation: req.correlationId
+        });
+
+        return NextResponse.json(successResponse(updated));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to update inventory item',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: req.correlationId
+        });
+        
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to update inventory item',
+          correlation: req.correlationId || 'unknown'
+        }, { status: 500 });
+      }
     }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN, STAFF
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const productId = params.id;
-    const body = await request.json();
-
-    const product = await prisma.product.findUnique({
-      where: { id: productId }
-    });
-
-    if (!product) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
-    }
-
-    // TODO: Add organization scoping check
-    if (product.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Cannot update product from other organizations' }, { status: 403 });
-    }
-
-    const updated = await prisma.product.update({
-      where: { id: productId },
-      data: body
-    });
-
-    logger.info({
-      message: 'Product updated',
-      context: { userId: session.user.id, productId }
-    });
-
-    return NextResponse.json(successResponse(updated));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update inventory item',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+  );
+  
+  const req = request as AuthenticatedRequest;
+  req.correlationId = correlationId;
+  return handler(req, {} as any);
 }

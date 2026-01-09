@@ -8,51 +8,55 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * POST /api/backup/create
+ * Create database backup (SUPER_ADMIN only)
+ */
+export const POST = requireRole('SUPER_ADMIN')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { type = 'full', compress = true } = body;
+
+      logger.info({
+        message: 'Manual backup triggered',
+        context: {
+          userId: user.id,
+          type,
+          compress
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Trigger actual backup
+      return NextResponse.json(successResponse({
+        backupId: `backup_${Date.now()}`,
+        status: 'in_progress',
+        estimatedTime: '5 minutes'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Manual backup failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Manual backup failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    // TODO: Add role check for SUPER_ADMIN
-    if (session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { type = 'full', compress = true } = body;
-
-    logger.info({
-      message: 'Manual backup triggered',
-      context: {
-        userId: session.user.id,
-        type,
-        compress
-      }
-    });
-
-    // TODO: Trigger actual backup
-    return NextResponse.json(successResponse({
-      backupId: `backup_${Date.now()}`,
-      status: 'in_progress',
-      estimatedTime: '5 minutes'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Manual backup failed',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+);
