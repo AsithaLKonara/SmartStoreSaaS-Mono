@@ -10,14 +10,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
-  async (request, user) => {
+export const GET = requirePermission('VIEW_SETTINGS')(
+  async (request: AuthenticatedRequest, user) => {
     try {
       const organizationId = user.organizationId;
       
@@ -54,8 +54,8 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
   }
 );
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
-  async (request, user) => {
+export const POST = requirePermission('MANAGE_SETTINGS')(
+  async (request: AuthenticatedRequest, user) => {
     try {
       const body = await request.json();
       const { settings } = body;

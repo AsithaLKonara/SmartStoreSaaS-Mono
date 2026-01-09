@@ -11,28 +11,25 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const configId = params.id;
+/**
+ * GET /api/configuration/[id]
+ * Get single configuration
+ */
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const configId = resolvedParams.id;
+  
+  const handler = requirePermission('VIEW_SETTINGS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
 
     // TODO: Implement configuration model when available
     // const config = await prisma.configuration.findUnique({
@@ -47,41 +44,64 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     //   return NextResponse.json({ success: false, message: 'Cannot view configurations from other organizations' }, { status: 403 });
     // }
 
-    logger.info({
-      message: 'Configuration fetched',
-      context: { configId, userId: session.user.id }
-    });
+        // TODO: Implement configuration model when available
+        // For now, return placeholder
+        const config = { id: configId, message: 'Configuration - implementation pending' };
 
-    // TODO: Return actual configuration
-    const config = { id: configId, message: 'Configuration - implementation pending' };
+        logger.info({
+          message: 'Configuration fetched',
+          context: {
+            configId,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: correlationId
+        });
 
-    return NextResponse.json(successResponse(config));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch configuration',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+        return NextResponse.json(successResponse(config));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to fetch configuration',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            configId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to fetch configuration',
+          correlation: correlationId
+        }, { status: 500 });
+      }
+    }
+  );
+
+  return handler(request);
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const configId = params.id;
-    const body = await request.json();
+/**
+ * PUT /api/configuration/[id]
+ * Update configuration
+ */
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const configId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_SETTINGS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
 
     // TODO: Implement configuration model when available
     // const config = await prisma.configuration.findUnique({
@@ -101,40 +121,63 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     //   data: body
     // });
 
-    logger.info({
-      message: 'Configuration updated',
-      context: { configId, userId: session.user.id }
-    });
+        // TODO: Implement configuration model when available
+        // For now, return placeholder
+        const updated = { id: configId, ...body, message: 'Configuration update - implementation pending' };
 
-    // TODO: Return actual updated configuration
-    const updated = { id: configId, ...body, message: 'Configuration update - implementation pending' };
+        logger.info({
+          message: 'Configuration updated',
+          context: {
+            configId,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: correlationId
+        });
 
-    return NextResponse.json(successResponse(updated));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update configuration',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+        return NextResponse.json(successResponse(updated));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to update configuration',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            configId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to update configuration',
+          correlation: correlationId
+        }, { status: 500 });
+      }
+    }
+  );
+
+  return handler(request);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const configId = params.id;
+/**
+ * DELETE /api/configuration/[id]
+ * Delete configuration
+ */
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const configId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_SETTINGS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
 
     // TODO: Implement configuration model when available
     // const config = await prisma.configuration.findUnique({
@@ -153,21 +196,49 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     //   where: { id: configId }
     // });
 
-    logger.info({
-      message: 'Configuration deleted',
-      context: { configId, userId: session.user.id }
-    });
+        // TODO: Implement configuration model when available
+        // await prisma.configuration.delete({ where: { id: configId } });
 
-    return NextResponse.json(successResponse({
-      message: 'Configuration deleted',
-      configId
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to delete configuration',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+        logger.info({
+          message: 'Configuration deleted',
+          context: {
+            configId,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: correlationId
+        });
+
+        return NextResponse.json(successResponse({
+          message: 'Configuration deleted',
+          configId
+        }));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to delete configuration',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            configId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to delete configuration',
+          correlation: correlationId
+        }, { status: 500 });
+      }
+    }
+  );
+
+  return handler(request);
 }

@@ -1,73 +1,109 @@
+/**
+ * Support Ticket Close API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_SUPPORT_TICKETS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/support/close
+ * Close support ticket
+ */
 export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  
+  const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
+        const { ticketId, resolution, satisfaction } = body;
 
-    const body = await request.json();
-    const { ticketId, resolution, satisfaction } = body;
+        // Validate required fields
+        if (!ticketId) {
+          throw new ValidationError('Ticket ID is required');
+        }
 
-    // Validate required fields
-    if (!ticketId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Ticket ID is required'
-      }, { status: 400 });
-    }
+        const organizationId = getOrganizationScope(user);
+        if (!organizationId) {
+          throw new ValidationError('User must belong to an organization');
+        }
 
-    logger.info({
-      message: 'Support ticket closed',
-      context: {
-        userId: session.user.id,
-        ticketId,
-        resolution,
-        satisfaction
+        // Fetch ticket to validate access
+        const ticket = await prisma.support_tickets.findUnique({
+          where: { id: ticketId }
+        });
+
+        if (!ticket) {
+          throw new NotFoundError('Support ticket not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, ticket.organizationId)) {
+          throw new AuthorizationError('Cannot close tickets from other organizations');
+        }
+
+        // Update ticket status
+        const updatedTicket = await prisma.support_tickets.update({
+          where: { id: ticketId },
+          data: {
+            status: 'closed',
+            resolution: resolution || 'Resolved',
+            satisfaction: satisfaction || null,
+            closedAt: new Date(),
+            updatedAt: new Date()
+          }
+        });
+
+        logger.info({
+          message: 'Support ticket closed',
+          context: {
+            userId: user.id,
+            ticketId,
+            resolution,
+            satisfaction,
+            organizationId: ticket.organizationId
+          },
+          correlation: correlationId
+        });
+
+        return NextResponse.json(successResponse(updatedTicket));
+      } catch (error: any) {
+        logger.error({
+          message: 'Support ticket closing failed',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to close support ticket',
+          correlation: correlationId
+        }, { status: 500 });
       }
-    });
+    }
+  );
 
-    // TODO: Implement actual support ticket closing
-    // This would typically involve:
-    // 1. Validating ticket and permissions
-    // 2. Updating ticket status in database
-    // 3. Recording resolution and satisfaction
-    // 4. Sending notifications
-    // 5. Returning updated ticket
-
-    const updatedTicket = {
-      id: ticketId,
-      status: 'closed',
-      resolution: resolution || 'Resolved',
-      satisfaction: satisfaction || null,
-      closedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastActivity: new Date().toISOString()
-    };
-
-    return NextResponse.json({
-      success: true,
-      message: 'Ticket closed successfully',
-      data: updatedTicket
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Support ticket closing failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Support ticket closing failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
+  return handler(request);
 }
 

@@ -1,87 +1,98 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { logger } from '@/lib/logger';
+/**
+ * Support Tag Tickets API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_SUPPORT_TICKETS permission)
+ * 
+ * Organization Scoping: Required
+ */
 
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/support/tags/[id]/tickets
+ * Get tickets for a specific tag
+ */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const tagId = resolvedParams.id;
+  
+  const handler = requirePermission('VIEW_SUPPORT_TICKETS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const { searchParams } = new URL(req.url);
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '10');
 
-    const tagId = params.id;
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-
-    logger.info({
-      message: 'Support tag tickets fetched',
-      context: {
-        userId: session.user.id,
-        tagId,
-        page,
-        limit
-      }
-    });
-
-    // TODO: Implement actual support tag tickets fetching
-    // This would typically involve:
-    // 1. Querying tickets with this tag from database
-    // 2. Paginating results
-    // 3. Formatting for response
-
-    const mockTickets = [
-      {
-        id: 'ticket_1',
-        subject: 'Login Issues',
-        status: 'open',
-        priority: 'high',
-        customerId: 'cust_123',
-        customerName: 'John Doe',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'ticket_2',
-        subject: 'Password Reset Problems',
-        status: 'in_progress',
-        priority: 'medium',
-        customerId: 'cust_456',
-        customerName: 'Jane Smith',
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    ];
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        tickets: mockTickets,
-        pagination: {
-          page,
-          limit,
-          total: mockTickets.length,
-          pages: 1
+        const organizationId = getOrganizationScope(user);
+        if (!organizationId) {
+          throw new ValidationError('User must belong to an organization');
         }
-      }
-    });
 
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch support tag tickets',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, tagId: params.id }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch support tag tickets',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
+        // TODO: Implement actual support tag tickets fetching when tag-ticket relationship is implemented
+        // This would involve querying tickets with this tag from database
+        const tickets: any[] = [];
+        const total = 0;
+
+        logger.info({
+          message: 'Support tag tickets fetched',
+          context: {
+            userId: user.id,
+            tagId,
+            page,
+            limit,
+            organizationId
+          },
+          correlation: correlationId
+        });
+
+        return NextResponse.json(
+          successResponse(tickets, {
+            pagination: {
+              page,
+              limit,
+              total,
+              pages: Math.ceil(total / limit)
+            }
+          })
+        );
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to fetch support tag tickets',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            tagId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to fetch support tag tickets',
+          correlation: correlationId
+        }, { status: 500 });
+      }
+    }
+  );
+
+  return handler(request);
 }

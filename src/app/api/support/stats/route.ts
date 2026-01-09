@@ -1,21 +1,32 @@
+/**
+ * Support Statistics API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_SUPPORT_TICKETS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const organizationId = session.user.organizationId;
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
-    }
+/**
+ * GET /api/support/stats
+ * Get support ticket statistics
+ */
+export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
     // Query actual statistics from database
     const [
@@ -69,32 +80,40 @@ export async function GET(request: NextRequest) {
       }))
     };
 
-    logger.info({
-      message: 'Support statistics fetched',
-      context: {
-        userId: session.user.id,
-        organizationId,
-        totalTickets
+      logger.info({
+        message: 'Support statistics fetched',
+        context: {
+          userId: user.id,
+          organizationId,
+          totalTickets
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(stats));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch support statistics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: stats
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch support statistics',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch support statistics',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch support statistics',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);
 

@@ -8,43 +8,65 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+/**
+ * GET /api/analytics/customer-insights
+ * Get customer insights
+ */
+export const GET = requirePermission('VIEW_ANALYTICS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      // TODO: Generate customer insights
+      logger.info({
+        message: 'Customer insights fetched',
+        context: {
+          userId: user.id,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        totalCustomers: 0,
+        activeCustomers: 0,
+        topCustomers: [],
+        churnRate: 0,
+        customerLifetimeValue: 0,
+        message: 'Customer insights - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Customer insights fetch failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Customer insights fetch failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    const organizationId = session.user.organizationId;
-
-    logger.info({
-      message: 'Customer insights fetched',
-      context: { organizationId }
-    });
-
-    // TODO: Generate customer insights
-    return NextResponse.json(successResponse({
-      totalCustomers: 0,
-      activeCustomers: 0,
-      topCustomers: [],
-      churnRate: 0,
-      customerLifetimeValue: 0,
-      message: 'Customer insights - implementation pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Customer insights fetch failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Customer insights fetch failed' }, { status: 500 });
   }
-}
+);
 

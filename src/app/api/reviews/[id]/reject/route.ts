@@ -10,18 +10,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
-  async (request, user, { params }: { params: { id: string } }) => {
+/**
+ * POST /api/reviews/[id]/reject
+ * Reject a review
+ */
+export const POST = requirePermission('VIEW_REVIEWS')(
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const reviewId = params.id;
-      const body = await request.json();
+      const body = await req.json();
       const { reason } = body;
 
       // TODO: Implement Review model and re-enable
@@ -51,7 +53,12 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
 
       logger.info({
         message: 'Review rejected',
-        context: { userId: user.id, reviewId, reason }
+        context: {
+          userId: user.id,
+          reviewId,
+          reason
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
@@ -61,10 +68,25 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     } catch (error: any) {
       logger.error({
         message: 'Review rejection failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Review rejection failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

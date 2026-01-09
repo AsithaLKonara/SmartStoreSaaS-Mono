@@ -9,53 +9,64 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * POST /api/configuration/export
+ * Export configuration
+ */
+export const POST = requirePermission('MANAGE_SETTINGS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const organization = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { settings: true }
+      });
+
+      logger.info({
+        message: 'Configuration exported',
+        context: {
+          userId: user.id,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        config: organization?.settings || {},
+        exportedAt: new Date().toISOString()
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Configuration export failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to export configuration',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const organizationId = session.user.organizationId;
-    
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
-    }
-
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { settings: true }
-    });
-
-    logger.info({
-      message: 'Configuration exported',
-      context: { userId: session.user.id, organizationId }
-    });
-
-    return NextResponse.json(successResponse({
-      config: organization?.settings || {},
-      exportedAt: new Date().toISOString()
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Configuration export failed',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+);

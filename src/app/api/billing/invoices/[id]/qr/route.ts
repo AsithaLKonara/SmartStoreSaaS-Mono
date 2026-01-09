@@ -9,28 +9,28 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const invoiceId = params.id;
+/**
+ * GET /api/billing/invoices/[id]/qr
+ * Generate invoice QR code
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const invoiceId = resolvedParams.id;
+  
+  const handler = requirePermission('VIEW_BILLING')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
 
     // TODO: Implement invoice model when available
     // const invoice = await prisma.invoice.findUnique({
@@ -45,22 +45,49 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     //   return NextResponse.json({ success: false, message: 'Cannot generate QR for invoices from other organizations' }, { status: 403 });
     // }
 
-    logger.info({
-      message: 'Invoice QR code generated',
-      context: { invoiceId, userId: session.user.id }
-    });
+        // TODO: Implement invoice model when available
+        // TODO: Generate actual QR code
 
-    // TODO: Generate actual QR code
-    return NextResponse.json(successResponse({
-      qrCodeUrl: `/qr/invoice_${invoiceId}.png`,
-      invoiceId
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Invoice QR generation failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
+        logger.info({
+          message: 'Invoice QR code generated',
+          context: {
+            invoiceId,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: correlationId
+        });
+
+        return NextResponse.json(successResponse({
+          qrCodeUrl: `/qr/invoice_${invoiceId}.png`,
+          invoiceId
+        }));
+      } catch (error: any) {
+        logger.error({
+          message: 'Invoice QR generation failed',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            invoiceId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Invoice QR generation failed',
+          correlation: correlationId
+        }, { status: 500 });
+      }
+    }
+  );
+
+  return handler(request);
 }

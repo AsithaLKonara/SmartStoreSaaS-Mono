@@ -1,21 +1,32 @@
+/**
+ * Support Tags API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_SUPPORT_TICKETS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_SUPPORT_TICKETS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const organizationId = session.user.organizationId;
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
-    }
+/**
+ * GET /api/support/tags
+ * List support tags
+ */
+export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
     // Define standard support tags (can be enhanced with DB table)
     const standardTags = [
@@ -43,58 +54,62 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    logger.info({
-      message: 'Support tags fetched',
-      context: {
-        userId: session.user.id,
-        organizationId,
-        count: tagsWithCounts.length
+      logger.info({
+        message: 'Support tags fetched',
+        context: {
+          userId: user.id,
+          organizationId,
+          count: tagsWithCounts.length
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(tagsWithCounts));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch support tags',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: tagsWithCounts
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch support tags',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch support tags',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { name, color } = body;
-
-    // Validate required fields
-    if (!name) {
+      
       return NextResponse.json({
         success: false,
-        error: 'Tag name is required'
-      }, { status: 400 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch support tags',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
+  }
+);
 
-    const organizationId = session.user.organizationId;
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized: Missing organization ID' }, { status: 401 });
-    }
+/**
+ * POST /api/support/tags
+ * Create support tag
+ */
+export const POST = requirePermission('MANAGE_SUPPORT_TICKETS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { name, color } = body;
+
+      // Validate required fields
+      if (!name) {
+        throw new ValidationError('Tag name is required');
+      }
+
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
     // Create tag record (using activities for now, can create dedicated tags table)
     await prisma.activities.create({
@@ -116,34 +131,41 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     };
 
-    logger.info({
-      message: 'Support tag created',
-      context: {
-        userId: session.user.id,
-        organizationId,
-        name,
-        color
+      logger.info({
+        message: 'Support tag created',
+        context: {
+          userId: user.id,
+          organizationId,
+          name,
+          color
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(tag));
+    } catch (error: any) {
+      logger.error({
+        message: 'Support tag creation failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Support tag created successfully',
-      data: tag
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Support tag creation failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Support tag creation failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create support tag',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);
 

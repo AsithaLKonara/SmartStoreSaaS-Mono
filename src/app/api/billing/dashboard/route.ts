@@ -8,42 +8,64 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+/**
+ * GET /api/billing/dashboard
+ * Get billing dashboard data
+ */
+export const GET = requirePermission('VIEW_BILLING')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      // TODO: Fetch actual billing data
+      logger.info({
+        message: 'Billing dashboard requested',
+        context: {
+          userId: user.id,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        currentPlan: 'PRO',
+        billingCycle: 'monthly',
+        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        outstandingBalance: 0,
+        recentInvoices: [],
+        message: 'Billing dashboard - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Billing dashboard fetch failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Billing dashboard fetch failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    const organizationId = session.user.organizationId;
-
-    logger.info({
-      message: 'Billing dashboard requested',
-      context: { organizationId }
-    });
-
-    // TODO: Fetch actual billing data
-    return NextResponse.json(successResponse({
-      currentPlan: 'PRO',
-      billingCycle: 'monthly',
-      nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      outstandingBalance: 0,
-      recentInvoices: [],
-      message: 'Billing dashboard - implementation pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Billing dashboard fetch failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Billing dashboard fetch failed' }, { status: 500 });
   }
-}
+);

@@ -8,40 +8,60 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  let session: any = null;
-  try {
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
+/**
+ * GET /api/warehouses/inventory
+ * Get warehouse inventory
+ */
+export const GET = requirePermission('VIEW_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    logger.info({
-      message: 'Warehouse inventory fetched',
-      context: { userId: session.user.id, organizationId: session.user.organizationId }
-    });
+      // TODO: Fetch actual warehouse inventory
+      logger.info({
+        message: 'Warehouse inventory fetched',
+        context: {
+          userId: user.id,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
 
-    // TODO: Fetch actual warehouse inventory
-    return NextResponse.json(successResponse({
-      inventory: [],
-      message: 'Warehouse inventory - implementation pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch warehouse inventory',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+      return NextResponse.json(successResponse({
+        inventory: [],
+        message: 'Warehouse inventory - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch warehouse inventory',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch warehouse inventory',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

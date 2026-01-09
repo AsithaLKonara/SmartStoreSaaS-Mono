@@ -8,27 +8,41 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/accounting/reports/profit-loss
+ * Get profit & loss report
+ */
+export const GET = requirePermission('VIEW_ACCOUNTING')(
+  async (req: AuthenticatedRequest, user) => {
     try {
       if (user.role === 'STAFF' && user.roleTag !== 'accountant') {
         throw new ValidationError('Only accountant staff can view profit & loss');
       }
 
-      const orgId = getOrganizationScope(user);
-      const { searchParams } = new URL(request.url);
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const { searchParams } = new URL(req.url);
       const startDate = searchParams.get('startDate');
       const endDate = searchParams.get('endDate');
 
       logger.info({
         message: 'Profit & Loss report requested',
-        context: { userId: user.id, organizationId: orgId }
+        context: {
+          userId: user.id,
+          organizationId,
+          startDate,
+          endDate
+        },
+        correlation: req.correlationId
       });
 
       // TODO: Generate actual P&L report
@@ -42,10 +56,25 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     } catch (error: any) {
       logger.error({
         message: 'P&L report generation failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to generate profit & loss report',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

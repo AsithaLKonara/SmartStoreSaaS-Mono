@@ -1,203 +1,282 @@
+/**
+ * Single Order API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN, STAFF (VIEW_ORDERS permission), CUSTOMER (their own orders)
+ * - PUT: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_ORDERS permission)
+ * - DELETE: SUPER_ADMIN (MANAGE_ORDERS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { successResponse, NotFoundError, AuthorizationError, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const orderId = params.id;
-
-    // Get order with related data
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        orderItems: {
+/**
+ * GET /api/orders/[id]
+ * Get single order with organization scoping
+ */
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const orderId = resolvedParams.id;
+  
+  const handler = requirePermission('VIEW_ORDERS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        // Get order with related data
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
           include: {
-            product: {
+            orderItems: {
               include: {
-                category: true
+                product: {
+                  include: {
+                    category: true
+                  }
+                }
+              }
+            },
+            deliveries: true
+          }
+        });
+
+        if (!order) {
+          throw new NotFoundError('Order not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, order.organizationId)) {
+          throw new AuthorizationError('Cannot view orders from other organizations');
+        }
+
+        // CUSTOMER can only view their own orders
+        if (user.role === 'CUSTOMER') {
+          const customer = await prisma.customer.findFirst({
+            where: { email: user.email, organizationId: order.organizationId }
+          });
+          
+          if (!customer || order.customerId !== customer.id) {
+            throw new AuthorizationError('Cannot view other customers\' orders');
+          }
+        }
+
+        logger.info({
+          message: 'Order fetched successfully',
+          context: {
+            userId: user.id,
+            orderId,
+            organizationId: order.organizationId
+          },
+          correlation: correlationId
+        });
+
+        return NextResponse.json(successResponse(order));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to fetch order',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            orderId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof NotFoundError || error instanceof AuthorizationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to fetch order',
+          correlation: correlationId
+        }, { status: 500 });
+      }
+    }
+  );
+
+  return handler(request);
+}
+
+/**
+ * PUT /api/orders/[id]
+ * Update order
+ */
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const orderId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_ORDERS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
+        const { status, notes, trackingNumber } = body;
+
+        // Validate status if provided
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+        if (status && !validStatuses.includes(status)) {
+          throw new ValidationError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+        }
+
+        // Fetch order to validate access
+        const order = await prisma.order.findUnique({
+          where: { id: orderId }
+        });
+
+        if (!order) {
+          throw new NotFoundError('Order not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, order.organizationId)) {
+          throw new AuthorizationError('Cannot update orders from other organizations');
+        }
+
+        // Update order
+        const updatedOrder = await prisma.order.update({
+          where: { id: orderId },
+          data: {
+            ...(status && { status }),
+            ...(notes && { notes }),
+            ...(trackingNumber && { trackingNumber }),
+            updatedAt: new Date()
+          },
+          include: {
+            orderItems: {
+              include: {
+                product: true
               }
             }
           }
-        },
-        deliveries: true
-      }
-    });
+        });
 
-    if (!order) {
-      return NextResponse.json({
-        success: false,
-        error: 'Order not found'
-      }, { status: 404 });
-    }
+        logger.info({
+          message: 'Order updated successfully',
+          context: {
+            userId: user.id,
+            orderId,
+            status,
+            trackingNumber,
+            organizationId: order.organizationId
+          },
+          correlation: correlationId
+        });
 
-    logger.info({
-      message: 'Order fetched successfully',
-      context: {
-        userId: session.user.id,
-        orderId
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: order
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch order',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch order',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const orderId = params.id;
-    const body = await request.json();
-    const { status, notes, trackingNumber } = body;
-
-    // Validate status if provided
-    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-    if (status && !validStatuses.includes(status)) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid status. Must be one of: ' + validStatuses.join(', ')
-      }, { status: 400 });
-    }
-
-    // Update order
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        ...(status && { status }),
-        ...(notes && { notes }),
-        ...(trackingNumber && { trackingNumber }),
-        updatedAt: new Date()
-      },
-      include: {
-        orderItems: {
-          include: {
-            product: true
-          }
+        return NextResponse.json(successResponse(updatedOrder));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to update order',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            orderId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
+          throw error;
         }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to update order',
+          correlation: correlationId
+        }, { status: 500 });
       }
-    });
+    }
+  );
 
-    logger.info({
-      message: 'Order updated successfully',
-      context: {
-        userId: session.user.id,
-        orderId,
-        status,
-        trackingNumber
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Order updated successfully',
-      data: updatedOrder
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update order',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to update order',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
+  return handler(request);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+/**
+ * DELETE /api/orders/[id]
+ * Delete order (SUPER_ADMIN only)
+ */
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const orderId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_ORDERS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        // Only SUPER_ADMIN can delete orders
+        if (user.role !== 'SUPER_ADMIN') {
+          throw new AuthorizationError('Only SUPER_ADMIN can delete orders');
+        }
 
-    // Role check for SUPER_ADMIN only
-    if (session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
+        // Check if order exists
+        const order = await prisma.order.findUnique({
+          where: { id: orderId }
+        });
 
-    const orderId = params.id;
+        if (!order) {
+          throw new NotFoundError('Order not found');
+        }
 
-    // Check if order exists
-    const order = await prisma.order.findUnique({
-      where: { id: orderId }
-    });
+        // Validate organization access (even SUPER_ADMIN should validate)
+        if (!validateOrganizationAccess(user, order.organizationId)) {
+          throw new AuthorizationError('Cannot delete orders from other organizations');
+        }
 
-    if (!order) {
-      return NextResponse.json({
-        success: false,
-        error: 'Order not found'
-      }, { status: 404 });
-    }
+        // Delete order (this will cascade delete order items)
+        await prisma.order.delete({
+          where: { id: orderId }
+        });
 
-    // Delete order (this will cascade delete order items)
-    await prisma.order.delete({
-      where: { id: orderId }
-    });
+        logger.info({
+          message: 'Order deleted successfully',
+          context: {
+            userId: user.id,
+            orderId,
+            organizationId: order.organizationId
+          },
+          correlation: correlationId
+        });
 
-    logger.info({
-      message: 'Order deleted successfully',
-      context: {
-        userId: session.user.id,
-        orderId
+        return NextResponse.json(successResponse({ message: 'Order deleted successfully' }));
+      } catch (error: any) {
+        logger.error({
+          message: 'Failed to delete order',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            orderId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof NotFoundError || error instanceof AuthorizationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to delete order',
+          correlation: correlationId
+        }, { status: 500 });
       }
-    });
+    }
+  );
 
-    return NextResponse.json({
-      success: true,
-      message: 'Order deleted successfully'
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to delete order',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to delete order',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
+  return handler(request);
 }

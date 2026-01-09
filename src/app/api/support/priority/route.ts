@@ -1,77 +1,113 @@
+/**
+ * Support Ticket Priority Update API Route
+ * 
+ * Authorization:
+ * - POST: SUPER_ADMIN, TENANT_ADMIN, STAFF (MANAGE_SUPPORT_TICKETS permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/support/priority
+ * Update support ticket priority
+ */
 export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  
+  const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
+        const { ticketId, priority } = body;
 
-    const body = await request.json();
-    const { ticketId, priority } = body;
+        // Validate required fields
+        if (!ticketId || !priority) {
+          throw new ValidationError('Ticket ID and priority are required', {
+            fields: { ticketId: !ticketId, priority: !priority }
+          });
+        }
 
-    // Validate required fields
-    if (!ticketId || !priority) {
-      return NextResponse.json({
-        success: false,
-        error: 'Ticket ID and priority are required'
-      }, { status: 400 });
-    }
+        // Validate priority value
+        const validPriorities = ['low', 'medium', 'high', 'urgent'];
+        if (!validPriorities.includes(priority)) {
+          throw new ValidationError(`Invalid priority. Must be one of: ${validPriorities.join(', ')}`);
+        }
 
-    // Validate priority value
-    const validPriorities = ['low', 'medium', 'high', 'urgent'];
-    if (!validPriorities.includes(priority)) {
-      return NextResponse.json({
-        success: false,
-        error: `Invalid priority. Must be one of: ${validPriorities.join(', ')}`
-      }, { status: 400 });
-    }
+        const organizationId = getOrganizationScope(user);
+        if (!organizationId) {
+          throw new ValidationError('User must belong to an organization');
+        }
 
-    logger.info({
-      message: 'Support ticket priority updated',
-      context: {
-        userId: session.user.id,
-        ticketId,
-        priority
+        // Fetch ticket to validate access
+        const ticket = await prisma.support_tickets.findUnique({
+          where: { id: ticketId }
+        });
+
+        if (!ticket) {
+          throw new NotFoundError('Support ticket not found');
+        }
+
+        // Validate organization access
+        if (!validateOrganizationAccess(user, ticket.organizationId)) {
+          throw new AuthorizationError('Cannot update priority for tickets from other organizations');
+        }
+
+        // Update ticket priority
+        const updatedTicket = await prisma.support_tickets.update({
+          where: { id: ticketId },
+          data: {
+            priority,
+            updatedAt: new Date()
+          }
+        });
+
+        logger.info({
+          message: 'Support ticket priority updated',
+          context: {
+            userId: user.id,
+            ticketId,
+            priority,
+            organizationId: ticket.organizationId
+          },
+          correlation: correlationId
+        });
+
+        return NextResponse.json(successResponse(updatedTicket));
+      } catch (error: any) {
+        logger.error({
+          message: 'Support ticket priority update failed',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to update support ticket priority',
+          correlation: correlationId
+        }, { status: 500 });
       }
-    });
+    }
+  );
 
-    // TODO: Implement actual support ticket priority update
-    // This would typically involve:
-    // 1. Validating ticket and permissions
-    // 2. Updating ticket priority in database
-    // 3. Sending notifications if priority changed significantly
-    // 4. Returning updated ticket
-
-    const updatedTicket = {
-      id: ticketId,
-      priority,
-      updatedAt: new Date().toISOString(),
-      lastActivity: new Date().toISOString()
-    };
-
-    return NextResponse.json({
-      success: true,
-      message: 'Ticket priority updated successfully',
-      data: updatedTicket
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Support ticket priority update failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Support ticket priority update failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
+  return handler(request);
 }
 

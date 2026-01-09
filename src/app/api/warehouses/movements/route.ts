@@ -13,20 +13,27 @@ import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { ValidationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/warehouses/movements
+ * Get warehouse movements
+ */
+export const GET = requirePermission('VIEW_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const { searchParams } = new URL(request.url);
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const { searchParams } = new URL(req.url);
       const warehouseId = searchParams.get('warehouseId');
 
-      const orgId = getOrganizationScope(user);
-
-      const where: any = {};
-      if (orgId) where.organizationId = orgId;
+      const where: any = { organizationId };
       if (warehouseId) where.warehouseId = warehouseId;
 
       const movements = await prisma.inventoryMovement.findMany({
@@ -37,17 +44,38 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       logger.info({
         message: 'Warehouse movements fetched',
-        context: { userId: user.id, warehouseId, count: movements.length }
+        context: {
+          userId: user.id,
+          warehouseId,
+          count: movements.length,
+          organizationId
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(movements));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch warehouse movements',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch warehouse movements',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

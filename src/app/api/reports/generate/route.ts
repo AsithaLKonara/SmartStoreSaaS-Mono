@@ -108,20 +108,23 @@ async function generateFinancialReport(organizationId: string, start: Date, end:
   };
 }
 
+import { AuthenticatedRequest } from '@/lib/middleware/auth';
+
 export const POST = requirePermission('VIEW_REPORTS')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
       const { reportType, startDate, endDate, format = 'json' } = body;
 
       if (!reportType) {
-        throw new ValidationError('Report type is required');
-      }
-
-      // Organization scoping
-      const organizationId = user.organizationId;
-      if (!organizationId) {
-        throw new ValidationError('User must belong to an organization');
+        throw new ValidationError('Report type is required', {
+          fields: { reportType: !reportType }
+        });
       }
 
       const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -152,7 +155,8 @@ export const POST = requirePermission('VIEW_REPORTS')(
           userId: user.id,
           organizationId,
           reportType
-        }
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
@@ -163,10 +167,25 @@ export const POST = requirePermission('VIEW_REPORTS')(
     } catch (error: any) {
       logger.error({
         message: 'Failed to generate report',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to generate report',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

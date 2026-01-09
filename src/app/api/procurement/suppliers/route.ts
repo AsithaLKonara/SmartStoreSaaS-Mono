@@ -11,53 +11,84 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/procurement/suppliers
+ * Get suppliers
+ */
+export const GET = requirePermission('VIEW_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const orgId = getOrganizationScope(user);
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
       const suppliers = await prisma.supplier.findMany({
-        where: orgId ? { organizationId: orgId } : {},
+        where: { organizationId },
         orderBy: { name: 'asc' }
       });
 
       logger.info({
         message: 'Procurement suppliers fetched',
-        context: { userId: user.id, count: suppliers.length }
+        context: {
+          userId: user.id,
+          organizationId,
+          count: suppliers.length
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(suppliers));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch procurement suppliers',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch procurement suppliers',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
-  async (request, user) => {
+/**
+ * POST /api/procurement/suppliers
+ * Create supplier
+ */
+export const POST = requirePermission('MANAGE_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
       const { name, contactName, email, phone } = body;
 
       if (!name) {
-        throw new ValidationError('Supplier name is required');
-      }
-
-      const organizationId = user.organizationId;
-      if (!organizationId) {
-        throw new ValidationError('User must belong to an organization');
+        throw new ValidationError('Supplier name is required', {
+          fields: { name: !name }
+        });
       }
 
       // Generate a unique supplier code
@@ -85,17 +116,37 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
 
       logger.info({
         message: 'Procurement supplier created',
-        context: { userId: user.id, supplierId: supplier.id }
+        context: {
+          userId: user.id,
+          organizationId,
+          supplierId: supplier.id
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(supplier), { status: 201 });
     } catch (error: any) {
       logger.error({
         message: 'Failed to create procurement supplier',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create procurement supplier',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

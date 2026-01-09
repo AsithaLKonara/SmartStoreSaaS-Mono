@@ -8,55 +8,71 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { workflowType, config } = body;
-
-    if (!workflowType) {
-      return NextResponse.json({ success: false, error: 'Workflow type is required' }, { status: 400 });
-    }
-
-    logger.info({
-      message: 'AI automation triggered',
-      context: {
-        userId: session.user.id,
-        organizationId: session.user.organizationId,
-        workflowType
+/**
+ * POST /api/ai/automation
+ * Trigger AI automation workflow
+ */
+export const POST = requirePermission('VIEW_AI_INSIGHTS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    // TODO: Trigger actual AI automation
-    return NextResponse.json(successResponse({
-      automationId: `auto_${Date.now()}`,
-      status: 'initiated',
-      message: 'AI automation - implementation pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'AI automation failed',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+      const body = await req.json();
+      const { workflowType, config } = body;
+
+      if (!workflowType) {
+        throw new ValidationError('Workflow type is required', {
+          fields: { workflowType: !workflowType }
+        });
+      }
+
+      // TODO: Trigger actual AI automation
+      logger.info({
+        message: 'AI automation triggered',
+        context: {
+          userId: user.id,
+          organizationId,
+          workflowType
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        automationId: `auto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        status: 'initiated',
+        message: 'AI automation - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'AI automation failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'AI automation failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

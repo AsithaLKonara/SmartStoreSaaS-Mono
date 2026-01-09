@@ -10,102 +10,132 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    // TODO: Get organization scoping from session
-    const orgId = session.user.organizationId;
-
-    const templates = await prisma.sms_templates.findMany({
-      where: orgId ? { organizationId: orgId } : {}, // TODO: Add organizationId filter
-      orderBy: { name: 'asc' }
-    });
-
-    logger.info({
-      message: 'Campaign templates fetched',
-      context: { count: templates.length, userId: session.user.id }
-    });
-
-    return NextResponse.json(successResponse(templates));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch campaign templates',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { name, content, type } = body;
-
-    if (!name || !content) {
-      return NextResponse.json({ success: false, message: 'Name and content are required' }, { status: 400 });
-    }
-
-    // TODO: Get organizationId from session
-    const organizationId = session.user.organizationId;
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
-    }
-
-    const template = await prisma.sms_templates.create({
-      data: {
-        id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        organizationId,
-        name,
-        content,
-        variables: null,
-        isActive: true,
-        updatedAt: new Date()
+/**
+ * GET /api/campaigns/templates
+ * Get campaign templates
+ */
+export const GET = requirePermission('VIEW_CAMPAIGNS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    logger.info({
-      message: 'Campaign template created',
-      context: { templateId: template.id, userId: session.user.id }
-    });
+      const templates = await prisma.sms_templates.findMany({
+        where: { organizationId },
+        orderBy: { name: 'asc' }
+      });
 
-    return NextResponse.json(successResponse(template), { status: 201 });
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to create campaign template',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+      logger.info({
+        message: 'Campaign templates fetched',
+        context: {
+          count: templates.length,
+          userId: user.id,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(templates));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch campaign templates',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch campaign templates',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);
+
+/**
+ * POST /api/campaigns/templates
+ * Create campaign template
+ */
+export const POST = requirePermission('MANAGE_CAMPAIGNS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
+      const { name, content, type } = body;
+
+      if (!name || !content) {
+        throw new ValidationError('Name and content are required', {
+          fields: { name: !name, content: !content }
+        });
+      }
+
+      const template = await prisma.sms_templates.create({
+        data: {
+          id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          organizationId,
+          name,
+          content,
+          variables: null,
+          isActive: true,
+          updatedAt: new Date()
+        }
+      });
+
+      logger.info({
+        message: 'Campaign template created',
+        context: {
+          templateId: template.id,
+          userId: user.id,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(template), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create campaign template',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create campaign template',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
+  }
+);

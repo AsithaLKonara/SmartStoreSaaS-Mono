@@ -1,33 +1,37 @@
+/**
+ * Abandoned Carts API Route
+ * 
+ * Authorization:
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_MARKETING permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_MARKETING permission)
+ * 
+ * Organization Scoping: Required
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
+/**
+ * GET /api/marketing/abandoned-carts
+ * Get abandoned carts
+ */
+export const GET = requirePermission('VIEW_MARKETING')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const hours = parseInt(searchParams.get('hours') || '24');
-
-    const organizationId = session.user.organizationId;
-
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
-    }
+      const { searchParams } = new URL(req.url);
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = parseInt(searchParams.get('limit') || '10');
+      const hours = parseInt(searchParams.get('hours') || '24');
 
     // Calculate cutoff time for abandoned carts
     const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
@@ -65,116 +69,129 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
-    logger.info({
-      message: 'Abandoned carts fetched successfully',
-      context: {
-        userId: session.user.id,
-        organizationId,
-        count: abandonedOrders.length,
-        total,
-        hours,
-        page,
-        limit
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        abandonedCarts: abandonedOrders,
-        pagination: {
-          page,
-          limit,
+      logger.info({
+        message: 'Abandoned carts fetched successfully',
+        context: {
+          userId: user.id,
+          organizationId,
+          count: abandonedOrders.length,
           total,
-          pages: Math.ceil(total / limit)
-        }
+          hours,
+          page,
+          limit
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(
+        successResponse(abandonedOrders, {
+          pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit)
+          }
+        })
+      );
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch abandoned carts',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch abandoned carts',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch abandoned carts',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { cartIds, campaignType = 'email', templateId, delay = 0 } = body;
-
-    if (!cartIds || !Array.isArray(cartIds) || cartIds.length === 0) {
+      
       return NextResponse.json({
         success: false,
-        error: 'No cart IDs provided'
-      }, { status: 400 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch abandoned carts',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    logger.info({
-      message: 'Abandoned cart campaign initiated',
-      context: {
-        userId: session.user.id,
-        cartIds: cartIds.length,
-        campaignType,
-        templateId,
-        delay
-      }
-    });
-
-    // TODO: Implement actual abandoned cart campaign logic
-    // This would typically involve:
-    // 1. Validating cart IDs
-    // 2. Creating campaign records
-    // 3. Scheduling emails/SMS based on delay
-    // 4. Tracking campaign performance
-
-    const campaign = {
-      id: `campaign_${Date.now()}`,
-      type: campaignType,
-      cartIds,
-      templateId,
-      delay,
-      status: 'scheduled',
-      createdAt: new Date().toISOString()
-    };
-
-    return NextResponse.json({
-      success: true,
-      message: 'Abandoned cart campaign initiated',
-      data: campaign
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Abandoned cart campaign failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Abandoned cart campaign failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
   }
-}
+);
+
+/**
+ * POST /api/marketing/abandoned-carts
+ * Initiate abandoned cart campaign
+ */
+export const POST = requirePermission('MANAGE_MARKETING')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
+      const { cartIds, campaignType = 'email', templateId, delay = 0 } = body;
+
+      if (!cartIds || !Array.isArray(cartIds) || cartIds.length === 0) {
+        throw new ValidationError('No cart IDs provided');
+      }
+
+      // TODO: Implement actual abandoned cart campaign logic
+      // This would typically involve:
+      // 1. Validating cart IDs
+      // 2. Creating campaign records
+      // 3. Scheduling emails/SMS based on delay
+      // 4. Tracking campaign performance
+
+      const campaign = {
+        id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: campaignType,
+        cartIds,
+        templateId,
+        delay,
+        status: 'scheduled',
+        organizationId,
+        createdAt: new Date().toISOString()
+      };
+
+      logger.info({
+        message: 'Abandoned cart campaign initiated',
+        context: {
+          userId: user.id,
+          cartIds: cartIds.length,
+          campaignType,
+          templateId,
+          delay,
+          organizationId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(campaign));
+    } catch (error: any) {
+      logger.error({
+        message: 'Abandoned cart campaign failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to initiate abandoned cart campaign',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
+  }
+);

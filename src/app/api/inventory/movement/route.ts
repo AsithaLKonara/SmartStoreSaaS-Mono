@@ -11,24 +11,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/inventory/movement
+ * Get inventory movements
+ */
+export const GET = requirePermission('VIEW_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const orgId = getOrganizationScope(user);
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
       const movements = await prisma.inventoryMovement.findMany({
-        where: orgId ? {
+        where: {
           product: {
-            organizationId: orgId
+            organizationId
           }
-        } : {},
+        },
         include: {
           product: {
             select: {
@@ -45,34 +50,73 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       logger.info({
         message: 'Inventory movements fetched',
-        context: { userId: user.id, count: movements.length }
+        context: {
+          userId: user.id,
+          count: movements.length,
+          organizationId
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(movements));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch inventory movements',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch inventory movements',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * POST /api/inventory/movement
+ * Record inventory movement
+ */
+export const POST = requirePermission('MANAGE_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const body = await req.json();
       const { productId, quantity, type, reason } = body;
 
       if (!productId || !quantity || !type) {
-        throw new ValidationError('Product ID, quantity, and type are required');
+        throw new ValidationError('Product ID, quantity, and type are required', {
+          fields: { productId: !productId, quantity: !quantity, type: !type }
+        });
       }
 
-      const organizationId = user.organizationId;
+      const organizationId = getOrganizationScope(user);
       if (!organizationId) {
         throw new ValidationError('User must belong to an organization');
+      }
+
+      // Verify product belongs to organization
+      const product = await prisma.product.findUnique({
+        where: { id: productId }
+      });
+
+      if (!product) {
+        throw new ValidationError('Product not found');
+      }
+
+      if (product.organizationId !== organizationId) {
+        throw new ValidationError('Cannot record movements for products from other organizations');
       }
 
       const movement = await prisma.inventoryMovement.create({
@@ -87,17 +131,38 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       logger.info({
         message: 'Inventory movement recorded',
-        context: { userId: user.id, movementId: movement.id }
+        context: {
+          userId: user.id,
+          movementId: movement.id,
+          productId,
+          organizationId
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(movement), { status: 201 });
     } catch (error: any) {
       logger.error({
         message: 'Failed to record inventory movement',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to record inventory movement',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

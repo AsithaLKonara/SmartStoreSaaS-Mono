@@ -10,21 +10,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
+import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
-    try {
-      // Extract inventory ID from URL path
-      const url = new URL(request.url);
-      const inventoryId = url.pathname.split('/').pop();
-      const body = await request.json();
-      const { adjustment, reason } = body;
+/**
+ * POST /api/inventory/[id]/adjust
+ * Adjust inventory quantity
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
+  const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const inventoryId = resolvedParams.id;
+  
+  const handler = requirePermission('MANAGE_INVENTORY')(
+    async (req: AuthenticatedRequest, user) => {
+      try {
+        const body = await req.json();
+        const { adjustment, reason } = body;
 
       if (adjustment === undefined || !reason) {
         throw new ValidationError('Adjustment amount and reason are required');
@@ -34,13 +43,13 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         where: { id: inventoryId }
       });
 
-      if (!inventory) {
-        throw new ValidationError('Product not found');
-      }
+        if (!inventory) {
+          throw new NotFoundError('Product not found');
+        }
 
-      if (inventory.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
-        throw new ValidationError('Cannot adjust inventory from other organizations');
-      }
+        if (!validateOrganizationAccess(user, inventory.organizationId)) {
+          throw new AuthorizationError('Cannot adjust inventory from other organizations');
+        }
 
       const updated = await prisma.product.update({
         where: { id: inventoryId },
@@ -60,25 +69,46 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         }
       });
 
-      logger.info({
-        message: 'Inventory adjusted',
-        context: {
-          userId: user.id,
-          inventoryId,
-          adjustment,
-          reason
-        }
-      });
+        logger.info({
+          message: 'Inventory adjusted',
+          context: {
+            userId: user.id,
+            inventoryId,
+            adjustment,
+            reason,
+            organizationId: inventory.organizationId
+          },
+          correlation: correlationId
+        });
 
-      return NextResponse.json(successResponse(updated));
-    } catch (error: any) {
-      logger.error({
-        message: 'Inventory adjustment failed',
-        error: error,
-        context: { userId: user.id }
-      });
-      throw error;
+        return NextResponse.json(successResponse(updated));
+      } catch (error: any) {
+        logger.error({
+          message: 'Inventory adjustment failed',
+          error: error instanceof Error ? error : new Error(String(error)),
+          context: {
+            path: req.nextUrl.pathname,
+            userId: user.id,
+            organizationId: user.organizationId,
+            inventoryId
+          },
+          correlation: correlationId
+        });
+        
+        if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
+          throw error;
+        }
+        
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_INTERNAL',
+          message: 'Failed to adjust inventory',
+          correlation: correlationId
+        }, { status: 500 });
+      }
     }
-  }
-);
+  );
+
+  return handler(request);
+}
 

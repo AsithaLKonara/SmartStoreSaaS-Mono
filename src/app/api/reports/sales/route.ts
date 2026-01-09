@@ -8,32 +8,40 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * POST /api/reports/sales
+ * Generate sales report
+ */
+export const POST = requirePermission('VIEW_REPORTS')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
       const { reportType, startDate, endDate } = body;
 
-      const orgId = getOrganizationScope(user);
-
+      // TODO: Generate actual sales report
       logger.info({
         message: 'Sales report requested',
         context: {
           userId: user.id,
-          organizationId: orgId,
-          reportType
-        }
+          organizationId,
+          reportType,
+          startDate,
+          endDate
+        },
+        correlation: req.correlationId
       });
 
-      // TODO: Generate actual sales report
       return NextResponse.json(successResponse({
         reportType,
         generatedAt: new Date().toISOString(),
@@ -44,10 +52,25 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     } catch (error: any) {
       logger.error({
         message: 'Sales report generation failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Sales report generation failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
