@@ -9,112 +9,143 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status');
-    
-    // TODO: Get organization scoping from session
-    // const orgId = session.user.organizationId;
-
-    const where: any = {};
-    if (status) where.status = status;
-    // TODO: Add organization filter
-    // if (orgId) where.organizationId = orgId;
-
-    const affiliates = await prisma.affiliate.findMany({
-      where,
-      orderBy: { createdAt: 'desc' }
-    });
-
-    logger.info({
-      message: 'Affiliates fetched',
-      context: { count: affiliates.length }
-    });
-
-    return NextResponse.json(successResponse(affiliates));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch affiliates',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to fetch affiliates' }, { status: 500 });
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const body = await req.json();
-    const { name, email, commissionRate } = body;
-
-    if (!name || !email) {
-      return NextResponse.json({ success: false, message: 'Name and email are required' }, { status: 400 });
-    }
-
-    // TODO: Get organizationId from session
-    // const organizationId = session.user.organizationId;
-    // if (!organizationId) {
-    //   return NextResponse.json({ success: false, message: 'User must belong to an organization' }, { status: 400 });
-    // }
-
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const organizationId = session.user.organizationId;
-    if (!organizationId) {
-      return NextResponse.json({ success: false, message: 'User must belong to an organization' }, { status: 400 });
-    }
-
-    const code = `AFF-${Date.now()}`;
-
-    const affiliate = await prisma.affiliate.create({
-      data: {
-        code,
-        name,
-        email,
-        commissionRate: commissionRate || 10,
-        status: 'PENDING',
-        organizationId,
-        totalSales: 0,
-        totalCommission: 0
+/**
+ * GET /api/affiliates
+ * Get affiliates (VIEW_AFFILIATES permission)
+ */
+export const GET = requirePermission('VIEW_AFFILIATES')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    logger.info({
-      message: 'Affiliate created',
-      context: { affiliateId: affiliate.id }
-    });
+      const { searchParams } = new URL(req.url);
+      const status = searchParams.get('status');
 
-    return NextResponse.json(successResponse(affiliate), { status: 201 });
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to create affiliate',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to create affiliate' }, { status: 500 });
+      const where: any = { organizationId };
+      if (status) where.status = status;
+
+      const affiliates = await prisma.affiliate.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+      });
+
+      logger.info({
+        message: 'Affiliates fetched',
+        context: {
+          userId: user.id,
+          organizationId,
+          count: affiliates.length,
+          status
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(affiliates));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch affiliates',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch affiliates',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);
+
+/**
+ * POST /api/affiliates
+ * Create affiliate (MANAGE_AFFILIATES permission)
+ */
+export const POST = requirePermission('MANAGE_AFFILIATES')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
+      const { name, email, commissionRate } = body;
+
+      if (!name || !email) {
+        throw new ValidationError('Name and email are required', {
+          fields: { name: !name, email: !email }
+        });
+      }
+
+      const code = `AFF-${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const affiliate = await prisma.affiliate.create({
+        data: {
+          code,
+          name,
+          email,
+          commissionRate: commissionRate || 10,
+          status: 'PENDING',
+          organizationId,
+          totalSales: 0,
+          totalCommission: 0
+        }
+      });
+
+      logger.info({
+        message: 'Affiliate created',
+        context: {
+          userId: user.id,
+          organizationId,
+          affiliateId: affiliate.id
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(affiliate), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create affiliate',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create affiliate',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
+  }
+);

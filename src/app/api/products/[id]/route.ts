@@ -1,202 +1,223 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const productId = params.id;
+/**
+ * GET /api/products/[id]
+ * Get single product (VIEW_PRODUCTS permission)
+ */
+export const GET = requirePermission('VIEW_PRODUCTS')(
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
+    try {
+      const productId = params.id;
 
-    // Get product with related data
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      include: {
-        category: true
+      // Get product with related data
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        include: {
+          category: true
+        }
+      });
+
+      if (!product) {
+        throw new NotFoundError('Product not found');
       }
-    });
 
-    if (!product) {
+      // Validate organization access
+      await validateOrganizationAccess(user, product.organizationId);
+
+      logger.info({
+        message: 'Product fetched successfully',
+        context: {
+          userId: user.id,
+          organizationId: product.organizationId,
+          productId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(product));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId,
+          productId: params.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof NotFoundError || error instanceof AuthorizationError) {
+        throw error;
+      }
+      
       return NextResponse.json({
         success: false,
-        error: 'Product not found'
-      }, { status: 404 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch product',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
+  }
+);
 
-    logger.info({
-      message: 'Product fetched successfully',
-      context: {
-        userId: session.user.id,
+/**
+ * PUT /api/products/[id]
+ * Update product (MANAGE_PRODUCTS permission)
+ */
+export const PUT = requirePermission('MANAGE_PRODUCTS')(
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
+    try {
+      const productId = params.id;
+      const body = await req.json();
+      const { name, description, price, cost, sku, barcode, categoryId, stockQuantity, minStockLevel, maxStockLevel, isActive } = body;
+
+      // Check if product exists
+      const existingProduct = await prisma.product.findUnique({
+        where: { id: productId }
+      });
+
+      if (!existingProduct) {
+        throw new NotFoundError('Product not found');
+      }
+
+      // Validate organization access
+      await validateOrganizationAccess(user, existingProduct.organizationId);
+
+      // Update product
+      const updatedProduct = await prisma.product.update({
+        where: { id: productId },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(price !== undefined && { price: parseFloat(price) }),
+          ...(cost !== undefined && { cost: parseFloat(cost) }),
+          ...(sku && { sku }),
+          ...(barcode !== undefined && { barcode }),
+          ...(categoryId && { categoryId }),
+          ...(stockQuantity !== undefined && { stockQuantity: parseInt(stockQuantity) }),
+          ...(minStockLevel !== undefined && { minStockLevel: parseInt(minStockLevel) }),
+          ...(maxStockLevel !== undefined && { maxStockLevel: parseInt(maxStockLevel) }),
+          ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+          updatedAt: new Date()
+        },
+        include: {
+          category: true
+        }
+      });
+
+      logger.info({
+        message: 'Product updated successfully',
+        context: {
+          userId: user.id,
+          organizationId: existingProduct.organizationId,
+          productId,
+          changes: Object.keys(body)
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Product updated successfully',
+        data: updatedProduct
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId,
+          productId: params.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof NotFoundError || error instanceof AuthorizationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to update product',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
+  }
+);
+
+/**
+ * DELETE /api/products/[id]
+ * Delete product (MANAGE_PRODUCTS permission)
+ */
+export const DELETE = requirePermission('MANAGE_PRODUCTS')(
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
+    try {
+      const productId = params.id;
+
+      // Check if product exists
+      const product = await prisma.product.findUnique({
+        where: { id: productId }
+      });
+
+      if (!product) {
+        throw new NotFoundError('Product not found');
+      }
+
+      // Validate organization access
+      await validateOrganizationAccess(user, product.organizationId);
+
+      // Delete product
+      await prisma.product.delete({
+        where: { id: productId }
+      });
+
+      logger.info({
+        message: 'Product deleted successfully',
+        context: {
+          userId: user.id,
+          organizationId: product.organizationId,
+          productId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Product deleted successfully',
         productId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to delete product',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId,
+          productId: params.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof NotFoundError || error instanceof AuthorizationError) {
+        throw error;
       }
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: product
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch product',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch product',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const productId = params.id;
-    const body = await request.json();
-    const { name, description, price, cost, sku, barcode, categoryId, stockQuantity, minStockLevel, maxStockLevel, isActive } = body;
-
-    // Check if product exists
-    const existingProduct = await prisma.product.findUnique({
-      where: { id: productId }
-    });
-
-    if (!existingProduct) {
+      
       return NextResponse.json({
         success: false,
-        error: 'Product not found'
-      }, { status: 404 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to delete product',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    // Update product
-    const updatedProduct = await prisma.product.update({
-      where: { id: productId },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-        ...(price !== undefined && { price: parseFloat(price) }),
-        ...(cost !== undefined && { cost: parseFloat(cost) }),
-        ...(sku && { sku }),
-        ...(barcode !== undefined && { barcode }),
-        ...(categoryId && { categoryId }),
-        ...(stockQuantity !== undefined && { stockQuantity: parseInt(stockQuantity) }),
-        ...(minStockLevel !== undefined && { minStockLevel: parseInt(minStockLevel) }),
-        ...(maxStockLevel !== undefined && { maxStockLevel: parseInt(maxStockLevel) }),
-        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
-        updatedAt: new Date()
-      },
-      include: {
-        category: true
-      }
-    });
-
-    logger.info({
-      message: 'Product updated successfully',
-      context: {
-        userId: session.user.id,
-        productId,
-        changes: Object.keys(body)
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Product updated successfully',
-      data: updatedProduct
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update product',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to update product',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
   }
-}
-
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const productId = params.id;
-
-    // Check if product exists
-    const product = await prisma.product.findUnique({
-      where: { id: productId }
-    });
-
-    if (!product) {
-      return NextResponse.json({
-        success: false,
-        error: 'Product not found'
-      }, { status: 404 });
-    }
-
-    // Delete product
-    await prisma.product.delete({
-      where: { id: productId }
-    });
-
-    logger.info({
-      message: 'Product deleted successfully',
-      context: {
-        userId: session.user.id,
-        productId
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Product deleted successfully',
-      data: { productId }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to delete product',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to delete product',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
+);

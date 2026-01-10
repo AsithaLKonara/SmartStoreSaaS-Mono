@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
+/**
+ * GET /api/marketplace/integrations
+ * Get marketplace integrations (VIEW_INTEGRATIONS permission)
+ */
+export const GET = requirePermission('VIEW_INTEGRATIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const platform = searchParams.get('platform');
+      const { searchParams } = new URL(req.url);
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = parseInt(searchParams.get('limit') || '10');
+      const platform = searchParams.get('platform');
 
     // TODO: Implement actual marketplace integrations fetching
     // This would typically involve:
@@ -68,20 +68,20 @@ export async function GET(request: NextRequest) {
       }
     ];
 
-    logger.info({
-      message: 'Marketplace integrations fetched successfully',
-      context: {
-        userId: session.user.id,
-        count: mockIntegrations.length,
-        platform,
-        page,
-        limit
-      }
-    });
+      logger.info({
+        message: 'Marketplace integrations fetched successfully',
+        context: {
+          userId: user.id,
+          organizationId,
+          count: mockIntegrations.length,
+          platform,
+          page,
+          limit
+        },
+        correlation: req.correlationId
+      });
 
-    return NextResponse.json({
-      success: true,
-      data: {
+      return NextResponse.json(successResponse({
         integrations: mockIntegrations,
         pagination: {
           page,
@@ -89,57 +89,65 @@ export async function GET(request: NextRequest) {
           total: mockIntegrations.length,
           pages: 1
         }
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch marketplace integrations',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch marketplace integrations',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch marketplace integrations',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { platform, name, apiKey, apiSecret, webhookUrl, settings } = body;
-
-    // Validate required fields
-    if (!platform || !name || !apiKey) {
+      
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: platform, name, apiKey'
-      }, { status: 400 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch marketplace integrations',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
+  }
+);
 
-    logger.info({
-      message: 'Marketplace integration created',
-      context: {
-        userId: session.user.id,
-        platform,
-        name
+/**
+ * POST /api/marketplace/integrations
+ * Create marketplace integration (MANAGE_INTEGRATIONS permission)
+ */
+export const POST = requirePermission('MANAGE_INTEGRATIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
+
+      const body = await req.json();
+      const { platform, name, apiKey, apiSecret, webhookUrl, settings } = body;
+
+      // Validate required fields
+      if (!platform || !name || !apiKey) {
+        throw new ValidationError('Missing required fields: platform, name, apiKey', {
+          fields: { platform: !platform, name: !name, apiKey: !apiKey }
+        });
+      }
+
+      logger.info({
+        message: 'Marketplace integration created',
+        context: {
+          userId: user.id,
+          organizationId,
+          platform,
+          name
+        },
+        correlation: req.correlationId
+      });
 
     // TODO: Implement actual integration creation logic
     // This would typically involve:
@@ -162,23 +170,32 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     };
 
-    return NextResponse.json({
-      success: true,
-      message: 'Marketplace integration created successfully',
-      data: integration
-    }, { status: 201 });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to create marketplace integration',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to create marketplace integration',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      return NextResponse.json(successResponse({
+        message: 'Marketplace integration created successfully',
+        data: integration
+      }), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create marketplace integration',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create marketplace integration',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

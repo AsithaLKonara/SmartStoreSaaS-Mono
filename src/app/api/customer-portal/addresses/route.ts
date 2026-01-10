@@ -1,48 +1,101 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/customer-portal/addresses
+ * Get customer addresses (authenticated customer)
+ */
+export const GET = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      // TODO: Implement address fetching
+      // This would typically involve querying addresses from database
+      const addresses: any[] = [];
+
+      logger.info({
+        message: 'Customer addresses fetched',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          count: addresses.length
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(addresses));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch addresses',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch addresses',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    // TODO: Implement address fetching
-    // This would typically involve querying addresses from database
-    const addresses: any[] = [];
-
-    return NextResponse.json({ success: true, data: addresses });
-  } catch (error: any) {
-    logger.error({ message: 'Failed to fetch addresses', error: error.message });
-    return NextResponse.json({ success: false, error: 'Failed to fetch addresses' }, { status: 500 });
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * POST /api/customer-portal/addresses
+ * Create customer address (authenticated customer)
+ */
+export const POST = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      
+      // TODO: Implement address creation
+      // This would typically involve creating address in database
+      const address = {
+        id: `addr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ...body,
+        customerId: user.id,
+        createdAt: new Date().toISOString()
+      };
+
+      logger.info({
+        message: 'Address created',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          addressId: address.id
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(address), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create address',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create address',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    const body = await request.json();
-    
-    // TODO: Implement address creation
-    // This would typically involve creating address in database
-    const address = {
-      id: 'addr_' + Date.now(),
-      ...body,
-      customerId: session.user.id,
-      createdAt: new Date().toISOString()
-    };
-
-    logger.info({ message: 'Address created', context: { userId: session.user.id, addressId: address.id } });
-    return NextResponse.json({ success: true, data: address }, { status: 201 });
-  } catch (error: any) {
-    logger.error({ message: 'Failed to create address', error: error.message });
-    return NextResponse.json({ success: false, error: 'Failed to create address' }, { status: 500 });
   }
-}
+);

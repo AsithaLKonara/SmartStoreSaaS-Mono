@@ -1,57 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
-
-    logger.info({
-      message: 'Subscriptions fetched',
-      context: {
-        userId: session.user.id,
-        page,
-        limit,
-        status
+/**
+ * GET /api/subscriptions
+ * Get subscriptions (VIEW_SUBSCRIPTIONS permission)
+ */
+export const GET = requirePermission('VIEW_SUBSCRIPTIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    const organizationId = session.user.organizationId;
-    
-    // Build where clause
-    const where: any = { organizationId };
-    if (status) where.status = status;
+      const { searchParams } = new URL(req.url);
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = parseInt(searchParams.get('limit') || '10');
+      const status = searchParams.get('status');
 
-    // Query actual subscriptions from database
-    const [subscriptions, total] = await Promise.all([
-      prisma.subscription.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          organization: {
-            select: { name: true }
+      logger.info({
+        message: 'Subscriptions fetched',
+        context: {
+          userId: user.id,
+          organizationId,
+          page,
+          limit,
+          status
+        },
+        correlation: req.correlationId
+      });
+
+      // Build where clause
+      const where: any = { organizationId };
+      if (status) where.status = status;
+
+      // Query actual subscriptions from database
+      const [subscriptions, total] = await Promise.all([
+        prisma.subscription.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            organization: {
+              select: { name: true }
+            }
           }
-        }
-      }),
-      prisma.subscription.count({ where })
-    ]);
+        }),
+        prisma.subscription.count({ where })
+      ]);
 
-    return NextResponse.json({
-      success: true,
-      data: {
+      return NextResponse.json(successResponse({
         subscriptions,
         pagination: {
           page,
@@ -59,94 +63,116 @@ export async function GET(request: NextRequest) {
           total,
           pages: Math.ceil(total / limit)
         }
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch subscriptions',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch subscriptions',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch subscriptions',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { action, subscriptionId, planId, customerId } = body;
-
-    // Validate required fields
-    if (!action) {
+      
       return NextResponse.json({
         success: false,
-        error: 'Action is required'
-      }, { status: 400 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch subscriptions',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
+  }
+);
 
-    logger.info({
-      message: 'Subscription action requested',
-      context: {
-        userId: session.user.id,
+/**
+ * POST /api/subscriptions
+ * Manage subscription actions (VIEW_SUBSCRIPTIONS permission - for now, may need MANAGE_SUBSCRIPTIONS)
+ */
+export const POST = requirePermission('VIEW_SUBSCRIPTIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
+      const { action, subscriptionId, planId, customerId } = body;
+
+      // Validate required fields
+      if (!action) {
+        throw new ValidationError('Action is required', {
+          fields: { action: !action }
+        });
+      }
+
+      const validActions = ['create', 'update', 'cancel', 'reactivate', 'pause', 'resume'];
+      if (!validActions.includes(action)) {
+        throw new ValidationError(`Invalid action. Must be one of: ${validActions.join(', ')}`, {
+          fields: { action: !validActions.includes(action) }
+        });
+      }
+
+      logger.info({
+        message: 'Subscription action requested',
+        context: {
+          userId: user.id,
+          organizationId,
+          action,
+          subscriptionId,
+          planId,
+          customerId
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Implement actual subscription actions
+      // This would typically involve:
+      // 1. Validating subscription and permissions
+      // 2. Processing the requested action
+      // 3. Updating subscription status
+      // 4. Sending notifications
+      // 5. Returning updated subscription
+
+      const subscription = {
+        id: subscriptionId || `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         action,
-        subscriptionId,
-        planId,
-        customerId
+        status: action === 'cancel' ? 'cancelled' : 'active',
+        updatedAt: new Date().toISOString()
+      };
+
+      return NextResponse.json(successResponse({
+        message: `Subscription ${action} successful`,
+        data: subscription
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Subscription action failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-    // TODO: Implement actual subscription actions
-    // This would typically involve:
-    // 1. Validating subscription and permissions
-    // 2. Processing the requested action
-    // 3. Updating subscription status
-    // 4. Sending notifications
-    // 5. Returning updated subscription
-
-    const validActions = ['create', 'update', 'cancel', 'reactivate', 'pause', 'resume'];
-    if (!validActions.includes(action)) {
+      
       return NextResponse.json({
         success: false,
-        error: `Invalid action. Must be one of: ${validActions.join(', ')}`
-      }, { status: 400 });
+        code: 'ERR_INTERNAL',
+        message: 'Subscription action failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-
-    const subscription = {
-      id: subscriptionId || `sub_${Date.now()}`,
-      action,
-      status: action === 'cancel' ? 'cancelled' : 'active',
-      updatedAt: new Date().toISOString()
-    };
-
-    return NextResponse.json({
-      success: true,
-      message: `Subscription ${action} successful`,
-      data: subscription
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Subscription action failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Subscription action failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
   }
-}
+);

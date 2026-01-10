@@ -1,80 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
-    const type = searchParams.get('type');
-
-    logger.info({
-      message: 'Notifications fetched',
-      context: {
-        userId: session.user.id,
-        page,
-        limit,
-        status,
-        type
+/**
+ * GET /api/notifications
+ * Get notifications (VIEW_NOTIFICATIONS permission)
+ */
+export const GET = requirePermission('VIEW_NOTIFICATIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    const organizationId = session.user.organizationId;
+      const { searchParams } = new URL(req.url);
+      const page = parseInt(searchParams.get('page') || '1');
+      const limit = parseInt(searchParams.get('limit') || '10');
+      const status = searchParams.get('status');
+      const type = searchParams.get('type');
 
-    // Build where clause - use activities table for notifications
-    const where: any = { 
-      organizationId,
-      userId: session.user.id // User-specific notifications
-    };
-    if (status) {
-      // Map status to activity metadata if needed
-      where.type = { contains: status };
-    }
+      logger.info({
+        message: 'Notifications fetched',
+        context: {
+          userId: user.id,
+          organizationId,
+          page,
+          limit,
+          status,
+          type
+        },
+        correlation: req.correlationId
+      });
 
-    // Query activities as notifications (or create dedicated notification model)
-    const [notifications, total] = await Promise.all([
-      prisma.activities.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        select: {
-          id: true,
-          type: true,
-          description: true,
-          metadata: true,
-          createdAt: true,
-          userId: true
-        }
-      }),
-      prisma.activities.count({ where })
-    ]);
+      // Build where clause - use activities table for notifications
+      const where: any = { 
+        organizationId,
+        userId: user.id // User-specific notifications
+      };
+      if (status) {
+        // Map status to activity metadata if needed
+        where.type = { contains: status };
+      }
 
-    // Transform activities to notification format
-    const formattedNotifications = notifications.map(activity => ({
-      id: activity.id,
-      title: activity.type,
-      message: activity.description,
-      type: activity.type.toLowerCase(),
-      status: 'unread', // Can be enhanced with read tracking
-      createdAt: activity.createdAt.toISOString(),
-      readAt: null,
-      metadata: activity.metadata
-    }));
+      // Query activities as notifications (or create dedicated notification model)
+      const [notifications, total] = await Promise.all([
+        prisma.activities.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          select: {
+            id: true,
+            type: true,
+            description: true,
+            metadata: true,
+            createdAt: true,
+            userId: true
+          }
+        }),
+        prisma.activities.count({ where })
+      ]);
 
-    return NextResponse.json({
-      success: true,
-      data: {
+      // Transform activities to notification format
+      const formattedNotifications = notifications.map(activity => ({
+        id: activity.id,
+        title: activity.type,
+        message: activity.description,
+        type: activity.type.toLowerCase(),
+        status: 'unread', // Can be enhanced with read tracking
+        createdAt: activity.createdAt.toISOString(),
+        readAt: null,
+        metadata: activity.metadata
+      }));
+
+      return NextResponse.json(successResponse({
         notifications: formattedNotifications,
         pagination: {
           page,
@@ -82,77 +86,98 @@ export async function GET(request: NextRequest) {
           total,
           pages: Math.ceil(total / limit)
         }
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch notifications',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch notifications',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { notificationIds, status } = body;
-
-    if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
+      
       return NextResponse.json({
         success: false,
-        error: 'No notification IDs provided'
-      }, { status: 400 });
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch notifications',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
+  }
+);
 
-    logger.info({
-      message: 'Notifications updated',
-      context: {
-        userId: session.user.id,
-        notificationIds: notificationIds.length,
-        status
+/**
+ * PUT /api/notifications
+ * Update notifications (MANAGE_NOTIFICATIONS permission)
+ */
+export const PUT = requirePermission('MANAGE_NOTIFICATIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    // TODO: Implement actual notifications update
-    // This would typically involve:
-    // 1. Updating notifications in database
-    // 2. Checking user permissions
-    // 3. Returning success response
+      const body = await req.json();
+      const { notificationIds, status } = body;
 
-    return NextResponse.json({
-      success: true,
-      message: 'Notifications updated successfully',
-      data: {
+      if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
+        throw new ValidationError('No notification IDs provided', {
+          fields: { notificationIds: !notificationIds || !Array.isArray(notificationIds) }
+        });
+      }
+
+      logger.info({
+        message: 'Notifications updated',
+        context: {
+          userId: user.id,
+          organizationId,
+          notificationIds: notificationIds.length,
+          status
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Implement actual notifications update
+      // This would typically involve:
+      // 1. Updating notifications in database
+      // 2. Checking user permissions
+      // 3. Returning success response
+
+      return NextResponse.json(successResponse({
+        message: 'Notifications updated successfully',
         updatedCount: notificationIds.length,
         status
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to update notifications',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to update notifications',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to update notifications',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to update notifications',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

@@ -11,54 +11,85 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/procurement/rfq
+ * Get RFQs
+ */
+export const GET = requirePermission('VIEW_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const orgId = getOrganizationScope(user);
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
       const rfqs = await prisma.rFQ.findMany({
-        where: orgId ? { organizationId: orgId } : {},
+        where: { organizationId },
         orderBy: { createdAt: 'desc' },
         take: 100
       });
 
       logger.info({
         message: 'RFQs fetched',
-        context: { userId: user.id, count: rfqs.length }
+        context: {
+          userId: user.id,
+          organizationId,
+          count: rfqs.length
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(rfqs));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch RFQs',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch RFQs',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * POST /api/procurement/rfq
+ * Create RFQ
+ */
+export const POST = requirePermission('MANAGE_INVENTORY')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
       const { title, items, suppliers, deadline } = body;
 
       if (!title || !items) {
-        throw new ValidationError('Title and items are required');
-      }
-
-      const organizationId = user.organizationId;
-      if (!organizationId) {
-        throw new ValidationError('User must belong to an organization');
+        throw new ValidationError('Title and items are required', {
+          fields: { title: !title, items: !items }
+        });
       }
 
       const rfq = await prisma.rFQ.create({
@@ -75,17 +106,37 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       logger.info({
         message: 'RFQ created',
-        context: { userId: user.id, rfqId: rfq.id }
+        context: {
+          userId: user.id,
+          organizationId,
+          rfqId: rfq.id
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(rfq), { status: 201 });
     } catch (error: any) {
       logger.error({
         message: 'Failed to create RFQ',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create RFQ',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

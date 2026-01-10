@@ -1,34 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireRole, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const timeRange = searchParams.get('timeRange') || '30d';
-    const category = searchParams.get('category') || 'all';
-
-    logger.info({
-      message: 'Procurement analytics requested',
-      context: {
-        userId: session.user.id,
-        timeRange,
-        category
+/**
+ * GET /api/procurement/analytics
+ * Procurement analytics (MANAGER or higher)
+ */
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'])(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
+
+      const { searchParams } = new URL(req.url);
+      const timeRange = searchParams.get('timeRange') || '30d';
+      const category = searchParams.get('category') || 'all';
+
+      logger.info({
+        message: 'Procurement analytics requested',
+        context: {
+          userId: user.id,
+          organizationId,
+          timeRange,
+          category
+        },
+        correlation: req.correlationId
+      });
 
     // TODO: Implement actual procurement analytics
     // This would typically involve:
@@ -79,22 +81,29 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    return NextResponse.json({
-      success: true,
-      data: mockAnalytics
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch procurement analytics',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch procurement analytics',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      return NextResponse.json(successResponse(mockAnalytics));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch procurement analytics',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch procurement analytics',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

@@ -9,96 +9,133 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requireAuth, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const where: any = {};
-    
-    // TODO: Add role-based filtering
-    // if (session.user.role === 'CUSTOMER') {
-    //   // Customers see only their chats
-    //   const customer = await prisma.customer.findFirst({
-    //     where: { email: session.user.email }
-    //   });
-    //   if (customer) {
-    //     where.customerId = customer.id;
-    //   }
-    // } else {
-    //   // Staff/Admin see chats for their organization
-    //   where.organizationId = session.user.organizationId;
-    // }
-
-    // TODO: Implement chat model when available
-    // const chats = await prisma.chat.findMany({
-    //   where,
-    //   orderBy: { updatedAt: 'desc' },
-    //   take: 50
-    // });
-    const chats: any[] = [];
-
-    logger.info({
-      message: 'Chats fetched',
-      context: { count: chats.length }
-    });
-
-    return NextResponse.json(successResponse(chats));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch chats',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to fetch chats' }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const body = await request.json();
-    const { message, conversationId } = body;
-
-    if (!message) {
-      return NextResponse.json({ success: false, message: 'Message is required' }, { status: 400 });
-    }
-
-    logger.info({
-      message: 'Chat message sent',
-      context: {
-        conversationId
+/**
+ * GET /api/chat
+ * Get chat messages (authenticated users, role-based filtering)
+ */
+export const GET = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      const where: any = {};
+      
+      // Role-based filtering
+      if (user.role === 'CUSTOMER') {
+        // Customers see only their chats
+        const customer = await prisma.customer.findFirst({
+          where: { email: user.email }
+        });
+        if (customer) {
+          where.customerId = customer.id;
+        }
+      } else if (organizationId) {
+        // Staff/Admin see chats for their organization
+        where.organizationId = organizationId;
       }
-    });
 
-    // TODO: Save actual message
-    return NextResponse.json(successResponse({
-      messageId: `msg_${Date.now()}`,
-      message,
-      sentAt: new Date().toISOString()
-    }), { status: 201 });
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to send chat message',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Failed to send chat message' }, { status: 500 });
+      // TODO: Implement chat model when available
+      // const chats = await prisma.chat.findMany({
+      //   where,
+      //   orderBy: { updatedAt: 'desc' },
+      //   take: 50
+      // });
+      const chats: any[] = [];
+
+      logger.info({
+        message: 'Chats fetched',
+        context: {
+          userId: user.id,
+          organizationId,
+          role: user.role,
+          count: chats.length
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(chats));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch chats',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch chats',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);
+
+/**
+ * POST /api/chat
+ * Send chat message (authenticated users)
+ */
+export const POST = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { message, conversationId } = body;
+
+      if (!message) {
+        throw new ValidationError('Message is required', {
+          fields: { message: !message }
+        });
+      }
+
+      logger.info({
+        message: 'Chat message sent',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          conversationId
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Save actual message
+      return NextResponse.json(successResponse({
+        messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        message,
+        sentAt: new Date().toISOString()
+      }), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to send chat message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to send chat message',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
+  }
+);

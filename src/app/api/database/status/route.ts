@@ -9,54 +9,57 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * GET /api/database/status
+ * Database status check (SUPER_ADMIN only)
+ */
+export const GET = requireRole('SUPER_ADMIN')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const startTime = Date.now();
+      
+      // Test database connection
+      await prisma.$queryRaw`SELECT 1`;
+      
+      const responseTime = Date.now() - startTime;
+
+      logger.info({
+        message: 'Database status checked',
+        context: {
+          userId: user.id,
+          responseTime
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        status: 'healthy',
+        responseTime,
+        connected: true,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Database status check failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json(successResponse({
+        status: 'unhealthy',
+        connected: false,
+        error: error instanceof Error ? error.message : String(error)
+      }), { status: 503 });
     }
-
-    // TODO: Add role check for SUPER_ADMIN
-    if (session.user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const startTime = Date.now();
-    
-    // Test database connection
-    await prisma.$queryRaw`SELECT 1`;
-    
-    const responseTime = Date.now() - startTime;
-
-    logger.info({
-      message: 'Database status checked',
-      context: { userId: session.user.id, responseTime }
-    });
-
-    return NextResponse.json(successResponse({
-      status: 'healthy',
-      responseTime,
-      connected: true,
-      timestamp: new Date().toISOString()
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Database status check failed',
-      error: error
-    });
-    
-    return NextResponse.json(successResponse({
-      status: 'unhealthy',
-      connected: false,
-      error: error.message
-    }), { status: 503 });
-      }
-    }
+  }
+);

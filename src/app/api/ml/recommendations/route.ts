@@ -1,43 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const body = await request.json();
-    const { customerId, type = 'products', limit = 10, modelVersion = 'v1.0' } = body;
-
-    if (!customerId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Customer ID is required'
-      }, { status: 400 });
-    }
-
-    logger.info({
-      message: 'Recommendations requested',
-      context: {
-        userId: session.user.id,
-        customerId,
-        type,
-        limit,
-        modelVersion
+/**
+ * POST /api/ml/recommendations
+ * Generate ML-based recommendations (VIEW_AI_INSIGHTS permission)
+ */
+export const POST = requirePermission('VIEW_AI_INSIGHTS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    const organizationId = session.user.organizationId;
+      const body = await req.json();
+      const { customerId, type = 'products', limit = 10, modelVersion = 'v1.0' } = body;
 
-    if (!organizationId) {
-      return NextResponse.json({ success: false, error: 'User must belong to an organization' }, { status: 400 });
-    }
+      if (!customerId) {
+        throw new ValidationError('Customer ID is required', {
+          fields: { customerId: !customerId }
+        });
+      }
+
+      logger.info({
+        message: 'Recommendations requested',
+        context: {
+          userId: user.id,
+          organizationId,
+          customerId,
+          type,
+          limit,
+          modelVersion
+        },
+        correlation: req.correlationId
+      });
 
     // Get customer's purchase history for collaborative filtering
     const customerOrders = await prisma.order.findMany({
@@ -76,9 +77,7 @@ export async function POST(request: NextRequest) {
       take: limit
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
+      return NextResponse.json(successResponse({
         customerId,
         type,
         recommendations,
@@ -86,20 +85,29 @@ export async function POST(request: NextRequest) {
         modelVersion: '1.0-basic',
         generatedAt: new Date().toISOString(),
         note: 'Basic collaborative filtering - enhance with ML models for better recommendations'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Recommendations failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Recommendations failed',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Recommendations failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Recommendations failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

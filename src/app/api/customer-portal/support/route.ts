@@ -10,119 +10,140 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError, NotFoundError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+/**
+ * GET /api/customer-portal/support
+ * Get customer support tickets (authenticated customer)
+ */
+export const GET = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      // Find customer record
+      const customer = await prisma.customer.findFirst({
+        where: { email: user.email }
+      });
 
-    // TODO: Add role check for CUSTOMER
-    if (session.user.role !== 'CUSTOMER') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    // TODO: Find customer record
-    // const customer = await prisma.customer.findFirst({
-    //   where: { email: session.user.email }
-    // });
-
-    // if (!customer) {
-    //   return NextResponse.json(successResponse([]));
-    // }
-
-    const tickets = await prisma.support_tickets.findMany({
-      where: {}, // TODO: Add email filter for customer
-      orderBy: { createdAt: 'desc' },
-      take: 50
-    });
-
-    logger.info({
-      message: 'Customer support tickets fetched',
-      context: { count: tickets.length, userId: session.user.id }
-    });
-
-    return NextResponse.json(successResponse(tickets));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch support tickets',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for CUSTOMER
-    if (session.user.role !== 'CUSTOMER') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { subject, message, category } = body;
-
-    if (!subject || !message) {
-      return NextResponse.json({ success: false, message: 'Subject and message are required' }, { status: 400 });
-    }
-
-    // TODO: Find customer record
-    // const customer = await prisma.customer.findFirst({
-    //   where: { email: session.user.email }
-    // });
-
-    // Get customer record to find email and organizationId
-    const customer = await prisma.customer.findFirst({
-      where: { email: session.user.email },
-      select: { email: true, organizationId: true }
-    });
-
-    if (!customer) {
-      return NextResponse.json({ success: false, message: 'Customer profile not found' }, { status: 404 });
-    }
-
-    const ticket = await prisma.support_tickets.create({
-      data: {
-        id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        title: subject,
-        description: message,
-        priority: 'medium',
-        status: 'open',
-        email: customer.email,
-        organizationId: customer.organizationId,
-        updatedAt: new Date()
+      if (!customer) {
+        return NextResponse.json(successResponse([]));
       }
-    });
 
-    logger.info({
-      message: 'Support ticket created',
-      context: { ticketId: ticket.id, userId: session.user.id }
-    });
+      const tickets = await prisma.support_tickets.findMany({
+        where: { email: customer.email },
+        orderBy: { createdAt: 'desc' },
+        take: 50
+      });
 
-    return NextResponse.json(successResponse(ticket), { status: 201 });
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to create support ticket',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+      logger.info({
+        message: 'Customer support tickets fetched',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          customerId: customer.id,
+          count: tickets.length
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(tickets));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch support tickets',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch support tickets',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);
+
+/**
+ * POST /api/customer-portal/support
+ * Create support ticket (authenticated customer)
+ */
+export const POST = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { subject, message, category } = body;
+
+      if (!subject || !message) {
+        throw new ValidationError('Subject and message are required', {
+          fields: { subject: !subject, message: !message }
+        });
+      }
+
+      // Get customer record to find email and organizationId
+      const customer = await prisma.customer.findFirst({
+        where: { email: user.email },
+        select: { email: true, organizationId: true }
+      });
+
+      if (!customer) {
+        throw new NotFoundError('Customer profile not found');
+      }
+
+      const ticket = await prisma.support_tickets.create({
+        data: {
+          id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          title: subject,
+          description: message,
+          priority: 'medium',
+          status: 'open',
+          email: customer.email,
+          organizationId: customer.organizationId,
+          updatedAt: new Date()
+        }
+      });
+
+      logger.info({
+        message: 'Support ticket created',
+        context: {
+          userId: user.id,
+          organizationId: customer.organizationId,
+          ticketId: ticket.id
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(ticket), { status: 201 });
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to create support ticket',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create support ticket',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
+  }
+);

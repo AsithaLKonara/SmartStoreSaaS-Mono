@@ -9,19 +9,24 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET /api/security/audit
+ * Get security audit logs (SUPER_ADMIN only)
+ */
 export const GET = requireRole('SUPER_ADMIN')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user) => {
     try {
       logger.info({
         message: 'Security audit requested',
-        context: { userId: user.id }
+        context: {
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
 
       // TODO: Generate actual security audit
@@ -35,10 +40,20 @@ export const GET = requireRole('SUPER_ADMIN')(
     } catch (error: any) {
       logger.error({
         message: 'Security audit failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Security audit failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

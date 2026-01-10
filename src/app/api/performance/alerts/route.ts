@@ -10,22 +10,27 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET /api/performance/alerts
+ * Get performance alerts (SUPER_ADMIN only)
+ */
 export const GET = requireRole('SUPER_ADMIN')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user) => {
     try {
+      // TODO: Fetch actual performance alerts
       logger.info({
         message: 'Performance alerts fetched',
-        context: { userId: user.id }
+        context: {
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
 
-      // TODO: Fetch actual performance alerts
       return NextResponse.json(successResponse({
         alerts: [],
         count: 0,
@@ -34,31 +39,52 @@ export const GET = requireRole('SUPER_ADMIN')(
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch performance alerts',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch performance alerts',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
 
+/**
+ * POST /api/performance/alerts
+ * Create performance alert (SUPER_ADMIN only)
+ */
 export const POST = requireRole('SUPER_ADMIN')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const body = await req.json();
       const { metric, threshold, action } = body;
 
       if (!metric || !threshold) {
-        throw new ValidationError('Metric and threshold are required');
+        throw new ValidationError('Metric and threshold are required', {
+          fields: { metric: !metric, threshold: !threshold }
+        });
       }
 
       logger.info({
         message: 'Performance alert created',
-        context: { userId: user.id, metric, threshold }
+        context: {
+          userId: user.id,
+          metric,
+          threshold
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        alertId: `alert_${Date.now()}`,
+        alertId: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         metric,
         threshold,
         status: 'active'
@@ -66,10 +92,24 @@ export const POST = requireRole('SUPER_ADMIN')(
     } catch (error: any) {
       logger.error({
         message: 'Failed to create performance alert',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create performance alert',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

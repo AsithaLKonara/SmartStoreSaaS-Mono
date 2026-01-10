@@ -1,46 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    const body = await request.json();
-    const { amount, from, to } = body;
+/**
+ * POST /api/currency/convert
+ * Convert currency (requires authentication)
+ */
+export const POST = requireAuth(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const body = await req.json();
+      const { amount, from, to } = body;
 
-    if (!amount || !from || !to) {
-      return NextResponse.json({
-        success: false,
-        error: 'Amount, from currency, and to currency are required'
-      }, { status: 400 });
-    }
+      if (!amount || !from || !to) {
+        throw new ValidationError('Amount, from currency, and to currency are required', {
+          fields: { amount: !amount, from: !from, to: !to }
+        });
+      }
 
-    logger.info({
-      message: 'Currency conversion requested',
-      context: { userId: session.user.id, amount, from, to }
-    });
+      logger.info({
+        message: 'Currency conversion requested',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          amount,
+          from,
+          to
+        },
+        correlation: req.correlationId
+      });
 
-    // TODO: Implement actual currency conversion
-    // This would typically involve calling a currency API
-    const convertedAmount = amount * 1.1; // Mock conversion rate
+      // TODO: Implement actual currency conversion
+      // This would typically involve calling a currency API
+      const convertedAmount = amount * 1.1; // Mock conversion rate
 
-    return NextResponse.json({
-      success: true,
-      data: {
+      return NextResponse.json(successResponse({
         originalAmount: amount,
         fromCurrency: from,
         toCurrency: to,
         convertedAmount,
         rate: 1.1
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Currency conversion failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-  } catch (error: any) {
-    logger.error({ message: 'Currency conversion failed', error: error.message });
-    return NextResponse.json({ success: false, error: 'Currency conversion failed' }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Currency conversion failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

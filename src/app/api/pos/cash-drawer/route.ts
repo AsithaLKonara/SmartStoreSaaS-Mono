@@ -10,22 +10,28 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/pos/cash-drawer
+ * Get cash drawer status
+ */
+export const GET = requirePermission('VIEW_ORDERS')(
+  async (req: AuthenticatedRequest, user) => {
     try {
+      // TODO: Get actual cash drawer status
       logger.info({
         message: 'Cash drawer status fetched',
-        context: { userId: user.id }
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
 
-      // TODO: Get actual cash drawer status
       return NextResponse.json(successResponse({
         status: 'closed',
         balance: 0,
@@ -34,31 +40,50 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch cash drawer status',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch cash drawer status',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * POST /api/pos/cash-drawer
+ * Perform cash drawer action
+ */
+export const POST = requirePermission('MANAGE_ORDERS')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const body = await req.json();
       const { action, amount } = body;
 
       if (!action) {
-        throw new ValidationError('Action is required');
+        throw new ValidationError('Action is required', {
+          fields: { action: !action }
+        });
       }
 
       logger.info({
         message: 'Cash drawer action performed',
         context: {
           userId: user.id,
+          organizationId: user.organizationId,
           action,
           amount
-        }
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
@@ -68,10 +93,25 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     } catch (error: any) {
       logger.error({
         message: 'Cash drawer action failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Cash drawer action failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

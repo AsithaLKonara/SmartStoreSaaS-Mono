@@ -8,55 +8,73 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
-  try {
-    // TODO: Add authentication check
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user || !['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-    //   return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    // }
+/**
+ * POST /api/bulk-operations
+ * Execute bulk operation (MANAGE_PRODUCTS permission - can be adjusted based on entityType)
+ */
+export const POST = requirePermission('MANAGE_PRODUCTS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
-    const body = await req.json();
-    const { operation, entityType, data } = body;
+      const body = await req.json();
+      const { operation, entityType, data } = body;
 
-    if (!operation || !entityType || !data) {
-      return NextResponse.json({ success: false, message: 'Operation, entity type, and data are required' }, { status: 400 });
-    }
+      if (!operation || !entityType || !data) {
+        throw new ValidationError('Operation, entity type, and data are required', {
+          fields: { operation: !operation, entityType: !entityType, data: !data }
+        });
+      }
 
-    // TODO: Get organizationId from session
-    // const organizationId = session.user.organizationId;
-    // if (!organizationId) {
-    //   return NextResponse.json({ success: false, message: 'User must belong to an organization' }, { status: 400 });
-    // }
+      logger.info({
+        message: 'Bulk operation initiated',
+        context: {
+          userId: user.id,
+          organizationId,
+          operation,
+          entityType,
+          count: Array.isArray(data) ? data.length : 1
+        },
+        correlation: req.correlationId
+      });
 
-    logger.info({
-      message: 'Bulk operation initiated',
-      context: {
+      return NextResponse.json(successResponse({
+        message: 'Bulk operation queued',
         operation,
         entityType,
-        count: Array.isArray(data) ? data.length : 1
+        status: 'pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Bulk operation failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
       }
-    });
-
-    return NextResponse.json(successResponse({
-      message: 'Bulk operation queued',
-      operation,
-      entityType,
-      status: 'pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Bulk operation failed',
-      error: error,
-      context: { path: req.nextUrl.pathname }
-    });
-    return NextResponse.json({ success: false, message: 'Bulk operation failed' }, { status: 500 });
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Bulk operation failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

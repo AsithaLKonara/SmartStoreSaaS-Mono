@@ -9,31 +9,39 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
-  async (request, user) => {
+/**
+ * POST /api/integrations/shopify/sync
+ * Sync with Shopify (MANAGE_INTEGRATIONS permission)
+ */
+export const POST = requirePermission('MANAGE_INTEGRATIONS')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new Error('User must belong to an organization');
+      }
+
+      const body = await req.json();
       const { syncType = 'products' } = body;
 
       logger.info({
         message: 'Shopify sync initiated',
         context: {
           userId: user.id,
-          organizationId: user.organizationId,
+          organizationId,
           syncType
-        }
+        },
+        correlation: req.correlationId
       });
 
       // TODO: Implement actual Shopify sync
       return NextResponse.json(successResponse({
-        syncId: `sync_${Date.now()}`,
+        syncId: `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         syncType,
         status: 'in_progress',
         message: 'Shopify sync initiated'
@@ -41,10 +49,21 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     } catch (error: any) {
       logger.error({
         message: 'Shopify sync failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Shopify sync failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

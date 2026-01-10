@@ -9,20 +9,20 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/performance/alerts/[id]/resolve
+ * Resolve performance alert (SUPER_ADMIN only)
+ */
 export const POST = requireRole('SUPER_ADMIN')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
-      // Extract alert ID from URL path
-      const url = new URL(request.url);
-      const alertId = url.pathname.split('/').pop();
-      const body = await request.json();
+      const alertId = params.id;
+      const body = await req.json();
       const { resolution } = body;
 
       logger.info({
@@ -31,7 +31,8 @@ export const POST = requireRole('SUPER_ADMIN')(
           userId: user.id,
           alertId,
           resolution
-        }
+        },
+        correlation: req.correlationId
       });
 
       // TODO: Mark actual alert as resolved
@@ -44,10 +45,21 @@ export const POST = requireRole('SUPER_ADMIN')(
     } catch (error: any) {
       logger.error({
         message: 'Alert resolution failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          alertId: params.id
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Alert resolution failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

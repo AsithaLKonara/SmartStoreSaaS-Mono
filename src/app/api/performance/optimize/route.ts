@@ -9,17 +9,19 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/performance/optimize
+ * Trigger performance optimization (SUPER_ADMIN only)
+ */
 export const POST = requireRole('SUPER_ADMIN')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const body = await req.json();
       const { optimizationType = 'cache' } = body;
 
       logger.info({
@@ -27,7 +29,8 @@ export const POST = requireRole('SUPER_ADMIN')(
         context: {
           userId: user.id,
           optimizationType
-        }
+        },
+        correlation: req.correlationId
       });
 
       // TODO: Trigger actual optimizations
@@ -39,10 +42,20 @@ export const POST = requireRole('SUPER_ADMIN')(
     } catch (error: any) {
       logger.error({
         message: 'Performance optimization failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Performance optimization failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

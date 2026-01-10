@@ -1,86 +1,95 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
-export async function POST(request: NextRequest) {
-  try {
-    // Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+export const dynamic = 'force-dynamic';
 
-    // Role check for MANAGER or higher
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { recipients, title, message, type = 'info', channel = 'email' } = body;
-
-    // Validate required fields
-    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'No recipients provided'
-      }, { status: 400 });
-    }
-
-    if (!title || !message) {
-      return NextResponse.json({
-        success: false,
-        error: 'Title and message are required'
-      }, { status: 400 });
-    }
-
-    logger.info({
-      message: 'Notification sent',
-      context: {
-        userId: session.user.id,
-        recipientCount: recipients.length,
-        type,
-        channel
+/**
+ * POST /api/notifications/send
+ * Send notification (MANAGE_NOTIFICATIONS permission)
+ */
+export const POST = requirePermission('MANAGE_NOTIFICATIONS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    // TODO: Implement actual notification sending
-    // This would typically involve:
-    // 1. Validating recipients
-    // 2. Sending via appropriate channel (email, SMS, push)
-    // 3. Storing notification record
-    // 4. Tracking delivery status
+      const body = await req.json();
+      const { recipients, title, message, type = 'info', channel = 'email' } = body;
 
-    const notification = {
-      id: `notif_${Date.now()}`,
-      title,
-      message,
-      type,
-      channel,
-      recipients,
-      status: 'sent',
-      sentAt: new Date().toISOString(),
-      createdBy: session.user.id
-    };
+      // Validate required fields
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        throw new ValidationError('No recipients provided', {
+          fields: { recipients: !recipients || !Array.isArray(recipients) || recipients.length === 0 }
+        });
+      }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Notification sent successfully',
-      data: notification
-    });
+      if (!title || !message) {
+        throw new ValidationError('Title and message are required', {
+          fields: { title: !title, message: !message }
+        });
+      }
 
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to send notification',
-      error: error.message,
-      context: { path: request.nextUrl.pathname }
-    });
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to send notification',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      logger.info({
+        message: 'Notification sent',
+        context: {
+          userId: user.id,
+          organizationId,
+          recipientCount: recipients.length,
+          type,
+          channel
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Implement actual notification sending
+      // This would typically involve:
+      // 1. Validating recipients
+      // 2. Sending via appropriate channel (email, SMS, push)
+      // 3. Storing notification record
+      // 4. Tracking delivery status
+
+      const notification = {
+        id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        title,
+        message,
+        type,
+        channel,
+        recipients,
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+        createdBy: user.id
+      };
+
+      return NextResponse.json(successResponse({
+        message: 'Notification sent successfully',
+        data: notification
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to send notification',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to send notification',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

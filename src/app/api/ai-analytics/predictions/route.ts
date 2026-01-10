@@ -8,54 +8,65 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
-  let session: any = null;
-  try {
-    // TODO: Add authentication check
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // TODO: Add role check for SUPER_ADMIN, TENANT_ADMIN
-    if (!['SUPER_ADMIN', 'TENANT_ADMIN'].includes(session.user.role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { predictionType, parameters } = body;
-
-    // TODO: Add organization scoping
-    const orgId = session.user.organizationId;
-
-    logger.info({
-      message: 'AI predictions requested',
-      context: {
-        userId: session.user.id,
-        organizationId: orgId,
-        predictionType
+/**
+ * POST /api/ai-analytics/predictions
+ * Generate AI predictions (VIEW_AI_INSIGHTS permission)
+ */
+export const POST = requirePermission('VIEW_AI_INSIGHTS')(
+  async (req: AuthenticatedRequest, user) => {
+    try {
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
       }
-    });
 
-    // TODO: Generate AI predictions
-    return NextResponse.json(successResponse({
-      predictions: [],
-      confidence: 0.82,
-      message: 'AI predictions - implementation pending'
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'AI predictions generation failed',
-      error: error,
-      context: { userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+      const body = await req.json();
+      const { predictionType, parameters } = body;
+
+      logger.info({
+        message: 'AI predictions requested',
+        context: {
+          userId: user.id,
+          organizationId,
+          predictionType
+        },
+        correlation: req.correlationId
+      });
+
+      // TODO: Generate AI predictions
+      return NextResponse.json(successResponse({
+        predictions: [],
+        confidence: 0.82,
+        message: 'AI predictions - implementation pending'
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'AI predictions generation failed',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'AI predictions generation failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
+    }
   }
-}
+);

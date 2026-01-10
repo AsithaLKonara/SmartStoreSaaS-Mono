@@ -11,54 +11,85 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * GET /api/pos/transactions
+ * Get POS transactions
+ */
+export const GET = requirePermission('VIEW_ORDERS')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const orgId = getOrganizationScope(user);
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
       const transactions = await prisma.posTransaction.findMany({
-        where: orgId ? { organizationId: orgId } : {},
+        where: { organizationId },
         orderBy: { createdAt: 'desc' },
         take: 100
       });
 
       logger.info({
         message: 'POS transactions fetched',
-        context: { userId: user.id, count: transactions.length }
+        context: {
+          userId: user.id,
+          organizationId,
+          count: transactions.length
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(transactions));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch POS transactions',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch POS transactions',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );
 
-export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
-  async (request, user) => {
+/**
+ * POST /api/pos/transactions
+ * Create POS transaction
+ */
+export const POST = requirePermission('MANAGE_ORDERS')(
+  async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await request.json();
+      const organizationId = getOrganizationScope(user);
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const body = await req.json();
       const { terminalId, items, total, paymentMethod } = body;
 
       if (!terminalId || !items || !total) {
-        throw new ValidationError('Terminal ID, items, and total are required');
-      }
-
-      const organizationId = user.organizationId;
-      if (!organizationId) {
-        throw new ValidationError('User must belong to an organization');
+        throw new ValidationError('Terminal ID, items, and total are required', {
+          fields: { terminalId: !terminalId, items: !items, total: !total }
+        });
       }
 
       const transaction = await prisma.posTransaction.create({
@@ -75,17 +106,38 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       logger.info({
         message: 'POS transaction created',
-        context: { userId: user.id, transactionId: transaction.id, total }
+        context: {
+          userId: user.id,
+          organizationId,
+          transactionId: transaction.id,
+          total
+        },
+        correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse(transaction), { status: 201 });
     } catch (error: any) {
       logger.error({
         message: 'Failed to create POS transaction',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to create POS transaction',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

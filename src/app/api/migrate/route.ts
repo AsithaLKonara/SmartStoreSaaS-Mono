@@ -9,19 +9,24 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/migrate
+ * Trigger database migration (SUPER_ADMIN only)
+ */
 export const POST = requireRole('SUPER_ADMIN')(
-  async (request, user) => {
+  async (req: AuthenticatedRequest, user) => {
     try {
       logger.info({
         message: 'Database migration triggered',
-        context: { userId: user.id }
+        context: {
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
 
       // TODO: Run actual database migrations
@@ -32,10 +37,20 @@ export const POST = requireRole('SUPER_ADMIN')(
     } catch (error: any) {
       logger.error({
         message: 'Database migration failed',
-        error: error,
-        context: { userId: user.id }
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id
+        },
+        correlation: req.correlationId
       });
-      throw error;
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Database migration failed',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
   }
 );

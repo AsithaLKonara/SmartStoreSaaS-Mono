@@ -10,96 +10,168 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { successResponse, ValidationError, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * GET /api/customer-portal/support/[id]
+ * Get single support ticket (authenticated customer, must own ticket)
+ */
+export const GET = requireAuth(
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
+    try {
+      const ticketId = params.id;
+
+      // Find customer record to verify ownership
+      const customer = await prisma.customer.findFirst({
+        where: { email: user.email }
+      });
+
+      if (!customer) {
+        throw new NotFoundError('Customer not found');
+      }
+
+      const ticket = await prisma.support_tickets.findUnique({
+        where: { id: ticketId }
+        // TODO: Add replies include when available
+        // include: { replies: true }
+      });
+
+      if (!ticket) {
+        throw new NotFoundError('Support ticket not found');
+      }
+
+      // Verify ticket ownership
+      if (ticket.email !== customer.email) {
+        throw new AuthorizationError('Cannot access tickets from other customers');
+      }
+
+      logger.info({
+        message: 'Support ticket fetched',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          customerId: customer.id,
+          ticketId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse(ticket));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to fetch support ticket',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId,
+          ticketId: params.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof NotFoundError || error instanceof AuthorizationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to fetch support ticket',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-    if (session.user.role !== 'CUSTOMER') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const ticketId = params.id;
-    // TODO: Find customer record and verify ownership
-    const ticket = await prisma.support_tickets.findUnique({
-      where: { id: ticketId }
-      // TODO: Add replies include when available
-      // include: { replies: true }
-    });
-
-    if (!ticket) {
-      return NextResponse.json({ success: false, error: 'Support ticket not found' }, { status: 404 });
-    }
-
-    logger.info({
-      message: 'Support ticket fetched',
-      context: { ticketId, userId: session.user.id }
-    });
-
-    return NextResponse.json(successResponse(ticket));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to fetch support ticket',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+);
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  let session: any = null;
-  try {
-    session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+/**
+ * PATCH /api/customer-portal/support/[id]
+ * Add reply to support ticket (authenticated customer, must own ticket)
+ */
+export const PATCH = requireAuth(
+  async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
+    try {
+      const ticketId = params.id;
+      const body = await req.json();
+      const { message } = body;
+
+      if (!message) {
+        throw new ValidationError('Message is required', {
+          fields: { message: !message }
+        });
+      }
+
+      // Find customer record to verify ownership
+      const customer = await prisma.customer.findFirst({
+        where: { email: user.email }
+      });
+
+      if (!customer) {
+        throw new NotFoundError('Customer not found');
+      }
+
+      const ticket = await prisma.support_tickets.findUnique({
+        where: { id: ticketId }
+      });
+
+      if (!ticket) {
+        throw new NotFoundError('Support ticket not found');
+      }
+
+      // Verify ticket ownership
+      if (ticket.email !== customer.email) {
+        throw new AuthorizationError('Cannot modify tickets from other customers');
+      }
+
+      // TODO: Add reply to ticket using support_ticket_replies table when available
+      // For now, just update the ticket's updatedAt
+      await prisma.support_tickets.update({
+        where: { id: ticketId },
+        data: { updatedAt: new Date() }
+      });
+
+      logger.info({
+        message: 'Support ticket reply added',
+        context: {
+          userId: user.id,
+          organizationId: user.organizationId,
+          customerId: customer.id,
+          ticketId
+        },
+        correlation: req.correlationId
+      });
+
+      return NextResponse.json(successResponse({
+        message: 'Reply added successfully',
+        ticketId
+      }));
+    } catch (error: any) {
+      logger.error({
+        message: 'Failed to add ticket reply',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: {
+          path: req.nextUrl.pathname,
+          userId: user.id,
+          organizationId: user.organizationId,
+          ticketId: params.id
+        },
+        correlation: req.correlationId
+      });
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
+        throw error;
+      }
+      
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Failed to add ticket reply',
+        correlation: req.correlationId || 'unknown'
+      }, { status: 500 });
     }
-    if (session.user.role !== 'CUSTOMER') {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
-    }
-
-    const ticketId = params.id;
-    const body = await request.json();
-    const { message } = body;
-
-    if (!message) {
-      return NextResponse.json({ success: false, message: 'Message is required' }, { status: 400 });
-    }
-
-    // TODO: Find customer record and verify ownership
-    const ticket = await prisma.support_tickets.findUnique({
-      where: { id: ticketId }
-    });
-
-    if (!ticket) {
-      return NextResponse.json({ success: false, message: 'Support ticket not found' }, { status: 404 });
-    }
-
-    // TODO: Add reply to ticket
-    logger.info({
-      message: 'Support ticket reply added',
-      context: { ticketId, userId: session.user.id }
-    });
-
-    return NextResponse.json(successResponse({
-      message: 'Reply added successfully',
-      ticketId
-    }));
-  } catch (error: any) {
-    logger.error({
-      message: 'Failed to add ticket reply',
-      error: error.message,
-      context: { path: request.nextUrl.pathname, userId: session?.user?.id }
-    });
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+);
