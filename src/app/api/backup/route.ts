@@ -84,6 +84,7 @@ export const POST = requireRole('SUPER_ADMIN')(
         status: 'pending',
         message: 'Backup creation initiated'
       }), { status: 201 });
+    } catch (error: any) {
       logger.error({
         message: 'Backup creation failed',
         error: error instanceof Error ? error : new Error(String(error)),
