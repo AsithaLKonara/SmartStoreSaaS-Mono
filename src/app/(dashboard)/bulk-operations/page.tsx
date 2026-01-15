@@ -180,7 +180,7 @@ export default function BulkOperationsPage() {
       logger.error({
         message: 'Error starting bulk operation',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { operationType: operationData.type }
+        context: { operationType: operations.map(op => op.type) }
       });
       toast.error('Failed to start bulk operation');
     }

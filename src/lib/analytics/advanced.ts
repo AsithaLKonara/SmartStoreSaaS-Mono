@@ -120,25 +120,26 @@ export async function getProductPerformance(
     take: limit,
   });
 
-  const productsWithDetails = await Promise.all(
-    topProducts.map(async (item) => {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { name: true, sku: true, price: true },
-      });
+  // Optimization: Fetch all products in one query to avoid N+1
+  const productIds = topProducts.map(tp => tp.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true, sku: true, price: true },
+  });
 
-      return {
-        productId: item.productId,
-        name: product?.name || 'Unknown',
-        sku: product?.sku || '',
-        quantitySold: item._sum.quantity || 0,
-        revenue: Number(item._sum.total || 0),
-        orders: item._count.productId,
-      };
-    })
-  );
+  const productMap = new Map(products.map(p => [p.id, p]));
 
-  return productsWithDetails;
+  return topProducts.map((item) => {
+    const product = productMap.get(item.productId);
+    return {
+      productId: item.productId,
+      name: product?.name || 'Unknown',
+      sku: product?.sku || '',
+      quantitySold: item._sum.quantity || 0,
+      revenue: Number(item._sum.total || 0),
+      orders: item._count.productId,
+    };
+  });
 }
 
 /**
@@ -150,7 +151,8 @@ export async function getCustomerAnalytics(
 ) {
   const { start, end } = period;
 
-  const customers = await prisma.customer.findMany({
+  // Optimized to use aggregations where possible
+  const customerStats = await prisma.customer.findMany({
     where: {
       organizationId,
       orders: {
@@ -159,30 +161,29 @@ export async function getCustomerAnalytics(
         },
       },
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
       orders: {
-        where: {
-          createdAt: { gte: start, lte: end },
-        },
-        select: {
-          total: true,
-        },
-      },
+        where: { createdAt: { gte: start, lte: end } },
+        select: { total: true }
+      }
     },
   });
 
-  const customerMetrics = customers.map(customer => ({
-    id: customer.id,
-    name: customer.name,
-    email: customer.email,
-    orders: customer.orders.length,
-    totalSpent: customer.orders.reduce((sum, o) => sum + Number(o.total), 0),
-    avgOrderValue: customer.orders.length > 0 
-      ? customer.orders.reduce((sum, o) => sum + Number(o.total), 0) / customer.orders.length 
-      : 0,
-  }));
+  const customerMetrics = customerStats.map(customer => {
+    const totalSpent = customer.orders.reduce((sum, o) => sum + Number(o.total), 0);
+    return {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      orders: customer.orders.length,
+      totalSpent,
+      avgOrderValue: customer.orders.length > 0 ? totalSpent / customer.orders.length : 0,
+    };
+  });
 
-  // Sort by total spent
   customerMetrics.sort((a, b) => b.totalSpent - a.totalSpent);
 
   return {
@@ -204,6 +205,8 @@ export async function getSalesTrends(
 ) {
   const { start, end } = period;
 
+  // Ideally we would use database-level date truncation, 
+  // but for universal support with Prisma across DBs, we'll fetch only what's needed
   const orders = await prisma.order.findMany({
     where: {
       organizationId,
@@ -218,20 +221,20 @@ export async function getSalesTrends(
     },
   });
 
-  // Group by interval
   const trends: Record<string, { date: string; revenue: number; orders: number }> = {};
 
   for (const order of orders) {
     let key: string;
+    const date = new Date(order.createdAt);
     
     if (interval === 'day') {
-      key = order.createdAt.toISOString().split('T')[0];
+      key = date.toISOString().split('T')[0];
     } else if (interval === 'week') {
-      const weekStart = new Date(order.createdAt);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      key = weekStart.toISOString().split('T')[0];
+      const d = new Date(date);
+      d.setDate(d.getDate() - d.getDay());
+      key = d.toISOString().split('T')[0];
     } else {
-      key = order.createdAt.toISOString().substring(0, 7);
+      key = date.toISOString().substring(0, 7);
     }
 
     if (!trends[key]) {

@@ -5,7 +5,7 @@ const ALLOWED_ORIGINS = [
   'https://app.smartstore.com',
   'https://admin.smartstore.com',
   'https://smartstore.com',
-  'http://localhost:3000',
+  'http://localhost:3003',
   'http://localhost:3001',
   // Add custom domains from environment
   ...(process.env.CORS_ALLOWED_ORIGINS?.split(',') || []),
@@ -17,7 +17,7 @@ const CUSTOM_DOMAIN_PATTERN = /^https:\/\/[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0
 // Allowed methods for CORS
 const ALLOWED_METHODS = [
   'GET',
-  'POST', 
+  'POST',
   'PUT',
   'PATCH',
   'DELETE',
@@ -42,7 +42,7 @@ const ALLOWED_HEADERS = [
 export function getCorsHeaders(origin?: string): Record<string, string> {
   const requestOrigin = origin || '';
   const isAllowed = ALLOWED_ORIGINS.includes(requestOrigin);
-  
+
   return {
     'Access-Control-Allow-Origin': isAllowed ? requestOrigin : ALLOWED_ORIGINS[0],
     'Access-Control-Allow-Methods': ALLOWED_METHODS.join(', '),
@@ -67,15 +67,15 @@ export function handlePreflight(): NextResponse {
  * Apply CORS headers to a response
  */
 export function applyCorsHeaders(
-  response: NextResponse, 
+  response: NextResponse,
   origin?: string
 ): NextResponse {
   const corsHeaders = getCorsHeaders(origin);
-  
+
   Object.entries(corsHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
-  
+
   return response;
 }
 
@@ -83,8 +83,8 @@ export function applyCorsHeaders(
  * Create a CORS-enabled response
  */
 export function corsResponse(
-  data: any, 
-  status: number = 200, 
+  data: any,
+  status: number = 200,
   origin?: string
 ): NextResponse {
   const response = NextResponse.json(data, { status });
@@ -99,18 +99,18 @@ export function isOriginAllowed(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) {
     return true;
   }
-  
+
   // Check if it's a valid custom domain
   if (CUSTOM_DOMAIN_PATTERN.test(origin)) {
     try {
       const url = new URL(origin);
       const hostname = url.hostname;
-      
+
       // Reject localhost with different ports
       if (hostname === 'localhost' && url.port && url.port !== '3000' && url.port !== '3001') {
         return false;
       }
-      
+
       // Reject malicious domains
       const maliciousPatterns = [
         /smartstore\.com\./,
@@ -122,11 +122,11 @@ export function isOriginAllowed(origin: string): boolean {
         /fake-smartstore/,
         /smartstore-fake/,
       ];
-      
+
       if (maliciousPatterns.some(pattern => pattern.test(hostname))) {
         return false;
       }
-      
+
       // Reject known malicious domains
       const maliciousDomains = [
         'malicious.com',
@@ -140,24 +140,24 @@ export function isOriginAllowed(origin: string): boolean {
         'insecure.com',
         'unauthorized.com',
       ];
-      
+
       if (maliciousDomains.includes(hostname)) {
         return false;
       }
-      
+
       // Check if hostname ends with any malicious domain
       const isMaliciousSubdomain = maliciousDomains.some(domain => hostname.endsWith('.' + domain));
       if (isMaliciousSubdomain) {
         return false;
       }
-      
+
       // Allow valid custom domains
       return true;
     } catch (error) {
       return false;
     }
   }
-  
+
   return false;
 }
 

@@ -25,7 +25,7 @@ export function withRateLimit(config: RateLimitConfig) {
   return function rateLimitMiddleware(handler: Function) {
     return async function (request: NextRequest, ...args: any[]) {
       // Generate rate limit key
-      const key = keyGenerator 
+      const key = keyGenerator
         ? keyGenerator(request)
         : request.ip || 'unknown';
 
@@ -34,7 +34,7 @@ export function withRateLimit(config: RateLimitConfig) {
 
       // Get or create rate limit entry
       let entry = rateLimitStore.get(key);
-      
+
       if (!entry || now > entry.resetTime) {
         // Create new entry or reset expired one
         entry = {
@@ -52,7 +52,7 @@ export function withRateLimit(config: RateLimitConfig) {
             error: 'Too many requests',
             retryAfter: Math.ceil((entry.resetTime - now) / 1000)
           },
-          { 
+          {
             status: 429,
             headers: {
               'Retry-After': Math.ceil((entry.resetTime - now) / 1000).toString(),
@@ -91,10 +91,10 @@ export function withInputValidation(schema: any) {
         // Only validate POST, PUT, PATCH requests
         if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
           const body = await request.json();
-          
+
           // Validate against schema
           const result = schema.safeParse(body);
-          
+
           if (!result.success) {
             return NextResponse.json(
               {
@@ -138,7 +138,7 @@ export function withSecurityHeaders(handler: Function) {
       response.headers.set('X-XSS-Protection', '1; mode=block');
       response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
       response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-      
+
       // Content Security Policy
       response.headers.set(
         'Content-Security-Policy',
@@ -158,7 +158,7 @@ export function withCORS(handler: Function) {
     if (response instanceof NextResponse) {
       const origin = request.headers.get('origin');
       const allowedOrigins = [
-        'http://localhost:3000',
+        'http://localhost:3003',
         'http://localhost:3001',
         'https://smartstore-saas.vercel.app'
       ];
