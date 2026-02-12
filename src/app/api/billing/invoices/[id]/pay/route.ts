@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError, AppError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,36 +27,51 @@ export async function POST(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const invoiceId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_BILLING')(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();
         const { paymentMethod, amount } = body;
 
-    // TODO: Implement invoice model when available
-    // const invoice = await prisma.invoice.findUnique({
-    //   where: { id: invoiceId }
-    // });
+        const invoice = await prisma.invoice.findUnique({
+          where: { id: invoiceId }
+        });
 
-    // if (!invoice) {
-    //   return NextResponse.json({ success: false, message: 'Invoice not found' }, { status: 404 });
-    // }
+        if (!invoice) {
+          throw new AppError('Invoice not found', 'ERR_NOT_FOUND', 404);
+        }
 
-    // TODO: Add organization check
-    // if (invoice.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-    //   return NextResponse.json({ success: false, message: 'Cannot pay invoices for other organizations' }, { status: 403 });
-    // }
+        if (invoice.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+          throw new AppError('Cannot pay invoices for other organizations', 'ERR_FORBIDDEN', 403);
+        }
 
-        // TODO: Implement invoice model when available
-        // TODO: Process actual payment
+        if (invoice.status === 'PAID') {
+          throw new AppError('Invoice is already paid', 'ERR_VALIDATION', 400);
+        }
+
+        // Ideally, here we would integrate with Stripe/PayPal to process the payment
+        // For now, we update the status directly
+
+        const paidInvoice = await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: {
+            status: 'PAID',
+            paidAt: new Date(),
+            metadata: {
+              ...(invoice.metadata as object || {}),
+              paymentMethod,
+              paidBy: user.id
+            }
+          }
+        });
 
         logger.info({
           message: 'Invoice payment processed',
           context: {
             userId: user.id,
             invoiceId,
-            amount,
+            amount: paidInvoice.amount,
             paymentMethod,
             organizationId: user.organizationId
           },
@@ -66,7 +81,7 @@ export async function POST(
         return NextResponse.json(successResponse({
           invoiceId,
           status: 'paid',
-          paidAt: new Date().toISOString(),
+          paidAt: paidInvoice.paidAt,
           paymentMethod
         }));
       } catch (error: any) {
@@ -81,11 +96,11 @@ export async function POST(
           },
           correlation: correlationId
         });
-        
-        if (error instanceof ValidationError) {
+
+        if (error instanceof ValidationError || error instanceof AppError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

@@ -36,31 +36,34 @@ export const GET = withErrorHandlerApp(
       });
 
       // Build where clause for reviews
-      const where: any = {};
+      const where: any = {
+        product: {
+          organizationId
+        }
+      };
+
       if (productId) where.productId = productId;
       if (status) where.status = status;
       if (rating) where.rating = parseInt(rating);
 
-      // TODO: Implement Review model and re-enable
-      // Query reviews from database (using review model if exists, or create mock structure)
-      // Note: Reviews may need to be added to schema if not present
-      // const [reviews, total] = await Promise.all([
-      //   prisma.review.findMany({
-      //     where,
-      //     orderBy: { createdAt: 'desc' },
-      //     skip: (page - 1) * limit,
-      //     take: limit,
-      //     include: {
-      //       product: {
-      //         select: { name: true, organizationId: true }
-      //       },
-      //       customer: {
+      const [reviews, total] = await Promise.all([
+        prisma.review.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            product: {
+              select: { name: true, organizationId: true }
+            },
+            customer: {
+              select: { name: true }
+            }
+          }
+        }),
+        prisma.review.count({ where })
+      ]);
 
-      // Temporary placeholder - reviews functionality not implemented
-      const reviews: any[] = [];
-      const total = 0;
-
-      // Mock structure for now
       return NextResponse.json(successResponse({
         reviews,
         pagination: {
@@ -70,30 +73,6 @@ export const GET = withErrorHandlerApp(
           pages: Math.ceil(total / limit)
         }
       }));
-
-      // TODO: Uncomment when Review model is implemented
-      //         select: { name: true }
-      //       }
-      //     }
-      //   }).catch(() => []), // Graceful fallback if review model doesn't exist
-      //   prisma.review.count({ where }).catch(() => 0)
-      // ]);
-
-      // // Filter by organization through product relationship
-      // const filteredReviews = reviews.filter(r => r.product?.organizationId === organizationId);
-
-      // return NextResponse.json({
-      //   success: true,
-      //   data: {
-      //     reviews: filteredReviews,
-      //     pagination: {
-      //       page,
-      //       limit,
-      //       total: filteredReviews.length,
-      //       pages: Math.ceil(filteredReviews.length / limit)
-      //     }
-      //   }
-      // });
 
     } catch (error: any) {
       logger.error({
@@ -139,6 +118,18 @@ export const POST = withErrorHandlerApp(
         throw new AppError('Organization ID not found for user', 'ERR_VALIDATION', 400);
       }
 
+      // Verify product belongs to organization
+      const product = await prisma.product.findFirst({
+        where: {
+          id: productId,
+          organizationId
+        }
+      });
+
+      if (!product) {
+        throw new AppError('Product not found or not accessible', 'ERR_NOT_FOUND', 404);
+      }
+
       logger.info({
         message: 'Review created',
         context: {
@@ -150,26 +141,35 @@ export const POST = withErrorHandlerApp(
         correlation: req.correlationId
       });
 
-      // TODO: Implement actual review creation
-      // This would typically involve:
-      // 1. Validating product exists
-      // 2. Checking if user has purchased the product
-      // 3. Creating review in database
-      // 4. Updating product rating
-      // 5. Sending notifications
+      // Create review
+      const review = await prisma.review.create({
+        data: {
+          productId,
+          customerId: user.id,
+          rating: parseInt(rating),
+          title,
+          comment,
+          status: 'PENDING',
+          helpfulCount: 0
+        }
+      });
 
-      const review = {
-        id: `review_${Date.now()}`,
-        productId,
-        customerId: user.id,
-        customerName: user.name || 'Anonymous',
-        rating: parseInt(rating),
-        title,
-        comment,
-        status: 'pending',
-        helpful: 0,
-        createdAt: new Date().toISOString()
-      };
+      // Update product aggregate rating
+      const productReviews = await prisma.review.findMany({
+        where: { productId },
+        select: { rating: true }
+      });
+
+      const totalRating = productReviews.reduce((sum, r) => sum + r.rating, 0);
+      const averageRating = totalRating / productReviews.length;
+
+      await prisma.product.update({
+        where: { id: productId },
+        data: {
+          rating: averageRating,
+          reviewCount: productReviews.length
+        }
+      });
 
       return NextResponse.json({
         success: true,

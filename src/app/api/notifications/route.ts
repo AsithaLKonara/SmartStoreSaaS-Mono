@@ -21,7 +21,7 @@ export const GET = requirePermission('VIEW_NOTIFICATIONS')(
       const { searchParams } = new URL(req.url);
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '10');
-      const status = searchParams.get('status');
+      const isReadParam = searchParams.get('isRead');
       const type = searchParams.get('type');
 
       logger.info({
@@ -31,25 +31,27 @@ export const GET = requirePermission('VIEW_NOTIFICATIONS')(
           organizationId,
           page,
           limit,
-          status,
+          isRead: isReadParam,
           type
         },
         correlation: req.correlationId
       });
 
-      // Build where clause - use activities table for notifications
-      const where: any = { 
-        organizationId,
+      // Build where clause
+      const where: any = {
         userId: user.id // User-specific notifications
       };
-      if (status) {
-        // Map status to activity metadata if needed
-        where.type = { contains: status };
+
+      if (isReadParam !== null && isReadParam !== undefined) {
+        where.isRead = isReadParam === 'true';
       }
 
-      // Query activities as notifications (or create dedicated notification model)
+      if (type) {
+        where.type = type;
+      }
+
       const [notifications, total] = await Promise.all([
-        prisma.activities.findMany({
+        prisma.notification.findMany({
           where,
           orderBy: { createdAt: 'desc' },
           skip: (page - 1) * limit,
@@ -57,29 +59,18 @@ export const GET = requirePermission('VIEW_NOTIFICATIONS')(
           select: {
             id: true,
             type: true,
-            description: true,
-            metadata: true,
-            createdAt: true,
-            userId: true
+            title: true,
+            message: true,
+            isRead: true,
+            data: true,
+            createdAt: true
           }
         }),
-        prisma.activities.count({ where })
+        prisma.notification.count({ where })
       ]);
 
-      // Transform activities to notification format
-      const formattedNotifications = notifications.map(activity => ({
-        id: activity.id,
-        title: activity.type,
-        message: activity.description,
-        type: activity.type.toLowerCase(),
-        status: 'unread', // Can be enhanced with read tracking
-        createdAt: activity.createdAt.toISOString(),
-        readAt: null,
-        metadata: activity.metadata
-      }));
-
       return NextResponse.json(successResponse({
-        notifications: formattedNotifications,
+        notifications,
         pagination: {
           page,
           limit,
@@ -98,11 +89,11 @@ export const GET = requirePermission('VIEW_NOTIFICATIONS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -115,7 +106,7 @@ export const GET = requirePermission('VIEW_NOTIFICATIONS')(
 
 /**
  * PUT /api/notifications
- * Update notifications (MANAGE_NOTIFICATIONS permission)
+ * Update notifications (mark as read/unread)
  */
 export const PUT = requirePermission('MANAGE_NOTIFICATIONS')(
   async (req: AuthenticatedRequest, user) => {
@@ -126,35 +117,40 @@ export const PUT = requirePermission('MANAGE_NOTIFICATIONS')(
       }
 
       const body = await req.json();
-      const { notificationIds, status } = body;
+      const { notificationIds, isRead } = body;
 
       if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
-        throw new ValidationError('No notification IDs provided', {
-          fields: { notificationIds: !notificationIds || !Array.isArray(notificationIds) }
-        });
+        throw new ValidationError('No notification IDs provided');
+      }
+
+      if (typeof isRead !== 'boolean') {
+        throw new ValidationError('isRead must be a boolean');
       }
 
       logger.info({
         message: 'Notifications updated',
         context: {
           userId: user.id,
-          organizationId,
           notificationIds: notificationIds.length,
-          status
+          isRead
         },
         correlation: req.correlationId
       });
 
-      // TODO: Implement actual notifications update
-      // This would typically involve:
-      // 1. Updating notifications in database
-      // 2. Checking user permissions
-      // 3. Returning success response
+      const updateResult = await prisma.notification.updateMany({
+        where: {
+          id: { in: notificationIds },
+          userId: user.id // Security: ensure user owns the notifications
+        },
+        data: {
+          isRead
+        }
+      });
 
       return NextResponse.json(successResponse({
         message: 'Notifications updated successfully',
-        updatedCount: notificationIds.length,
-        status
+        updatedCount: updateResult.count,
+        isRead
       }));
     } catch (error: any) {
       logger.error({
@@ -167,11 +163,11 @@ export const PUT = requirePermission('MANAGE_NOTIFICATIONS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

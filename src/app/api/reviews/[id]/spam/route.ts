@@ -4,7 +4,7 @@
  * Authorization:
  * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_REVIEWS permission)
  * 
- * Organization Scoping: Validated through review
+ * Organization Scoping: Validated through review -> product -> organization
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -24,35 +24,40 @@ export const POST = requirePermission('VIEW_REVIEWS')(
     try {
       const reviewId = params.id;
 
-      // TODO: Implement Review model and re-enable
-      throw new ValidationError('Review functionality not yet implemented - Review model missing');
+      const review = await prisma.review.findUnique({
+        where: { id: reviewId },
+        include: {
+          product: {
+            select: { organizationId: true }
+          }
+        }
+      });
 
-      // const review = await prisma.review.findUnique({
-      //   where: { id: reviewId }
-      // });
+      if (!review) {
+        throw new ValidationError('Review not found');
+      }
 
-      // if (!review) {
-      //   throw new ValidationError('Review not found');
-      // }
+      // Verify organization ownership
+      if (review.product.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot mark reviews from other organizations');
+      }
 
-      // if (review.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
-      //   throw new ValidationError('Cannot mark reviews from other organizations');
-      // }
-
-      // await prisma.review.update({
-      //   where: { id: reviewId },
-      //   data: {
-      //     isSpam: true,
-      //     markedSpamBy: user.id,
-      //     markedSpamAt: new Date()
-      //   }
-      // });
+      // Since there is no isSpam field in the current schema, we set status to SPAM
+      // and rejectionReason to indicate it was marked as spam.
+      await prisma.review.update({
+        where: { id: reviewId },
+        data: {
+          status: 'SPAM',
+          rejectionReason: 'Marked as spam by admin'
+        }
+      });
 
       logger.info({
         message: 'Review marked as spam',
         context: {
           userId: user.id,
-          reviewId
+          reviewId,
+          organizationId: user.organizationId
         },
         correlation: req.correlationId
       });
@@ -72,18 +77,8 @@ export const POST = requirePermission('VIEW_REVIEWS')(
         },
         correlation: req.correlationId
       });
-      
-      if (error instanceof ValidationError) {
-        throw error;
-      }
-      
-      return NextResponse.json({
-        success: false,
-        code: 'ERR_INTERNAL',
-        message: 'Review spam marking failed',
-        correlation: req.correlationId || 'unknown'
-      }, { status: 500 });
+
+      throw error;
     }
   }
 );
-

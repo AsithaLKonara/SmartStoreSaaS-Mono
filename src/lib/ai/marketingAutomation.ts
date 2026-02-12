@@ -119,7 +119,7 @@ export class MarketingAutomationEngine {
   private async handleAbandonedCart(trigger: any): Promise<void> {
     try {
       const { customerId, productIds } = trigger.metadata;
-      
+
       if (!customerId || !productIds?.length) return;
 
       // Get customer details
@@ -176,7 +176,7 @@ export class MarketingAutomationEngine {
   private async handleBirthdayCampaign(trigger: any): Promise<void> {
     try {
       const { customerId } = trigger.metadata;
-      
+
       if (!customerId) return;
 
       // Get customer details
@@ -224,7 +224,7 @@ export class MarketingAutomationEngine {
   private async handleReEngagement(trigger: any): Promise<void> {
     try {
       const { customerId, daysInactive } = trigger.metadata;
-      
+
       if (!customerId) return;
 
       // Get customer details
@@ -278,11 +278,11 @@ export class MarketingAutomationEngine {
     products: any[],
     recommendations: any[]
   ): string {
-    const productList = products.map(product => 
+    const productList = products.map(product =>
       `<li>${product.name} - $${product.price}</li>`
     ).join('');
 
-    const recommendationList = recommendations.map(rec => 
+    const recommendationList = recommendations.map(rec =>
       `<li>${rec.productName} - $${rec.price}</li>`
     ).join('');
 
@@ -310,7 +310,7 @@ export class MarketingAutomationEngine {
    * Generate birthday email content
    */
   private generateBirthdayEmail(customer: any, recommendations: any[]): string {
-    const recommendationList = recommendations.map(rec => 
+    const recommendationList = recommendations.map(rec =>
       `<li>${rec.productName} - $${rec.price}</li>`
     ).join('');
 
@@ -343,7 +343,7 @@ export class MarketingAutomationEngine {
     recommendations: any[],
     daysInactive: number
   ): string {
-    const recommendationList = recommendations.map(rec => 
+    const recommendationList = recommendations.map(rec =>
       `<li>${rec.productName} - $${rec.price}</li>`
     ).join('');
 
@@ -383,7 +383,7 @@ export class MarketingAutomationEngine {
       // Create campaign record (use sms_campaigns table)
       const marketingCampaign = await prisma.sms_campaigns.create({
         data: {
-          id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
+          id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId: campaign.organizationId,
           name: `${campaign.type} - ${new Date().toISOString()}`,
           templateId: `temp_${Date.now()}`,
@@ -414,7 +414,7 @@ export class MarketingAutomationEngine {
         message: 'Email campaign scheduled',
         context: { service: 'MarketingAutomation', operation: 'scheduleEmailCampaign', customerId: campaign.customerId, campaignType: campaign.type }
       });
-      
+
     } catch (error) {
       logger.error({
         message: 'Error scheduling email campaign',
@@ -433,22 +433,30 @@ export class MarketingAutomationEngine {
     reason: string
   ): Promise<void> {
     try {
-      const existing = await prisma.customerLoyalty.findFirst({ where: { customerId } });
+      const existing = await prisma.loyaltyAccount.findUnique({
+        where: { customerId } // Since customerId is unique
+      });
+
       if (existing) {
-        await prisma.customerLoyalty.update({
+        await prisma.loyaltyAccount.update({
           where: { id: existing.id },
           data: { points: { increment: points } }
         });
       } else {
-        await prisma.customerLoyalty.create({
-          data: {
-            id: `loyalty_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
-            customerId,
-            points
-          }
-        });
+        // We need organizationId to create, assuming we can get it from customer or pass it in
+        // For now, we fetch customer to get organizationId
+        const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+        if (customer) {
+          await prisma.loyaltyAccount.create({
+            data: {
+              customerId,
+              points,
+              organizationId: customer.organizationId
+            }
+          });
+        }
       }
-      
+
       logger.info({
         message: 'Added loyalty points',
         context: { service: 'MarketingAutomation', operation: 'addLoyaltyPoints', customerId, points, reason }
@@ -469,32 +477,41 @@ export class MarketingAutomationEngine {
     try {
       const segments: CustomerSegment[] = [];
 
-      // High-value customers
-      // TODO: implement proper high-value detection using order totals
-      // For now, skip complex aggregation and leave as empty result to avoid TypeScript/Prisma schema mismatches
-      const highValueCustomers: any[] = [];
+      // Fetch customer order stats
+      const customerStats = await prisma.order.groupBy({
+        by: ['customerId'],
+        where: {
+          organizationId,
+          status: 'COMPLETED'
+        },
+        _sum: { total: true },
+        _count: { id: true }
+      });
 
-      if (highValueCustomers.length > 0) {
+      // High-value customers
+      const highValueCount = customerStats.filter(s => Number(s._sum.total || 0) >= 1000).length;
+
+      if (highValueCount > 0) {
         segments.push({
           id: `high-value-${Date.now()}`,
           name: 'High-Value Customers',
           criteria: { totalSpent: { gte: 1000 } },
-          customerCount: highValueCustomers.length,
+          customerCount: highValueCount,
           organizationId,
           isActive: true,
           createdAt: new Date()
         });
       }
 
-      // TODO: implement frequent buyer detection using order counts
-      const frequentBuyers: any[] = [];
+      // Frequent buyers
+      const frequentBuyerCount = customerStats.filter(s => (s._count.id || 0) >= 5).length;
 
-      if (frequentBuyers.length > 0) {
+      if (frequentBuyerCount > 0) {
         segments.push({
           id: `frequent-${Date.now()}`,
           name: 'Frequent Buyers',
           criteria: { totalOrders: { gte: 5 } },
-          customerCount: frequentBuyers.length,
+          customerCount: frequentBuyerCount,
           organizationId,
           isActive: true,
           createdAt: new Date()

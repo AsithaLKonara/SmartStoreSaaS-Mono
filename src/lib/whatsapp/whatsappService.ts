@@ -245,22 +245,54 @@ We'll process your order and send you tracking details soon! 🚚`;
    * Check if message contains order information
    */
   private isOrderMessage(message: string): boolean {
-    const orderKeywords = [
-      'order', 'buy', 'purchase', 'want', 'need', 'deliver',
-      'cash on delivery', 'cod', 'prepaid'
-    ];
-
-    const lowerMessage = message.toLowerCase();
-    return orderKeywords.some(keyword => lowerMessage.includes(keyword));
+    const { OrderParser } = require('@/lib/ai/orderParser');
+    const parsed = OrderParser.parseOrderText(message);
+    return parsed.intent === 'ORDER';
   }
 
   /**
    * Extract order information from message
    */
   private async extractOrderFromMessage(message: WhatsAppMessage): Promise<WhatsAppOrder | null> {
-    // TODO: Implement AI/NLP to extract order details from natural language
-    // For now, return null to indicate manual processing needed
-    return null;
+    const { OrderParser } = await import('@/lib/ai/orderParser');
+    const parsed = OrderParser.parseOrderText(message.message);
+
+    if (parsed.intent !== 'ORDER' || parsed.items.length === 0) {
+      return null;
+    }
+
+    const items = [];
+    let total = 0;
+
+    for (const item of parsed.items) {
+      // Try to find product to get real price
+      const product = await prisma.product.findFirst({
+        where: { name: { contains: item.productName, mode: 'insensitive' } }
+      });
+
+      const price = product ? Number(product.price) : 0;
+      items.push({
+        name: item.productName,
+        quantity: item.quantity,
+        price
+      });
+      total += price * item.quantity;
+    }
+
+    return {
+      customerName: 'WhatsApp User', // Default as we only have phone
+      customerPhone: message.from,
+      items,
+      total,
+      deliveryAddress: {
+        street: 'Pending',
+        city: 'Pending',
+        district: 'Pending',
+        postalCode: '00000'
+      },
+      paymentMethod: 'CASH_ON_DELIVERY',
+      notes: `Extracted from WhatsApp: "${message.message}"`
+    };
   }
 
   /**

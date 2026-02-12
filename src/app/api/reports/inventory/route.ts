@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
@@ -27,26 +28,51 @@ export const POST = requirePermission('VIEW_REPORTS')(
       }
 
       const body = await req.json();
-      const { reportType, startDate, endDate } = body;
+      const { reportType, category } = body; // Optional filtering
 
-      // TODO: Generate actual inventory report
+      // Filter by category if provided
+      const where: any = { organizationId };
+      if (category) {
+        where.categoryId = category;
+      }
+
+      // Fetch products
+      const products = await prisma.product.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          sku: true,
+          stock: true,
+          price: true,
+          categoryId: true,
+          updatedAt: true
+        }
+      });
+
+      // Calculate totals
+      const totalItems = products.reduce((sum, p) => sum + p.stock, 0);
+      const totalValue = products.reduce((sum, p) => sum + (p.stock * Number(p.price)), 0);
+
       logger.info({
-        message: 'Inventory report requested',
+        message: 'Inventory report generated',
         context: {
           userId: user.id,
           organizationId,
-          reportType,
-          startDate,
-          endDate
+          productCount: products.length
         },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        reportType,
+        reportType: reportType || 'current_stock',
         generatedAt: new Date().toISOString(),
-        data: [],
-        message: 'Inventory report - implementation pending'
+        summary: {
+          totalProducts: products.length,
+          totalStockItems: totalItems,
+          totalInventoryValue: totalValue
+        },
+        data: products
       }));
     } catch (error: any) {
       logger.error({
@@ -59,11 +85,11 @@ export const POST = requirePermission('VIEW_REPORTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -73,4 +99,3 @@ export const POST = requirePermission('VIEW_REPORTS')(
     }
   }
 );
-

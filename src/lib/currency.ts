@@ -111,46 +111,109 @@ export function isLKR(currency: CurrencyCode): boolean {
   return currency === 'LKR';
 }
 
-// Convert between currencies (mock rates for demo)
-export function convertCurrency(
+// Cache for exchange rates
+let cachedRates: Record<string, number> | null = null;
+let lastFetchTime: number = 0;
+const CACHE_TTL = 3600000; // 1 hour
+
+/**
+ * Fetch latest exchange rates from open API or fallback to hardcoded
+ */
+export async function fetchExchangeRates(baseCurrency: CurrencyCode = 'USD'): Promise<Record<string, number>> {
+  // Return cached if valid
+  if (cachedRates && (Date.now() - lastFetchTime < CACHE_TTL)) {
+    return cachedRates;
+  }
+
+  try {
+    // Attempt to fetch from free API (e.g., open.er-api.com)
+    // Note: In production, use an API key from a provider like fixer.io or exchangeratesapi.io
+    const response = await fetch(`https://open.er-api.com/v6/latest/${baseCurrency}`);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.rates) {
+        cachedRates = data.rates;
+        lastFetchTime = Date.now();
+        logger.info({ message: 'Fetched fresh exchange rates', context: { base: baseCurrency } });
+        return cachedRates as Record<string, number>;
+      }
+    }
+
+    throw new Error('Invalid API response');
+  } catch (error) {
+    logger.warn({
+      message: 'Failed to fetch exchange rates, using fallback',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      context: { service: 'Currency' }
+    });
+
+    // Fallback hardcoded rates (Base: USD for simplicity in this fallback, need to adjust if base is different)
+    // Here we assume the request was for USD base, or we provide a set that convertCurrency handles (pairs)
+    // For simplicity, we return a map of USD to others
+    return {
+      'LKR': 300,
+      'EUR': 0.91,
+      'USD': 1
+    };
+  }
+}
+
+// Convert between currencies
+export async function convertCurrency(
   amount: number,
   from: CurrencyCode,
   to: CurrencyCode
-): number {
+): Promise<number> {
   if (from === to) return amount;
 
-  // Mock exchange rates (for demo purposes)
-  const rates: Record<string, number> = {
-    'LKR_USD': 0.0033, // 1 LKR = 0.0033 USD
-    'LKR_EUR': 0.0030, // 1 LKR = 0.0030 EUR
-    'USD_LKR': 300,    // 1 USD = 300 LKR
-    'EUR_LKR': 330,    // 1 EUR = 330 LKR
-    'USD_EUR': 0.91,   // 1 USD = 0.91 EUR
-    'EUR_USD': 1.10,   // 1 EUR = 1.10 USD
-  };
+  // Ensure items are fetched
+  const rates = await fetchExchangeRates('USD'); // Use USD as common base for conversion if needed
 
-  const rateKey = `${from}_${to}`;
-  const rate = rates[rateKey];
+  // Conversion logic: Convert FROM -> USD -> TO
+  // If base is USD, rates[FROM] is how many FROM per 1 USD? No, usually rates are "1 Base = X Quote"
+  // API returns: "USD": 1, "LKR": 300 (means 1 USD = 300 LKR)
 
-  if (!rate) {
+  // To convert FROM to TO:
+  // Amount in USD = Amount / Rate(FROM)  (if Rate is item/USD)
+  // Amount in TO = Amount in USD * Rate(TO)
+
+  const rateFrom = rates[from] || (from === 'USD' ? 1 : 0);
+  const rateTo = rates[to] || (to === 'USD' ? 1 : 0);
+
+  if (!rateFrom || !rateTo) {
     logger.warn({
-      message: 'Exchange rate not found',
-      context: { service: 'Currency', operation: 'convert', from, to }
+      message: 'Exchange rate pair not found in live data',
+      context: { service: 'Currency', from, to }
     });
-    return amount;
+    // Fallback to hardcoded distinct pairs if live fetch fails completely or missing
+    const hardcodedRates: Record<string, number> = {
+      'LKR_USD': 0.0033,
+      'LKR_EUR': 0.0030,
+      'USD_LKR': 300,
+      'EUR_LKR': 330,
+      'USD_EUR': 0.91,
+      'EUR_USD': 1.10,
+    };
+    return amount * (hardcodedRates[`${from}_${to}`] || 1);
   }
 
-  return amount * rate;
+  // Calculate cross rate
+  const amountInBase = amount / rateFrom;
+  const amountInTarget = amountInBase * rateTo;
+
+  return Number(amountInTarget.toFixed(2));
 }
 
 // Format currency with conversion
-export function formatCurrencyWithConversion(
+// Format currency with conversion
+export async function formatCurrencyWithConversion(
   amount: number,
   from: CurrencyCode,
   to: CurrencyCode,
   showBoth: boolean = false
-): string {
-  const convertedAmount = convertCurrency(amount, from, to);
+): Promise<string> {
+  const convertedAmount = await convertCurrency(amount, from, to);
   const formatted = formatCurrency(convertedAmount, to);
 
   if (showBoth && from !== to) {

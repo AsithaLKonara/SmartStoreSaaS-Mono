@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
@@ -18,55 +19,56 @@ export const POST = requirePermission('MANAGE_NOTIFICATIONS')(
       }
 
       const body = await req.json();
-      const { recipients, title, message, type = 'info', channel = 'email' } = body;
+      const { recipients, title, message, type = 'info', data = {} } = body;
 
       // Validate required fields
       if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
-        throw new ValidationError('No recipients provided', {
-          fields: { recipients: !recipients || !Array.isArray(recipients) || recipients.length === 0 }
-        });
+        throw new ValidationError('No recipients provided');
       }
 
       if (!title || !message) {
-        throw new ValidationError('Title and message are required', {
-          fields: { title: !title, message: !message }
-        });
+        throw new ValidationError('Title and message are required');
       }
 
       logger.info({
-        message: 'Notification sent',
+        message: 'Notification sending started',
         context: {
           userId: user.id,
           organizationId,
           recipientCount: recipients.length,
-          type,
-          channel
+          type
         },
         correlation: req.correlationId
       });
 
-      // TODO: Implement actual notification sending
-      // This would typically involve:
-      // 1. Validating recipients
-      // 2. Sending via appropriate channel (email, SMS, push)
-      // 3. Storing notification record
-      // 4. Tracking delivery status
-
-      const notification = {
-        id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Prepare notification data objects
+      const notificationsData = recipients.map((recipientId: string) => ({
+        userId: recipientId,
+        type,
         title,
         message,
-        type,
-        channel,
-        recipients,
-        status: 'sent',
-        sentAt: new Date().toISOString(),
-        createdBy: user.id
-      };
+        data,
+        isRead: false
+      }));
+
+      // Bulk create notifications
+      // Note: This creates DB records. Real-time delivery (WS/Push) logic would go here.
+      const result = await prisma.notification.createMany({
+        data: notificationsData
+      });
+
+      logger.info({
+        message: 'Notifications stored in database',
+        context: {
+          count: result.count
+        },
+        correlation: req.correlationId
+      });
 
       return NextResponse.json(successResponse({
-        message: 'Notification sent successfully',
-        data: notification
+        message: 'Notifications sent successfully',
+        sentCount: result.count,
+        recipients: recipients
       }));
     } catch (error: any) {
       logger.error({
@@ -79,11 +81,11 @@ export const POST = requirePermission('MANAGE_NOTIFICATIONS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

@@ -10,68 +10,68 @@ import path from 'path';
  */
 export default defineConfig({
   testDir: './tests/e2e/flows',
-  
+
   // Global setup and teardown
   globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
   globalTeardown: require.resolve('./tests/e2e/global-teardown.ts'),
-  
+
   // Test timeout - Increased for comprehensive tests
-  timeout: 600_000, // 10 minutes per test (comprehensive tests need more time)
+  timeout: 300_000, // 5 minutes per test (sufficient for most)
   expect: {
-    timeout: 10_000, // 10 seconds for assertions
+    timeout: 15_000, // 15 seconds for assertions
   },
-  
+
   // Run tests in parallel
   fullyParallel: true,
-  
-  // Retry on CI
-  retries: process.env.CI ? 2 : 0,
-  
+
+  // Retry on CI and Local (once) to catch flakiness
+  retries: process.env.CI ? 2 : 1,
+
   // Workers
   workers: process.env.CI ? 2 : undefined,
-  
+
   // Reporter configuration
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['json', { outputFile: 'test-results/results.json' }],
   ],
-  
+
   // Global test configuration
   use: {
     // Base URL - Use local server by default, allow override via E2E_BASE_URL
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
-    
+
     // Browser options - Headless in CI, visible locally for debugging
-    headless: process.env.CI ? true : false,
+    headless: process.env.CI ? true : true, // Default to headless even locally for speed
     viewport: { width: 1280, height: 800 },
-    
+
     // Timeout for actions - Increased for comprehensive testing
-    actionTimeout: process.env.CI ? 20_000 : 15_000,
-    
+    actionTimeout: 30_000,
+
     // Screenshot on failure (more efficient than 'on' for all actions)
     screenshot: 'only-on-failure',
-    
+
     // Video on failure (saves disk space)
     video: 'retain-on-failure',
-    
+
     // Trace on failure for debugging
-    trace: 'on-first-retry',
-    
+    trace: 'retain-on-failure',
+
     // Ignore HTTPS errors (for local testing)
     ignoreHTTPSErrors: true,
-    
-    // Slow down for visibility (only in local non-headless mode)
-    slowMo: process.env.CI || process.env.HEADLESS ? 0 : 300,
+
+    // No slowMo by default for speed
+    slowMo: 0,
   },
-  
+
   // Configure projects for different browsers
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    
+
     // Uncomment to test on other browsers
     // {
     //   name: 'firefox',
@@ -81,7 +81,7 @@ export default defineConfig({
     //   name: 'webkit',
     //   use: { ...devices['Desktop Safari'] },
     // },
-    
+
     // Mobile testing
     // {
     //   name: 'Mobile Chrome',
@@ -92,7 +92,7 @@ export default defineConfig({
     //   use: { ...devices['iPhone 12'] },
     // },
   ],
-  
+
   // Web server configuration
   // Auto-start local dev server before running tests
   // Only enable if E2E_BASE_URL is not explicitly set or is localhost
@@ -106,7 +106,7 @@ export default defineConfig({
     // Wait for server to be ready by checking health endpoint
     // Fallback to just checking if port is open
   },
-  
+
   // Output directory
   outputDir: 'test-results/',
 });

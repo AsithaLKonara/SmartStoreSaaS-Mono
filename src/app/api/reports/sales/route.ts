@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
@@ -27,27 +28,80 @@ export const POST = requirePermission('VIEW_REPORTS')(
       }
 
       const body = await req.json();
-      const { reportType, startDate, endDate } = body;
+      const { startDate, endDate, groupBy = 'day' } = body;
 
-      // TODO: Generate actual sales report
+      const start = startDate ? new Date(startDate) : new Date(new Date().setDate(new Date().getDate() - 30));
+      const end = endDate ? new Date(endDate) : new Date();
+
+      // Fetch sales (orders)
+      const sales = await prisma.order.findMany({
+        where: {
+          organizationId,
+          createdAt: {
+            gte: start,
+            lte: end
+          },
+          status: { not: 'CANCELLED' } // Exclude cancelled orders
+        },
+        select: {
+          id: true,
+          total: true,
+          status: true,
+          createdAt: true,
+          items: {
+            select: {
+              quantity: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      });
+
+      // Calculate totals
+      const totalRevenue = sales.reduce((sum, order) => sum + Number(order.total), 0);
+      const totalOrders = sales.length;
+      const totalItemsSold = sales.reduce((sum, order) => sum + order.items.reduce((acc, item) => acc + item.quantity, 0), 0);
+
+      // Group by date (simplified)
+      const groupedData: Record<string, { revenue: number, orders: number }> = {};
+
+      sales.forEach(order => {
+        const dateKey = order.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
+        if (!groupedData[dateKey]) {
+          groupedData[dateKey] = { revenue: 0, orders: 0 };
+        }
+        groupedData[dateKey].revenue += Number(order.total);
+        groupedData[dateKey].orders += 1;
+      });
+
+      const timeSeriesData = Object.entries(groupedData).map(([date, data]) => ({
+        date,
+        revenue: data.revenue,
+        orders: data.orders
+      }));
+
       logger.info({
-        message: 'Sales report requested',
+        message: 'Sales report generated',
         context: {
           userId: user.id,
           organizationId,
-          reportType,
-          startDate,
-          endDate
+          count: sales.length,
+          startDate: start.toISOString(),
+          endDate: end.toISOString()
         },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        reportType,
-        generatedAt: new Date().toISOString(),
-        totalSales: 0,
-        data: [],
-        message: 'Sales report - implementation pending'
+        reportType: 'sales_summary',
+        period: { start, end },
+        summary: {
+          totalRevenue,
+          totalOrders,
+          totalItemsSold,
+          averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0
+        },
+        data: timeSeriesData
       }));
     } catch (error: any) {
       logger.error({
@@ -60,11 +114,11 @@ export const POST = requirePermission('VIEW_REPORTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -74,4 +128,3 @@ export const POST = requirePermission('VIEW_REPORTS')(
     }
   }
 );
-

@@ -9,9 +9,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError, AppError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
@@ -27,26 +28,29 @@ export async function GET(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const invoiceId = resolvedParams.id;
-  
+
   const handler = requirePermission('VIEW_BILLING')(
     async (req: AuthenticatedRequest, user) => {
       try {
 
-    // TODO: Implement invoice model when available
-    // const invoice = await prisma.invoice.findUnique({
-    //   where: { id: invoiceId }
-    // });
+        const invoice = await prisma.invoice.findUnique({
+          where: { id: invoiceId }
+        });
 
-    // if (!invoice) {
-    //   return NextResponse.json({ success: false, message: 'Invoice not found' }, { status: 404 });
-    // }
+        if (!invoice) {
+          throw new AppError('Invoice not found', 'ERR_NOT_FOUND', 404);
+        }
 
-    // if (invoice.organizationId !== session.user.organizationId && session.user.role !== 'SUPER_ADMIN') {
-    //   return NextResponse.json({ success: false, message: 'Cannot generate QR for invoices from other organizations' }, { status: 403 });
-    // }
+        if (invoice.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+          throw new AppError('Cannot generate QR for invoices from other organizations', 'ERR_FORBIDDEN', 403);
+        }
 
-        // TODO: Implement invoice model when available
-        // TODO: Generate actual QR code
+        // Generate QR code content (e.g., payment URL)
+        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const paymentUrl = `${baseUrl}/billing/invoices/${invoiceId}/pay`;
+
+        // Generate QR Code as Data URL
+        const qrCodeUrl = await QRCode.toDataURL(paymentUrl);
 
         logger.info({
           message: 'Invoice QR code generated',
@@ -59,8 +63,9 @@ export async function GET(
         });
 
         return NextResponse.json(successResponse({
-          qrCodeUrl: `/qr/invoice_${invoiceId}.png`,
-          invoiceId
+          qrCodeUrl, // This is a data:image/png;base64 string
+          invoiceId,
+          paymentUrl
         }));
       } catch (error: any) {
         logger.error({
@@ -74,11 +79,11 @@ export async function GET(
           },
           correlation: correlationId
         });
-        
-        if (error instanceof ValidationError) {
+
+        if (error instanceof ValidationError || error instanceof AppError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

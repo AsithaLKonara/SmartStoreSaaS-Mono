@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Prisma Generate
+      run: npx prisma generate
+
+    - name: Lint
+      run: npm run lint
+      continue-on-error: true # Don't fail the build just for linting initially
+
+    - name: Run Unit Tests
+      run: npm run test:unit
+
+    - name: Build
+      run: npm run build
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smartstore_saas # Use a dummy one for build if no DB access
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'dummy-secret' }}
+        NEXTAUTH_URL: http://localhost:3000

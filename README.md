@@ -6,9 +6,22 @@
 
 A comprehensive, AI-powered multi-channel commerce automation platform built with Next.js 14, PostgreSQL, Redis, and Docker. Features a complete settings management system, AI-powered recommendations, and comprehensive business intelligence.
 
-## 📚 **Documentation**
+## 🏢 **Architecture & Feature Deep Dive**
 
-**📖 [Complete Comprehensive Guide](SMARTSTORE-SAAS-COMPLETE-GUIDE.md)** - Everything you need to know about SmartStore SaaS
+SmartStore SaaS is a multi-tenant ERP orchestrator. Below are the key technical highlights:
+
+### 🏢 Multi-Tenancy & Isolation
+- **Workspace Scoping**: Every record is strictly linked to an `organizationId`.
+- **RBAC**: Sophisticated Role-Based Access Control (Admin, Manager, Staff).
+
+### 🤖 AI Engine
+- **Text-to-Order NLP**: Parses natural language (e.g., from WhatsApp) into structured orders.
+- **Smart Segmentation**: Automatically flags "High-Value" and "Frequent" buyers.
+
+### 📡 IoT & Financials
+- **Smart Monitoring**: Real-time telemetry ingestion with threshold-based alerting.
+- **Dynamic Invoicing**: Automated PDF generation with integrated QR payments.
+- **Currency Engine**: Real-time exchange rate management with robust fallback.
 
 ## 🚀 **Quick Start**
 

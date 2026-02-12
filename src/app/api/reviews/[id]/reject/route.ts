@@ -4,7 +4,7 @@
  * Authorization:
  * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_REVIEWS permission)
  * 
- * Organization Scoping: Validated through review
+ * Organization Scoping: Validated through review -> product -> organization
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -23,40 +23,42 @@ export const POST = requirePermission('VIEW_REVIEWS')(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const reviewId = params.id;
-      const body = await req.json();
+      const body = await req.json().catch(() => ({}));
       const { reason } = body;
 
-      // TODO: Implement Review model and re-enable
-      throw new ValidationError('Review functionality not yet implemented - Review model missing');
+      const review = await prisma.review.findUnique({
+        where: { id: reviewId },
+        include: {
+          product: {
+            select: { organizationId: true }
+          }
+        }
+      });
 
-      // const review = await prisma.review.findUnique({
-      //   where: { id: reviewId }
-      // });
+      if (!review) {
+        throw new ValidationError('Review not found');
+      }
 
-      // if (!review) {
-      //   throw new ValidationError('Review not found');
-      // }
+      // Verify organization ownership
+      if (review.product.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
+        throw new ValidationError('Cannot reject reviews from other organizations');
+      }
 
-      // if (review.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
-      //   throw new ValidationError('Cannot reject reviews from other organizations');
-      // }
-
-      // await prisma.review.update({
-      //   where: { id: reviewId },
-      //   data: {
-      //     status: 'REJECTED',
-      //     rejectedBy: user.id,
-      //     rejectedAt: new Date(),
-      //     rejectionReason: reason
-      //   }
-      // });
+      await prisma.review.update({
+        where: { id: reviewId },
+        data: {
+          status: 'REJECTED',
+          rejectionReason: reason || 'Rejected by admin',
+          // Note: approvedAt/By fields remain null or unchanged depending on previous state
+        }
+      });
 
       logger.info({
         message: 'Review rejected',
         context: {
           userId: user.id,
           reviewId,
-          reason
+          organizationId: user.organizationId
         },
         correlation: req.correlationId
       });
@@ -76,18 +78,8 @@ export const POST = requirePermission('VIEW_REVIEWS')(
         },
         correlation: req.correlationId
       });
-      
-      if (error instanceof ValidationError) {
-        throw error;
-      }
-      
-      return NextResponse.json({
-        success: false,
-        code: 'ERR_INTERNAL',
-        message: 'Review rejection failed',
-        correlation: req.correlationId || 'unknown'
-      }, { status: 500 });
+
+      throw error;
     }
   }
 );
-

@@ -2,13 +2,14 @@
  * Report Templates API Route
  * 
  * Authorization:
- * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_REPORT_TEMPLATES permission)
- * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_REPORT_TEMPLATES permission)
+ * - GET: SUPER_ADMIN, TENANT_ADMIN (VIEW_REPORTS permission)
+ * - POST: SUPER_ADMIN, TENANT_ADMIN (MANAGE_REPORTS permission)
  * 
  * Organization Scoping: Required
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
@@ -27,19 +28,28 @@ export const GET = requirePermission('VIEW_REPORTS')(
         throw new ValidationError('User must belong to an organization');
       }
 
-      // TODO: Fetch actual report templates
+      const templates = await prisma.report.findMany({
+        where: {
+          organizationId
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
       logger.info({
         message: 'Report templates fetched',
         context: {
           userId: user.id,
-          organizationId
+          organizationId,
+          count: templates.length
         },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        templates: [],
-        message: 'Report templates - implementation pending'
+        templates: templates.map(t => ({
+          ...t,
+          config: t.data ? JSON.parse(t.data) : {} // Map 'data' back to 'config'
+        }))
       }));
     } catch (error: any) {
       logger.error({
@@ -52,11 +62,11 @@ export const GET = requirePermission('VIEW_REPORTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -80,7 +90,7 @@ export const POST = requirePermission('VIEW_REPORTS')(
       }
 
       const body = await req.json();
-      const { name, type, config } = body;
+      const { name, type, config, schedule } = body;
 
       if (!name || !type) {
         throw new ValidationError('Name and type are required', {
@@ -88,11 +98,23 @@ export const POST = requirePermission('VIEW_REPORTS')(
         });
       }
 
+      const report = await prisma.report.create({
+        data: {
+          name,
+          type,
+          data: config ? JSON.stringify(config) : null,
+          schedule: schedule || null,
+          organizationId,
+          createdById: user.id
+        }
+      });
+
       logger.info({
         message: 'Report template created',
         context: {
           userId: user.id,
           organizationId,
+          reportId: report.id,
           name,
           type
         },
@@ -100,9 +122,10 @@ export const POST = requirePermission('VIEW_REPORTS')(
       });
 
       return NextResponse.json(successResponse({
-        templateId: `tpl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        name,
-        type
+        template: {
+          ...report,
+          config: config || {}
+        }
       }), { status: 201 });
     } catch (error: any) {
       logger.error({
@@ -115,11 +138,11 @@ export const POST = requirePermission('VIEW_REPORTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -129,4 +152,3 @@ export const POST = requirePermission('VIEW_REPORTS')(
     }
   }
 );
-
