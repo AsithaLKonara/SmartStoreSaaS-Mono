@@ -13,10 +13,11 @@
  *   );
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { getToken } from 'next-auth/jwt';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
 import { AuthenticationError, AuthorizationError } from './withErrorHandler';
 
@@ -156,12 +157,12 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
  */
 export function hasPermission(role: UserRole, permission: string, roleTag?: string): boolean {
   const permissions = ROLE_PERMISSIONS[role] || [];
-  
+
   // Super admin has all permissions
   if (role === 'SUPER_ADMIN') {
     return true;
   }
-  
+
   // Staff permissions depend on roleTag
   if (role === 'STAFF' && roleTag) {
     const staffPermissions: Record<string, string[]> = {
@@ -170,11 +171,11 @@ export function hasPermission(role: UserRole, permission: string, roleTag?: stri
       customer_service: ['VIEW_CUSTOMERS', 'VIEW_ORDERS', 'UPDATE_ORDERS', 'MANAGE_CUSTOMERS'],
       accountant: ['VIEW_ANALYTICS', 'VIEW_REPORTS', 'VIEW_BILLING']
     };
-    
+
     const tagPermissions = staffPermissions[roleTag] || [];
     return tagPermissions.includes(permission);
   }
-  
+
   return permissions.includes(permission);
 }
 
@@ -183,15 +184,15 @@ export function hasPermission(role: UserRole, permission: string, roleTag?: stri
  */
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
   try {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
     });
-    
+
     if (!token) {
       return null;
     }
-    
+
     return {
       id: token.id as string,
       email: token.email as string,
@@ -216,7 +217,7 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
 export function requireAuth(handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) {
   return async (request: NextRequest, params?: any): Promise<NextResponse> => {
     const user = await getAuthenticatedUser(request);
-    
+
     if (!user) {
       logger.warn({
         message: 'Unauthenticated access attempt',
@@ -226,7 +227,7 @@ export function requireAuth(handler: (req: AuthenticatedRequest, user: Authentic
           ip: request.headers.get('x-forwarded-for') || 'unknown'
         }
       });
-      
+
       return NextResponse.json(
         {
           success: false,
@@ -236,11 +237,12 @@ export function requireAuth(handler: (req: AuthenticatedRequest, user: Authentic
         { status: 401 }
       );
     }
-    
-    // Attach user to request
-    (request as AuthenticatedRequest).user = user;
 
-    return handler(request as AuthenticatedRequest, user, params);
+    // Attach user to request
+    (request as unknown as AuthenticatedRequest).user = user;
+    (request as unknown as AuthenticatedRequest).correlationId = request.headers.get('x-correlation-id') || uuidv4();
+
+    return handler(request as unknown as AuthenticatedRequest, user, params);
   };
 }
 
@@ -283,8 +285,8 @@ export function requireRole(allowedRoles: UserRole | UserRole[]) {
  * Require specific permission middleware
  */
 export function requirePermission(permission: string) {
-  return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser) => Promise<NextResponse>) => {
-    return requireAuth(async (request, user) => {
+  return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) => {
+    return requireAuth(async (request, user, params) => {
       if (!hasPermission(user.role, permission, user.roleTag)) {
         logger.warn({
           message: 'Unauthorized permission access attempt',
@@ -296,7 +298,7 @@ export function requirePermission(permission: string) {
             requiredPermission: permission
           }
         });
-        
+
         return NextResponse.json(
           {
             success: false,
@@ -306,8 +308,8 @@ export function requirePermission(permission: string) {
           { status: 403 }
         );
       }
-      
-      return handler(request, user);
+
+      return handler(request, user, params);
     });
   };
 }
@@ -321,7 +323,7 @@ export function getOrganizationScope(user: AuthenticatedUser, requestOrgId?: str
   if (user.role === 'SUPER_ADMIN') {
     return requestOrgId || null;
   }
-  
+
   // All other roles must use their organization
   return user.organizationId || null;
 }
@@ -338,7 +340,7 @@ export function validateOrganizationAccess(
   if (user.role === 'SUPER_ADMIN') {
     return true;
   }
-  
+
   // Others can only access their own organization
   return user.organizationId === resourceOrganizationId;
 }

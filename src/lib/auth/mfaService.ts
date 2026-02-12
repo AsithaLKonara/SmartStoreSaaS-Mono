@@ -69,7 +69,6 @@ export class MFAService {
           userId,
           method: 'totp',
           secret: secret.base32,
-          organizationId: await this.getUserOrganizationId(userId),
         },
       });
 
@@ -119,7 +118,7 @@ export class MFAService {
         // Update last used timestamp
         await prisma.userMFA.update({
           where: { id: mfaRecord.id },
-          data: { lastUsed: new Date() },
+          data: { lastUsedAt: new Date() },
         });
 
         // Log successful verification
@@ -172,7 +171,7 @@ export class MFAService {
         await prisma.userMFA.update({
           where: { id: mfaRecord.id },
           data: {
-            lastUsed: new Date(),
+            lastUsedAt: new Date(),
           },
         });
 
@@ -197,7 +196,7 @@ export class MFAService {
   async disableTOTP(userId: string, token: string): Promise<boolean> {
     try {
       const verification = await this.verifyTOTP(userId, token);
-      
+
       if (verification.isValid) {
         // Delete TOTP MFA method
         await prisma.userMFA.deleteMany({
@@ -247,7 +246,6 @@ export class MFAService {
           method: 'sms',
           secret: code, // Store code temporarily in secret field
           phone,
-          organizationId: await this.getUserOrganizationId(userId),
         },
       });
 
@@ -293,7 +291,7 @@ export class MFAService {
           where: { id: mfaRecord.id },
           data: {
             secret: null, // Clear the temporary code
-            lastUsed: new Date(),
+            lastUsedAt: new Date(),
           },
         });
 
@@ -339,7 +337,6 @@ export class MFAService {
           method: 'email',
           secret: code, // Store code temporarily in secret field
           email,
-          organizationId: await this.getUserOrganizationId(userId),
         },
       });
 
@@ -411,7 +408,7 @@ export class MFAService {
           where: { id: mfaRecord.id },
           data: {
             secret: null, // Clear the temporary code
-            lastUsed: new Date(),
+            lastUsedAt: new Date(),
           },
         });
 
@@ -448,7 +445,7 @@ export class MFAService {
     try {
       // Verify TOTP token first
       const verification = await this.verifyTOTP(userId, totpToken);
-      
+
       if (!verification.isValid) {
         return null;
       }
@@ -486,13 +483,13 @@ export class MFAService {
         orderBy: { createdAt: 'desc' },
       });
 
-      return mfaRecords.map((record: unknown) => ({
+      return mfaRecords.map((record: any) => ({
         id: record.id,
         type: record.method as 'totp' | 'sms' | 'email' | 'backup_codes',
         isEnabled: true, // All stored MFA methods are considered enabled
         isVerified: true, // All stored MFA methods are considered verified
         createdAt: record.createdAt,
-        lastUsedAt: record.lastUsed || undefined,
+        lastUsedAt: record.lastUsedAt || undefined,
       }));
     } catch (error) {
       logger.error({
@@ -533,7 +530,7 @@ export class MFAService {
     try {
       // Verify TOTP token first
       const verification = await this.verifyTOTP(userId, totpToken);
-      
+
       if (!verification.isValid) {
         return false;
       }
@@ -576,11 +573,11 @@ export class MFAService {
       where: { id: userId },
       select: { organizationId: true },
     });
-    
+
     if (!user?.organizationId) {
       throw new Error('User not found or has no organization');
     }
-    
+
     return user.organizationId;
   }
 
@@ -589,7 +586,7 @@ export class MFAService {
    */
   private generateBackupCodes(): string[] {
     const codes: string[] = [];
-    
+
     for (let i = 0; i < this.backupCodeCount; i++) {
       let code = '';
       for (let j = 0; j < this.backupCodeLength; j++) {
@@ -597,7 +594,7 @@ export class MFAService {
       }
       codes.push(code);
     }
-    
+
     return codes;
   }
 
@@ -680,7 +677,7 @@ export class MFAService {
         const isValid = speakeasy.totp.verify({
           secret: mfaRecord.secret,
           encoding: 'base32',
-          token: tokens[i],
+          token: tokens[i]!,
           window: 1,
         });
 
@@ -694,7 +691,7 @@ export class MFAService {
         await prisma.userMFA.update({
           where: { id: mfaRecord.id },
           data: {
-            lastUsed: new Date(),
+            lastUsedAt: new Date(),
           },
         });
 

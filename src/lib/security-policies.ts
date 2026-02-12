@@ -286,7 +286,7 @@ export function getSecurityPolicy(policyId: string): SecurityPolicy | undefined 
  */
 export function getRoleSecurityPolicy(role: string): SecurityPolicy[] {
   const policyIds = ROLE_SECURITY_POLICIES[role] || [];
-  return policyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
+  return policyIds.map(id => SECURITY_POLICIES[id]).filter((p): p is SecurityPolicy => !!p);
 }
 
 /**
@@ -307,20 +307,20 @@ export function validateSecurityCompliance(
 
   // Check role-based policies
   const rolePolicies = getRoleSecurityPolicy(userRole);
-  
+
   // Check environment policies
   const envPolicyIds = ENVIRONMENT_SECURITY_POLICIES[environment] || [];
-  const envPolicies = envPolicyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
-  
+  const envPolicies = envPolicyIds.map(id => SECURITY_POLICIES[id]).filter((p): p is SecurityPolicy => !!p);
+
   // Check feature policies
   const featurePolicyIds = features.flatMap(feature => FEATURE_SECURITY_POLICIES[feature] || []);
-  const featurePolicies = featurePolicyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
-  
+  const featurePolicies = featurePolicyIds.map(id => SECURITY_POLICIES[id]).filter((p): p is SecurityPolicy => !!p);
+
   // Check compliance framework policies
-  const compliancePolicyIds = complianceFrameworks.flatMap(framework => 
+  const compliancePolicyIds = complianceFrameworks.flatMap((framework: string) =>
     COMPLIANCE_FRAMEWORKS[framework]?.policies || []
   );
-  const compliancePolicies = compliancePolicyIds.map(id => SECURITY_POLICIES[id]).filter(Boolean);
+  const compliancePolicies = compliancePolicyIds.map(id => SECURITY_POLICIES[id]).filter((p): p is SecurityPolicy => !!p);
 
   // Combine all required policies
   const allRequiredPolicies = [

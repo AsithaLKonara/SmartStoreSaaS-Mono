@@ -51,25 +51,25 @@ export class SecurityService {
     try {
       // Generate secret for TOTP
       const secret = crypto.randomBytes(32).toString('base64');
-      
+
       // Generate QR code URL
       const qrCode = `otpauth://totp/SmartStore:${userId}?secret=${secret}&issuer=SmartStore`;
-      
+
       // Generate backup codes
-      const backupCodes = Array.from({ length: 10 }, () => 
+      const backupCodes = Array.from({ length: 10 }, () =>
         crypto.randomBytes(4).toString('hex').toUpperCase()
       );
-      
+
       // Store MFA setup in database
       await prisma.user.update({
         where: { id: userId },
         data: {
           mfaSecret: secret,
-          mfaBackupCodes: backupCodes,
+          mfaBackupCodes: JSON.stringify(backupCodes),
           mfaEnabled: true,
         },
       });
-      
+
       return {
         userId,
         secret,
@@ -93,23 +93,24 @@ export class SecurityService {
         where: { id: userId },
         select: { mfaSecret: true, mfaBackupCodes: true },
       });
-      
+
       if (!user?.mfaSecret) return false;
-      
+
       // Check if it's a backup code
-      if (user.mfaBackupCodes?.includes(token)) {
-        // Remove used backup code
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            mfaBackupCodes: {
-              set: user.mfaBackupCodes.filter((code: string) => code !== token)
+      if (user.mfaBackupCodes) {
+        const backupCodes: string[] = JSON.parse(user.mfaBackupCodes);
+        if (backupCodes.includes(token)) {
+          // Remove used backup code
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              mfaBackupCodes: JSON.stringify(backupCodes.filter((code: string) => code !== token))
             }
-          }
-        });
-        return true;
+          });
+          return true;
+        }
       }
-      
+
       // Verify TOTP token
       return this.verifyTOTP(user.mfaSecret, token);
     } catch (error) {
@@ -128,7 +129,7 @@ export class SecurityService {
       .update(secret + Math.floor(Date.now() / 30000))
       .digest('hex')
       .substring(0, 6);
-    
+
     return token === expectedToken;
   }
 
@@ -142,7 +143,7 @@ export class SecurityService {
         permissions,
         description
       };
-      
+
       // Store in a system user or create a new approach
       // For now, we'll return the role data without persisting
       return roleData;
@@ -182,14 +183,14 @@ export class SecurityService {
         where: { id: userId },
         select: { role: true }
       });
-      
+
       if (!user) return false;
-      
+
       // Check role-based permissions
-      if (user.role === 'ADMIN') {
+      if (user.role === 'SUPER_ADMIN' || user.role === 'TENANT_ADMIN') {
         return true; // Admins have all permissions
       }
-      
+
       // For now, return false for non-admin users
       // In a real implementation, you'd check the user's role permissions
       return false;
@@ -219,12 +220,12 @@ export class SecurityService {
           action,
           ipAddress,
           userAgent,
-          organizationId: 'system', // Add missing organizationId
+          organizationId: 'system',
           metadata: {
             resource,
             success,
             details
-          }
+          } as any
         }
       });
     } catch (error) {
@@ -248,8 +249,8 @@ export class SecurityService {
     limit: number = 50
   ): Promise<SecurityAudit[]> {
     try {
-      const where: unknown = {};
-      
+      const where: any = {};
+
       if (filters.userId) where.userId = filters.userId;
       if (filters.action) where.action = filters.action;
       if (filters.startDate || filters.endDate) {
@@ -257,7 +258,7 @@ export class SecurityService {
         if (filters.startDate) where.createdAt.gte = filters.startDate;
         if (filters.endDate) where.createdAt.lte = filters.endDate;
       }
-      
+
       const audits = await prisma.securityAudit.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -265,16 +266,16 @@ export class SecurityService {
         take: limit,
       });
 
-      return audits.map((audit: unknown) => ({
+      return audits.map((audit: any) => ({
         id: audit.id,
         userId: audit.userId,
         action: audit.action,
-        resource: (audit.metadata as unknown)?.resource || '',
+        resource: (audit.metadata as any)?.resource || '',
         ipAddress: audit.ipAddress || '',
         userAgent: audit.userAgent || '',
         timestamp: audit.createdAt,
-        success: (audit.metadata as unknown)?.success || false,
-        details: (audit.metadata as unknown)?.details || {}
+        success: (audit.metadata as any)?.success || false,
+        details: (audit.metadata as any)?.details || {}
       }));
     } catch (error) {
       logger.error({
@@ -295,28 +296,30 @@ export class SecurityService {
     details?: unknown
   ): Promise<SecurityAlert> {
     try {
-      const alert = await prisma.securityAlert.create({
+      const alert = await prisma.securityAudit.create({
         data: {
+          userId: userId || 'system',
+          action: 'SECURITY_ALERT',
           type,
           message,
           severity,
-          organizationId: 'system', // Add missing organizationId
+          organizationId: 'system',
+          ipAddress: ipAddress || '',
+          userAgent: 'system',
           metadata: {
-            userId,
-            ipAddress: ipAddress || '', // Store IP address in metadata instead
             details
-          }
+          } as any
         }
       });
 
       // Send notification
       await this.sendSecurityNotification({
         id: alert.id,
-        type,
-        severity,
+        type: type as any,
+        severity: severity as any,
         message,
         userId,
-        ipAddress: (alert.metadata as unknown)?.ipAddress || '', // Access from metadata
+        ipAddress: alert.ipAddress,
         timestamp: alert.createdAt,
         resolved: false,
         details: details || {}
@@ -324,11 +327,11 @@ export class SecurityService {
 
       return {
         id: alert.id,
-        type,
-        severity,
+        type: type as any,
+        severity: severity as any,
         message,
         userId,
-        ipAddress: (alert.metadata as unknown)?.ipAddress || '', // Access from metadata
+        ipAddress: alert.ipAddress,
         timestamp: alert.createdAt,
         resolved: false,
         details: details || {}
@@ -352,7 +355,7 @@ export class SecurityService {
           action: 'LOGIN',
           metadata: {
             not: null
-          }
+          } as any
         }
       });
 
@@ -363,7 +366,7 @@ export class SecurityService {
           action: 'LOGIN',
           metadata: {
             not: null
-          }
+          } as any
         }
       });
 
@@ -378,7 +381,7 @@ export class SecurityService {
       });
 
       // Define suspicious activity thresholds
-      const suspicious = 
+      const suspicious =
         failedAttempts > 5 ||
         failedFromIP > 10 ||
         recentActions > 50;
@@ -409,7 +412,7 @@ export class SecurityService {
     try {
       // Find admin users to notify
       const admins = await prisma.user.findMany({
-        where: { role: 'ADMIN' }
+        where: { role: 'SUPER_ADMIN' }
       });
 
       // Send notifications to admins
@@ -435,11 +438,11 @@ export class SecurityService {
       const algorithm = 'aes-256-cbc';
       const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-key', 'salt', 32);
       const iv = crypto.randomBytes(16);
-      
-      const cipher = crypto.createCipher(algorithm, key);
+
+      const cipher = crypto.createCipheriv(algorithm, key, iv);
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       return iv.toString('hex') + ':' + encrypted;
     } catch (error) {
       logger.error({
@@ -456,13 +459,18 @@ export class SecurityService {
       const algorithm = 'aes-256-cbc';
       const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-key', 'salt', 32);
       const parts = encryptedData.split(':');
+
+      if (!parts[0] || !parts[1]) {
+        throw new Error('Invalid encrypted data format');
+      }
+
       const iv = Buffer.from(parts[0], 'hex');
       const encrypted = parts[1];
-      
-      const decipher = crypto.createDecipher(algorithm, key);
+
+      const decipher = crypto.createDecipheriv(algorithm, key, iv);
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       return decrypted;
     } catch (error) {
       logger.error({
@@ -474,7 +482,7 @@ export class SecurityService {
     }
   }
 
-  async exportUserData(userId: string): Promise<unknown> {
+  async exportUserData(userId: string): Promise<any> {
     try {
       const user = await prisma.user.findUnique({
         where: { id: userId },

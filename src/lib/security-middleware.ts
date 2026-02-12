@@ -83,8 +83,10 @@ export function withRateLimit(config: RateLimitConfig) {
   };
 }
 
+import { z } from 'zod';
+
 // Input validation middleware
-export function withInputValidation(schema: any) {
+export function withInputValidation(schema: z.ZodSchema<any>) {
   return function validationMiddleware(handler: Function) {
     return async function (request: NextRequest, ...args: any[]) {
       try {

@@ -29,6 +29,7 @@ export class JWTUtils {
    * Sign a JWT access token
    */
   static signAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
+    // @ts-ignore
     return jwt.sign(payload, this.JWT_SECRET, {
       expiresIn: this.JWT_EXPIRES_IN,
       algorithm: 'HS256'
@@ -39,6 +40,7 @@ export class JWTUtils {
    * Sign a JWT refresh token
    */
   static signRefreshToken(payload: Omit<RefreshTokenPayload, 'iat' | 'exp'>): string {
+    // @ts-ignore
     return jwt.sign(payload, this.JWT_REFRESH_SECRET, {
       expiresIn: this.JWT_REFRESH_EXPIRES_IN,
       algorithm: 'HS256'

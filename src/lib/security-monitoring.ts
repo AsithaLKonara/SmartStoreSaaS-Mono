@@ -39,16 +39,20 @@ class SecurityMonitoringService {
    */
   async createAlert(data: Omit<SecurityAlert, 'id' | 'createdAt' | 'updatedAt'>): Promise<SecurityAlert> {
     try {
-      const alert = await prisma.securityAlert.create({
+      const alert = await prisma.productionAlert.create({
         data: {
           organizationId: data.organizationId,
           type: data.type,
           severity: data.severity,
           title: data.title,
           description: data.description,
-          source: data.source,
-          metadata: JSON.stringify(data.metadata),
+          service: data.source, // Map source to service
+          metric: 'security_event',
+          threshold: 0,
+          currentValue: 0,
           status: data.status,
+          timestamp: new Date(), // Use current time as timestamp
+          metadata: data.metadata as any,
           resolvedAt: data.resolvedAt,
           resolvedBy: data.resolvedBy,
         },
@@ -81,20 +85,23 @@ class SecurityMonitoringService {
     offset?: number;
   } = {}): Promise<{ alerts: SecurityAlert[]; total: number }> {
     try {
-      const where: any = { organizationId };
+      const where: any = {
+        organizationId,
+        metric: 'security_event'
+      };
 
       if (filters.type) where.type = filters.type;
       if (filters.severity) where.severity = filters.severity;
       if (filters.status) where.status = filters.status;
 
       const [alerts, total] = await Promise.all([
-        prisma.securityAlert.findMany({
+        prisma.productionAlert.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy: { timestamp: 'desc' },
           take: filters.limit || 50,
           skip: filters.offset || 0,
         }),
-        prisma.securityAlert.count({ where }),
+        prisma.productionAlert.count({ where }),
       ]);
 
       return {
@@ -117,13 +124,13 @@ class SecurityMonitoringService {
   async updateAlertStatus(alertId: string, status: string, resolvedBy?: string): Promise<SecurityAlert> {
     try {
       const updateData: any = { status };
-      
+
       if (status === 'resolved') {
         updateData.resolvedAt = new Date();
         if (resolvedBy) updateData.resolvedBy = resolvedBy;
       }
 
-      const alert = await prisma.securityAlert.update({
+      const alert = await prisma.productionAlert.update({
         where: { id: alertId },
         data: updateData,
       });
@@ -146,17 +153,18 @@ class SecurityMonitoringService {
     try {
       const where = {
         organizationId,
-        createdAt: {
+        metric: 'security_event',
+        timestamp: {
           gte: timeRange.start,
           lte: timeRange.end,
         },
       };
 
       // Get total alerts
-      const totalAlerts = await prisma.securityAlert.count({ where });
+      const totalAlerts = await prisma.productionAlert.count({ where });
 
       // Get alerts by type
-      const alertsByType = await prisma.securityAlert.groupBy({
+      const alertsByType = await prisma.productionAlert.groupBy({
         by: ['type'],
         where,
         _count: { type: true },
@@ -164,7 +172,7 @@ class SecurityMonitoringService {
       });
 
       // Get alerts by severity
-      const alertsBySeverity = await prisma.securityAlert.groupBy({
+      const alertsBySeverity = await prisma.productionAlert.groupBy({
         by: ['severity'],
         where,
         _count: { severity: true },
@@ -176,10 +184,11 @@ class SecurityMonitoringService {
         end: timeRange.start,
       };
 
-      const previousAlerts = await prisma.securityAlert.count({
+      const previousAlerts = await prisma.productionAlert.count({
         where: {
           organizationId,
-          createdAt: {
+          metric: 'security_event',
+          timestamp: {
             gte: previousPeriod.start,
             lte: previousPeriod.end,
           },
@@ -189,30 +198,31 @@ class SecurityMonitoringService {
       const alertsByTypeWithTrend = alertsByType.map(item => ({
         type: item.type,
         count: item._count.type,
-        trend: item._count.type > previousAlerts / alertsByType.length ? 'increasing' : 
-               item._count.type < previousAlerts / alertsByType.length ? 'decreasing' : 'stable' as 'stable' | 'increasing' | 'decreasing',
+        trend: (item._count.type > previousAlerts / alertsByType.length ? 'increasing' :
+          item._count.type < previousAlerts / alertsByType.length ? 'decreasing' : 'stable') as 'stable' | 'increasing' | 'decreasing',
       }));
 
       const alertsBySeverityWithTrend = alertsBySeverity.map(item => ({
         severity: item.severity,
         count: item._count.severity,
-        trend: 'stable' as 'stable' | 'increasing' | 'decreasing',
+        trend: (item._count.severity > previousAlerts / alertsBySeverity.length ? 'increasing' :
+          item._count.severity < previousAlerts / alertsBySeverity.length ? 'decreasing' : 'stable') as 'stable' | 'increasing' | 'decreasing',
       }));
 
       // Determine threat level
       const criticalAlerts = alertsBySeverity.find(s => s.severity === 'critical')?._count.severity || 0;
       const highAlerts = alertsBySeverity.find(s => s.severity === 'high')?._count.severity || 0;
-      
+
       let threatLevel: 'low' | 'medium' | 'high' | 'critical' = 'low';
       if (criticalAlerts > 0) threatLevel = 'critical';
       else if (highAlerts > 5) threatLevel = 'high';
       else if (highAlerts > 2 || totalAlerts > 20) threatLevel = 'medium';
 
       // Get last incident
-      const lastIncident = await prisma.securityAlert.findFirst({
-        where: { organizationId },
-        orderBy: { createdAt: 'desc' },
-        select: { createdAt: true },
+      const lastIncident = await prisma.productionAlert.findFirst({
+        where: { organizationId, metric: 'security_event' },
+        orderBy: { timestamp: 'desc' },
+        select: { timestamp: true },
       });
 
       return {
@@ -226,7 +236,7 @@ class SecurityMonitoringService {
           p99: 500,
         },
         threatLevel,
-        lastIncident: lastIncident?.createdAt,
+        lastIncident: lastIncident?.timestamp,
       };
     } catch (error) {
       logger.error({
@@ -247,13 +257,13 @@ class SecurityMonitoringService {
       await emailService.sendEmail({
         to: 'security@example.com',
         subject: `CRITICAL Security Alert: ${alert.title}`,
-        html: `
+        htmlContent: `
           <h2>Critical Security Alert</h2>
           <p><strong>Type:</strong> ${alert.type}</p>
           <p><strong>Severity:</strong> ${alert.severity}</p>
           <p><strong>Description:</strong> ${alert.description}</p>
-          <p><strong>Source:</strong> ${alert.source}</p>
-          <p><strong>Time:</strong> ${alert.createdAt}</p>
+          <p><strong>Source:</strong> ${alert.service}</p>
+          <p><strong>Time:</strong> ${alert.timestamp}</p>
         `,
       });
 
@@ -277,18 +287,18 @@ class SecurityMonitoringService {
   private mapToSecurityAlert(record: any): SecurityAlert {
     return {
       id: record.id,
-      organizationId: record.organizationId,
+      organizationId: record.organizationId || '',
       type: record.type,
-      severity: record.severity,
+      severity: record.severity as any,
       title: record.title,
       description: record.description,
-      source: record.source,
-      metadata: record.metadata ? JSON.parse(record.metadata) : {},
-      status: record.status,
-      createdAt: record.createdAt,
-      updatedAt: record.updatedAt,
-      resolvedAt: record.resolvedAt,
-      resolvedBy: record.resolvedBy,
+      source: record.service, // Map service back to source
+      metadata: record.metadata ? (typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata) : {},
+      status: record.status as any,
+      createdAt: record.timestamp,
+      updatedAt: record.timestamp, // ProductionAlert doesn't have updatedAt, use timestamp
+      resolvedAt: record.resolvedAt || undefined,
+      resolvedBy: record.resolvedBy || undefined,
     };
   }
 }

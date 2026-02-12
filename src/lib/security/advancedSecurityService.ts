@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger';
 
 interface SecurityEvent {
   id?: string;
-  type: 'login_attempt' | 'failed_login' | 'suspicious_activity' | 'data_access' | 'permission_change' | 'api_abuse' | 'brute_force' | 'account_lockout' | 'password_reset' | 'mfa_bypass_attempt' | 'unusual_location' | 'device_change';
+  type: 'login_attempt' | 'failed_login' | 'suspicious_activity' | 'data_access' | 'permission_change' | 'api_abuse' | 'brute_force' | 'account_lockout' | 'password_reset' | 'mfa_bypass_attempt' | 'unusual_location' | 'device_change' | 'api_access' | 'blocked_request' | 'rate_limit_exceeded' | 'authentication_failed' | 'access_denied' | 'custom_security_check_failed' | 'security_middleware_error';
   userId?: string;
   ipAddress: string;
   userAgent: string;
@@ -139,13 +139,13 @@ export class AdvancedSecurityService {
             deviceFingerprint: event.deviceFingerprint,
             sessionId: event.sessionId,
             organizationId: event.organizationId
-          }
+          } as any
         }
       });
 
       // Analyze threat level
       const threatDetection = await this.analyzeThreat(event);
-      
+
       if (threatDetection.isBlocked) {
         await this.handleThreatResponse(event, threatDetection);
       }
@@ -289,22 +289,22 @@ export class AdvancedSecurityService {
         case 'block':
           await this.blockIpAddress(event.ipAddress, event.organizationId, detection.reason);
           break;
-        
+
         case 'challenge':
           if (event.userId) {
             await this.requireAdditionalVerification(event.userId);
           }
           break;
-        
+
         case 'alert':
           await this.createSecurityAlert(event, detection);
           break;
-        
+
         case 'notify_admin':
           await this.notifyAdministrators({
             id: crypto.randomUUID(),
             type: 'SUSPICIOUS_ACTIVITY',
-            severity: detection.severity.toUpperCase() as unknown,
+            severity: detection.severity.toUpperCase() as any,
             message: `Security threat detected: ${detection.reason}`,
             userId: event.userId,
             ipAddress: event.ipAddress,
@@ -314,7 +314,7 @@ export class AdvancedSecurityService {
             organizationId: event.organizationId
           });
           break;
-        
+
         default:
           logger.warn({
             message: 'Unknown security action',
@@ -375,7 +375,7 @@ export class AdvancedSecurityService {
       if (!event.userId) return { detected: false, score: 0, attempts: 0 };
 
       const timeWindow = new Date(Date.now() - this.bruteForceConfig.timeWindow * 60 * 1000);
-      
+
       const attempts = await prisma.securityAudit.count({
         where: {
           userId: event.userId,
@@ -392,7 +392,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error detecting brute force',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'detectBruteForce', identifier }
+        context: { service: 'AdvancedSecurityService', operation: 'detectBruteForce', userId: event.userId }
       });
       return { detected: false, score: 0, attempts: 0 };
     }
@@ -408,7 +408,7 @@ export class AdvancedSecurityService {
       // Check for rapid successive actions
       const recentActions = await prisma.securityAudit.count({
         where: {
-          userId: event.userId,
+          userId: event.userId || undefined,
           createdAt: {
             gte: new Date(Date.now() - 60 * 1000) // Last minute
           }
@@ -434,7 +434,7 @@ export class AdvancedSecurityService {
           action: 'login_attempt',
           metadata: {
             not: null
-          },
+          } as any,
           createdAt: {
             gte: new Date(Date.now() - 15 * 60 * 1000) // Last 15 minutes
           }
@@ -452,7 +452,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error analyzing behavior pattern',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'analyzeBehaviorPattern', userId }
+        context: { service: 'AdvancedSecurityService', operation: 'analyzeBehaviorPattern', userId: event.userId }
       });
       return { isAnomalous: false, score: 0, reasons: [] };
     }
@@ -461,7 +461,7 @@ export class AdvancedSecurityService {
   private async checkRateLimit(event: SecurityEvent): Promise<{ exceeded: boolean; score: number; requestCount: number }> {
     try {
       const timeWindow = new Date(Date.now() - 60 * 1000); // Last minute
-      
+
       const requestCount = await prisma.securityAudit.count({
         where: {
           ipAddress: event.ipAddress,
@@ -477,7 +477,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error checking rate limit',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'checkRateLimit', identifier, limit }
+        context: { service: 'AdvancedSecurityService', operation: 'checkRateLimit', ipAddress: event.ipAddress }
       });
       return { exceeded: false, score: 0, requestCount: 0 };
     }
@@ -495,7 +495,7 @@ export class AdvancedSecurityService {
           userId: event.userId,
           metadata: {
             not: null
-          },
+          } as any,
           createdAt: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last week
           }
@@ -509,16 +509,16 @@ export class AdvancedSecurityService {
 
       // Calculate average location
       const locations = recentEvents
-        .map((e: unknown) => (e.metadata as unknown)?.location)
-        .filter((loc: unknown) => loc?.coordinates)
-        .map((loc: unknown) => loc.coordinates);
+        .map((e: any) => e.metadata?.location)
+        .filter((loc: any) => loc?.coordinates)
+        .map((loc: any) => loc.coordinates);
 
       if (locations.length === 0) {
         return { isAnomalous: false, score: 0 };
       }
 
-      const avgLat = locations.reduce((sum: number, loc: unknown) => sum + loc[0], 0) / locations.length;
-      const avgLng = locations.reduce((sum: number, loc: unknown) => sum + loc[1], 0) / locations.length;
+      const avgLat = locations.reduce((sum: number, loc: any) => sum + loc[0], 0) / locations.length;
+      const avgLng = locations.reduce((sum: number, loc: any) => sum + loc[1], 0) / locations.length;
 
       // Calculate distance from average location
       const currentLocation = event.location.coordinates;
@@ -543,7 +543,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error checking geographical anomaly',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'checkGeographicalAnomaly', userId, ipAddress }
+        context: { service: 'AdvancedSecurityService', operation: 'checkGeographicalAnomaly', userId: event.userId, ipAddress: event.ipAddress }
       });
       return { isAnomalous: false, score: 0 };
     }
@@ -561,7 +561,7 @@ export class AdvancedSecurityService {
           userId: event.userId,
           metadata: {
             not: null
-          }
+          } as any
         }
       });
 
@@ -571,14 +571,14 @@ export class AdvancedSecurityService {
 
       if (isNew) {
         score += 30;
-        
+
         // Check if user has multiple recent device changes
         const recentDevices = await prisma.securityAudit.count({
           where: {
             userId: event.userId,
             metadata: {
               not: null
-            },
+            } as any,
             createdAt: {
               gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
             }
@@ -596,7 +596,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error checking device fingerprint',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'checkDeviceFingerprint', userId, fingerprint }
+        context: { service: 'AdvancedSecurityService', operation: 'checkDeviceFingerprint', userId: event.userId, fingerprint: event.deviceFingerprint }
       });
       return { isNew: false, suspicious: false, score: 0 };
     }
@@ -620,12 +620,12 @@ export class AdvancedSecurityService {
 
       // Calculate metrics
       const totalEvents = events.length;
-      const criticalThreats = events.filter((e: unknown) => (e.metadata as unknown)?.severity === 'critical').length;
-      const blockedAttempts = events.filter((e: unknown) => (e.metadata as unknown)?.details?.blocked === true).length;
-      const uniqueAttackers = new Set(events.map((e: unknown) => e.ipAddress)).size;
+      const criticalThreats = events.filter((e: any) => e.metadata?.severity === 'critical').length;
+      const blockedAttempts = events.filter((e: any) => e.metadata?.details?.blocked === true).length;
+      const uniqueAttackers = new Set(events.map((e: any) => e.ipAddress)).size;
 
       // Top threats by type
-      const threatCounts = events.reduce((acc: unknown, event: unknown) => {
+      const threatCounts = events.reduce((acc: any, event: any) => {
         const type = event.action;
         acc[type] = (acc[type] || 0) + 1;
         return acc;
@@ -635,23 +635,23 @@ export class AdvancedSecurityService {
         .map(([type, count]) => ({
           type,
           count: count as number,
-          severity: (events.find((e: unknown) => e.action === type)?.metadata as unknown)?.severity || 'low'
+          severity: ((events as any[]).find((e: any) => e.action === type)?.metadata as any)?.severity || 'low'
         }))
-        .sort((a, b) => (b.count as number) - (a.count as number))
+        .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
       // Geographical distribution
       const geoData = events
-        .filter((e: unknown) => (e.metadata as unknown)?.location)
-        .reduce((acc: unknown, event: unknown) => {
-          const country = (event.metadata as unknown)?.location?.country;
+        .filter((e: any) => e.metadata?.location)
+        .reduce((acc: any, event: any) => {
+          const country = event.metadata?.location?.country;
           if (country) {
             acc[country] = (acc[country] || 0) + 1;
           }
           return acc;
         }, {});
 
-      const geoDistribution = Object.entries(geoData).map(([country, data]: [string, unknown]) => ({
+      const geoDistribution = Object.entries(geoData).map(([country, data]: [string, any]) => ({
         country,
         count: data.count,
         threatLevel: data.maxSeverity || 'low'
@@ -667,7 +667,7 @@ export class AdvancedSecurityService {
         uniqueAttackers,
         topThreats,
         geoDistribution,
-        timeline
+        timeline: timeline as any
       };
     } catch (error) {
       logger.error({
@@ -801,13 +801,13 @@ export class AdvancedSecurityService {
 
       const fingerprintString = JSON.stringify(fingerprintData);
       const hash = crypto.createHash('sha256').update(fingerprintString).digest('hex');
-      
+
       return hash;
     } catch (error) {
       logger.error({
         message: 'Error generating device fingerprint',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'generateDeviceFingerprint', userAgent }
+        context: { service: 'AdvancedSecurityService', operation: 'generateDeviceFingerprint', userAgent: deviceData.userAgent }
       });
       return '';
     }
@@ -822,7 +822,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error enhancing event with location',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'enhanceEventWithLocation', ipAddress }
+        context: { service: 'AdvancedSecurityService', operation: 'enhanceEventWithLocation', ipAddress: event.ipAddress }
       });
       return event;
     }
@@ -862,16 +862,17 @@ export class AdvancedSecurityService {
 
   private async createSecurityAlert(event: SecurityEvent, detection: ThreatDetection): Promise<void> {
     try {
-      await prisma.securityAlert.create({
+      await prisma.securityAudit.create({
         data: {
-          type: this.mapEventTypeToAlertType(event.type),
-          message: `Security threat detected: ${detection.reason}`,
-          severity: detection.severity.toUpperCase() as unknown,
-          organizationId: event.organizationId || 'system', // Add missing organizationId
+          action: this.mapEventTypeToAlertType(event.type),
+          userId: event.userId || 'system',
+          ipAddress: event.ipAddress,
+          userAgent: event.userAgent,
+          organizationId: event.organizationId || 'system',
           metadata: {
-            userId: event.userId,
-            ipAddress: event.ipAddress, // Store IP address in metadata instead
-            details: JSON.parse(JSON.stringify(detection)), // Convert to plain object for JSON compatibility
+            message: `Security threat detected: ${detection.reason}`,
+            severity: detection.severity.toUpperCase(),
+            details: JSON.parse(JSON.stringify(detection)),
             organizationId: event.organizationId
           }
         }
@@ -880,7 +881,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error creating security alert',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'createSecurityAlert', type, severity }
+        context: { service: 'AdvancedSecurityService', operation: 'createSecurityAlert', type: event.type, severity: detection.severity }
       });
     }
   }
@@ -891,7 +892,7 @@ export class AdvancedSecurityService {
       // such as SMS verification, email verification, or CAPTCHA
       logger.info({
         message: 'Additional verification required',
-        context: { service: 'AdvancedSecurityService', operation: 'requireAdditionalVerification', userId, reason }
+        context: { service: 'AdvancedSecurityService', operation: 'requireAdditionalVerification', userId, reason: 'Unknown' }
       });
     } catch (error) {
       logger.error({
@@ -906,7 +907,7 @@ export class AdvancedSecurityService {
     try {
       // Find admin users
       const admins = await prisma.user.findMany({
-        where: { role: 'ADMIN' }
+        where: { role: 'SUPER_ADMIN' }
       });
 
       // Send notifications to admins
@@ -932,7 +933,7 @@ export class AdvancedSecurityService {
       logger.error({
         message: 'Error notifying administrators',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'notifyAdministrators', organizationId, alertType }
+        context: { service: 'AdvancedSecurityService', operation: 'notifyAdministrators', organizationId: alert.organizationId, alertType: alert.type }
       });
     }
   }
@@ -952,7 +953,7 @@ export class AdvancedSecurityService {
       await this.notifyAdministrators({
         id: crypto.randomUUID(),
         type: 'SUSPICIOUS_ACTIVITY',
-        severity: detection.severity.toUpperCase() as unknown,
+        severity: detection.severity.toUpperCase() as any,
         message: `Critical security threat: ${detection.reason}`,
         userId: event.userId,
         ipAddress: event.ipAddress,
@@ -971,21 +972,21 @@ export class AdvancedSecurityService {
     }
   }
 
-  private calculateDistance(loc1: unknown, loc2: unknown): number {
+  private calculateDistance(loc1: any, loc2: any): number {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.deg2rad(loc2.lat - loc1.lat);
     const dLng = this.deg2rad(loc2.lng - loc1.lng);
-    
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(this.deg2rad(loc1.lat)) * Math.cos(this.deg2rad(loc2.lat)) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(loc1.lat)) * Math.cos(this.deg2rad(loc2.lat)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 
   private deg2rad(deg: number): number {
-    return deg * (Math.PI/180);
+    return deg * (Math.PI / 180);
   }
 
   private getSeverityWeight(severity: string): number {
@@ -1002,21 +1003,21 @@ export class AdvancedSecurityService {
     try {
       const timeline: unknown[] = [];
       const interval = 60 * 60 * 1000; // 1 hour intervals
-      
+
       for (let time = timeRange.start.getTime(); time <= timeRange.end.getTime(); time += interval) {
         const intervalStart = new Date(time);
         const intervalEnd = new Date(time + interval);
-        
-        const eventsInInterval = events.filter(event => 
+
+        const eventsInInterval = (events as any[]).filter(event =>
           event.createdAt >= intervalStart && event.createdAt < intervalEnd
         );
-        
+
         if (eventsInInterval.length > 0) {
           const maxSeverity = eventsInInterval.reduce((max, event) => {
-            const severity = (event.metadata as unknown)?.severity || 'low';
+            const severity = (event.metadata as any)?.severity || 'low';
             return this.getSeverityWeight(severity) > this.getSeverityWeight(max) ? severity : max;
           }, 'low');
-          
+
           timeline.push({
             timestamp: intervalStart,
             count: eventsInInterval.length,
@@ -1024,13 +1025,13 @@ export class AdvancedSecurityService {
           });
         }
       }
-      
+
       return timeline;
     } catch (error) {
       logger.error({
         message: 'Error generating timeline',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedSecurityService', operation: 'generateTimeline', userId, timeRange }
+        context: { service: 'AdvancedSecurityService', operation: 'generateTimeline', timeRange }
       });
       return [];
     }
@@ -1054,14 +1055,14 @@ export class AdvancedSecurityService {
   }
 
   private initializeIpLists(): void {
-      // Initialize with some default IPs
-      this.ipWhitelist.add('127.0.0.1');
-      this.ipWhitelist.add('::1');
-      
+    // Initialize with some default IPs
+    this.ipWhitelist.add('127.0.0.1');
+    this.ipWhitelist.add('::1');
+
     // Convert Set to Array for iteration
     const whitelistArray = Array.from(this.ipWhitelist);
     const blacklistArray = Array.from(this.ipBlacklist);
-    
+
     logger.info({
       message: 'IP lists initialized',
       context: { service: 'AdvancedSecurityService', operation: 'initializeIPLists', whitelistCount: whitelistArray.length, blacklistCount: blacklistArray.length }
