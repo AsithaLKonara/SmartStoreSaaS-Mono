@@ -63,7 +63,7 @@ export class BillingService {
       // Get active subscriptions (using Organization as proxy for now)
       let activeSubscriptions = 0;
       try {
-        activeSubscriptions = await prisma.pWASubscription.count({
+        activeSubscriptions = await (prisma as any).pWASubscription.count({
           where: {
             organizationId,
             isActive: true
@@ -108,16 +108,16 @@ export class BillingService {
         cancelledSubscriptions: 0,
         trialSubscriptions: 0
       };
-      
+
       try {
         subscriptionMetrics = {
-          totalSubscriptions: await prisma.pWASubscription.count({
+          totalSubscriptions: await (prisma as any).pWASubscription.count({
             where: { organizationId }
           }),
-          activeSubscriptions: await prisma.pWASubscription.count({
+          activeSubscriptions: await (prisma as any).pWASubscription.count({
             where: { organizationId, isActive: true }
           }),
-          cancelledSubscriptions: await prisma.pWASubscription.count({
+          cancelledSubscriptions: await (prisma as any).pWASubscription.count({
             where: { organizationId, isActive: false }
           }),
           trialSubscriptions: 0 // No trial concept in PWA subscriptions
@@ -156,26 +156,26 @@ export class BillingService {
         }
       });
 
-      const averageOrderValue = orderCount > 0 
-        ? (totalRevenue._sum.amount || 0) / orderCount 
+      const averageOrderValue = orderCount > 0
+        ? (totalRevenue._sum.amount?.toNumber() || 0) / orderCount
         : 0;
 
       return {
-        totalRevenue: totalRevenue._sum.amount || 0,
-        monthlyRevenue: monthlyRevenue._sum.amount || 0,
+        totalRevenue: totalRevenue._sum.amount?.toNumber() || 0,
+        monthlyRevenue: monthlyRevenue._sum.amount?.toNumber() || 0,
         activeSubscriptions,
         pendingPayments,
         recentTransactions: recentTransactions.map(tx => ({
           id: tx.id,
-          amount: tx.amount,
+          amount: tx.amount.toNumber(),
           status: tx.status,
           createdAt: tx.createdAt
         })),
         subscriptionMetrics,
         revenueMetrics: {
-          totalRevenue: totalRevenue._sum.amount || 0,
-          monthlyRevenue: monthlyRevenue._sum.amount || 0,
-          yearlyRevenue: yearlyRevenue._sum.amount || 0,
+          totalRevenue: totalRevenue._sum.amount?.toNumber() || 0,
+          monthlyRevenue: monthlyRevenue._sum.amount?.toNumber() || 0,
+          yearlyRevenue: yearlyRevenue._sum.amount?.toNumber() || 0,
           averageOrderValue
         }
       };

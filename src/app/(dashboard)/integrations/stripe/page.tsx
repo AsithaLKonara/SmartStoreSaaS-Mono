@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   CreditCard,
   Settings,
@@ -83,7 +83,7 @@ export default function StripeIntegrationPage() {
     try {
       setIsLoading(true);
       setTestResult(null);
-      
+
       const response = await fetch('/api/payments/stripe/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,7 +95,7 @@ export default function StripeIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setTestResult({ success: true, message: 'Connection successful! Stripe is configured correctly.' });
         setIsConnected(true);
@@ -114,7 +114,7 @@ export default function StripeIntegrationPage() {
   const saveConfiguration = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch('/api/integrations/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -178,11 +178,10 @@ export default function StripeIntegrationPage() {
 
       {/* Test Result Alert */}
       {testResult && (
-        <div className={`p-4 rounded-lg border ${
-          testResult.success 
-            ? 'bg-green-500/10 border-green-500 text-green-400' 
+        <div className={`p-4 rounded-lg border ${testResult.success
+            ? 'bg-green-500/10 border-green-500 text-green-400'
             : 'bg-red-500/10 border-red-500 text-red-400'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {testResult.success ? (
               <CheckCircle className="w-5 h-5" />
@@ -211,7 +210,7 @@ export default function StripeIntegrationPage() {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -309,7 +308,7 @@ export default function StripeIntegrationPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <Button 
+                <Button
                   onClick={testConnection}
                   disabled={isLoading || !config.publishableKey || !config.secretKey}
                   className="flex-1"
@@ -318,8 +317,8 @@ export default function StripeIntegrationPage() {
                   <TestTube className="w-4 h-4 mr-2" />
                   {isLoading ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={saveConfiguration}
                   disabled={isSaving || !config.publishableKey || !config.secretKey}
                   className="flex-1"
@@ -332,7 +331,7 @@ export default function StripeIntegrationPage() {
         </TabsContent>
 
         {/* Webhooks Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="webhooks" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -421,7 +420,7 @@ export default function StripeIntegrationPage() {
         </TabsContent>
 
         {/* Payment Methods Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="payment-methods" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -523,24 +522,24 @@ export default function StripeIntegrationPage() {
           <CardTitle className="text-white">Quick Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a 
-            href="https://dashboard.stripe.com/apikeys" 
+          <a
+            href="https://dashboard.stripe.com/apikeys"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Get API Keys from Stripe Dashboard
           </a>
-          <a 
-            href="https://dashboard.stripe.com/webhooks" 
+          <a
+            href="https://dashboard.stripe.com/webhooks"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Configure Webhooks
           </a>
-          <a 
-            href="https://stripe.com/docs" 
+          <a
+            href="https://stripe.com/docs"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"

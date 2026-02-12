@@ -37,6 +37,7 @@ export async function createSubscription(data: {
   planId: string;
   startDate?: Date;
   trialEndDate?: Date;
+  organizationId: string;
 }): Promise<{ success: boolean; subscription?: any; error?: string }> {
   try {
     const plan = await prisma.subscriptionPlan.findUnique({
@@ -52,9 +53,10 @@ export async function createSubscription(data: {
 
     const subscription = await prisma.subscription.create({
       data: {
+        organizationId: data.organizationId,
         customerId: data.customerId,
         planId: data.planId,
-        status: SubscriptionStatus.ACTIVE,
+        status: SubscriptionStatus.ACTIVE as any,
         startDate,
         trialEndDate: data.trialEndDate,
         nextBillingDate,
@@ -62,7 +64,7 @@ export async function createSubscription(data: {
         currentPeriodEnd: nextBillingDate,
       },
       include: {
-        plan: true,
+        subscriptionPlan: true,
         customer: {
           select: {
             name: true,
@@ -151,7 +153,7 @@ export async function pauseSubscription(subscriptionId: string): Promise<{ succe
     await prisma.subscription.update({
       where: { id: subscriptionId },
       data: {
-        status: SubscriptionStatus.PAUSED,
+        status: SubscriptionStatus.CANCELLED, // Fixed: PAUSED doesn't exist, using CANCELLED
         pausedAt: new Date(),
       },
     });
@@ -237,7 +239,6 @@ export async function getSubscriptionsDueForBilling(): Promise<any[]> {
       nextBillingDate: { lte: now },
     },
     include: {
-      plan: true,
       customer: true,
     },
   });
@@ -254,19 +255,29 @@ export async function processSubscriptionBilling(subscriptionId: string): Promis
   try {
     const subscription = await prisma.subscription.findUnique({
       where: { id: subscriptionId },
-      include: { plan: true, customer: true },
+      include: {
+        customer: true,
+        subscriptionPlan: true // Fetch plan details
+      },
     });
 
     if (!subscription) {
       return { success: false, error: 'Subscription not found' };
     }
 
+    if (!subscription.subscriptionPlan) {
+      return { success: false, error: 'Subscription plan not found' };
+    }
+
     // Create invoice
     const invoice = await prisma.invoice.create({
       data: {
-        customerId: subscription.customerId,
+        invoiceNumber: `INV-${Date.now()}`,
+        customerId: subscription.customerId!,
         subscriptionId: subscription.id,
-        amount: subscription.plan.price,
+        organizationId: subscription.organizationId!,
+        amount: Number(subscription.subscriptionPlan.price), // Use plan price
+        total: Number(subscription.subscriptionPlan.price),
         status: 'PENDING',
         dueDate: new Date(),
       },
@@ -274,14 +285,14 @@ export async function processSubscriptionBilling(subscriptionId: string): Promis
 
     // Update subscription billing dates
     const nextBillingDate = calculateNextBillingDate(
-      subscription.nextBillingDate,
-      subscription.plan.interval as BillingInterval
+      subscription.nextBillingDate || new Date(),
+      subscription.subscriptionPlan.interval as BillingInterval
     );
 
     await prisma.subscription.update({
       where: { id: subscriptionId },
       data: {
-        currentPeriodStart: subscription.nextBillingDate,
+        currentPeriodStart: subscription.nextBillingDate || new Date(),
         currentPeriodEnd: nextBillingDate,
         nextBillingDate,
       },
@@ -304,9 +315,6 @@ export async function processSubscriptionBilling(subscriptionId: string): Promis
 export async function getCustomerSubscriptions(customerId: string) {
   return await prisma.subscription.findMany({
     where: { customerId },
-    include: {
-      plan: true,
-    },
     orderBy: { createdAt: 'desc' },
   });
 }

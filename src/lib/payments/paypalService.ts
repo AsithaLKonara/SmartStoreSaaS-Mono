@@ -71,8 +71,8 @@ export class PayPalService {
       clientSecret: process.env.PAYPAL_CLIENT_SECRET!,
       environment: (process.env.PAYPAL_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
     };
-    
-    this.baseURL = this.config.environment === 'sandbox' 
+
+    this.baseURL = this.config.environment === 'sandbox'
       ? 'https://api-m.sandbox.paypal.com'
       : 'https://api-m.paypal.com';
   }
@@ -87,7 +87,7 @@ export class PayPalService {
 
     try {
       const auth = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString('base64');
-      
+
       const response = await fetch(`${this.baseURL}/v1/oauth2/token`, {
         method: 'POST',
         headers: {
@@ -104,7 +104,7 @@ export class PayPalService {
       const data = await response.json();
       this.accessToken = data.access_token;
       this.tokenExpiry = new Date(Date.now() + (data.expires_in * 1000));
-      
+
       return this.accessToken!; // Use non-null assertion since we just set it
     } catch (error) {
       logger.error({
@@ -166,7 +166,7 @@ export class PayPalService {
       }
 
       const order = await response.json() as PayPalAPIResponse;
-      
+
       // Validate that we have a valid order ID
       if (!order.id || typeof order.id !== 'string') {
         throw new Error('PayPal order creation failed - invalid order ID returned');
@@ -174,7 +174,7 @@ export class PayPalService {
 
       // At this point, order.id is guaranteed to be a string
       const orderIdString = order.id;
-      
+
       // Store PayPal order ID in database
       await prisma.order.updateMany({
         where: { id: orderId },
@@ -270,11 +270,11 @@ export class PayPalService {
     amount?: number,
     currency: string = 'USD',
     note?: string
-  ): Promise<unknown> {
+  ): Promise<any> {
     try {
       const accessToken = await this.getAccessToken();
 
-      const refundData: unknown = {
+      const refundData: any = {
         note_to_payer: note || 'Refund processed',
       };
 
@@ -313,7 +313,7 @@ export class PayPalService {
   /**
    * Get order details
    */
-  async getOrder(paypalOrderId: string): Promise<unknown> {
+  async getOrder(paypalOrderId: string): Promise<any> {
     try {
       const accessToken = await this.getAccessToken();
 
@@ -414,7 +414,7 @@ export class PayPalService {
     }
   }
 
-  private async handlePaymentCaptured(event: unknown): Promise<void> {
+  private async handlePaymentCaptured(event: any): Promise<void> {
     const paymentId = event.resource.id;
     const orderId = event.resource.supplementary_data?.related_ids?.order_id;
 
@@ -434,7 +434,7 @@ export class PayPalService {
     });
   }
 
-  private async handlePaymentDenied(event: unknown): Promise<void> {
+  private async handlePaymentDenied(event: any): Promise<void> {
     const orderId = event.resource.supplementary_data?.related_ids?.order_id;
 
     if (orderId) {
@@ -452,9 +452,9 @@ export class PayPalService {
     });
   }
 
-  private async handlePaymentRefunded(event: unknown): Promise<void> {
+  private async handlePaymentRefunded(event: any): Promise<void> {
     const paymentId = event.resource.id;
-    
+
     // Update refund status in database
     logger.info({
       message: 'PayPal payment refunded',
@@ -471,7 +471,7 @@ export class PayPalService {
     amount: number,
     currency: string = 'USD',
     interval: 'MONTH' | 'YEAR' = 'MONTH'
-  ): Promise<unknown> {
+  ): Promise<any> {
     try {
       const accessToken = await this.getAccessToken();
 

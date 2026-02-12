@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, SubscriptionStatus } from '@prisma/client';
 import Stripe from 'stripe';
 import { logger } from '@/lib/logger';
 
@@ -12,7 +12,7 @@ const OrderStatus = {
 } as const;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-12-15.clover', // Updated to required version
 });
 
 export interface PaymentIntent {
@@ -153,7 +153,7 @@ export class StripeService {
     customerId: string,
     priceId: string,
     metadata?: Record<string, string>
-  ): Promise<unknown> {
+  ): Promise<any> {
     try {
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
@@ -178,7 +178,7 @@ export class StripeService {
   /**
    * Cancel a subscription
    */
-  async cancelSubscription(subscriptionId: string): Promise<unknown> {
+  async cancelSubscription(subscriptionId: string): Promise<any> {
     try {
       return await stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
@@ -198,9 +198,9 @@ export class StripeService {
     paymentIntentId: string,
     amount?: number,
     reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer'
-  ): Promise<unknown> {
+  ): Promise<any> {
     try {
-      const refundData: unknown = {
+      const refundData: any = {
         payment_intent: paymentIntentId,
         reason,
       };
@@ -225,7 +225,7 @@ export class StripeService {
    */
   async handleWebhook(body: string, signature: string): Promise<void> {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-    
+
     try {
       const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
 
@@ -325,10 +325,10 @@ export class StripeService {
       await prisma.subscription.create({
         data: {
           stripeSubscriptionId: subscription.id,
-          customerId: subscription.customer as string,
-          status: subscription.status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          stripeCustomerId: subscription.customer as string,
+          status: subscription.status as SubscriptionStatus,
+          currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
           // Add other relevant fields
         },
       });
@@ -353,9 +353,9 @@ export class StripeService {
           stripeSubscriptionId: subscription.id,
         },
         data: {
-          status: subscription.status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          status: subscription.status as SubscriptionStatus,
+          currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
         },
       });
 
@@ -379,7 +379,7 @@ export class StripeService {
           stripeSubscriptionId: subscription.id,
         },
         data: {
-          status: 'canceled',
+          status: 'CANCELLED' as SubscriptionStatus,
         },
       });
 
@@ -430,7 +430,7 @@ export class StripeService {
           amount: price.unit_amount! / 100,
           currency: price.currency,
           interval: price.recurring!.interval as 'month' | 'year',
-          features: product.metadata?.features ? 
+          features: product.metadata?.features ?
             JSON.parse(product.metadata.features) : [],
         };
       });

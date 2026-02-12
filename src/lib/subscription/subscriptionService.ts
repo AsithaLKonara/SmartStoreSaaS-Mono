@@ -116,7 +116,7 @@ export class SubscriptionService {
       const createdPlan = await prisma.subscription.create({
         data: {
           customerId: 'temp', // This will need to be fixed based on actual requirements
-          status: 'active',
+          status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
           cancelAtPeriodEnd: false,
@@ -153,11 +153,11 @@ export class SubscriptionService {
           planId,
           paymentMethod
         };
-        
+
         if (trialDays !== undefined) {
           metadata.trialDays = trialDays.toString();
         }
-        
+
         const stripeSubscription = await stripeService.createSubscription(
           customerId,
           planId,
@@ -169,7 +169,7 @@ export class SubscriptionService {
       const subscription = await prisma.subscription.create({
         data: {
           customerId,
-          status: 'active',
+          status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
           cancelAtPeriodEnd: false,
@@ -206,8 +206,13 @@ export class SubscriptionService {
         });
       }
 
-      return subscription as Subscription;
+      return subscription as unknown as Subscription;
     } catch (error) {
+      logger.error({
+        message: 'Failed to create subscription',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'SubscriptionService', operation: 'createSubscription', customerId }
+      });
       throw new Error(`Failed to create subscription: ${error}`);
     }
   }
@@ -217,7 +222,7 @@ export class SubscriptionService {
       const subscription = await prisma.subscription.findUnique({
         where: { id: subscriptionId }
       });
-      return subscription as Subscription | null;
+      return subscription as unknown as Subscription | null;
     } catch (error) {
       throw new Error(`Failed to get subscription: ${error}`);
     }
@@ -230,7 +235,13 @@ export class SubscriptionService {
     try {
       const updatedSubscription = await prisma.subscription.update({
         where: { id: subscriptionId },
-        data: updates
+        data: {
+          status: updates.status as any, // Fix: Type mismatch with SubscriptionStatus
+          currentPeriodStart: updates.currentPeriodStart,
+          currentPeriodEnd: updates.currentPeriodEnd,
+          cancelAtPeriodEnd: updates.cancelAtPeriodEnd,
+          metadata: updates.metadata as any // Fix: Type mismatch with InputJsonValue
+        }
       });
 
       // Broadcast real-time sync event
@@ -239,7 +250,7 @@ export class SubscriptionService {
           id: crypto.randomUUID(),
           type: 'customer',
           action: 'update',
-          entityId: updatedSubscription.customerId,
+          entityId: updatedSubscription.customerId ?? '', // Fix null safety
           organizationId: process.env.DEFAULT_ORGANIZATION_ID || 'default',
           timestamp: new Date(),
           source: 'subscription-service',
@@ -257,7 +268,7 @@ export class SubscriptionService {
         });
       }
 
-      return updatedSubscription as Subscription;
+      return updatedSubscription as unknown as Subscription;
     } catch (error) {
       throw new Error(`Failed to update subscription: ${error}`);
     }
@@ -298,7 +309,7 @@ export class SubscriptionService {
       const updatedSubscription = await prisma.subscription.update({
         where: { id: subscriptionId },
         data: {
-          status: immediate ? 'canceled' : 'active',
+          status: immediate ? 'CANCELLED' : 'ACTIVE',
           cancelAtPeriodEnd: !immediate,
           metadata: {
             ...(subscription.metadata as Record<string, unknown> || {}),
@@ -326,7 +337,7 @@ export class SubscriptionService {
           id: crypto.randomUUID(),
           type: 'customer',
           action: 'update',
-          entityId: updatedSubscription.customerId,
+          entityId: updatedSubscription.customerId ?? '', // Fix null safety
           organizationId: process.env.DEFAULT_ORGANIZATION_ID || 'default',
           timestamp: new Date(),
           source: 'subscription-service',
@@ -345,7 +356,7 @@ export class SubscriptionService {
         });
       }
 
-      return updatedSubscription as Subscription;
+      return updatedSubscription as unknown as Subscription;
     } catch (error) {
       throw new Error(`Failed to cancel subscription: ${error}`);
     }
@@ -372,7 +383,7 @@ export class SubscriptionService {
       }
 
       // Update usage in subscription metadata
-      const currentUsage = (subscription.metadata as unknown)?.usage || {};
+      const currentUsage = (subscription.metadata as any)?.usage || {};
       const newUsage = {
         ...currentUsage,
         [metricType]: (currentUsage[metricType] || 0) + quantity,
@@ -425,7 +436,7 @@ export class SubscriptionService {
       const createdTier = await prisma.subscription.create({
         data: {
           customerId: 'temp', // This will need to be fixed based on actual requirements
-          status: 'active',
+          status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
           cancelAtPeriodEnd: false,
@@ -453,7 +464,7 @@ export class SubscriptionService {
         include: {
           orders: {
             where: { status: 'COMPLETED' },
-            select: { totalAmount: true, createdAt: true }
+            select: { total: true, createdAt: true }
           }
         }
       });
@@ -463,7 +474,7 @@ export class SubscriptionService {
       }
 
       // Calculate total spent from completed orders
-      const totalSpent = customer.orders.reduce((sum: number, order: unknown) => sum + order.totalAmount, 0);
+      const totalSpent = customer.orders.reduce((sum: number, order: any) => sum + Number(order.total), 0);
 
       // Determine membership tier based on total spent
       const currentTier = this.getTierLevel(totalSpent);
@@ -517,7 +528,7 @@ export class SubscriptionService {
       const createdBox = await prisma.subscription.create({
         data: {
           customerId: 'temp', // This will need to be fixed based on actual requirements
-          status: 'active',
+          status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
           cancelAtPeriodEnd: false,
@@ -576,7 +587,7 @@ export class SubscriptionService {
 
       if (!subscription) return;
 
-      const plan = (subscription.metadata as unknown)?.plan;
+      const plan = (subscription.metadata as any)?.plan;
       if (!plan) {
         logger.warn({
           message: 'No plan information found in subscription metadata',
@@ -609,21 +620,17 @@ export class SubscriptionService {
         throw new Error('Subscription or customer not found');
       }
 
-      const customer = await prisma.customer.findUnique({
-        where: { id: subscription.customerId }
-      });
-
-      if (!customer) {
-        throw new Error('Customer not found');
+      if (!subscription.customer.email) {
+        throw new Error('Customer email not found');
       }
 
       await emailService.sendEmail({
-        to: customer.email || '',
+        to: subscription.customer.email,
         subject: 'Welcome to Your Subscription!',
         templateId: 'subscription-welcome',
         templateData: {
-          customerName: customer.name || 'Valued Customer',
-          planName: (subscription.metadata as unknown)?.plan || 'Premium Plan',
+          customerName: subscription.customer.name || 'Valued Customer',
+          planName: (subscription.metadata as any)?.plan || 'Premium Plan',
           startDate: subscription.currentPeriodStart.toLocaleDateString(),
           endDate: subscription.currentPeriodEnd.toLocaleDateString()
         }
@@ -649,21 +656,17 @@ export class SubscriptionService {
         throw new Error('Subscription or customer not found');
       }
 
-      const customer = await prisma.customer.findUnique({
-        where: { id: subscription.customerId }
-      });
-
-      if (!customer) {
-        throw new Error('Customer not found');
+      if (!subscription.customer.email) {
+        throw new Error('Customer email not found');
       }
 
       await emailService.sendEmail({
-        to: customer.email || '',
+        to: subscription.customer.email,
         subject: 'Subscription Cancelled',
         templateId: 'subscription-cancelled',
         templateData: {
-          customerName: customer.name || 'Valued Customer',
-          planName: (subscription.metadata as unknown)?.plan || 'Premium Plan',
+          customerName: subscription.customer.name || 'Valued Customer',
+          planName: (subscription.metadata as any)?.plan || 'Premium Plan',
           endDate: subscription.currentPeriodEnd.toLocaleDateString()
         }
       });
@@ -677,7 +680,7 @@ export class SubscriptionService {
     }
   }
 
-  async sendUsageLimitEmail(subscriptionId: string): Promise<void> {
+  async sendUsageLimitEmail(subscriptionId: string, metricType: string = 'general'): Promise<void> {
     try {
       const subscription = await prisma.subscription.findUnique({
         where: { id: subscriptionId },
@@ -688,23 +691,19 @@ export class SubscriptionService {
         throw new Error('Subscription or customer not found');
       }
 
-      const customer = await prisma.customer.findUnique({
-        where: { id: subscription.customerId }
-      });
-
-      if (!customer) {
-        throw new Error('Customer not found');
+      if (!subscription.customer.email) {
+        throw new Error('Customer email not found');
       }
 
       await emailService.sendEmail({
-        to: customer.email || '',
+        to: subscription.customer.email,
         subject: 'Usage Limit Reached',
         templateId: 'usage-limit-reached',
         templateData: {
-          customerName: customer.name || 'Valued Customer',
-          planName: (subscription.metadata as unknown)?.plan || 'Premium Plan',
-          currentUsage: (subscription.metadata as unknown)?.usage || 0,
-          usageLimit: (subscription.metadata as unknown)?.usageLimit || 'Unlimited'
+          customerName: subscription.customer.name || 'Valued Customer',
+          planName: (subscription.metadata as any)?.plan || 'Premium Plan',
+          currentUsage: (subscription.metadata as any)?.usage || 0,
+          usageLimit: (subscription.metadata as any)?.usageLimit || 'Unlimited'
         }
       });
     } catch (error) {
@@ -726,7 +725,7 @@ export class SubscriptionService {
 
       if (!subscription) return 0;
 
-      const usage = (subscription.metadata as unknown)?.usage || {};
+      const usage = (subscription.metadata as any)?.usage || {};
       return usage[metricType] || 0;
     } catch (error) {
       logger.warn({
@@ -749,7 +748,7 @@ export class SubscriptionService {
   private getNextTier(currentTier: string): string {
     const tierOrder = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
     const currentIndex = tierOrder.indexOf(currentTier);
-    return currentIndex < tierOrder.length - 1 ? tierOrder[currentIndex + 1] : currentTier;
+    return currentIndex < tierOrder.length - 1 ? tierOrder[currentIndex + 1] ?? currentTier : currentTier; // Fix undefined safety
   }
 
   private calculateTierProgress(totalSpent: number, currentTier: string): number {
@@ -760,12 +759,13 @@ export class SubscriptionService {
       platinum: 5000,
       diamond: 10000
     };
-    
-    const currentThreshold = tierThresholds[currentTier];
-    const nextThreshold = tierThresholds[this.getNextTier(currentTier)] || currentThreshold;
-    
+
+    const currentThreshold = tierThresholds[currentTier] || 0;
+    const nextTier = this.getNextTier(currentTier);
+    const nextThreshold = tierThresholds[nextTier] || currentThreshold;
+
     if (nextThreshold === currentThreshold) return 100;
-    
+
     const progress = ((totalSpent - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
     return Math.min(Math.max(progress, 0), 100);
   }

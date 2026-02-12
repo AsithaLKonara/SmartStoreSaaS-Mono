@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   CreditCard,
   Settings,
@@ -80,7 +80,7 @@ export default function PayHereIntegrationPage() {
     try {
       setIsLoading(true);
       setTestResult(null);
-      
+
       const response = await fetch('/api/payments/payhere/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,7 +92,7 @@ export default function PayHereIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setTestResult({ success: true, message: 'Connection successful! PayHere is configured correctly.' });
         setIsConnected(true);
@@ -111,7 +111,7 @@ export default function PayHereIntegrationPage() {
   const saveConfiguration = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch('/api/integrations/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,7 +150,7 @@ export default function PayHereIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.paymentUrl) {
         window.open(data.paymentUrl, '_blank');
       } else {
@@ -203,11 +203,10 @@ export default function PayHereIntegrationPage() {
 
       {/* Test Result Alert */}
       {testResult && (
-        <div className={`p-4 rounded-lg border ${
-          testResult.success 
-            ? 'bg-green-500/10 border-green-500 text-green-400' 
+        <div className={`p-4 rounded-lg border ${testResult.success
+            ? 'bg-green-500/10 border-green-500 text-green-400'
             : 'bg-red-500/10 border-red-500 text-red-400'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {testResult.success ? (
               <CheckCircle className="w-5 h-5" />
@@ -236,7 +235,7 @@ export default function PayHereIntegrationPage() {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -318,7 +317,7 @@ export default function PayHereIntegrationPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <Button 
+                <Button
                   onClick={testConnection}
                   disabled={isLoading || !config.merchantId || !config.merchantSecret}
                   className="flex-1"
@@ -327,8 +326,8 @@ export default function PayHereIntegrationPage() {
                   <TestTube className="w-4 h-4 mr-2" />
                   {isLoading ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={saveConfiguration}
                   disabled={isSaving || !config.merchantId || !config.merchantSecret}
                   className="flex-1"
@@ -339,7 +338,7 @@ export default function PayHereIntegrationPage() {
 
               {/* Test Payment Button */}
               {isConnected && config.sandbox && (
-                <Button 
+                <Button
                   onClick={initiateTestPayment}
                   disabled={isLoading}
                   className="w-full"
@@ -354,7 +353,7 @@ export default function PayHereIntegrationPage() {
         </TabsContent>
 
         {/* Webhooks Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="webhooks" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -428,7 +427,7 @@ export default function PayHereIntegrationPage() {
         </TabsContent>
 
         {/* Payment Methods Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="payment-methods" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -514,24 +513,24 @@ export default function PayHereIntegrationPage() {
           <CardTitle className="text-white">Quick Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a 
-            href="https://www.payhere.lk/merchant/register" 
+          <a
+            href="https://www.payhere.lk/merchant/register"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Register as PayHere Merchant
           </a>
-          <a 
-            href="https://www.payhere.lk/merchant/settings" 
+          <a
+            href="https://www.payhere.lk/merchant/settings"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Get Merchant Credentials
           </a>
-          <a 
-            href="https://support.payhere.lk/" 
+          <a
+            href="https://support.payhere.lk/"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
