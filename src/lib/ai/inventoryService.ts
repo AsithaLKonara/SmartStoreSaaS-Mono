@@ -99,7 +99,7 @@ export class AIInventoryService {
       logger.error({
         message: 'Error predicting stockout risk',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'predictStockoutRisk', organizationId }
+        context: { service: 'InventoryService', operation: 'predictStockoutRisk' }
       });
       return [];
     }
@@ -139,7 +139,7 @@ export class AIInventoryService {
       logger.error({
         message: 'Error analyzing seasonal trends',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'analyzeSeasonalTrends', organizationId, productId }
+        context: { service: 'InventoryService', operation: 'analyzeSeasonalTrends' }
       });
       return [];
     }
@@ -153,12 +153,12 @@ export class AIInventoryService {
   ): Promise<SupplierPerformance[]> {
     try {
       const suppliers = await prisma.supplier.findMany({
-        where: { organizationId, isActive: true },
+        where: { organizationId, status: 'ACTIVE' },
         include: {
           purchaseOrders: {
             where: {
-              status: { in: ['CONFIRMED', 'RECEIVED'] }
-            },
+                status: { in: ['CONFIRMED', 'RECEIVED'] as any }
+              },
             include: {
               items: true
             }
@@ -169,7 +169,7 @@ export class AIInventoryService {
       const supplierPerformance: SupplierPerformance[] = [];
 
       for (const supplier of suppliers) {
-        const completedOrders = supplier.purchaseOrders.filter(po => 
+        const completedOrders = supplier.purchaseOrders.filter(po =>
           po.status === 'RECEIVED'
         );
 
@@ -189,15 +189,15 @@ export class AIInventoryService {
         // Calculate average delivery time
         const deliveryTimes = completedOrders.map(po => {
           const created = new Date(po.createdAt);
-          const delivered = po.expectedDelivery ? new Date(po.expectedDelivery) : new Date(po.updatedAt);
+          const delivered = po.expectedDate ? new Date(po.expectedDate) : new Date(po.updatedAt);
           return Math.ceil((delivered.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
         });
 
         const averageDeliveryTime = deliveryTimes.reduce((sum, time) => sum + time, 0) / deliveryTimes.length;
 
         // Calculate reliability score based on on-time deliveries
-        const onTimeDeliveries = deliveryTimes.filter(time => time <= (supplier.leadTime || 7));
-        const reliabilityScore = (onTimeDeliveries.length / deliveryTimes.length) * 100;
+        const onTimeDeliveries = deliveryTimes.filter(time => time <= 7);
+        const reliabilityScore = (onTimeDeliveries.length / (deliveryTimes.length || 1)) * 100;
 
         // Calculate cost effectiveness (placeholder - would need more data)
         const costEffectiveness = 75; // Placeholder score
@@ -211,7 +211,7 @@ export class AIInventoryService {
           costEffectiveness,
           recommendations: [
             reliabilityScore < 80 ? 'Improve delivery reliability' : 'Maintain current performance',
-            averageDeliveryTime > (supplier.leadTime || 7) ? 'Optimize supply chain processes' : 'Good delivery performance'
+            averageDeliveryTime > 7 ? 'Optimize supply chain processes' : 'Good delivery performance'
           ]
         });
       }
@@ -237,7 +237,7 @@ export class AIInventoryService {
     try {
       // Get active suppliers
       const suppliers = await prisma.supplier.findMany({
-        where: { organizationId, isActive: true }
+        where: { organizationId, status: 'ACTIVE' }
       });
 
       if (suppliers.length === 0) {
@@ -245,7 +245,7 @@ export class AIInventoryService {
       }
 
       // Get products that need reordering
-      const productsToReorder = predictions.filter(p => 
+      const productsToReorder = predictions.filter(p =>
         p.currentStock <= p.reorderPoint && p.daysUntilStockout < 14
       );
 
@@ -258,7 +258,7 @@ export class AIInventoryService {
       // Group products by supplier (simplified logic - in reality would use supplier-product relationships)
       for (const supplier of suppliers) {
         const supplierProducts = productsToReorder.slice(0, 3); // Limit to 3 products per supplier
-        
+
         if (supplierProducts.length > 0) {
           const items = supplierProducts.map(product => ({
             productId: product.productId,
@@ -269,7 +269,7 @@ export class AIInventoryService {
 
           const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0);
           const expectedDelivery = new Date();
-          expectedDelivery.setDate(expectedDelivery.getDate() + (supplier.leadTime || 7));
+          expectedDelivery.setDate(expectedDelivery.getDate() + 7);
 
           purchaseOrders.push({
             supplierId: supplier.id,
@@ -287,7 +287,7 @@ export class AIInventoryService {
       logger.error({
         message: 'Error generating purchase orders',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'generatePurchaseOrders', organizationId, productsCount: products.length }
+        context: { service: 'InventoryService', operation: 'generatePurchaseOrders', organizationId }
       });
       return [];
     }
@@ -308,7 +308,7 @@ export class AIInventoryService {
           include: { category: true }
         }),
         prisma.supplier.findMany({
-          where: { organizationId, isActive: true }
+          where: { organizationId, status: 'ACTIVE' }
         }),
         prisma.purchaseOrder.findMany({
           where: { organizationId },
@@ -316,7 +316,7 @@ export class AIInventoryService {
         })
       ]);
 
-      return { products, suppliers, purchaseOrders       };
+      return { products, suppliers, purchaseOrders };
     } catch (error) {
       logger.error({
         message: 'Error fetching inventory data',
@@ -364,7 +364,7 @@ export class AIInventoryService {
       logger.error({
         message: 'Error optimizing pricing',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'optimizePricing', organizationId }
+        context: { service: 'InventoryService', operation: 'optimizePricing' }
       });
       return [];
     }

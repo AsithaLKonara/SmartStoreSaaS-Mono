@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/config';
 import { AIRecommendationEngine } from '@/lib/ai/recommendationEngine';
 import { logger } from '@/lib/logger';
 
@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
         const customerId = searchParams.get('customerId') || session.user.id;
         const organizationId = searchParams.get('organizationId') || session.user.organizationId;
         const limit = parseInt(searchParams.get('limit') || '5');
+
+        if (!organizationId) {
+            return NextResponse.json({ error: 'Organization ID is required' }, { status: 400 });
+        }
 
         const engine = new AIRecommendationEngine();
         const recommendations = await engine.getRecommendations(

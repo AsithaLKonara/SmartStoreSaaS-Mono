@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 import { logger } from '@/lib/logger';
 import { useRealTimeSync } from '@/hooks/useRealTimeSync';
-import { useCallback } from 'react';
+
 
 export interface ChartData {
   name: string;
@@ -79,16 +79,19 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
   const updateOrderData = useCallback((orderData: unknown, currentData: ChartData[]): ChartData[] => {
     const order = orderData as { total?: number };
     const now = new Date();
-    const timeKey = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const timeKey = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
 
     const existingIndex = currentData.findIndex(item => item.name === timeKey);
-    
-    if (existingIndex >= 0) {
+
+    if (existingIndex >= 0 && currentData[existingIndex]) {
       const updatedData = [...currentData];
-      updatedData[existingIndex].value = (updatedData[existingIndex].value as number) + (order.total || 1);
+      const item = updatedData[existingIndex];
+      if (item) {
+        item.value = (item.value as number) + (order.total || 1);
+      }
       return updatedData;
     } else {
       return [...currentData.slice(-19), {
@@ -103,10 +106,13 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     const product = productData as { name?: string; category?: string };
     const productName = product.name || 'Unknown Product';
     const existingIndex = currentData.findIndex(item => item.name === productName);
-    
-    if (existingIndex >= 0) {
+
+    if (existingIndex >= 0 && currentData[existingIndex]) {
       const updatedData = [...currentData];
-      updatedData[existingIndex].value = (updatedData[existingIndex].value as number) + 1;
+      const item = updatedData[existingIndex];
+      if (item) {
+        item.value = (item.value as number) + 1;
+      }
       return updatedData;
     } else {
       return [...currentData, {
@@ -121,10 +127,13 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     const payment = paymentData as { method?: string; amount?: number };
     const method = payment.method || 'Unknown';
     const existingIndex = currentData.findIndex(item => item.name === method);
-    
-    if (existingIndex >= 0) {
+
+    if (existingIndex >= 0 && currentData[existingIndex]) {
       const updatedData = [...currentData];
-      updatedData[existingIndex].value = (updatedData[existingIndex].value as number) + (payment.amount || 1);
+      const item = updatedData[existingIndex];
+      if (item) {
+        item.value = (item.value as number) + (payment.amount || 1);
+      }
       return updatedData;
     } else {
       return [...currentData, {
@@ -138,10 +147,13 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     const inventory = inventoryData as { productName?: string; stock?: number; category?: string };
     const productName = inventory.productName || 'Unknown Product';
     const existingIndex = currentData.findIndex(item => item.name === productName);
-    
-    if (existingIndex >= 0) {
+
+    if (existingIndex >= 0 && currentData[existingIndex]) {
       const updatedData = [...currentData];
-      updatedData[existingIndex].value = inventory.stock || 0;
+      const item = updatedData[existingIndex];
+      if (item) {
+        item.value = inventory.stock || 0;
+      }
       return updatedData;
     } else {
       return [...currentData, {
@@ -154,7 +166,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
 
   const processEventData = useCallback((event: unknown, currentData: ChartData[]): ChartData[] => {
     const eventWithType = event as { type?: string; data?: unknown };
-    
+
     switch (eventWithType.type) {
       case 'order_created':
         return updateOrderData(eventWithType.data, currentData);
@@ -174,11 +186,11 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     setData(prevData => {
       const newData = processEventData(event, prevData);
       setLastUpdate(new Date());
-      
+
       if (onDataUpdate) {
         onDataUpdate(newData);
       }
-      
+
       return newData;
     });
   }, [onDataUpdate, processEventData]);
@@ -187,6 +199,24 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
     organizationId,
     onEvent: handleRealTimeUpdate
   });
+
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Implement data refresh logic here
+      // This would typically fetch fresh data from your API
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
+      setLastUpdate(new Date());
+    } catch (error) {
+      logger.error({
+        message: 'Error refreshing chart data',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { chartType: config.type }
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [config.type]);
 
   useEffect(() => {
     // Set up refresh interval if specified
@@ -202,28 +232,10 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
         clearInterval(intervalRef.current);
       }
     };
-  }, [config.refreshInterval]);
+  }, [config.refreshInterval, refreshData]);
 
-  const refreshData = async () => {
-    setIsLoading(true);
-    try {
-      // Implement data refresh logic here
-      // This would typically fetch fresh data from your API
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
-      setLastUpdate(new Date());
-    } catch (error) {
-      logger.error({
-        message: 'Error refreshing chart data',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { chartType: type }
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const formatTooltipValue = (value: unknown, name: string) => {
-    if (typeof value === 'number') {
+  const formatTooltipValue = (value: any, name: any): React.ReactNode => {
+    if (typeof value === 'number' && typeof name === 'string') {
       // Format based on the chart type and data
       if (name.toLowerCase().includes('amount') || name.toLowerCase().includes('revenue')) {
         return `$${value.toLocaleString()}`;
@@ -233,7 +245,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
         return value.toLocaleString();
       }
     }
-    return value;
+    return String(value);
   };
 
   const renderChart = () => {
@@ -250,13 +262,13 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
         return (
           <LineChart {...commonProps}>
             {config.showGrid !== false && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis 
-              dataKey={config.xAxisKey || 'name'} 
+            <XAxis
+              dataKey={config.xAxisKey || 'name'}
               tick={{ fontSize: 12 }}
             />
             <YAxis tick={{ fontSize: 12 }} />
             {config.showTooltip !== false && (
-              <Tooltip 
+              <Tooltip
                 formatter={formatTooltipValue}
                 labelStyle={{ color: '#374151' }}
                 contentStyle={{
@@ -268,9 +280,9 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
               />
             )}
             {config.showLegend && <Legend />}
-            <Line 
-              type="monotone" 
-              dataKey={config.dataKey} 
+            <Line
+              type="monotone"
+              dataKey={config.dataKey}
               stroke={colors[0]}
               strokeWidth={2}
               dot={{ r: 4 }}
@@ -283,13 +295,13 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
         return (
           <AreaChart {...commonProps}>
             {config.showGrid !== false && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis 
-              dataKey={config.xAxisKey || 'name'} 
+            <XAxis
+              dataKey={config.xAxisKey || 'name'}
               tick={{ fontSize: 12 }}
             />
             <YAxis tick={{ fontSize: 12 }} />
             {config.showTooltip !== false && (
-              <Tooltip 
+              <Tooltip
                 formatter={formatTooltipValue}
                 labelStyle={{ color: '#374151' }}
                 contentStyle={{
@@ -301,9 +313,9 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
               />
             )}
             {config.showLegend && <Legend />}
-            <Area 
-              type="monotone" 
-              dataKey={config.dataKey} 
+            <Area
+              type="monotone"
+              dataKey={config.dataKey}
               stroke={colors[0]}
               fill={colors[0]}
               fillOpacity={0.6}
@@ -315,8 +327,8 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
         return (
           <BarChart {...commonProps}>
             {config.showGrid !== false && <CartesianGrid strokeDasharray="3 3" />}
-            <XAxis 
-              dataKey={config.xAxisKey || 'name'} 
+            <XAxis
+              dataKey={config.xAxisKey || 'name'}
               tick={{ fontSize: 12 }}
               angle={-45}
               textAnchor="end"
@@ -324,7 +336,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
             />
             <YAxis tick={{ fontSize: 12 }} />
             {config.showTooltip !== false && (
-              <Tooltip 
+              <Tooltip
                 formatter={formatTooltipValue}
                 labelStyle={{ color: '#374151' }}
                 contentStyle={{
@@ -336,8 +348,8 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
               />
             )}
             {config.showLegend && <Legend />}
-            <Bar 
-              dataKey={config.dataKey} 
+            <Bar
+              dataKey={config.dataKey}
               fill={colors[0]}
               radius={[4, 4, 0, 0]}
             />
@@ -348,7 +360,7 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
         return (
           <PieChart {...commonProps}>
             {config.showTooltip !== false && (
-              <Tooltip 
+              <Tooltip
                 formatter={formatTooltipValue}
                 contentStyle={{
                   backgroundColor: '#fff',
@@ -364,15 +376,15 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
               outerRadius={80}
               fill="#8884d8"
               dataKey={config.dataKey}
             >
               {data.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={colors[index % colors.length]} 
+                <Cell
+                  key={`cell-${index}`}
+                  fill={colors[index % colors.length]}
                 />
               ))}
             </Pie>
@@ -393,10 +405,9 @@ export const RealTimeChart: React.FC<RealTimeChartProps> = ({
           <div className="flex items-center space-x-2">
             {/* Connection Status */}
             <div className="flex items-center">
-              <div 
-                className={`w-2 h-2 rounded-full mr-2 ${
-                  isConnected ? 'bg-green-500' : 'bg-red-500'
-                }`}
+              <div
+                className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'
+                  }`}
               />
               <span className="text-xs text-gray-500">
                 {isConnected ? 'Live' : 'Offline'}

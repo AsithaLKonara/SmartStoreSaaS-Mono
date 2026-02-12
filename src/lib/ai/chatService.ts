@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
-import { generateOrderNumber } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 interface SentimentScore {
@@ -24,7 +23,7 @@ interface OrderFromChat {
     productId: string;
     quantity: number;
   }>;
-  totalAmount: number;
+  total: number;
   notes?: string;
 }
 
@@ -85,7 +84,8 @@ export class AIChatService {
         temperature: 0.3,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '[]');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '[]');
       return result;
     } catch (error) {
       logger.error({
@@ -104,7 +104,7 @@ export class AIChatService {
         include: {
           orders: {
             include: {
-              items: {
+              orderItems: {
                 include: {
                   product: true,
                 },
@@ -116,15 +116,16 @@ export class AIChatService {
 
       if (!customer) return [];
 
+      const totalSpent = customer.orders.reduce((sum, order) => sum + Number(order.total), 0);
       const purchaseHistory = customer.orders
-        .flatMap(order => order.items)
+        .flatMap(order => order.orderItems)
         .map(item => item.product.name)
         .join(', ');
 
       const prompt = `
         Customer context: "${context}"
         Purchase history: ${purchaseHistory}
-        Total spent: $${customer.totalSpent}
+        Total spent: $${totalSpent}
         
         Recommend products based on this context and history.
         Return JSON array with product recommendations.
@@ -136,7 +137,8 @@ export class AIChatService {
         temperature: 0.4,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '[]');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '[]');
       return result;
     } catch (error) {
       logger.error({
@@ -172,13 +174,14 @@ export class AIChatService {
         temperature: 0.2,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '{}');
       return result;
     } catch (error) {
       logger.error({
         message: 'Error creating order from chat',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ChatService', operation: 'createOrderFromChat', customerId, itemsCount: items.length }
+        context: { service: 'ChatService', operation: 'createOrderFromChat', conversationId: conversation.id }
       });
       return null;
     }
@@ -188,7 +191,7 @@ export class AIChatService {
     try {
       await prisma.order.update({
         where: { id: orderId },
-        data: { status: status as unknown },
+        data: { status: status as any },
       });
     } catch (error) {
       logger.error({
@@ -203,7 +206,7 @@ export class AIChatService {
   async answerFAQ(question: string, organizationId: string): Promise<string> {
     try {
       const faqs = await this.getOrganizationFAQs(organizationId);
-      
+
       const prompt = `
         Answer this question: "${question}"
         
@@ -219,7 +222,7 @@ export class AIChatService {
         temperature: 0.3,
       });
 
-      return response.choices[0].message.content || 'I apologize, but I cannot answer that question at the moment.';
+      return response.choices[0]?.message?.content || 'I apologize, but I cannot answer that question at the moment.';
     } catch (error) {
       logger.error({
         message: 'Error answering FAQ',
@@ -239,7 +242,7 @@ export class AIChatService {
         },
         include: {
           customer: true,
-          items: {
+          orderItems: {
             include: {
               product: true,
             },
@@ -256,9 +259,9 @@ export class AIChatService {
         
         Order details:
         - Status: ${order.status}
-        - Total: $${order.totalAmount}
+        - Total: $${order.total}
         - Customer: ${order.customer.name}
-        - Items: ${order.items.map(item => `${item.product.name} (${item.quantity})`).join(', ')}
+        - Items: ${order.orderItems.map(item => `${item.product.name} (${item.quantity})`).join(', ')}
         - Created: ${order.createdAt}
         
         Be helpful and informative.
@@ -270,7 +273,7 @@ export class AIChatService {
         temperature: 0.4,
       });
 
-      return response.choices[0].message.content || 'Order status information is currently unavailable.';
+      return response.choices[0]?.message?.content || 'Order status information is currently unavailable.';
     } catch (error) {
       logger.error({
         message: 'Error providing order status',
@@ -300,13 +303,14 @@ export class AIChatService {
         temperature: 0.1,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '{}');
       return result;
     } catch (error) {
       logger.error({
         message: 'Error analyzing sentiment',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ChatService', operation: 'analyzeSentiment', text }
+        context: { service: 'ChatService', operation: 'analyzeSentiment', message }
       });
       return {
         positive: 0.5,
@@ -340,13 +344,14 @@ export class AIChatService {
         temperature: 0.2,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '{}');
       return result.isUrgent || false;
     } catch (error) {
       logger.error({
         message: 'Error detecting urgent issues',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ChatService', operation: 'detectUrgentIssues', message }
+        context: { service: 'ChatService', operation: 'detectUrgentIssues', conversationId: conversation.id }
       });
       return false;
     }
@@ -355,30 +360,34 @@ export class AIChatService {
   // Chat Conversation Management
   async getChatConversation(conversationId: string, organizationId: string): Promise<ChatConversationData | null> {
     try {
-      const conversation = await prisma.chatConversation.findFirst({
-        where: { id: conversationId, organizationId },
-        include: {
-          customer: true,
-          messages: true,
-          assignedAgent: true
-        }
+      const conversation = await prisma.ai_conversations.findFirst({
+        where: { id: conversationId, organizationId }
       });
 
       if (!conversation) return null;
 
+      // messages are stored as a JSON string in the ai_conversations model
+      let parsedMessages: any[] = [];
+      try {
+        parsedMessages = conversation.messages ? JSON.parse(conversation.messages) : [];
+        if (!Array.isArray(parsedMessages)) parsedMessages = [];
+      } catch (e) {
+        parsedMessages = [];
+      }
+
       return {
         id: conversation.id,
-        title: conversation.title || undefined,
-        status: conversation.status,
-        priority: conversation.priority,
-        customerId: conversation.customerId,
-        messages: conversation.messages.map((msg: unknown) => ({
-          id: msg.id,
-          content: msg.content,
-          role: msg.direction === 'INBOUND' ? 'user' : 'assistant',
-          timestamp: msg.createdAt
+        title: undefined,
+        status: 'open',
+        priority: 'normal',
+        customerId: undefined as any,
+        messages: parsedMessages.map((msg: any) => ({
+          id: msg.id || `${conversation.id}_msg_${Math.random().toString(36).slice(2,8)}`,
+          content: msg.content || String(msg || ''),
+          role: msg.direction === 'INBOUND' || msg.role === 'user' ? 'user' : 'assistant',
+          timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
         })),
-        assignedTo: conversation.assignedTo || undefined,
+        assignedTo: undefined,
         createdAt: conversation.createdAt,
         updatedAt: conversation.updatedAt
       };
@@ -393,16 +402,16 @@ export class AIChatService {
   }
 
   async updateChatConversationStatus(
-    conversationId: string, 
-    status: string, 
+    conversationId: string,
+    status: string,
     priority?: string
   ): Promise<void> {
     try {
-      await prisma.chatConversation.update({
+      // ai_conversations model does not have `status`/`priority` fields in the schema
+      // Only update the `updatedAt` timestamp to reflect activity
+      await prisma.ai_conversations.update({
         where: { id: conversationId },
-        data: { 
-          status,
-          priority: priority || undefined,
+        data: {
           updatedAt: new Date()
         }
       });

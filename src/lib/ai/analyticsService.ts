@@ -77,7 +77,7 @@ export class AIAnalyticsService {
 
       if (!customer || customer.orders.length === 0) return 0;
 
-      const totalSpent = customer.orders.reduce((sum, order) => sum + order.totalAmount, 0);
+      const totalSpent = customer.orders.reduce((sum, order) => sum + Number((order.total as any)), 0);
       const averageOrderValue = totalSpent / customer.orders.length;
       const purchaseFrequency = customer.orders.length / 12; // orders per month
       const customerLifespan = 24; // estimated months
@@ -115,7 +115,8 @@ export class AIAnalyticsService {
         : 365;
 
       const orderFrequency = customer.orders.length / 12; // orders per month
-      const averageOrderValue = customer.totalSpent / Math.max(customer.orders.length, 1);
+      const totalSpent = customer.orders.reduce((sum, order) => sum + Number((order.total as any)), 0);
+      const averageOrderValue = totalSpent / Math.max(customer.orders.length, 1);
 
       // Simple churn prediction model
       let churnRisk = 0.1; // Base risk
@@ -152,16 +153,25 @@ export class AIAnalyticsService {
           id: 'high-value',
           name: 'High Value Customers',
           criteria: 'Total spent > $1000',
-          customerCount: customers.filter(c => c.totalSpent > 1000).length,
-          averageValue: customers.filter(c => c.totalSpent > 1000).reduce((sum, c) => sum + c.totalSpent, 0) / Math.max(customers.filter(c => c.totalSpent > 1000).length, 1),
+          customerCount: customers.filter(c => c.orders.reduce((s, o) => s + Number((o.total as any)), 0) > 1000).length,
+          averageValue: customers.filter(c => c.orders.reduce((s, o) => s + Number((o.total as any)), 0) > 1000).reduce((sum, c) => sum + c.orders.reduce((s, o) => s + Number((o.total as any)), 0), 0) / Math.max(customers.filter(c => c.orders.reduce((s, o) => s + Number((o.total as any)), 0) > 1000).length, 1),
           churnRisk: 0.1,
         },
         {
           id: 'regular',
           name: 'Regular Customers',
           criteria: 'Total spent $100-$1000, multiple orders',
-          customerCount: customers.filter(c => c.totalSpent >= 100 && c.totalSpent <= 1000 && c.orders.length > 1).length,
-          averageValue: customers.filter(c => c.totalSpent >= 100 && c.totalSpent <= 1000 && c.orders.length > 1).reduce((sum, c) => sum + c.totalSpent, 0) / Math.max(customers.filter(c => c.totalSpent >= 100 && c.totalSpent <= 1000 && c.orders.length > 1).length, 1),
+          customerCount: customers.filter(c => {
+            const spent = c.orders.reduce((s, o) => s + Number((o.total as any)), 0);
+            return spent >= 100 && spent <= 1000 && c.orders.length > 1;
+          }).length,
+          averageValue: customers.filter(c => {
+            const spent = c.orders.reduce((s, o) => s + Number((o.total as any)), 0);
+            return spent >= 100 && spent <= 1000 && c.orders.length > 1;
+          }).reduce((sum, c) => sum + c.orders.reduce((s, o) => s + Number((o.total as any)), 0), 0) / Math.max(customers.filter(c => {
+            const spent = c.orders.reduce((s, o) => s + Number((o.total as any)), 0);
+            return spent >= 100 && spent <= 1000 && c.orders.length > 1;
+          }).length, 1),
           churnRisk: 0.3,
         },
         {
@@ -169,7 +179,7 @@ export class AIAnalyticsService {
           name: 'New Customers',
           criteria: 'First-time buyers',
           customerCount: customers.filter(c => c.orders.length === 1).length,
-          averageValue: customers.filter(c => c.orders.length === 1).reduce((sum, c) => sum + c.totalSpent, 0) / Math.max(customers.filter(c => c.orders.length === 1).length, 1),
+          averageValue: customers.filter(c => c.orders.length === 1).reduce((sum, c) => sum + c.orders.reduce((s, o) => s + Number((o.total as any)), 0), 0) / Math.max(customers.filter(c => c.orders.length === 1).length, 1),
           churnRisk: 0.6,
         },
         {
@@ -178,7 +188,8 @@ export class AIAnalyticsService {
           criteria: 'No orders in last 90 days',
           customerCount: customers.filter(c => {
             if (!c.orders || c.orders.length === 0) return true;
-            const lastOrder = c.orders[0]; // Assuming orders are sorted by date
+            const lastOrder = c.orders[0];
+            if (!lastOrder) return true;
             const daysSinceLastOrder = Math.floor((Date.now() - new Date(lastOrder.createdAt).getTime()) / (1000 * 60 * 60 * 24));
             return daysSinceLastOrder > 90;
           }).length,
@@ -209,7 +220,7 @@ export class AIAnalyticsService {
 
       const salesData = orders.map(order => ({
         date: order.createdAt,
-        amount: order.totalAmount,
+        amount: Number((order.total as any)),
       }));
 
       const prompt = `
@@ -229,13 +240,14 @@ export class AIAnalyticsService {
         temperature: 0.3,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '[]');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '[]');
       return result;
     } catch (error) {
       logger.error({
         message: 'Error forecasting sales',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AnalyticsService', operation: 'forecastSales', organizationId, period }
+        context: { service: 'AnalyticsService', operation: 'forecastSales', organizationId, timeframe }
       });
       return [];
     }
@@ -246,7 +258,7 @@ export class AIAnalyticsService {
       const orders = await prisma.order.findMany({
         where: { organizationId },
         select: {
-          totalAmount: true,
+          total: true,
           createdAt: true,
         },
       });
@@ -257,7 +269,7 @@ export class AIAnalyticsService {
         if (!acc[month]) {
           acc[month] = { total: 0, count: 0 };
         }
-        acc[month].total += order.totalAmount;
+        acc[month].total += Number((order.total as any));
         acc[month].count += 1;
         return acc;
       }, {} as Record<string, { total: number; count: number }>);
@@ -298,7 +310,7 @@ export class AIAnalyticsService {
           id: product.id,
           name: product.name,
           sales: product._count.orderItems,
-          revenue: product.price * product._count.orderItems,
+          revenue: Number((product.price as any)) * product._count.orderItems,
         }))
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 10);
@@ -308,7 +320,7 @@ export class AIAnalyticsService {
       logger.error({
         message: 'Error identifying top performers',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AnalyticsService', operation: 'identifyTopPerformers', organizationId, limit }
+        context: { service: 'AnalyticsService', operation: 'identifyTopPerformers', organizationId }
       });
       return [];
     }
@@ -329,19 +341,19 @@ export class AIAnalyticsService {
 
       // Simple route optimization - group by area
       const routes = orders.reduce((acc, order) => {
-        const area = order.customer.address && typeof order.customer.address === 'string' ? order.customer.address.split(',')[1]?.trim() || 'Unknown' : 'Unknown';
+        const area = (order.customer.address as string)?.split(',')[1]?.trim() || 'Unknown';
         if (!acc[area]) {
           acc[area] = [];
         }
         acc[area].push(order);
         return acc;
-      }, {} as Record<string, unknown[]>);
+      }, {} as Record<string, typeof orders>);
 
-      return Object.entries(routes).map(([area, orders]) => ({
+      return Object.entries(routes).map(([area, areaOrders]) => ({
         area,
-        orderCount: orders.length,
-        totalValue: orders.reduce((sum, order) => sum + order.totalAmount, 0),
-        orders: orders.map(order => ({
+        orderCount: areaOrders.length,
+        totalValue: areaOrders.reduce((sum, order) => sum + Number((order.total as any)), 0),
+        orders: areaOrders.map(order => ({
           id: order.id,
           orderNumber: order.orderNumber,
           customerName: order.customer.name,
@@ -352,7 +364,7 @@ export class AIAnalyticsService {
       logger.error({
         message: 'Error optimizing delivery routes',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AnalyticsService', operation: 'optimizeDeliveryRoutes', organizationId, ordersCount: orders.length }
+        context: { service: 'AnalyticsService', operation: 'optimizeDeliveryRoutes', organizationId }
       });
       return [];
     }
@@ -360,7 +372,7 @@ export class AIAnalyticsService {
 
   async analyzeCourierPerformance(organizationId: string): Promise<CourierMetrics[]> {
     try {
-      const shipments = await prisma.shipment.findMany({
+      const deliveries = await prisma.delivery.findMany({
         where: { organizationId },
         include: {
           courier: true,
@@ -368,34 +380,34 @@ export class AIAnalyticsService {
         },
       });
 
-      const courierMetrics = shipments.reduce((acc, shipment) => {
-        const courierId = shipment.courierId;
-        if (!courierId) return acc; // Skip shipments without courier
-        
+      const courierMetrics = deliveries.reduce((acc, delivery) => {
+        const courierId = delivery.courierId;
+        if (!courierId) return acc; // Skip deliveries without courier
+
         if (!acc[courierId]) {
           acc[courierId] = {
             courierId,
-            courierName: shipment.courier?.name || 'Unknown',
+            courierName: delivery.courier?.name || 'Unknown',
             deliveries: [],
             successfulDeliveries: 0,
             totalDeliveryTime: 0,
           };
         }
 
-        acc[courierId].deliveries.push(shipment);
-        if (shipment.status === 'DELIVERED') {
+        acc[courierId].deliveries.push(delivery);
+        if (delivery.status === 'DELIVERED') {
           acc[courierId].successfulDeliveries++;
         }
 
-        if (shipment.deliveredAt && shipment.shippedAt) {
-          const deliveryTime = new Date(shipment.deliveredAt).getTime() - new Date(shipment.shippedAt).getTime();
+        if (delivery.actualDelivery && delivery.createdAt) {
+          const deliveryTime = new Date(delivery.actualDelivery).getTime() - new Date(delivery.createdAt).getTime();
           acc[courierId].totalDeliveryTime += deliveryTime;
         }
 
         return acc;
-      }, {} as Record<string, unknown>);
+      }, {} as Record<string, any>);
 
-      return Object.values(courierMetrics).map((courier: unknown) => ({
+      return Object.values(courierMetrics).map((courier: any) => ({
         courierId: courier.courierId,
         courierName: courier.courierName,
         deliverySuccessRate: courier.successfulDeliveries / courier.deliveries.length,
@@ -407,7 +419,7 @@ export class AIAnalyticsService {
       logger.error({
         message: 'Error analyzing courier performance',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AnalyticsService', operation: 'analyzeCourierPerformance', organizationId, timeRange }
+        context: { service: 'AnalyticsService', operation: 'analyzeCourierPerformance', organizationId }
       });
       return [];
     }
@@ -433,13 +445,13 @@ export class AIAnalyticsService {
       const forecasts: InventoryForecast[] = products.map(product => {
         const monthlyDemand = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
         const predictedDemand = Math.ceil(monthlyDemand * 1.2); // 20% buffer
-        const recommendedReorder = Math.max(predictedDemand - product.stockQuantity, 0);
-        const reorderDate = new Date(Date.now() + (product.stockQuantity / monthlyDemand) * 30 * 24 * 60 * 60 * 1000);
+        const recommendedReorder = Math.max(predictedDemand - product.stock, 0);
+        const reorderDate = new Date(Date.now() + (product.stock / (monthlyDemand || 1)) * 30 * 24 * 60 * 60 * 1000);
 
         return {
           productId: product.id,
           productName: product.name,
-          currentStock: product.stockQuantity,
+          currentStock: product.stock,
           predictedDemand,
           recommendedReorder,
           reorderDate,
@@ -451,14 +463,14 @@ export class AIAnalyticsService {
       logger.error({
         message: 'Error predicting inventory needs',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AnalyticsService', operation: 'predictInventoryNeeds', organizationId, timeRange }
+        context: { service: 'AnalyticsService', operation: 'predictInventoryNeeds', organizationId }
       });
       return [];
     }
   }
 
   // Business Intelligence Dashboard
-  async generateBusinessInsights(organizationId: string): Promise<unknown> {
+  async generateBusinessInsights(organizationId: string): Promise<any> {
     try {
       const [
         customerSegments,
@@ -522,7 +534,8 @@ export class AIAnalyticsService {
         temperature: 0.4,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '[]');
+      const content = response.choices[0]?.message?.content;
+      const result = JSON.parse(content || '[]');
       return result;
     } catch (error) {
       logger.error({

@@ -40,7 +40,7 @@ class CollaborativeFilter {
   private cosineSimilarity(vector1: number[], vector2: number[]): number {
     if (vector1.length !== vector2.length) return 0;
 
-    const dotProduct = vector1.reduce((sum, val, i) => sum + val * vector2[i], 0);
+    const dotProduct = vector1.reduce((sum, val, i) => sum + val * (vector2[i] || 0), 0);
     const magnitude1 = Math.sqrt(vector1.reduce((sum, val) => sum + val * val, 0));
     const magnitude2 = Math.sqrt(vector2.reduce((sum, val) => sum + val * val, 0));
 
@@ -316,6 +316,9 @@ export class RecommendationEngine {
       }))
       .map((scoreData, index) => {
         const product = allProducts[index];
+        if (!product) {
+          throw new Error('Product not found at index');
+        }
         return {
           productId: product.productId,
           productName: product.productName,

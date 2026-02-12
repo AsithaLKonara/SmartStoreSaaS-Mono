@@ -127,7 +127,7 @@ export class BusinessIntelligenceService {
           });
         }
       }
-      
+
       // Return default metrics if AI fails
       return {
         timestamp: new Date(),
@@ -144,7 +144,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error generating real-time metrics',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'generateRealTimeMetrics', organizationId }
+        context: { service: 'BusinessIntelligenceService', operation: 'generateRealTimeMetrics' }
       });
       return {
         timestamp: new Date(),
@@ -207,7 +207,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error calculating performance KPIs',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'calculatePerformanceKPIs', organizationId, timeRange }
+        context: { service: 'BusinessIntelligenceService', operation: 'calculatePerformanceKPIs' }
       });
       return [];
     }
@@ -255,7 +255,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error generating sales forecasts',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'generateSalesForecasts', organizationId, period }
+        context: { service: 'BusinessIntelligenceService', operation: 'generateSalesForecasts' }
       });
       return [];
     }
@@ -304,7 +304,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error analyzing market trends',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'analyzeMarketTrends', organizationId, category }
+        context: { service: 'BusinessIntelligenceService', operation: 'analyzeMarketTrends' }
       });
       return [];
     }
@@ -349,7 +349,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error performing competitive analysis',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'performCompetitiveAnalysis', organizationId }
+        context: { service: 'BusinessIntelligenceService', operation: 'performCompetitiveAnalysis' }
       });
       return [];
     }
@@ -399,7 +399,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error assessing business risks',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'assessBusinessRisks', organizationId }
+        context: { service: 'BusinessIntelligenceService', operation: 'assessBusinessRisks' }
       });
       return [];
     }
@@ -446,7 +446,7 @@ export class BusinessIntelligenceService {
       logger.error({
         message: 'Error generating business insights',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BusinessIntelligenceService', operation: 'generateBusinessInsights', organizationId }
+        context: { service: 'BusinessIntelligenceService', operation: 'generateBusinessInsights' }
       });
       return [];
     }

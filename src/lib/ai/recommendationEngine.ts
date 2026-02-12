@@ -35,13 +35,14 @@ export class AIRecommendationEngine {
           status: { in: ['COMPLETED', 'DELIVERED'] }
         },
         include: {
-          items: {
+          orderItems: {
             include: {
               product: {
                 select: {
                   id: true,
                   name: true,
-                  category: true,
+                  categoryId: true,
+                  category: { select: { name: true } },
                   price: true,
                   tags: true
                 }
@@ -59,11 +60,11 @@ export class AIRecommendationEngine {
       // Get customer's purchased product categories
       const purchasedCategories = new Set<string>();
       const purchasedProducts = new Set<string>();
-      
+
       customerOrders.forEach(order => {
-        order.items.forEach(item => {
-          if (item.product.category) {
-            purchasedCategories.add(item.product.category);
+        order.orderItems.forEach(item => {
+          if (item.product.categoryId) {
+            purchasedCategories.add(item.product.categoryId);
           }
           purchasedProducts.add(item.product.id);
         });
@@ -101,7 +102,7 @@ export class AIRecommendationEngine {
       logger.error({
         message: 'Error getting recommendations',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AIRecommendationEngine', operation: 'getRecommendations', userId, organizationId }
+        context: { service: 'AIRecommendationEngine', operation: 'getRecommendations', customerId, organizationId }
       });
       return await this.getPopularProducts(organizationId, limit);
     }
@@ -137,12 +138,12 @@ export class AIRecommendationEngine {
         where: {
           id: { in: productIds },
           organizationId,
-          status: 'ACTIVE'
+          isActive: true
         },
         select: {
           id: true,
           name: true,
-          category: true
+          categoryId: true
         }
       });
 
@@ -184,7 +185,7 @@ export class AIRecommendationEngine {
             }
           },
           product: {
-            category: { in: Array.from(purchasedCategories) }
+            categoryId: { in: Array.from(purchasedCategories) }
           }
         },
         _count: { id: true }
@@ -213,7 +214,7 @@ export class AIRecommendationEngine {
       logger.error({
         message: 'Error finding similar customers',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AIRecommendationEngine', operation: 'findSimilarCustomers', userId, organizationId }
+        context: { service: 'AIRecommendationEngine', operation: 'findSimilarCustomers', customerId, organizationId }
       });
       return [];
     }
@@ -232,14 +233,15 @@ export class AIRecommendationEngine {
       const products = await prisma.product.findMany({
         where: {
           organizationId,
-          status: 'ACTIVE',
+          isActive: true,
           id: { notIn: Array.from(purchasedProducts) },
-          category: { in: Array.from(purchasedCategories) }
+          categoryId: { in: Array.from(purchasedCategories) }
         },
         select: {
           id: true,
           name: true,
-          category: true
+          categoryId: true,
+          category: { select: { name: true } }
         },
         take: limit * 2
       });
@@ -247,14 +249,14 @@ export class AIRecommendationEngine {
       return products.slice(0, limit).map(product => ({
         productId: product.id,
         productName: product.name,
-        reason: `Similar to products in ${product.category}`,
+        reason: `Similar to products in ${product.category?.name || 'Uncategorized'}`,
         confidence: 0.8
       }));
     } catch (error) {
       logger.error({
         message: 'Error getting content-based recommendations',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AIRecommendationEngine', operation: 'getContentBasedRecommendations', userId, organizationId }
+        context: { service: 'AIRecommendationEngine', operation: 'getContentBasedRecommendations', organizationId }
       });
       return [];
     }
@@ -295,12 +297,12 @@ export class AIRecommendationEngine {
         where: {
           id: { in: productIds },
           organizationId,
-          status: 'ACTIVE'
+          isActive: true
         },
         select: {
           id: true,
           name: true,
-          category: true
+          categoryId: true
         }
       });
 
@@ -314,7 +316,7 @@ export class AIRecommendationEngine {
       logger.error({
         message: 'Error getting collaborative recommendations',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AIRecommendationEngine', operation: 'getCollaborativeRecommendations', userId, organizationId }
+        context: { service: 'AIRecommendationEngine', operation: 'getCollaborativeRecommendations', organizationId }
       });
       return [];
     }
@@ -328,7 +330,7 @@ export class AIRecommendationEngine {
   ): ProductRecommendation[] {
     // Remove duplicates and rank by confidence
     const uniqueRecs = new Map<string, ProductRecommendation>();
-    
+
     recommendations.forEach(rec => {
       const existing = uniqueRecs.get(rec.productId);
       if (!existing || rec.confidence > existing.confidence) {
@@ -370,7 +372,7 @@ export class AIRecommendationEngine {
         where: {
           id: { in: productIds },
           organizationId,
-          status: 'ACTIVE'
+          isActive: true
         },
         select: {
           id: true,
@@ -436,7 +438,7 @@ export class AIRecommendationEngine {
         where: {
           id: { in: productIds },
           organizationId,
-          status: 'ACTIVE'
+          isActive: true
         },
         select: {
           id: true,

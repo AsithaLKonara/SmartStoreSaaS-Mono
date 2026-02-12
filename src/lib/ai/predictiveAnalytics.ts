@@ -41,15 +41,14 @@ export class PredictiveAnalyticsEngine {
     productIds?: string[]
   ): Promise<DemandForecast[]> {
     try {
-      const products = productIds 
+      const products = productIds
         ? await prisma.product.findMany({ where: { id: { in: productIds } } })
-        : await prisma.product.findMany({ 
-            where: { 
-              organizationId,
-              status: 'ACTIVE'
-            },
-            take: 50 // Limit to top 50 products
-          });
+        : await prisma.product.findMany({
+          where: {
+            organizationId
+          },
+          take: 50 // Limit to top 50 products
+        });
 
       const forecasts: DemandForecast[] = [];
 
@@ -65,7 +64,7 @@ export class PredictiveAnalyticsEngine {
       logger.error({
         message: 'Error predicting demand',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'PredictiveAnalytics', operation: 'predictDemand', organizationId, timeRange }
+        context: { service: 'PredictiveAnalytics', operation: 'predictDemand', organizationId }
       });
       return [];
     }
@@ -79,12 +78,12 @@ export class PredictiveAnalyticsEngine {
     customerIds?: string[]
   ): Promise<CustomerChurnPrediction[]> {
     try {
-      const customers = customerIds 
+      const customers = customerIds
         ? await prisma.customer.findMany({ where: { id: { in: customerIds } } })
-        : await prisma.customer.findMany({ 
-            where: { organizationId },
-            take: 100 // Limit to top 100 customers
-          });
+        : await prisma.customer.findMany({
+          where: { organizationId },
+          take: 100 // Limit to top 100 customers
+        });
 
       const predictions: CustomerChurnPrediction[] = [];
 
@@ -115,7 +114,7 @@ export class PredictiveAnalyticsEngine {
   ): Promise<RevenueForecast[]> {
     try {
       const forecasts: RevenueForecast[] = [];
-      
+
       // Get historical revenue data
       const historicalData = await prisma.order.groupBy({
         by: ['createdAt'],
@@ -126,7 +125,7 @@ export class PredictiveAnalyticsEngine {
             gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) // Last 90 days
           }
         },
-        _sum: { totalAmount: true },
+        _sum: { total: true },
         _count: { id: true }
       });
 
@@ -136,17 +135,16 @@ export class PredictiveAnalyticsEngine {
       }
 
       // Simple trend analysis (in production, use more sophisticated algorithms)
-      const avgDailyRevenue = historicalData.reduce((sum, day) => 
-        sum + (day._sum.totalAmount || 0), 0) / historicalData.length;
-      
+      const avgDailyRevenue = historicalData.reduce((sum, day) => sum + (day._sum.total ? Number(day._sum.total) : 0), 0) / historicalData.length;
+
       const growthRate = 0.05; // 5% growth assumption (should be calculated from historical data)
 
       for (let i = 1; i <= periods; i++) {
         const periodStart = new Date();
         periodStart.setDate(periodStart.getDate() + (i - 1) * 30);
-        
+
         const predictedRevenue = avgDailyRevenue * 30 * Math.pow(1 + growthRate, i);
-        
+
         forecasts.push({
           period: `${periodStart.toISOString().split('T')[0]} to ${new Date(periodStart.getTime() + 29 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}`,
           predictedRevenue: Math.round(predictedRevenue * 100) / 100,
@@ -161,7 +159,7 @@ export class PredictiveAnalyticsEngine {
       logger.error({
         message: 'Error forecasting revenue',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'PredictiveAnalytics', operation: 'forecastRevenue', organizationId, period }
+        context: { service: 'PredictiveAnalytics', operation: 'forecastRevenue', organizationId }
       });
       return [];
     }
@@ -221,7 +219,7 @@ export class PredictiveAnalyticsEngine {
       logger.error({
         message: 'Error forecasting product demand',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'PredictiveAnalytics', operation: 'forecastProductDemand', productId, timeRange }
+        context: { service: 'PredictiveAnalytics', operation: 'forecastProductDemand', productId }
       });
       return null;
     }
@@ -252,7 +250,7 @@ export class PredictiveAnalyticsEngine {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
-          totalAmount: true,
+          total: true,
           createdAt: true,
           status: true
         }
@@ -261,8 +259,8 @@ export class PredictiveAnalyticsEngine {
       if (orders.length === 0) return null;
 
       const totalOrders = orders.length;
-      const totalSpent = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-      const lastOrderDate = orders[0].createdAt;
+      const totalSpent = orders.reduce((sum, order) => sum + Number(order.total), 0);
+      const lastOrderDate = orders[0]!.createdAt;
       const daysSinceLastOrder = Math.floor((Date.now() - lastOrderDate.getTime()) / (24 * 60 * 60 * 1000));
 
       // Calculate churn probability based on factors
@@ -274,9 +272,9 @@ export class PredictiveAnalyticsEngine {
       else if (daysSinceLastOrder > 30) churnProbability += 0.2;
 
       // Factor 2: Order frequency
-      const avgDaysBetweenOrders = totalOrders > 1 ? 
-        Math.floor((Date.now() - orders[orders.length - 1].createdAt.getTime()) / (24 * 60 * 60 * 1000)) / (totalOrders - 1) : 0;
-      
+      const avgDaysBetweenOrders = totalOrders > 1 ?
+        Math.floor((Date.now() - orders[orders.length - 1]!.createdAt.getTime()) / (24 * 60 * 60 * 1000)) / (totalOrders - 1) : 0;
+
       if (avgDaysBetweenOrders > 60) churnProbability += 0.2;
       else if (avgDaysBetweenOrders > 30) churnProbability += 0.1;
 
@@ -284,10 +282,10 @@ export class PredictiveAnalyticsEngine {
       if (totalOrders >= 3) {
         const recentOrders = orders.slice(0, Math.min(3, totalOrders));
         const olderOrders = orders.slice(Math.min(3, totalOrders));
-        
-        const recentAvg = recentOrders.reduce((sum, order) => sum + order.totalAmount, 0) / recentOrders.length;
-        const olderAvg = olderOrders.reduce((sum, order) => sum + order.totalAmount, 0) / olderOrders.length;
-        
+
+        const recentAvg = recentOrders.reduce((sum, order) => sum + Number(order.total), 0) / recentOrders.length;
+        const olderAvg = olderOrders.reduce((sum, order) => sum + Number(order.total), 0) / olderOrders.length;
+
         if (recentAvg < olderAvg * 0.7) churnProbability += 0.2;
       }
 

@@ -106,7 +106,7 @@ export class CustomerIntelligenceService {
       logger.error({
         message: 'Error predicting customer LTV',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'CustomerIntelligenceService', operation: 'predictCustomerLTV', organizationId }
+        context: { service: 'CustomerIntelligenceService', operation: 'predictCustomerLTV' }
       });
       return [];
     }
@@ -150,7 +150,7 @@ export class CustomerIntelligenceService {
       logger.error({
         message: 'Error assessing churn risk',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'CustomerIntelligenceService', operation: 'assessChurnRisk', organizationId }
+        context: { service: 'CustomerIntelligenceService', operation: 'assessChurnRisk' }
       });
       return [];
     }
@@ -193,7 +193,7 @@ export class CustomerIntelligenceService {
       logger.error({
         message: 'Error creating customer segments',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'CustomerIntelligenceService', operation: 'createCustomerSegments', organizationId }
+        context: { service: 'CustomerIntelligenceService', operation: 'createCustomerSegments' }
       });
       return [];
     }
@@ -236,7 +236,7 @@ export class CustomerIntelligenceService {
       logger.error({
         message: 'Error generating product recommendations',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'CustomerIntelligenceService', operation: 'generateProductRecommendations', customerId }
+        context: { service: 'CustomerIntelligenceService', operation: 'generateProductRecommendations' }
       });
       return [];
     }
@@ -282,7 +282,7 @@ export class CustomerIntelligenceService {
       logger.error({
         message: 'Error analyzing customer sentiment',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'CustomerIntelligenceService', operation: 'analyzeCustomerSentiment', organizationId }
+        context: { service: 'CustomerIntelligenceService', operation: 'analyzeCustomerSentiment' }
       });
       return [];
     }
@@ -302,19 +302,19 @@ export class CustomerIntelligenceService {
       const orgClause = { organizationId };
 
       const [reviews, supportTickets, customerSegments, customerOffers] = await Promise.all([
-        prisma.review.findMany({
+        (prisma as any).review.findMany({
           where: { ...whereClause, ...orgClause },
           include: { customer: true, product: true }
         }),
-        prisma.supportTicket.findMany({
+        (prisma as any).supportTicket.findMany({
           where: { ...whereClause, ...orgClause },
           include: { customer: true, order: true }
         }),
-        prisma.customerSegment.findMany({
+        (prisma as any).customerSegment.findMany({
           where: orgClause,
           include: { customerSegmentCustomers: { include: { customer: true } } }
         }),
-        prisma.customerOffer.findMany({
+        (prisma as any).customerOffer.findMany({
           where: orgClause,
           include: { customerOfferCustomers: { include: { customer: true } } }
         })
@@ -367,7 +367,7 @@ export class CustomerIntelligenceService {
       logger.error({
         message: 'Error analyzing purchase patterns',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'CustomerIntelligenceService', operation: 'analyzePurchasePatterns', organizationId }
+        context: { service: 'CustomerIntelligenceService', operation: 'analyzePurchasePatterns' }
       });
       return [];
     }

@@ -68,8 +68,8 @@ export async function getAdvancedAnalytics(
     }),
   ]);
 
-  const currentRevenue = Number(currentOrders._sum.total || 0);
-  const previousRevenue = Number(previousOrders._sum.total || 0);
+  const currentRevenue = Number((currentOrders._sum.total as any) || 0);
+  const previousRevenue = Number((previousOrders._sum.total as any) || 0);
   const currentOrderCount = currentOrders._count;
   const previousOrderCount = previousOrders._count;
 
@@ -136,7 +136,7 @@ export async function getProductPerformance(
       name: product?.name || 'Unknown',
       sku: product?.sku || '',
       quantitySold: item._sum.quantity || 0,
-      revenue: Number(item._sum.total || 0),
+      revenue: Number((item._sum.total as any) || 0),
       orders: item._count.productId,
     };
   });
@@ -173,7 +173,7 @@ export async function getCustomerAnalytics(
   });
 
   const customerMetrics = customerStats.map(customer => {
-    const totalSpent = customer.orders.reduce((sum, o) => sum + Number(o.total), 0);
+    const totalSpent = customer.orders.reduce((sum, o) => sum + Number((o.total as any)), 0);
     return {
       id: customer.id,
       name: customer.name,
@@ -226,13 +226,13 @@ export async function getSalesTrends(
   for (const order of orders) {
     let key: string;
     const date = new Date(order.createdAt);
-    
+
     if (interval === 'day') {
-      key = date.toISOString().split('T')[0];
+      key = date.toISOString().split('T')[0]!;
     } else if (interval === 'week') {
       const d = new Date(date);
       d.setDate(d.getDate() - d.getDay());
-      key = d.toISOString().split('T')[0];
+      key = d.toISOString().split('T')[0]!;
     } else {
       key = date.toISOString().substring(0, 7);
     }
@@ -241,8 +241,9 @@ export async function getSalesTrends(
       trends[key] = { date: key, revenue: 0, orders: 0 };
     }
 
-    trends[key].revenue += Number(order.total);
-    trends[key].orders++;
+    const trend = trends[key]!;
+    trend.revenue += Number((order.total as any));
+    trend.orders++;
   }
 
   return Object.values(trends).sort((a, b) => a.date.localeCompare(b.date));
