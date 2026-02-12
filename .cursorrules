@@ -1,3 +1,15 @@
+# 🤖 AI-Native Retail OS Upgrade Protocol
+# STATUS: ACTIVE | BRANCH: feat/ai-native-retail-os
+
+## ⚠️ STRICT OPERATIONAL PROTOCOL
+1. **Follow the Plan**: Always follow `UpgradePlan/` documents.
+2. **Phase Gating**: NEVER proceed to Phase N+1 until Phase N is 100% complete and verified.
+3. **Commit & Push**: Commit feature-by-feature. Push every commit immediately to `feat/ai-native-retail-os`.
+4. **Audit Trail**: Every AI-driven change must include `updatedBy: 'ai'` or be tagged as AI-originated.
+5. **Instruction File**: Refer to `AI_UPGRADE_INSTRUCTIONS.md` for binding operational details.
+
+---
+
 # Cursor AI Rules - SmartStore SaaS Project
 # Version: 1.0.0
 # Last Updated: October 12, 2025
