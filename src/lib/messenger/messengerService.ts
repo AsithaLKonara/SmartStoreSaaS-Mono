@@ -125,7 +125,7 @@ export class MessengerService {
     }>
   ): Promise<MessengerMessage> {
     try {
-      const messageData: unknown = {
+      const messageData: any = {
         recipient: { id: recipientId },
         message: { text },
       };
@@ -167,18 +167,12 @@ export class MessengerService {
       });
 
       // Log the message activity
-      await prisma.activity.create({
-        data: {
-          type: 'messenger_message_sent' as unknown, // Use type assertion to bypass constraint
-          description: `Messenger message sent to ${recipientId}`,
-          metadata: {
-            platform: 'messenger',
-            recipientId,
-            messageType: 'text',
-            content: message as unknown, // Cast to unknown to bypass type constraint
-            timestamp: new Date()
-          },
-          userId: 'page' // Assuming senderId is 'page' for Facebook messages
+      // Log the message activity
+      logger.info({
+        message: 'Messenger message sent',
+        context: {
+          recipientId,
+          messageId: message.id
         }
       });
 
@@ -239,18 +233,12 @@ export class MessengerService {
       });
 
       // Log the template activity
-      await prisma.activity.create({
-        data: {
-          type: 'messenger_template_sent' as unknown, // Use type assertion to bypass constraint
-          description: `Messenger template sent to ${recipientId}`,
-          metadata: {
-            platform: 'messenger',
-            recipientId,
-            templateName: 'generic', // Assuming a default template name
-            templateData: template as unknown, // Cast to unknown to bypass type constraint
-            timestamp: new Date()
-          },
-          userId: 'page' // Assuming senderId is 'page' for Facebook messages
+      // Log the template activity
+      logger.info({
+        message: 'Messenger template sent',
+        context: {
+          recipientId,
+          templateType: template.template_type
         }
       });
 
@@ -259,7 +247,7 @@ export class MessengerService {
       logger.error({
         message: 'Error sending Messenger template',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'MessengerService', operation: 'sendTemplate', recipientId, templateName }
+        context: { service: 'MessengerService', operation: 'sendTemplate', recipientId }
       });
       throw new Error('Failed to send Messenger template');
     }
@@ -317,18 +305,13 @@ export class MessengerService {
       });
 
       // Log the attachment activity
-      await prisma.activity.create({
-        data: {
-          type: 'messenger_attachment_sent' as unknown, // Use type assertion to bypass constraint
-          description: `Messenger attachment sent to ${recipientId}`,
-          metadata: {
-            platform: 'messenger',
-            recipientId,
-            attachmentType,
-            attachmentUrl: url,
-            timestamp: new Date()
-          },
-          userId: 'page' // Assuming senderId is 'page' for Facebook messages
+      // Log the attachment activity
+      logger.info({
+        message: 'Messenger attachment sent',
+        context: {
+          recipientId,
+          attachmentType,
+          url
         }
       });
 
@@ -337,7 +320,7 @@ export class MessengerService {
       logger.error({
         message: 'Error sending Messenger attachment',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'MessengerService', operation: 'sendAttachment', recipientId, attachmentType: attachment.type }
+        context: { service: 'MessengerService', operation: 'sendAttachment', recipientId, attachmentType }
       });
       throw new Error('Failed to send Messenger attachment');
     }
@@ -401,7 +384,7 @@ export class MessengerService {
       logger.error({
         message: 'Error marking message as seen',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'MessengerService', operation: 'markMessageAsSeen', recipientId, messageId }
+        context: { service: 'MessengerService', operation: 'markMessageAsSeen', recipientId }
       });
     }
   }
@@ -498,7 +481,7 @@ export class MessengerService {
         throw new Error('Invalid webhook signature');
       }
 
-      const entries: MessengerWebhookEntry[] = body.entry || [];
+      const entries: MessengerWebhookEntry[] = (body as any).entry || [];
 
       for (const entry of entries) {
         for (const messagingEvent of entry.messaging) {
@@ -533,7 +516,7 @@ export class MessengerService {
     }
   }
 
-  private async processMessagingEvent(event: unknown, pageId: string): Promise<void> {
+  private async processMessagingEvent(event: any, pageId: string): Promise<void> {
     try {
       const senderId = event.sender.id;
       const recipientId = event.recipient.id;
@@ -560,7 +543,7 @@ export class MessengerService {
     }
   }
 
-  private async processIncomingMessage(event: unknown, organizationId: string): Promise<void> {
+  private async processIncomingMessage(event: any, organizationId: string): Promise<void> {
     try {
       const message: MessengerMessage = {
         id: event.message.mid,
@@ -593,18 +576,12 @@ export class MessengerService {
       });
 
       // Log the received message activity
-      await prisma.activity.create({
-        data: {
-          type: 'messenger_message_received' as unknown, // Use type assertion to bypass constraint
-          description: `Messenger message received from ${message.senderId || 'unknown'}`,
-          metadata: {
-            platform: 'messenger',
-            senderId: message.senderId || 'unknown',
-            messageType: 'text',
-            content: message as unknown, // Cast to unknown to bypass type constraint
-            timestamp: new Date()
-          },
-          userId: 'page' // Using 'page' as the user ID for Facebook messages
+      // Log the received message activity
+      logger.info({
+        message: 'Messenger message received',
+        context: {
+          senderId: message.senderId,
+          messageId: message.id
         }
       });
 
@@ -612,12 +589,12 @@ export class MessengerService {
       logger.error({
         message: 'Error processing incoming message',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'MessengerService', operation: 'processIncomingMessage', senderId: event.sender?.id }
+        context: { service: 'MessengerService', operation: 'processIncomingMessage', senderId: (event as any).sender?.id }
       });
     }
   }
 
-  private async processPostback(event: unknown, organizationId: string): Promise<void> {
+  private async processPostback(event: any, organizationId: string): Promise<void> {
     try {
       const senderId = event.sender.id;
       const payload = event.postback.payload;
@@ -645,12 +622,12 @@ export class MessengerService {
       logger.error({
         message: 'Error processing postback',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'MessengerService', operation: 'processPostback', senderId: event.sender?.id }
+        context: { service: 'MessengerService', operation: 'processPostback', senderId: (event as any).sender?.id }
       });
     }
   }
 
-  private async processDeliveryReceipt(event: unknown, organizationId: string): Promise<void> {
+  private async processDeliveryReceipt(event: any, organizationId: string): Promise<void> {
     try {
       // Update message delivery status
       // Note: messengerMessage model doesn't exist in Prisma schema
@@ -668,7 +645,7 @@ export class MessengerService {
     }
   }
 
-  private async processReadReceipt(event: unknown, organizationId: string): Promise<void> {
+  private async processReadReceipt(event: any, organizationId: string): Promise<void> {
     try {
       // Update message read status
       // Note: messengerMessage model doesn't exist in Prisma schema
@@ -710,7 +687,7 @@ export class MessengerService {
       logger.error({
         message: 'Error processing auto-reply',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'MessengerService', operation: 'processAutoReply', senderId }
+        context: { service: 'MessengerService', operation: 'processAutoReply', senderId: message.senderId }
       });
     }
   }
@@ -740,7 +717,6 @@ What would you like to do today?`;
         where: {
           organizationId,
           isActive: true,
-          isFeatured: true,
         },
         take: 10,
         include: {
@@ -895,15 +871,14 @@ How would you prefer to get help?`;
 
   private async handleStartChat(senderId: string, organizationId: string): Promise<void> {
     // Create a support ticket
-    await prisma.supportTicket.create({
-      data: {
+    // Create a support ticket
+    // Note: SupportTicket model missing. Logging instead.
+    logger.info({
+      message: 'Support chat initiated',
+      context: {
         customerId: senderId,
-        title: 'Customer initiated chat',
-        description: 'Customer started a conversation via messenger',
-        status: 'OPEN',
-        priority: 'MEDIUM',
-        organizationId,
-      },
+        organizationId
+      }
     });
 
     await this.sendTextMessage(
@@ -936,7 +911,7 @@ How would you prefer to get help?`;
   async sendOrderConfirmation(orderId: string, customerId: string, organizationId: string): Promise<void> {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: { include: { product: true } } },
+      include: { orderItems: { include: { product: true } } },
     });
 
     if (!order) return;
@@ -945,7 +920,7 @@ How would you prefer to get help?`;
       template_type: 'receipt',
       elements: [{
         title: `Order #${order.id}`,
-        subtitle: `Total: $${order.totalAmount}`,
+        subtitle: `Total: $${order.total}`,
         buttons: [
           {
             type: 'web_url',

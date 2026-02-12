@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Award, Plus, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 
 interface LoyaltyProgram {
   id: string;

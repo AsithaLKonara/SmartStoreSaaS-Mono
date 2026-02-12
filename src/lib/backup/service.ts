@@ -200,7 +200,7 @@ export async function restoreBackup(
     logger.error({
       message: 'Restore error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'BackupService', operation: 'restoreBackup', backupId }
+      context: { service: 'BackupService', operation: 'restoreBackup', organizationId: backupData.organizationId }
     });
     return {
       success: false,
@@ -223,7 +223,7 @@ export function exportBackupToJSON(backup: BackupData): string {
 export function importBackupFromJSON(json: string): BackupData {
   try {
     const backup = JSON.parse(json) as BackupData;
-    
+
     // Validate structure
     if (!backup.version || !backup.timestamp || !backup.organizationId || !backup.data) {
       throw new Error('Invalid backup format');

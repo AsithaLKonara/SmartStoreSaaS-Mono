@@ -19,7 +19,7 @@ export function AdvancedSearch({ entityType, onSearch, onReset, placeholder }: A
 
   const handleSearch = () => {
     const query: SearchQuery = {
-      term: searchTerm,
+      query: searchTerm,
       filters: {},
       page: 1,
       limit: 20

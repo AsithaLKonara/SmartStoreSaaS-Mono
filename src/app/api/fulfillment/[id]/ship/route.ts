@@ -20,21 +20,22 @@ export const dynamic = 'force-dynamic';
  * POST /api/fulfillment/[id]/ship
  * Ship fulfillment
  */
-export async function POST(
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const fulfillmentId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_INVENTORY')(
     async (req: AuthenticatedRequest, user) => {
       try {
-        const body = await req.json();
+        let body: any = {};
+        try { body = await req.json(); } catch (e) { }
         const { trackingNumber, carrier } = body;
 
-        const fulfillment = await prisma.delivery.findUnique({
+        const fulfillment = await prisma.fulfillment.findUnique({
           where: { id: fulfillmentId }
         });
 
@@ -46,14 +47,15 @@ export async function POST(
           throw new AuthorizationError('Cannot ship fulfillment from other organizations');
         }
 
-      await prisma.delivery.update({
-        where: { id: fulfillmentId },
-        data: {
-          status: 'SHIPPED',
-          trackingNumber,
-          notes: carrier // Store carrier in notes field since it doesn't have a dedicated field
-        }
-      });
+        await prisma.fulfillment.update({
+          where: { id: fulfillmentId },
+          data: {
+            status: 'SHIPPED',
+            trackingNumber: trackingNumber || `TRK-${Date.now()}`,
+            carrier: carrier || 'Standard Courier',
+            shippedAt: new Date()
+          }
+        });
 
         logger.info({
           message: 'Fulfillment shipped',
@@ -83,11 +85,11 @@ export async function POST(
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

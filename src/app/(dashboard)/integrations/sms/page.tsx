@@ -9,9 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   MessageSquare,
   Settings,
@@ -121,7 +121,7 @@ export default function SMSIntegrationPage() {
     try {
       setIsLoading(true);
       setTestResult(null);
-      
+
       const response = await fetch('/api/sms/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,7 +132,7 @@ export default function SMSIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setTestResult({ success: true, message: 'Twilio credentials verified! SMS service ready.' });
         setIsConnected(true);
@@ -151,7 +151,7 @@ export default function SMSIntegrationPage() {
   const saveConfiguration = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch('/api/integrations/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -188,7 +188,7 @@ export default function SMSIntegrationPage() {
 
     try {
       setIsSending(true);
-      
+
       const response = await fetch('/api/sms/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -248,11 +248,10 @@ export default function SMSIntegrationPage() {
 
       {/* Test Result Alert */}
       {testResult && (
-        <div className={`p-4 rounded-lg border ${
-          testResult.success 
-            ? 'bg-green-500/10 border-green-500 text-green-400' 
+        <div className={`p-4 rounded-lg border ${testResult.success
+            ? 'bg-green-500/10 border-green-500 text-green-400'
             : 'bg-red-500/10 border-red-500 text-red-400'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {testResult.success ? (
               <CheckCircle className="w-5 h-5" />
@@ -285,7 +284,7 @@ export default function SMSIntegrationPage() {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -371,7 +370,7 @@ export default function SMSIntegrationPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <Button 
+                <Button
                   onClick={testConnection}
                   disabled={isLoading || !config.accountSid || !config.authToken}
                   className="flex-1"
@@ -380,8 +379,8 @@ export default function SMSIntegrationPage() {
                   <TestTube className="w-4 h-4 mr-2" />
                   {isLoading ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={saveConfiguration}
                   disabled={isSaving || !config.accountSid || !config.authToken || !config.fromPhoneNumber}
                   className="flex-1"
@@ -437,8 +436,8 @@ export default function SMSIntegrationPage() {
                     {testMessage.length}/160 characters
                   </p>
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={sendTestSMS}
                   disabled={isSending || !testPhone}
                   className="w-full"
@@ -452,7 +451,7 @@ export default function SMSIntegrationPage() {
         </TabsContent>
 
         {/* Templates Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="templates" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -543,7 +542,7 @@ export default function SMSIntegrationPage() {
         </TabsContent>
 
         {/* SMS Logs Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="logs" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -584,7 +583,7 @@ export default function SMSIntegrationPage() {
         </TabsContent>
 
         {/* Statistics Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="statistics" className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="pt-6">
@@ -650,24 +649,24 @@ export default function SMSIntegrationPage() {
           <CardTitle className="text-white">Quick Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a 
-            href="https://console.twilio.com/" 
+          <a
+            href="https://console.twilio.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Twilio Console
           </a>
-          <a 
-            href="https://console.twilio.com/us1/develop/phone-numbers/manage/incoming" 
+          <a
+            href="https://console.twilio.com/us1/develop/phone-numbers/manage/incoming"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Buy Twilio Phone Number
           </a>
-          <a 
-            href="https://www.twilio.com/docs/sms" 
+          <a
+            href="https://www.twilio.com/docs/sms"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"

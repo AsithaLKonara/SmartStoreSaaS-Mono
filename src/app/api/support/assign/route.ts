@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
-  
+
   const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
     async (req: AuthenticatedRequest, user) => {
       try {
@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
           where: { id: ticketId },
           data: {
             assignedTo: agentId,
-            assignedToName: agentName || 'Unknown Agent',
             status: 'in_progress',
             updatedAt: new Date()
           }
@@ -90,11 +89,11 @@ export async function POST(request: NextRequest) {
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

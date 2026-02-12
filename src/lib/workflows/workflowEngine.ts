@@ -2,7 +2,7 @@ import { prisma } from '../prisma';
 import { AIChatService } from '../ai/chatService';
 import { emailService } from '../email';
 import { whatsAppService } from '../messaging';
-import { createNotification } from '../notifications';
+import { notificationService } from '../notifications/service';
 import { logger } from '../logger';
 
 interface WorkflowStep {
@@ -219,25 +219,27 @@ export class WorkflowEngine {
 
     try {
       execution.status = 'running';
-      
+
       for (let i = 0; i < workflow.steps.length; i++) {
         const step = workflow.steps[i];
         execution.currentStep = i;
 
         // Check conditions
-        if (step.conditions && !this.evaluateConditions(step.conditions, execution.data)) {
+        if (step?.conditions && !this.evaluateConditions(step.conditions, execution.data)) {
           logger.debug({
             message: 'Step conditions not met, skipping',
-            context: { service: 'WorkflowEngine', operation: 'execute', workflowName: workflow.name, stepName: step.name }
+            context: { service: 'WorkflowEngine', operation: 'execute', workflowName: workflow.name, stepName: step?.name ?? 'unknown' }
           });
           continue;
         }
 
         // Execute step
-        await this.executeStep(step, execution.data);
+        if (step) {
+          await this.executeStep(step, execution.data);
+        }
 
         // Apply delay if specified
-        if (step.delay) {
+        if (step?.delay) {
           await new Promise(resolve => setTimeout(resolve, step.delay));
         }
       }
@@ -335,9 +337,12 @@ export class WorkflowEngine {
 
   // Order Processing Actions
   private async validateOrder(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    if (!id) throw new Error('Order ID is required');
+
     const order = await prisma.order.findUnique({
-      where: { id: data.orderId },
-      include: { customer: true, items: { include: { product: true } } },
+      where: { id },
+      include: { customer: true, orderItems: { include: { product: true } } },
     });
 
     if (!order) {
@@ -350,64 +355,89 @@ export class WorkflowEngine {
     }
 
     // Validate order items
-    if (order.items.length === 0) {
+    if (!order.orderItems || order.orderItems.length === 0) {
       throw new Error('Order has no items');
     }
 
     // Validate total amount
-    const totalAmount = order.items.reduce((sum: number, item: unknown) => sum + (item.price * item.quantity), 0);
-    if (Math.abs(totalAmount - order.totalAmount) > 0.01) {
+    const totalAmount = order.orderItems.reduce((sum: number, item: any) => sum + (Number(item.price) * item.quantity), 0);
+    if (Math.abs(totalAmount - Number(order.total)) > 0.01) {
       throw new Error('Order total amount mismatch');
     }
   }
 
   private async checkInventory(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    if (!id) return;
+
     const order = await prisma.order.findUnique({
-      where: { id: data.orderId },
-      include: { items: { include: { product: true } } },
+      where: { id },
+      include: { orderItems: { include: { product: true } } },
     });
 
     if (!order) return;
 
-    for (const item of order.items) {
-      if (item.product.stockQuantity < item.quantity) {
+    for (const item of order.orderItems) {
+      if (item.product.stock < item.quantity) {
         throw new Error(`Insufficient stock for ${item.product.name}`);
       }
     }
   }
 
   private async processPayment(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    if (!id) return;
+
     const order = await prisma.order.findUnique({
-      where: { id: data.orderId },
+      where: { id },
+      include: { payments: true }
     });
 
-    if (!order || order.paymentMethod !== 'ONLINE') {
+    if (!order) {
+      return;
+    }
+
+    // Check if there is an ONLINE payment
+    const payment = order.payments?.find((p: any) => p.method === 'ONLINE');
+
+    if (!payment) {
       return;
     }
 
     // Simulate payment processing
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Update payment status
-    await prisma.order.update({
-      where: { id: data.orderId },
-      data: { paymentStatus: 'PAID' },
-    });
+    // Update payment status (assuming we update the first payment or handle status differently)
+    // Note: Order model doesn't have paymentStatus, so we're skipping update or updating Payment model
+    if (order.payments && order.payments.length > 0 && order.payments[0]) {
+      await prisma.payment.update({
+        where: { id: order.payments[0].id },
+        data: { status: 'COMPLETED' }
+      });
+    }
   }
 
   private async updateOrderStatus(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    const newStatus = data.newStatus as string | undefined;
+
+    if (!id || !newStatus) return;
+
     await prisma.order.update({
-      where: { id: data.orderId },
-      data: { status: data.newStatus },
+      where: { id },
+      data: { status: newStatus },
     });
   }
 
   private async sendOrderConfirmation(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    if (!id) return;
+
     const order = await prisma.order.findUnique({
-      where: { id: data.orderId },
-      include: { 
+      where: { id },
+      include: {
         customer: true,
-        items: {
+        orderItems: {
           include: {
             product: true
           }
@@ -426,8 +456,8 @@ export class WorkflowEngine {
         templateData: {
           orderNumber: order.orderNumber,
           customerName: order.customer.name,
-          totalAmount: order.totalAmount,
-          items: order.items.map((item: unknown) => ({
+          totalAmount: order.total,
+          items: order.orderItems.map((item: any) => ({
             name: item.product.name,
             quantity: item.quantity,
             price: item.price
@@ -438,17 +468,20 @@ export class WorkflowEngine {
 
     // Send WhatsApp confirmation only if customer has phone
     if (order.customer.phone) {
-      await whatsAppService.sendTextMessage(
+      await whatsAppService.sendMessage(
         order.customer.phone,
-        `Your order #${order.orderNumber} has been confirmed! Total: $${order.totalAmount}`,
+        `Your order #${order.orderNumber} has been confirmed! Total: $${order.total}`,
         order.organizationId
       );
     }
   }
 
   private async assignCourier(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    if (!id) return;
+
     const order = await prisma.order.findUnique({
-      where: { id: data.orderId },
+      where: { id },
       include: { customer: true },
     });
 
@@ -461,7 +494,7 @@ export class WorkflowEngine {
 
     if (courier) {
       // Create shipment record
-      const shipment = await prisma.shipment.create({
+      const shipment = await prisma.delivery.create({
         data: {
           orderId: order.id,
           courierId: courier.id,
@@ -474,17 +507,20 @@ export class WorkflowEngine {
 
   // Inventory Management Actions
   private async checkReorderPoint(data: Record<string, unknown>): Promise<void> {
+    const organizationId = data.organizationId as string | undefined;
+    if (!organizationId) return;
+
     const products = await prisma.product.findMany({
-      where: { organizationId: data.organizationId },
+      where: { organizationId },
     });
 
     for (const product of products) {
-      if (product.stockQuantity <= product.lowStockThreshold) {
+      if (product.stock <= product.minStock) {
         await this.triggerWorkflow('inventory.low', {
           productId: product.id,
-          currentStock: product.stockQuantity,
-          threshold: product.lowStockThreshold,
-        }, data.organizationId);
+          currentStock: product.stock,
+          threshold: product.minStock,
+        }, data.organizationId as string);
       }
     }
   }
@@ -515,14 +551,20 @@ export class WorkflowEngine {
 
   // Customer Engagement Actions
   private async sendWelcomeMessage(data: Record<string, unknown>): Promise<void> {
+    const customerId = data.customerId as string | undefined;
+    if (!customerId) return;
+
     const customer = await prisma.customer.findUnique({
-      where: { id: data.customerId },
+      where: { id: customerId },
     });
 
     if (!customer) return;
 
+    const organizationId = data.organizationId as string | undefined;
+    if (!organizationId) return;
+
     const organization = await prisma.organization.findUnique({
-      where: { id: data.organizationId },
+      where: { id: organizationId },
     });
 
     if (!organization) return;
@@ -542,7 +584,7 @@ export class WorkflowEngine {
 
     // Send welcome WhatsApp message only if customer has phone
     if (customer.phone) {
-      await whatsAppService.sendTextMessage(
+      await whatsAppService.sendMessage(
         customer.phone,
         `Welcome to SmartStore AI! We're excited to have you as a customer.`,
         organization.id
@@ -584,8 +626,11 @@ export class WorkflowEngine {
   }
 
   private async sendReceipt(data: Record<string, unknown>): Promise<void> {
+    const id = data.orderId as string | undefined;
+    if (!id) return;
+
     const order = await prisma.order.findUnique({
-      where: { id: data.orderId },
+      where: { id },
       include: { customer: true },
     });
 
@@ -620,7 +665,7 @@ export class WorkflowEngine {
   }
 
   // Get workflow statistics
-  async getWorkflowStats(organizationId: string): Promise<unknown> {
+  async getWorkflowStats(organizationId: string): Promise<any> {
     // This would query workflow execution statistics
     return {
       totalExecutions: 0,

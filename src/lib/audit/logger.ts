@@ -58,7 +58,7 @@ export async function createAuditLog(entry: AuditLogEntry): Promise<void> {
     logger.error({
       message: 'Audit log error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'AuditLogger', operation: 'log', action: auditData.action, entityType: auditData.entityType }
+      context: { service: 'AuditLogger', operation: 'log', action: entry.action, entityType: entry.resource }
     });
     // Don't throw - audit logging should not break the main flow
   }

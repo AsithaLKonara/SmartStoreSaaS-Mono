@@ -99,7 +99,7 @@ export class ProductionMonitoringService {
       logger.error({
         message: 'Error recording metric',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ProductionMonitoring', operation: 'recordMetric', metricName: monitoringMetric.name, organizationId: monitoringMetric.organizationId }
+        context: { service: 'ProductionMonitoring', operation: 'recordMetric', metricName: metric.name, organizationId: metric.organizationId }
       });
     }
   }
@@ -116,7 +116,7 @@ export class ProductionMonitoringService {
   ): Promise<SystemMetrics> {
     try {
       const whereClause = organizationId ? { organizationId } : {};
-      
+
       const metrics = await prisma.monitoringMetric.findMany({
         where: {
           ...whereClause,
@@ -127,12 +127,12 @@ export class ProductionMonitoringService {
         },
       });
 
-      const responseTimeMetrics = metrics.filter(m => m.name === 'response_time');
-      const errorMetrics = metrics.filter(m => m.name === 'error_count');
-      const throughputMetrics = metrics.filter(m => m.name === 'requests_per_second');
+      const responseTimeMetrics = metrics.filter((m: any) => m.name === 'response_time');
+      const errorMetrics = metrics.filter((m: any) => m.name === 'error_count');
+      const throughputMetrics = metrics.filter((m: any) => m.name === 'requests_per_second');
 
-      const responseTimeValues = responseTimeMetrics.map(m => m.value);
-      const sortedResponseTimes = responseTimeValues.sort((a, b) => a - b);
+      const responseTimeValues = responseTimeMetrics.map((m: any) => m.value);
+      const sortedResponseTimes = responseTimeValues.sort((a: number, b: number) => a - b);
 
       return {
         uptime: await this.calculateUptime(organizationId, timeRange),
@@ -140,10 +140,10 @@ export class ProductionMonitoringService {
           p50: this.calculatePercentile(sortedResponseTimes, 50),
           p95: this.calculatePercentile(sortedResponseTimes, 95),
           p99: this.calculatePercentile(sortedResponseTimes, 99),
-          average: responseTimeValues.reduce((sum, val) => sum + val, 0) / responseTimeValues.length || 0,
+          average: responseTimeValues.reduce((sum: number, val: number) => sum + val, 0) / responseTimeValues.length || 0,
         },
         errorRate: await this.calculateErrorRate(organizationId, timeRange),
-        throughput: throughputMetrics.reduce((sum, m) => sum + m.value, 0) / throughputMetrics.length || 0,
+        throughput: throughputMetrics.reduce((sum: number, m: any) => sum + m.value, 0) / throughputMetrics.length || 0,
         availability: await this.calculateAvailability(organizationId, timeRange),
         cpuUsage: await this.getResourceUsage('cpu'),
         memoryUsage: await this.getResourceUsage('memory'),
@@ -213,7 +213,7 @@ export class ProductionMonitoringService {
         resolvedAt: alert.resolvedAt || undefined,
         resolvedBy: alert.resolvedBy || undefined,
         tags: alert.tags ? alert.tags.split(',') : [],
-        metadata: alert.metadata ? JSON.parse(alert.metadata) : undefined,
+        metadata: alert.metadata ? (typeof alert.metadata === 'string' ? JSON.parse(alert.metadata) : alert.metadata as any) : undefined,
       }));
     } catch (error) {
       logger.error({
@@ -248,7 +248,7 @@ export class ProductionMonitoringService {
       logger.error({
         message: 'Error creating alert',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ProductionMonitoring', operation: 'createAlert', organizationId, type: alertData.type, severity: alertData.severity }
+        context: { service: 'ProductionMonitoring', operation: 'createAlert', organizationId: alert.organizationId, type: alert.type, severity: alert.severity }
       });
       throw error;
     }
@@ -264,13 +264,13 @@ export class ProductionMonitoringService {
         data: {
           status: 'acknowledged',
           resolvedBy: acknowledgedBy,
-        },
+        } as any,
       });
     } catch (error) {
       logger.error({
         message: 'Error acknowledging alert',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ProductionMonitoring', operation: 'acknowledgeAlert', alertId, userId }
+        context: { service: 'ProductionMonitoring', operation: 'acknowledgeAlert', alertId, acknowledgedBy }
       });
       throw error;
     }
@@ -287,13 +287,13 @@ export class ProductionMonitoringService {
           status: 'resolved',
           resolvedAt: new Date(),
           resolvedBy,
-        },
+        } as any,
       });
     } catch (error) {
       logger.error({
         message: 'Error resolving alert',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ProductionMonitoring', operation: 'resolveAlert', alertId, userId }
+        context: { service: 'ProductionMonitoring', operation: 'resolveAlert', alertId, resolvedBy }
       });
       throw error;
     }
@@ -342,7 +342,7 @@ export class ProductionMonitoringService {
     try {
       await prisma.$queryRaw`SELECT 1 as health`;
       const responseTime = Date.now() - startTime;
-      
+
       return {
         id: 'database',
         name: 'Database',
@@ -370,7 +370,7 @@ export class ProductionMonitoringService {
     const startTime = Date.now();
     try {
       const responseTime = Date.now() - startTime;
-      
+
       return {
         id: 'api',
         name: 'API Endpoints',
@@ -398,7 +398,7 @@ export class ProductionMonitoringService {
     const startTime = Date.now();
     try {
       const responseTime = Date.now() - startTime;
-      
+
       return {
         id: 'external-services',
         name: 'External Services',
@@ -427,7 +427,7 @@ export class ProductionMonitoringService {
     const startTime = Date.now();
     try {
       const responseTime = Date.now() - startTime;
-      
+
       return {
         id: 'system-resources',
         name: 'System Resources',
@@ -504,7 +504,7 @@ export class ProductionMonitoringService {
           tags: JSON.stringify(metric.tags),
           timestamp: metric.timestamp,
           organizationId: metric.organizationId,
-          metadata: metric.metadata ? JSON.stringify(metric.metadata) : null,
+          metadata: metric.metadata as any,
         },
       });
     } catch (error) {
@@ -535,7 +535,7 @@ export class ProductionMonitoringService {
           resolvedAt: alert.resolvedAt,
           resolvedBy: alert.resolvedBy,
           tags: alert.tags.join(','),
-          metadata: alert.metadata ? JSON.stringify(alert.metadata) : null,
+          metadata: alert.metadata as any,
         },
       });
     } catch (error) {
@@ -558,7 +558,7 @@ export class ProductionMonitoringService {
             responseTime: check.responseTime,
             lastCheck: check.lastCheck,
             error: check.error,
-            details: check.details ? JSON.stringify(check.details) : null,
+            details: check.details as any,
           },
         });
       }
@@ -566,7 +566,7 @@ export class ProductionMonitoringService {
       logger.error({
         message: 'Error storing health check results',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ProductionMonitoring', operation: 'storeHealthCheckResults', organizationId }
+        context: { service: 'ProductionMonitoring', operation: 'storeHealthCheckResults' }
       });
     }
   }
@@ -576,7 +576,7 @@ export class ProductionMonitoringService {
     if (!thresholds) return;
 
     let severity: 'low' | 'medium' | 'high' | 'critical' | null = null;
-    
+
     if (metric.value >= thresholds.critical) {
       severity = 'critical';
     } else if (metric.value >= thresholds.high) {
@@ -638,14 +638,14 @@ export class ProductionMonitoringService {
         take: 100,
       });
 
-      return metrics.map(metric => ({
+      return metrics.map((metric: any) => ({
         id: metric.id,
         type: metric.type,
         name: metric.name,
         value: metric.value,
         unit: metric.unit,
         timestamp: metric.timestamp,
-        tags: metric.tags ? JSON.parse(metric.tags) : {},
+        tags: metric.tags ? (typeof metric.tags === 'string' ? JSON.parse(metric.tags) : metric.tags) : {},
       }));
     } catch (error) {
       logger.error({
@@ -664,18 +664,18 @@ export class ProductionMonitoringService {
   ): 'healthy' | 'degraded' | 'unhealthy' {
     const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
     const unhealthyChecks = healthChecks.filter(h => h.status === 'unhealthy');
-    
+
     if (criticalAlerts.length > 0 || unhealthyChecks.length > 0) {
       return 'unhealthy';
     }
-    
+
     const degradedChecks = healthChecks.filter(h => h.status === 'degraded');
     const highAlerts = activeAlerts.filter(a => a.severity === 'high');
-    
+
     if (degradedChecks.length > 0 || highAlerts.length > 0) {
       return 'degraded';
     }
-    
+
     return 'healthy';
   }
 
@@ -688,7 +688,7 @@ export class ProductionMonitoringService {
       if (this.notificationChannels.email) {
         await this.sendEmailNotification(alert);
       }
-      
+
       if (this.notificationChannels.sms) {
         await this.sendSMSNotification(alert);
       }
@@ -719,13 +719,13 @@ Production Alert Details:
     await emailService.sendEmail({
       to: 'admin@example.com',
       subject,
-      html: message.replace(/\n/g, '<br>'),
+      htmlContent: message.replace(/\n/g, '<br>'),
     });
   }
 
   private async sendSMSNotification(alert: ProductionAlert): Promise<void> {
     const message = `[${alert.severity.toUpperCase()}] ${alert.title}: ${alert.description}`;
-    
+
     await smsService.sendSMS({
       to: '+1234567890',
       message,

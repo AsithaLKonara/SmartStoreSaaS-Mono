@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Store,
   Settings,
@@ -86,7 +86,7 @@ export default function ShopifyIntegrationPage() {
     try {
       setIsLoading(true);
       setTestResult(null);
-      
+
       const response = await fetch('/api/integrations/shopify/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,11 +98,11 @@ export default function ShopifyIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
-        setTestResult({ 
-          success: true, 
-          message: `Connected to ${data.shopName || 'Shopify store'}! Shop ID: ${data.shopId || 'N/A'}` 
+        setTestResult({
+          success: true,
+          message: `Connected to ${data.shopName || 'Shopify store'}! Shop ID: ${data.shopId || 'N/A'}`
         });
         setIsConnected(true);
       } else {
@@ -120,7 +120,7 @@ export default function ShopifyIntegrationPage() {
   const saveConfiguration = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch('/api/integrations/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,7 +147,7 @@ export default function ShopifyIntegrationPage() {
   const triggerSync = async (type: string) => {
     try {
       setIsSyncing(true);
-      
+
       const response = await fetch('/api/integrations/shopify/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -207,11 +207,10 @@ export default function ShopifyIntegrationPage() {
 
       {/* Test Result Alert */}
       {testResult && (
-        <div className={`p-4 rounded-lg border ${
-          testResult.success 
-            ? 'bg-green-500/10 border-green-500 text-green-400' 
+        <div className={`p-4 rounded-lg border ${testResult.success
+            ? 'bg-green-500/10 border-green-500 text-green-400'
             : 'bg-red-500/10 border-red-500 text-red-400'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {testResult.success ? (
               <CheckCircle className="w-5 h-5" />
@@ -240,7 +239,7 @@ export default function ShopifyIntegrationPage() {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -316,7 +315,7 @@ export default function ShopifyIntegrationPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <Button 
+                <Button
                   onClick={testConnection}
                   disabled={isLoading || !config.shopName || !config.accessToken}
                   className="flex-1"
@@ -325,8 +324,8 @@ export default function ShopifyIntegrationPage() {
                   <TestTube className="w-4 h-4 mr-2" />
                   {isLoading ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={saveConfiguration}
                   disabled={isSaving || !config.shopName || !config.accessToken}
                   className="flex-1"
@@ -358,7 +357,7 @@ export default function ShopifyIntegrationPage() {
         </TabsContent>
 
         {/* Sync Settings Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="sync" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -491,7 +490,7 @@ export default function ShopifyIntegrationPage() {
               {/* Manual Sync Buttons */}
               {isConnected && (
                 <div className="grid grid-cols-2 gap-3 pt-4">
-                  <Button 
+                  <Button
                     onClick={() => triggerSync('products')}
                     disabled={isSyncing || !config.syncSettings.products}
                     variant="outline"
@@ -499,8 +498,8 @@ export default function ShopifyIntegrationPage() {
                     <Package className="w-4 h-4 mr-2" />
                     Sync Products
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => triggerSync('orders')}
                     disabled={isSyncing || !config.syncSettings.orders}
                     variant="outline"
@@ -508,8 +507,8 @@ export default function ShopifyIntegrationPage() {
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     Sync Orders
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => triggerSync('customers')}
                     disabled={isSyncing || !config.syncSettings.customers}
                     variant="outline"
@@ -517,8 +516,8 @@ export default function ShopifyIntegrationPage() {
                     <UsersIcon className="w-4 h-4 mr-2" />
                     Sync Customers
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => triggerSync('all')}
                     disabled={isSyncing}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -533,7 +532,7 @@ export default function ShopifyIntegrationPage() {
         </TabsContent>
 
         {/* Permissions Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="permissions" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -580,16 +579,16 @@ export default function ShopifyIntegrationPage() {
           <CardTitle className="text-white">Quick Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a 
-            href={config.shopName ? `https://${config.shopName}.myshopify.com/admin/settings/apps` : 'https://shopify.com'} 
+          <a
+            href={config.shopName ? `https://${config.shopName}.myshopify.com/admin/settings/apps` : 'https://shopify.com'}
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Manage Apps in Shopify Admin
           </a>
-          <a 
-            href="https://shopify.dev/docs/api/admin-rest" 
+          <a
+            href="https://shopify.dev/docs/api/admin-rest"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"

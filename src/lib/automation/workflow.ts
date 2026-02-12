@@ -62,12 +62,12 @@ export async function executeWorkflow(
 
     for (const workflow of workflows) {
       // Check conditions
-      if (workflow.conditions && !evaluateConditions(workflow.conditions, data)) {
+      if (workflow.conditions && !evaluateConditions(workflow.conditions as any[], data)) {
         continue;
       }
 
       // Execute actions
-      for (const action of workflow.actions as WorkflowAction[]) {
+      for (const action of workflow.actions as unknown as WorkflowAction[]) {
         await executeAction(action, data, organizationId);
       }
     }
@@ -75,7 +75,7 @@ export async function executeWorkflow(
     logger.error({
       message: 'Workflow execution error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'AutomationWorkflow', operation: 'executeWorkflow', workflowId: workflow.id }
+      context: { service: 'AutomationWorkflow', operation: 'executeWorkflow', trigger }
     });
   }
 }

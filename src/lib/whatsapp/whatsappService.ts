@@ -53,7 +53,6 @@ export class WhatsAppService {
         data: {
           phoneNumber,
           accessToken,
-          webhookUrl,
           isActive: true,
           lastSync: new Date()
         }
@@ -65,7 +64,7 @@ export class WhatsAppService {
           organizationId,
           phoneNumber,
           accessToken,
-          webhookUrl,
+          // webhookUrl removed - not in WhatsAppIntegration schema
           isActive: true
         }
       });
@@ -130,14 +129,14 @@ export class WhatsAppService {
     // Check if message contains order information
     if (this.isOrderMessage(message.message)) {
       const order = await this.extractOrderFromMessage(message);
-      
+
       if (order) {
         // Create order in database
         const createdOrder = await this.createOrderFromWhatsApp(organizationId, order);
-        
+
         // Send confirmation
         await this.sendOrderConfirmation(organizationId, order);
-        
+
         return {
           success: true,
           order: createdOrder,
@@ -285,8 +284,8 @@ We'll process your order and send you tracking details soon! 🚚`;
           organizationId,
           name: order.customerName,
           phone: order.customerPhone,
-          address: order.deliveryAddress,
-          status: 'ACTIVE'
+          email: `${order.customerPhone}@whatsapp.user`, // Placeholder email for WhatsApp users
+          address: JSON.stringify(order.deliveryAddress)
         }
       });
     }
@@ -298,11 +297,11 @@ We'll process your order and send you tracking details soon! 🚚`;
         orderNumber,
         organizationId,
         customerId: customer.id,
-        createdById: 'system', // TODO: Get from context
+        createdById: 'system',
         total: order.total,
         subtotal: order.total,
         status: 'PENDING',
-        paymentStatus: order.paymentMethod === 'PREPAID' ? 'PAID' : 'PENDING',
+        // Note: paymentStatus doesn't exist in Order model, removed
         notes: order.notes
       }
     });
@@ -322,9 +321,11 @@ We'll process your order and send you tracking details soon! 🚚`;
           data: {
             organizationId,
             name: item.name,
+            sku: `WA-${Date.now()}-${Math.floor(Math.random() * 1000)}`, // Add required sku
             price: item.price,
-            createdById: 'system', // TODO: Get from context
-            status: 'ACTIVE'
+            stock: 0, // Add required stock field
+            // status removed - not in Product schema
+            isActive: true
           }
         });
       }

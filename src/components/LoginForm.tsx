@@ -140,7 +140,7 @@ export default function LoginForm() {
 
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 onClick={() => router.push('/register')}
                 className="font-medium text-blue-600 hover:text-blue-500 transition-colors"

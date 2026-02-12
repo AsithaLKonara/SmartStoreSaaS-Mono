@@ -9,9 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   Mail,
   Settings,
@@ -119,7 +119,7 @@ export default function EmailIntegrationPage() {
     try {
       setIsLoading(true);
       setTestResult(null);
-      
+
       const response = await fetch('/api/email/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,7 +129,7 @@ export default function EmailIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setTestResult({ success: true, message: 'SendGrid API key is valid! Email service ready.' });
         setIsConnected(true);
@@ -148,7 +148,7 @@ export default function EmailIntegrationPage() {
   const saveConfiguration = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch('/api/integrations/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,7 +180,7 @@ export default function EmailIntegrationPage() {
 
     try {
       setIsSending(true);
-      
+
       const response = await fetch('/api/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -242,11 +242,10 @@ export default function EmailIntegrationPage() {
 
       {/* Test Result Alert */}
       {testResult && (
-        <div className={`p-4 rounded-lg border ${
-          testResult.success 
-            ? 'bg-green-500/10 border-green-500 text-green-400' 
+        <div className={`p-4 rounded-lg border ${testResult.success
+            ? 'bg-green-500/10 border-green-500 text-green-400'
             : 'bg-red-500/10 border-red-500 text-red-400'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {testResult.success ? (
               <CheckCircle className="w-5 h-5" />
@@ -279,7 +278,7 @@ export default function EmailIntegrationPage() {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -359,7 +358,7 @@ export default function EmailIntegrationPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <Button 
+                <Button
                   onClick={testConnection}
                   disabled={isLoading || !config.apiKey}
                   className="flex-1"
@@ -368,8 +367,8 @@ export default function EmailIntegrationPage() {
                   <TestTube className="w-4 h-4 mr-2" />
                   {isLoading ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={saveConfiguration}
                   disabled={isSaving || !config.apiKey || !config.fromEmail}
                   className="flex-1"
@@ -406,8 +405,8 @@ export default function EmailIntegrationPage() {
                     className="bg-gray-700 border-gray-600 text-white"
                   />
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={sendTestEmail}
                   disabled={isSending || !testEmail}
                   className="w-full"
@@ -421,7 +420,7 @@ export default function EmailIntegrationPage() {
         </TabsContent>
 
         {/* Templates Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="templates" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -512,7 +511,7 @@ export default function EmailIntegrationPage() {
         </TabsContent>
 
         {/* Email Logs Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="logs" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -552,7 +551,7 @@ export default function EmailIntegrationPage() {
         </TabsContent>
 
         {/* Statistics Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="statistics" className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="bg-gray-800 border-gray-700">
               <CardContent className="pt-6">
@@ -599,24 +598,24 @@ export default function EmailIntegrationPage() {
           <CardTitle className="text-white">Quick Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a 
-            href="https://app.sendgrid.com/settings/api_keys" 
+          <a
+            href="https://app.sendgrid.com/settings/api_keys"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Create SendGrid API Key
           </a>
-          <a 
-            href="https://app.sendgrid.com/settings/sender_auth" 
+          <a
+            href="https://app.sendgrid.com/settings/sender_auth"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Verify Sender Email
           </a>
-          <a 
-            href="https://docs.sendgrid.com/" 
+          <a
+            href="https://docs.sendgrid.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"

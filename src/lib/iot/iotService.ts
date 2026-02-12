@@ -143,14 +143,14 @@ export class IoTService {
     try {
       // Set up default alert thresholds
       this.setupDefaultThresholds();
-      
+
       // Start periodic tasks
       this.startPeriodicTasks();
-      
+
       iotLogger.info('IoT service initialized');
     } catch (error) {
-      iotLogger.error('Error initializing IoT service', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error initializing IoT service', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -174,8 +174,8 @@ export class IoTService {
 
       return device;
     } catch (error) {
-      iotLogger.error('Error registering IoT device', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error registering IoT device', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to register IoT device');
     }
@@ -196,8 +196,8 @@ export class IoTService {
       // Set up message handlers
       ws.onmessage = (event) => this.handleDeviceMessage(deviceId, event.data);
       ws.onclose = () => this.handleDeviceDisconnect(deviceId);
-      ws.onerror = (error) => iotLogger.error(`Device ${deviceId} WebSocket error`, { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      ws.onerror = (error) => iotLogger.error(`Device ${deviceId} WebSocket error`, {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
 
       // Send welcome message
@@ -207,8 +207,8 @@ export class IoTService {
         timestamp: new Date().toISOString(),
       }));
     } catch (error) {
-      iotLogger.error('Error connecting IoT device', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error connecting IoT device', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to connect IoT device');
     }
@@ -244,8 +244,8 @@ export class IoTService {
 
       return sensorReading;
     } catch (error) {
-      iotLogger.error('Error processing sensor reading', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error processing sensor reading', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to process sensor reading');
     }
@@ -281,8 +281,8 @@ export class IoTService {
         }
       }
     } catch (error) {
-      iotLogger.error('Error processing smart shelf data', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error processing smart shelf data', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to process smart shelf data');
     }
@@ -307,8 +307,8 @@ export class IoTService {
       // Generate location insights
       await this.generateLocationInsights(beaconData);
     } catch (error) {
-      iotLogger.error('Error processing beacon data', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error processing beacon data', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to process beacon data');
     }
@@ -330,8 +330,8 @@ export class IoTService {
       // Check for security issues
       await this.checkRFIDSecurity(reading);
     } catch (error) {
-      iotLogger.error('Error processing RFID reading', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error processing RFID reading', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to process RFID reading');
     }
@@ -373,8 +373,8 @@ export class IoTService {
 
       return mockConditions;
     } catch (error) {
-      iotLogger.error('Error getting environmental conditions', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error getting environmental conditions', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to get environmental conditions');
     }
@@ -410,8 +410,8 @@ export class IoTService {
 
       return mockAnalytics;
     } catch (error) {
-      iotLogger.error('Error getting device analytics', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error getting device analytics', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to get device analytics');
     }
@@ -437,8 +437,8 @@ export class IoTService {
 
       return alert;
     } catch (error) {
-      iotLogger.error('Error creating IoT alert', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error creating IoT alert', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to create IoT alert');
     }
@@ -465,8 +465,8 @@ export class IoTService {
 
       return alert;
     } catch (error) {
-      iotLogger.error('Error resolving IoT alert', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error resolving IoT alert', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw new Error('Failed to resolve IoT alert');
     }
@@ -493,10 +493,10 @@ export class IoTService {
     setInterval(() => this.checkBatteryLevels(), 60 * 60 * 1000);
   }
 
-  private async handleDeviceMessage(deviceId: string, message: unknown): Promise<void> {
+  private async handleDeviceMessage(deviceId: string, message: any): Promise<void> {
     try {
       const data = JSON.parse(message);
-      
+
       switch (data.type) {
         case 'sensor_reading':
           await this.processSensorReading(deviceId, data.reading);
@@ -514,8 +514,8 @@ export class IoTService {
           iotLogger.debug(`Unknown message type from device ${deviceId}`, { messageType: data.type });
       }
     } catch (error) {
-      iotLogger.error(`Error handling message from device ${deviceId}`, { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error(`Error handling message from device ${deviceId}`, {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -529,15 +529,15 @@ export class IoTService {
       // TODO: Update when IoT models are created
       iotLogger.info(`Device ${deviceId} disconnected`);
     } catch (error) {
-      iotLogger.error(`Error handling device disconnect for ${deviceId}`, { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error(`Error handling device disconnect for ${deviceId}`, {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
 
-  private async checkSensorAlerts(deviceId: string, reading: unknown): Promise<void> {
+  private async checkSensorAlerts(deviceId: string, reading: any): Promise<void> {
     try {
-      const thresholds = this.alertThresholds.get(reading.type);
+      const thresholds = this.alertThresholds.get(reading.type) as any;
       if (!thresholds) return;
 
       let shouldAlert = false;
@@ -565,8 +565,8 @@ export class IoTService {
         });
       }
     } catch (error) {
-      iotLogger.error('Error checking sensor alerts', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error checking sensor alerts', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -576,8 +576,8 @@ export class IoTService {
       // TODO: Update device last seen when IoT models are created
       iotLogger.debug(`Updated last seen for device ${deviceId}`);
     } catch (error) {
-      iotLogger.error(`Error updating last seen for device ${deviceId}`, { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error(`Error updating last seen for device ${deviceId}`, {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -591,13 +591,13 @@ export class IoTService {
       // Update product quantity in inventory
       await prisma.product.update({
         where: { id: productId },
-        data: { stockQuantity: quantity },
+        data: { stock: quantity },
       });
 
       iotLogger.debug(`Updated product ${productId} quantity to ${quantity} from shelf device ${deviceId}`);
     } catch (error) {
-      iotLogger.error(`Error updating product quantity for ${productId}`, { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error(`Error updating product quantity for ${productId}`, {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -614,8 +614,8 @@ export class IoTService {
         iotLogger.info(`High traffic detected at beacon ${beaconData.beaconId}: ${totalInteractions} interactions`);
       }
     } catch (error) {
-      iotLogger.error('Error generating location insights', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error generating location insights', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -632,24 +632,24 @@ export class IoTService {
         });
 
         // Store RFID data in ProductActivity
-        await prisma.productActivity.create({
+        await prisma.product_activities.create({
           data: {
             productId: reading.productId,
             type: 'STATUS_CHANGED',
             description: 'RFID scan update',
-            metadata: {
+            metadata: JSON.stringify({
               lastRFIDScan: reading.timestamp,
               lastLocation: reading.location,
               signalStrength: reading.signalStrength,
-            }
+            })
           }
         });
 
         iotLogger.debug(`Updated product ${reading.productId} from RFID reading at ${reading.location}`);
       }
     } catch (error) {
-      iotLogger.error('Error updating inventory from RFID', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error updating inventory from RFID', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -668,8 +668,8 @@ export class IoTService {
         });
       }
     } catch (error) {
-      iotLogger.error('Error checking RFID security', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error checking RFID security', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -680,8 +680,8 @@ export class IoTService {
       // For now, just log the check
       iotLogger.debug('Checking for offline devices...');
     } catch (error) {
-      iotLogger.error('Error checking offline devices', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error checking offline devices', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -705,15 +705,15 @@ export class IoTService {
           for (const [sensorId, sensorReadings] of Array.from(groupedReadings.entries())) {
             // Process readings in batch
             iotLogger.debug(`Processing ${sensorReadings.length} buffered readings from device ${deviceId}`);
-            
+
             // Clear buffer after processing
             this.sensorDataBuffer.set(deviceId, []);
           }
         }
       }
     } catch (error) {
-      iotLogger.error('Error processing sensor data buffer', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error processing sensor data buffer', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -724,22 +724,22 @@ export class IoTService {
       // For now, just log the check
       iotLogger.debug('Checking device battery levels...');
     } catch (error) {
-      iotLogger.error('Error checking battery levels', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error checking battery levels', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
 
-  private async sendCriticalAlertNotifications(alert: unknown): Promise<void> {
+  private async sendCriticalAlertNotifications(alert: any): Promise<void> {
     try {
       // TODO: Send notifications when notification services are available
-      iotLogger.warn(`Critical alert: ${alert.message}`);
-      
+      iotLogger.warn(`Critical alert: ${(alert as any).message}`);
+
       // In production, this would send emails, SMS, or push notifications
       // to relevant staff members
     } catch (error) {
-      iotLogger.error('Error sending critical alert notifications', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      iotLogger.error('Error sending critical alert notifications', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -757,20 +757,20 @@ export class IoTService {
     return 'bright';
   }
 
-  private calculateDeviceUptime(device: unknown, since: Date): number {
+  private calculateDeviceUptime(device: any, since: Date): number {
     // Calculate device uptime percentage
     const totalTime = Date.now() - since.getTime();
     const onlineTime = totalTime; // Simplified calculation
     return (onlineTime / totalTime) * 100;
   }
 
-  private calculatePeakHours(customers: unknown[]): string[] {
+  private calculatePeakHours(customers: any[]): string[] {
     // Calculate peak business hours based on customer data
     // Simplified implementation
     return ['10:00', '14:00', '18:00'];
   }
 
-  private mapDeviceFromDB(device: unknown): IoTDevice {
+  private mapDeviceFromDB(device: any): IoTDevice {
     // Map database device to IoTDevice interface
     return {
       id: device.id,
@@ -792,7 +792,7 @@ export class IoTService {
     };
   }
 
-  private mapSensorReadingFromDB(reading: unknown): SensorReading {
+  private mapSensorReadingFromDB(reading: any): SensorReading {
     // Map database sensor reading to SensorReading interface
     return {
       id: reading.id,
@@ -806,7 +806,7 @@ export class IoTService {
     };
   }
 
-  private mapAlertFromDB(alert: unknown): IoTAlert {
+  private mapAlertFromDB(alert: any): IoTAlert {
     // Map database alert to IoTAlert interface
     return {
       id: alert.id,
@@ -825,925 +825,3 @@ export class IoTService {
 
 export const iotService = new IoTService();
 
-import { prisma } from '@/lib/prisma';
-import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
-import { emailService } from '@/lib/email/emailService';
-import { smsService } from '@/lib/sms/smsService';
-
-export interface IoTDevice {
-  id: string;
-  name: string;
-  type: 'sensor' | 'beacon' | 'camera' | 'scale' | 'thermometer' | 'rfid_reader' | 'smart_shelf' | 'pos_terminal';
-  location: string;
-  warehouseId?: string;
-  storeId?: string;
-  macAddress: string;
-  ipAddress?: string;
-  firmwareVersion: string;
-  batteryLevel?: number;
-  status: 'online' | 'offline' | 'maintenance' | 'error';
-  lastSeen: Date;
-  configuration: Record<string, unknown>;
-  metadata: Record<string, unknown>;
-  isActive: boolean;
-  installedAt: Date;
-}
-
-export interface SensorReading {
-  id: string;
-  deviceId: string;
-  type: 'temperature' | 'humidity' | 'weight' | 'motion' | 'proximity' | 'light' | 'sound' | 'air_quality';
-  value: number;
-  unit: string;
-  timestamp: Date;
-  location: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface SmartShelfData {
-  deviceId: string;
-  shelfId: string;
-  products: Array<{
-    productId: string;
-    sku: string;
-    quantity: number;
-    weight: number;
-    lastUpdated: Date;
-  }>;
-  capacity: {
-    total: number;
-    used: number;
-    available: number;
-  };
-  alerts: Array<{
-    type: 'low_stock' | 'out_of_stock' | 'overweight' | 'misplaced';
-    productId?: string;
-    message: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
-  }>;
-}
-
-export interface BeaconData {
-  deviceId: string;
-  beaconId: string;
-  uuid: string;
-  major: number;
-  minor: number;
-  rssi: number;
-  proximity: 'immediate' | 'near' | 'far' | 'unknown';
-  customerDevices: Array<{
-    deviceId: string;
-    userId?: string;
-    entryTime: Date;
-    exitTime?: Date;
-    dwellTime?: number; // seconds
-    interactions: number;
-  }>;
-}
-
-export interface RFIDReading {
-  deviceId: string;
-  tagId: string;
-  productId?: string;
-  location: string;
-  action: 'read' | 'write' | 'inventory';
-  timestamp: Date;
-  signalStrength: number;
-  metadata?: Record<string, unknown>;
-}
-
-export interface IoTAlert {
-  id: string;
-  deviceId: string;
-  type: 'device_offline' | 'low_battery' | 'sensor_anomaly' | 'security_breach' | 'maintenance_required';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
-  data: Record<string, unknown>;
-  isResolved: boolean;
-  createdAt: Date;
-  resolvedAt?: Date;
-  resolvedBy?: string;
-}
-
-export interface EnvironmentalConditions {
-  location: string;
-  timestamp: Date;
-  temperature: {
-    current: number;
-    min: number;
-    max: number;
-    unit: 'C' | 'F';
-  };
-  humidity: {
-    current: number;
-    min: number;
-    max: number;
-    unit: '%';
-  };
-  airQuality: {
-    index: number;
-    status: 'good' | 'moderate' | 'poor' | 'hazardous';
-    co2: number;
-    particles: number;
-  };
-  lighting: {
-    lux: number;
-    status: 'dim' | 'normal' | 'bright';
-  };
-}
-
-export class IoTService {
-  private deviceConnections: Map<string, WebSocket> = new Map();
-  private sensorDataBuffer: Map<string, SensorReading[]> = new Map();
-  private alertThresholds: Map<string, unknown> = new Map();
-
-  constructor() {
-    this.initializeIoTService();
-  }
-
-  /**
-   * Initialize IoT service
-   */
-  private initializeIoTService(): void {
-    try {
-      // Set up default alert thresholds
-      this.setupDefaultThresholds();
-      
-      // Start periodic tasks
-      this.startPeriodicTasks();
-      
-      logger.info({
-        message: 'IoT service initialized',
-        context: { service: 'IoTService', operation: 'initialize' }
-      });
-    } catch (error) {
-      logger.error({
-        message: 'Error initializing IoT service',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'initialize' }
-      });
-    }
-  }
-
-  /**
-   * Register new IoT device
-   */
-  async registerDevice(deviceData: Omit<IoTDevice, 'id' | 'lastSeen' | 'installedAt'>): Promise<IoTDevice> {
-    try {
-      // TODO: Create IoT models in Prisma schema
-      // For now, create mock device
-      const device: IoTDevice = {
-        id: `device_${Date.now()}`,
-        ...deviceData,
-        lastSeen: new Date(),
-        installedAt: new Date(),
-      };
-
-      // Store device connection
-      this.deviceConnections.set(device.id, {} as WebSocket);
-
-      return device;
-    } catch (error) {
-      logger.error({
-        message: 'Error registering IoT device',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'registerDevice', deviceId: device.id, deviceType: device.type }
-      });
-      throw new Error('Failed to register IoT device');
-    }
-  }
-
-  /**
-   * Connect device via WebSocket
-   */
-  async connectDevice(deviceId: string, ws: WebSocket): Promise<void> {
-    try {
-      // Store WebSocket connection
-      this.deviceConnections.set(deviceId, ws);
-
-      // Update device status to online
-      // TODO: Update when IoT models are created
-      logger.info({
-        message: 'Device connected',
-        context: { service: 'IoTService', operation: 'connectDevice', deviceId }
-      });
-
-      // Set up message handlers
-      ws.onmessage = (event) => this.handleDeviceMessage(deviceId, event.data);
-      ws.onclose = () => this.handleDeviceDisconnect(deviceId);
-      ws.onerror = (error) => {
-        logger.error({
-          message: 'Device WebSocket error',
-          error: error instanceof Error ? error : new Error(String(error)),
-          context: { service: 'IoTService', operation: 'connectDevice', deviceId }
-        });
-      };
-
-      // Send welcome message
-      ws.send(JSON.stringify({
-        type: 'connection_established',
-        deviceId,
-        timestamp: new Date().toISOString(),
-      }));
-    } catch (error) {
-      logger.error({
-        message: 'Error connecting IoT device',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'connectDevice', deviceId }
-      });
-      throw new Error('Failed to connect IoT device');
-    }
-  }
-
-  /**
-   * Process sensor reading
-   */
-  async processSensorReading(
-    deviceId: string,
-    reading: Omit<SensorReading, 'id' | 'deviceId' | 'timestamp'>
-  ): Promise<SensorReading> {
-    try {
-      // TODO: Create sensor reading record when IoT models are available
-      const sensorReading: SensorReading = {
-        id: `reading_${Date.now()}`,
-        deviceId,
-        ...reading,
-        timestamp: new Date(),
-      };
-
-      // Store in buffer for batch processing
-      if (!this.sensorDataBuffer.has(deviceId)) {
-        this.sensorDataBuffer.set(deviceId, []);
-      }
-      this.sensorDataBuffer.get(deviceId)!.push(sensorReading);
-
-      // Check for alerts
-      await this.checkSensorAlerts(deviceId, reading);
-
-      // Update device last seen
-      await this.updateDeviceLastSeen(deviceId);
-
-      return sensorReading;
-    } catch (error) {
-      logger.error({
-        message: 'Error processing sensor reading',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'processSensorReading', deviceId: reading.deviceId, readingType: reading.type }
-      });
-      throw new Error('Failed to process sensor reading');
-    }
-  }
-
-  /**
-   * Process smart shelf data
-   */
-  async processSmartShelfData(shelfData: SmartShelfData): Promise<void> {
-    try {
-      // Process smart shelf data
-      logger.debug({
-        message: 'Processing smart shelf data',
-        context: { service: 'IoTService', operation: 'processSmartShelfData', deviceId: shelfData.deviceId }
-      });
-
-      // Update product quantities
-      for (const product of shelfData.products) {
-        await this.updateProductQuantityFromShelf(
-          product.productId,
-          product.quantity,
-          shelfData.deviceId
-        );
-      }
-
-      // Process alerts
-      for (const alert of shelfData.alerts) {
-        if (alert.severity === 'critical' || alert.severity === 'high') {
-          await this.createAlert({
-            deviceId: shelfData.deviceId,
-            type: 'sensor_anomaly',
-            severity: alert.severity,
-            message: alert.message,
-            data: { shelfId: shelfData.shelfId, productId: alert.productId },
-          });
-        }
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error processing smart shelf data',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'processSmartShelfData', deviceId: shelfData.deviceId }
-      });
-      throw new Error('Failed to process smart shelf data');
-    }
-  }
-
-  /**
-   * Process beacon data for customer analytics
-   */
-  async processBeaconData(beaconData: BeaconData): Promise<void> {
-    try {
-      // Process beacon data for customer tracking
-      logger.debug({
-        message: 'Processing beacon data',
-        context: { service: 'IoTService', operation: 'processBeaconData', beaconId: beaconData.beaconId }
-      });
-
-      // Update customer interactions
-      for (const customerDevice of beaconData.customerDevices) {
-        if (customerDevice.userId) {
-          // TODO: Create customer interaction record when models are available
-          logger.info({
-            message: 'Customer interaction at beacon',
-            context: { service: 'IoTService', operation: 'processBeaconData', userId: customerDevice.userId, beaconId: beaconData.beaconId }
-          });
-        }
-      }
-
-      // Generate location insights
-      await this.generateLocationInsights(beaconData);
-    } catch (error) {
-      logger.error({
-        message: 'Error processing beacon data',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'processBeaconData', beaconId: beaconData.beaconId }
-      });
-      throw new Error('Failed to process beacon data');
-    }
-  }
-
-  /**
-   * Process RFID readings for inventory tracking
-   */
-  async processRFIDReading(reading: RFIDReading): Promise<void> {
-    try {
-      // Process RFID reading
-      logger.debug({
-        message: 'Processing RFID reading',
-        context: { service: 'IoTService', operation: 'processRFIDReading', deviceId: reading.deviceId, tagId: reading.tagId }
-      });
-
-      // Update inventory if product is identified
-      if (reading.productId) {
-        await this.updateInventoryFromRFID(reading);
-      }
-
-      // Check for security issues
-      await this.checkRFIDSecurity(reading);
-    } catch (error) {
-      logger.error({
-        message: 'Error processing RFID reading',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'processRFIDReading', deviceId: reading.deviceId }
-      });
-      throw new Error('Failed to process RFID reading');
-    }
-  }
-
-  /**
-   * Get environmental conditions for location
-   */
-  async getEnvironmentalConditions(location: string): Promise<EnvironmentalConditions> {
-    try {
-      // TODO: Get actual sensor readings when IoT models are available
-      // For now, return mock data
-      const mockConditions: EnvironmentalConditions = {
-        location,
-        timestamp: new Date(),
-        temperature: {
-          current: 22,
-          min: 18,
-          max: 26,
-          unit: 'C',
-        },
-        humidity: {
-          current: 45,
-          min: 40,
-          max: 60,
-          unit: '%',
-        },
-        airQuality: {
-          index: 25,
-          status: 'good',
-          co2: 400,
-          particles: 10,
-        },
-        lighting: {
-          lux: 500,
-          status: 'normal',
-        },
-      };
-
-      return mockConditions;
-    } catch (error) {
-      logger.error({
-        message: 'Error getting environmental conditions',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'getEnvironmentalConditions', deviceId }
-      });
-      throw new Error('Failed to get environmental conditions');
-    }
-  }
-
-  /**
-   * Get device analytics
-   */
-  async getDeviceAnalytics(
-    deviceId?: string,
-    timeRange: '1h' | '24h' | '7d' | '30d' = '24h'
-  ): Promise<{
-    totalDevices: number;
-    onlineDevices: number;
-    offlineDevices: number;
-    batteryAlerts: number;
-    sensorReadings: number;
-    alerts: IoTAlert[];
-    deviceUptime: Record<string, number>;
-  }> {
-    try {
-      // TODO: Get actual analytics when IoT models are available
-      // For now, return mock data
-      const mockAnalytics = {
-        totalDevices: 25,
-        onlineDevices: 22,
-        offlineDevices: 3,
-        batteryAlerts: 2,
-        sensorReadings: 1500,
-        alerts: [],
-        deviceUptime: {},
-      };
-
-      return mockAnalytics;
-    } catch (error) {
-      logger.error({
-        message: 'Error getting device analytics',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'getDeviceAnalytics', deviceId, timeRange }
-      });
-      throw new Error('Failed to get device analytics');
-    }
-  }
-
-  /**
-   * Create IoT alert
-   */
-  async createAlert(alertData: Omit<IoTAlert, 'id' | 'isResolved' | 'createdAt'>): Promise<IoTAlert> {
-    try {
-      // TODO: Create IoT alert record when models are available
-      const alert: IoTAlert = {
-        id: `alert_${Date.now()}`,
-        ...alertData,
-        isResolved: false,
-        createdAt: new Date(),
-      };
-
-      // Send notifications for critical alerts
-      if (alert.severity === 'critical') {
-        await this.sendCriticalAlertNotifications(alert);
-      }
-
-      return alert;
-    } catch (error) {
-      logger.error({
-        message: 'Error creating IoT alert',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'createAlert', deviceId, alertType: alert.type, severity: alert.severity }
-      });
-      throw new Error('Failed to create IoT alert');
-    }
-  }
-
-  /**
-   * Resolve alert
-   */
-  async resolveAlert(alertId: string, resolvedBy: string): Promise<IoTAlert> {
-    try {
-      // TODO: Update IoT alert record when models are available
-      const alert: IoTAlert = {
-        id: alertId,
-        deviceId: '',
-        type: 'device_offline',
-        severity: 'low',
-        message: '',
-        data: {},
-        isResolved: true,
-        createdAt: new Date(),
-        resolvedAt: new Date(),
-        resolvedBy,
-      };
-
-      return alert;
-    } catch (error) {
-      logger.error({
-        message: 'Error resolving IoT alert',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'resolveAlert', alertId }
-      });
-      throw new Error('Failed to resolve IoT alert');
-    }
-  }
-
-  /**
-   * Private helper methods
-   */
-  private setupDefaultThresholds(): void {
-    // Set default alert thresholds
-    this.alertThresholds.set('temperature', { min: 15, max: 30 });
-    this.alertThresholds.set('humidity', { min: 30, max: 70 });
-    this.alertThresholds.set('battery', { low: 20, critical: 10 });
-  }
-
-  private startPeriodicTasks(): void {
-    // Check offline devices every 5 minutes
-    setInterval(() => this.checkOfflineDevices(), 5 * 60 * 1000);
-
-    // Process sensor data buffer every minute
-    setInterval(() => this.processSensorDataBuffer(), 60 * 1000);
-
-    // Check battery levels every hour
-    setInterval(() => this.checkBatteryLevels(), 60 * 60 * 1000);
-  }
-
-  private async handleDeviceMessage(deviceId: string, message: unknown): Promise<void> {
-    try {
-      const data = JSON.parse(message);
-      
-      switch (data.type) {
-        case 'sensor_reading':
-          await this.processSensorReading(deviceId, data.reading);
-          break;
-        case 'smart_shelf_data':
-          await this.processSmartShelfData(data.shelfData);
-          break;
-        case 'beacon_data':
-          await this.processBeaconData(data.beaconData);
-          break;
-        case 'rfid_reading':
-          await this.processRFIDReading(data.rfidReading);
-          break;
-        default:
-          logger.warn({
-            message: 'Unknown message type from device',
-            context: { service: 'IoTService', operation: 'handleDeviceMessage', deviceId, messageType: data.type }
-          });
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error handling message from device',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'handleDeviceMessage', deviceId }
-      });
-    }
-  }
-
-  private async handleDeviceDisconnect(deviceId: string): Promise<void> {
-    try {
-      // Remove WebSocket connection
-      this.deviceConnections.delete(deviceId);
-
-      // Update device status to offline
-      // TODO: Update when IoT models are created
-      logger.info({
-        message: 'Device disconnected',
-        context: { service: 'IoTService', operation: 'handleDeviceDisconnect', deviceId }
-      });
-    } catch (error) {
-      logger.error({
-        message: 'Error handling device disconnect',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'handleDeviceDisconnect', deviceId }
-      });
-    }
-  }
-
-  private async checkSensorAlerts(deviceId: string, reading: unknown): Promise<void> {
-    try {
-      const thresholds = this.alertThresholds.get(reading.type);
-      if (!thresholds) return;
-
-      let shouldAlert = false;
-      let message = '';
-
-      if (reading.type === 'temperature') {
-        if (reading.value < thresholds.min || reading.value > thresholds.max) {
-          shouldAlert = true;
-          message = `Temperature ${reading.value}${reading.unit} is outside normal range (${thresholds.min}-${thresholds.max}${reading.unit})`;
-        }
-      } else if (reading.type === 'humidity') {
-        if (reading.value < thresholds.min || reading.value > thresholds.max) {
-          shouldAlert = true;
-          message = `Humidity ${reading.value}${reading.unit} is outside normal range (${thresholds.min}-${thresholds.max}${reading.unit})`;
-        }
-      }
-
-      if (shouldAlert) {
-        await this.createAlert({
-          deviceId,
-          type: 'sensor_anomaly',
-          severity: 'medium',
-          message,
-          data: { reading, thresholds },
-        });
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error checking sensor alerts',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'checkSensorAlerts', deviceId }
-      });
-    }
-  }
-
-  private async updateDeviceLastSeen(deviceId: string): Promise<void> {
-    try {
-      // TODO: Update device last seen when IoT models are created
-      logger.debug({
-        message: 'Updated last seen for device',
-        context: { service: 'IoTService', operation: 'updateDeviceLastSeen', deviceId }
-      });
-    } catch (error) {
-      logger.error({
-        message: 'Error updating last seen for device',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'updateDeviceLastSeen', deviceId }
-      });
-    }
-  }
-
-  private async updateProductQuantityFromShelf(
-    productId: string,
-    quantity: number,
-    deviceId: string
-  ): Promise<void> {
-    try {
-      // Update product quantity in inventory
-      await prisma.product.update({
-        where: { id: productId },
-        data: { stockQuantity: quantity },
-      });
-
-      logger.info({
-        message: 'Updated product quantity from shelf device',
-        context: { service: 'IoTService', operation: 'updateProductQuantity', productId, quantity, deviceId }
-      });
-    } catch (error) {
-      logger.error({
-        message: 'Error updating product quantity',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'updateProductQuantity', productId, deviceId }
-      });
-    }
-  }
-
-  private async generateLocationInsights(beaconData: BeaconData): Promise<void> {
-    try {
-      // Generate insights about customer movement patterns
-      const totalInteractions = beaconData.customerDevices.reduce(
-        (sum, device) => sum + device.interactions,
-        0
-      );
-
-      if (totalInteractions > 100) {
-        logger.warn({
-          message: 'High traffic detected at beacon',
-          context: { service: 'IoTService', operation: 'generateLocationInsights', beaconId: beaconData.beaconId, totalInteractions }
-        });
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error generating location insights',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'generateLocationInsights', beaconId: beaconData.beaconId }
-      });
-    }
-  }
-
-  private async updateInventoryFromRFID(reading: RFIDReading): Promise<void> {
-    try {
-      if (reading.productId) {
-        // Update product with RFID information - store in ProductActivity since Product doesn't have metadata
-        await prisma.product.update({
-          where: { id: reading.productId },
-          data: {
-            // Update product with RFID information - store in ProductActivity since Product doesn't have metadata
-          }
-        });
-
-        // Store RFID data in ProductActivity
-        await prisma.productActivity.create({
-          data: {
-            productId: reading.productId,
-            type: 'STATUS_CHANGED',
-            description: 'RFID scan update',
-            metadata: {
-              lastRFIDScan: reading.timestamp,
-              lastLocation: reading.location,
-              signalStrength: reading.signalStrength,
-            }
-          }
-        });
-
-        logger.info({
-          message: 'Updated product from RFID reading',
-          context: { service: 'IoTService', operation: 'updateInventoryFromRFID', productId: reading.productId, location: reading.location }
-        });
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error updating inventory from RFID',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'updateInventoryFromRFID', tagId: reading.tagId }
-      });
-    }
-  }
-
-  private async checkRFIDSecurity(reading: RFIDReading): Promise<void> {
-    try {
-      // Check for suspicious RFID activity
-      if (reading.signalStrength < -70) {
-        // Weak signal might indicate tampering
-        await this.createAlert({
-          deviceId: reading.deviceId,
-          type: 'security_breach',
-          severity: 'medium',
-          message: `Weak RFID signal detected, possible tampering at ${reading.location}`,
-          data: { reading },
-        });
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error checking RFID security',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'checkRFIDSecurity', tagId }
-      });
-    }
-  }
-
-  private async checkOfflineDevices(): Promise<void> {
-    try {
-      // TODO: Check for offline devices when IoT models are created
-      // For now, just log the check
-      logger.debug({
-        message: 'Checking for offline devices',
-        context: { service: 'IoTService', operation: 'checkOfflineDevices', organizationId }
-      });
-    } catch (error) {
-      logger.error({
-        message: 'Error checking offline devices',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'checkOfflineDevices', organizationId }
-      });
-    }
-  }
-
-  private async processSensorDataBuffer(): Promise<void> {
-    try {
-      // Process buffered sensor data
-      for (const [deviceId, readings] of Array.from(this.sensorDataBuffer.entries())) {
-        if (readings.length > 0) {
-          // Group readings by device ID
-          const groupedReadings = new Map<string, SensorReading[]>();
-          for (const reading of readings) {
-            const deviceId = reading.deviceId;
-            if (!groupedReadings.has(deviceId)) {
-              groupedReadings.set(deviceId, []);
-            }
-            groupedReadings.get(deviceId)!.push(reading);
-          }
-
-          // Process grouped readings
-          for (const [sensorId, sensorReadings] of Array.from(groupedReadings.entries())) {
-            // Process readings in batch
-            logger.debug({
-              message: 'Processing buffered readings from device',
-              context: { service: 'IoTService', operation: 'processSensorDataBuffer', deviceId, readingsCount: sensorReadings.length }
-            });
-            
-            // Clear buffer after processing
-            this.sensorDataBuffer.set(deviceId, []);
-          }
-        }
-      }
-    } catch (error) {
-      logger.error({
-        message: 'Error processing sensor data buffer',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'processSensorDataBuffer', deviceId }
-      });
-    }
-  }
-
-  private async checkBatteryLevels(): Promise<void> {
-    try {
-      // TODO: Check battery levels when IoT models are created
-      // For now, just log the check
-      logger.debug({
-        message: 'Checking device battery levels',
-        context: { service: 'IoTService', operation: 'checkBatteryLevels', organizationId }
-      });
-    } catch (error) {
-      logger.error({
-        message: 'Error checking battery levels',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'checkBatteryLevels', organizationId }
-      });
-    }
-  }
-
-  private async sendCriticalAlertNotifications(alert: unknown): Promise<void> {
-    try {
-      // TODO: Send notifications when notification services are available
-      logger.error({
-        message: 'Critical alert',
-        context: { service: 'IoTService', operation: 'sendCriticalAlertNotifications', alertId: alert.id, alertType: alert.type, alertMessage: alert.message }
-      });
-      
-      // In production, this would send emails, SMS, or push notifications
-      // to relevant staff members
-    } catch (error) {
-      logger.error({
-        message: 'Error sending critical alert notifications',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'IoTService', operation: 'sendCriticalAlertNotifications', alertId: alert.id }
-      });
-    }
-  }
-
-  private getAirQualityStatus(index: number): 'good' | 'moderate' | 'poor' | 'hazardous' {
-    if (index <= 50) return 'good';
-    if (index <= 100) return 'moderate';
-    if (index <= 150) return 'poor';
-    return 'hazardous';
-  }
-
-  private getLightingStatus(lux: number): 'dim' | 'normal' | 'bright' {
-    if (lux < 100) return 'dim';
-    if (lux < 1000) return 'normal';
-    return 'bright';
-  }
-
-  private calculateDeviceUptime(device: unknown, since: Date): number {
-    // Calculate device uptime percentage
-    const totalTime = Date.now() - since.getTime();
-    const onlineTime = totalTime; // Simplified calculation
-    return (onlineTime / totalTime) * 100;
-  }
-
-  private calculatePeakHours(customers: unknown[]): string[] {
-    // Calculate peak business hours based on customer data
-    // Simplified implementation
-    return ['10:00', '14:00', '18:00'];
-  }
-
-  private mapDeviceFromDB(device: unknown): IoTDevice {
-    // Map database device to IoTDevice interface
-    return {
-      id: device.id,
-      name: device.name,
-      type: device.type,
-      location: device.location,
-      warehouseId: device.warehouseId,
-      storeId: device.storeId,
-      macAddress: device.macAddress,
-      ipAddress: device.ipAddress,
-      firmwareVersion: device.firmwareVersion,
-      batteryLevel: device.batteryLevel,
-      status: device.status,
-      lastSeen: device.lastSeen,
-      configuration: device.configuration || {},
-      metadata: device.metadata || {},
-      isActive: device.isActive,
-      installedAt: device.installedAt,
-    };
-  }
-
-  private mapSensorReadingFromDB(reading: unknown): SensorReading {
-    // Map database sensor reading to SensorReading interface
-    return {
-      id: reading.id,
-      deviceId: reading.deviceId,
-      type: reading.type,
-      value: reading.value,
-      unit: reading.unit,
-      timestamp: reading.timestamp,
-      location: reading.location,
-      metadata: reading.metadata || {},
-    };
-  }
-
-  private mapAlertFromDB(alert: unknown): IoTAlert {
-    // Map database alert to IoTAlert interface
-    return {
-      id: alert.id,
-      deviceId: alert.deviceId,
-      type: alert.type,
-      severity: alert.severity,
-      message: alert.message,
-      data: alert.data || {},
-      isResolved: alert.isResolved,
-      createdAt: alert.createdAt,
-      resolvedAt: alert.resolvedAt,
-      resolvedBy: alert.resolvedBy,
-    };
-  }
-}
-
-export const iotService = new IoTService();

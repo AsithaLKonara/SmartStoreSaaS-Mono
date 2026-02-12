@@ -28,31 +28,31 @@ export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
         throw new ValidationError('User must belong to an organization');
       }
 
-    // Define standard support tags (can be enhanced with DB table)
-    const standardTags = [
-      { id: 'tag_login', name: 'login', color: '#3B82F6' },
-      { id: 'tag_billing', name: 'billing', color: '#10B981' },
-      { id: 'tag_technical', name: 'technical', color: '#F59E0B' },
-      { id: 'tag_feature', name: 'feature-request', color: '#8B5CF6' },
-      { id: 'tag_bug', name: 'bug', color: '#EF4444' },
-      { id: 'tag_urgent', name: 'urgent', color: '#DC2626' }
-    ];
+      // Define standard support tags (can be enhanced with DB table)
+      const standardTags = [
+        { id: 'tag_login', name: 'login', color: '#3B82F6' },
+        { id: 'tag_billing', name: 'billing', color: '#10B981' },
+        { id: 'tag_technical', name: 'technical', color: '#F59E0B' },
+        { id: 'tag_feature', name: 'feature-request', color: '#8B5CF6' },
+        { id: 'tag_bug', name: 'bug', color: '#EF4444' },
+        { id: 'tag_urgent', name: 'urgent', color: '#DC2626' }
+      ];
 
-    // Get actual counts from support tickets (using title/description contains)
-    const tagsWithCounts = await Promise.all(
-      standardTags.map(async (tag) => {
-        const count = await prisma.support_tickets.count({
-          where: {
-            organizationId,
-            OR: [
-              { title: { contains: tag.name, mode: 'insensitive' } },
-              { description: { contains: tag.name, mode: 'insensitive' } }
-            ]
-          }
-        });
-        return { ...tag, count };
-      })
-    );
+      // Get actual counts from support tickets (using title/description contains)
+      const tagsWithCounts = await Promise.all(
+        standardTags.map(async (tag) => {
+          const count = await prisma.support_tickets.count({
+            where: {
+              organizationId,
+              OR: [
+                { title: { contains: tag.name, mode: 'insensitive' } },
+                { description: { contains: tag.name, mode: 'insensitive' } }
+              ]
+            }
+          });
+          return { ...tag, count };
+        })
+      );
 
       logger.info({
         message: 'Support tags fetched',
@@ -76,11 +76,11 @@ export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -111,25 +111,25 @@ export const POST = requirePermission('MANAGE_SUPPORT_TICKETS')(
         throw new ValidationError('User must belong to an organization');
       }
 
-    // Create tag record (using activities for now, can create dedicated tags table)
-    await prisma.activities.create({
-      data: {
-        id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
-        organizationId,
-        type: 'TAG_CREATED',
-        description: `Support tag '${name}' created`,
-        metadata: JSON.stringify({ tagName: name, color: color || '#6B7280' })
-      }
-    });
+      // Create tag record (using activities for now, can create dedicated tags table)
+      await prisma.activities.create({
+        data: {
+          id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          userId: user.id,
+          organizationId,
+          type: 'TAG_CREATED',
+          description: `Support tag '${name}' created`,
+          metadata: JSON.stringify({ tagName: name, color: color || '#6B7280' })
+        }
+      });
 
-    const tag = {
-      id: `tag_${Date.now()}`,
-      name,
-      color: color || '#6B7280',
-      count: 0,
-      createdAt: new Date().toISOString()
-    };
+      const tag = {
+        id: `tag_${Date.now()}`,
+        name,
+        color: color || '#6B7280',
+        count: 0,
+        createdAt: new Date().toISOString()
+      };
 
       logger.info({
         message: 'Support tag created',
@@ -154,11 +154,11 @@ export const POST = requirePermission('MANAGE_SUPPORT_TICKETS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

@@ -208,7 +208,7 @@ export class NotificationService {
       const users = await prisma.user.findMany({
         where: {
           organizationId: order.organizationId,
-          role: { in: ['ADMIN', 'STAFF'] },
+          role: { in: ['TENANT_ADMIN', 'STAFF'] }, // Fixed: Use valid UserRole enum values
         },
         select: { id: true },
       });
@@ -259,7 +259,7 @@ export class NotificationService {
       const users = await prisma.user.findMany({
         where: {
           organizationId: product.organizationId,
-          role: { in: ['ADMIN', 'INVENTORY_MANAGER'] },
+          role: { in: ['TENANT_ADMIN', 'STAFF'] }, // Fixed: Use valid UserRole enum values
         },
         select: { id: true },
       });

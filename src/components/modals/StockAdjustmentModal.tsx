@@ -85,7 +85,7 @@ export function StockAdjustmentModal({
       logger.error({
         message: 'Stock adjustment error',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { productId, adjustment }
+        context: { productId, adjustmentType }
       });
       toast.error('Failed to adjust stock');
     } finally {

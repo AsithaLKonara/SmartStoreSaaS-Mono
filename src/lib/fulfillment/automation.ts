@@ -52,7 +52,7 @@ export async function startFulfillment(
 
     // Check inventory availability
     for (const item of order.orderItems) {
-      if (item.product.stock < item.quantity) {
+      if (Number(item.product.stock) < item.quantity) {
         return {
           success: false,
           error: `Insufficient stock for ${item.product.name}`,
@@ -64,6 +64,7 @@ export async function startFulfillment(
     const fulfillment = await prisma.fulfillment.create({
       data: {
         orderId,
+        organizationId: order.organizationId,
         status: FulfillmentStatus.PROCESSING,
         items: {
           create: order.orderItems.map(item => ({
@@ -93,7 +94,7 @@ export async function startFulfillment(
     logger.error({
       message: 'Start fulfillment error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'FulfillmentAutomation', operation: 'startFulfillment', orderId: data.orderId }
+      context: { service: 'FulfillmentAutomation', operation: 'startFulfillment', orderId }
     });
     return { success: false, error: error.message };
   }
@@ -145,7 +146,7 @@ export async function markItemsPicked(
   itemIds: string[]
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    await prisma.fulfillmentItem.updateMany({
+    await (prisma as any).fulfillmentItem.updateMany({
       where: {
         id: { in: itemIds },
         fulfillmentId,
@@ -261,7 +262,7 @@ export async function markAsShipped(
     logger.error({
       message: 'Mark shipped error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'FulfillmentAutomation', operation: 'markShipped', fulfillmentId, trackingNumber }
+      context: { service: 'FulfillmentAutomation', operation: 'markShipped', fulfillmentId, trackingNumber: shippingDetails.trackingNumber }
     });
     return { success: false, error: error.message };
   }

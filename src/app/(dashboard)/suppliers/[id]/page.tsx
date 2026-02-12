@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, Trash2, Building, Mail, Phone, MapPin, DollarSign, Star } from 'lucide-react';
@@ -43,7 +43,7 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
     try {
       setLoading(true);
       const response = await fetch(`/api/suppliers/${params.id}`);
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           toast.error('Supplier not found');

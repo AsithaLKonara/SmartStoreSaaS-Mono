@@ -148,12 +148,12 @@ export class BlockchainService {
       }
 
       // Create contract factory
-      const factory = new ethers.ContractFactory(contractData.abi, contractData.bytecode, this.wallet);
-      
+      const factory = new ethers.ContractFactory(contractData.abi as any, contractData.bytecode, this.wallet);
+
       // Deploy contract
       const contract = await factory.deploy(...(contractData.constructorArgs || []));
       await contract.waitForDeployment();
-      
+
       const contractAddress = await contract.getAddress();
 
       // Store contract info in metadata (since we don't have a dedicated blockchain model)
@@ -170,14 +170,14 @@ export class BlockchainService {
       };
 
       // Cache contract instance
-      this.contracts.set(contractAddress, contract as unknown);
+      this.contracts.set(contractAddress, contract as any);
 
       return contractInfo;
     } catch (error) {
       logger.error({
         message: 'Error deploying smart contract',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BlockchainService', operation: 'deploySmartContract', contractType }
+        context: { service: 'BlockchainService', operation: 'deploySmartContract', contractType: contractData.type }
       });
       throw new Error('Failed to deploy smart contract');
     }
@@ -211,14 +211,14 @@ export class BlockchainService {
           method: 'cryptocurrency',
           status: "PENDING",
           organizationId: organizationId,
-          metadata: {
+          metadata: JSON.stringify({
             cryptoCurrency: currency,
             cryptoAmount: amount,
             exchangeRate: exchangeRate,
             walletAddress: paymentAddress,
             confirmations: 0,
             expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
-          }
+          })
         }
       });
 
@@ -263,12 +263,13 @@ export class BlockchainService {
   ): Promise<SupplyChainRecord> {
     try {
       // Store supply chain record in ProductActivity with metadata
-      const record = await prisma.productActivity.create({
+      const record = await prisma.product_activities.create({
         data: {
+          id: crypto.randomBytes(16).toString('hex'),
           productId: productId,
-          type: "INVENTORY_UPDATE" as unknown, // Cast to unknown to bypass enum restriction
+          type: "INVENTORY_UPDATE", // Cast to unknown to bypass enum restriction
           description: `Supply chain update: ${stage} at ${location}`,
-          metadata: {
+          metadata: JSON.stringify({
             batchNumber: batchNumber,
             stage: stage,
             location: location,
@@ -276,7 +277,7 @@ export class BlockchainService {
             transactionHash: crypto.randomBytes(32).toString('hex'),
             timestamp: new Date(),
             ...metadata,
-          },
+          }),
         },
       });
 
@@ -300,13 +301,13 @@ export class BlockchainService {
         timestamp: record.createdAt,
         verifiedBy,
         transactionHash,
-        metadata: record.metadata as unknown,
+        metadata: record.metadata ? JSON.parse(record.metadata) : {},
       };
     } catch (error) {
       logger.error({
         message: 'Error recording supply chain event',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BlockchainService', operation: 'recordSupplyChainEvent', productId, eventType: event.type }
+        context: { service: 'BlockchainService', operation: 'recordSupplyChainEvent', productId }
       });
       throw new Error('Failed to record supply chain event');
     }
@@ -349,7 +350,7 @@ export class BlockchainService {
       logger.error({
         message: 'Error creating NFT collection',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BlockchainService', operation: 'createNFTCollection', organizationId, name: collectionData.name }
+        context: { service: 'BlockchainService', operation: 'createNFTCollection', name: collectionData.name }
       });
       throw new Error('Failed to create NFT collection');
     }
@@ -407,7 +408,7 @@ export class BlockchainService {
       logger.error({
         message: 'Error minting NFT',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'BlockchainService', operation: 'mintNFT', collectionId, productId }
+        context: { service: 'BlockchainService', operation: 'mintNFT', collectionId }
       });
       throw new Error('Failed to mint NFT');
     }
@@ -426,10 +427,10 @@ export class BlockchainService {
   }> {
     try {
       // Get supply chain history from ProductActivity
-      const activities = await prisma.productActivity.findMany({
+      const activities = await prisma.product_activities.findMany({
         where: {
           productId,
-          type: "INVENTORY_UPDATE" as unknown,
+          type: "INVENTORY_UPDATE",
           metadata: {
             not: null
           }
@@ -437,8 +438,17 @@ export class BlockchainService {
       });
 
       // Convert to SupplyChainRecord format
-      const supplyChainHistory: SupplyChainRecord[] = activities.map((activity: unknown) => {
-        const metadata = activity.metadata as unknown;
+      const supplyChainHistory: SupplyChainRecord[] = activities.map((activity: any) => {
+        let metadata = activity.metadata;
+        try {
+          if (typeof metadata === 'string') {
+            metadata = JSON.parse(metadata);
+          }
+        } catch (e) {
+          metadata = {};
+        }
+        metadata = metadata || {};
+
         return {
           id: activity.id,
           productId: activity.productId,
@@ -540,7 +550,7 @@ export class BlockchainService {
       message: 'Monitoring payment',
       context: { service: 'BlockchainService', operation: 'monitorPayment', paymentId, address }
     });
-    
+
     // Simulate payment confirmation after 30 seconds
     setTimeout(async () => {
       await this.confirmCryptoPayment(paymentId, 'mock_transaction_hash');
@@ -559,11 +569,11 @@ export class BlockchainService {
         where: { id: paymentId },
         data: {
           status: 'COMPLETED',
-          metadata: {
+          metadata: JSON.stringify({
             transactionHash,
             confirmations: 6,
             confirmedAt: new Date(),
-          },
+          }),
         },
       });
     } catch (error) {
@@ -578,7 +588,7 @@ export class BlockchainService {
   /**
    * Store data on blockchain
    */
-  private async storeOnBlockchain(data: unknown): Promise<string> {
+  private async storeOnBlockchain(data: any): Promise<string> {
     // In production, this would store data on the actual blockchain
     // For now, return a mock transaction hash
     return crypto.randomBytes(32).toString('hex');
@@ -587,7 +597,7 @@ export class BlockchainService {
   /**
    * Deploy NFT contract
    */
-  private async deployNFTContract(collectionData: unknown): Promise<string> {
+  private async deployNFTContract(collectionData: any): Promise<string> {
     // In production, this would deploy an actual NFT contract
     // For now, return a mock contract address
     return `0x${crypto.randomBytes(32).toString('hex')}`;

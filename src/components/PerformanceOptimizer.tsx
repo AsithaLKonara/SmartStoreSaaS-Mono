@@ -10,10 +10,10 @@ interface PerformanceOptimizerProps {
   delay?: number;
 }
 
-export function PerformanceOptimizer({ 
-  children, 
+export function PerformanceOptimizer({
+  children,
   fallback = <LoadingScreen message="Loading..." />,
-  delay = 0 
+  delay = 0
 }: PerformanceOptimizerProps) {
   const [isLoading, setIsLoading] = useState(delay > 0);
   const [isVisible, setIsVisible] = useState(false);
@@ -24,7 +24,7 @@ export function PerformanceOptimizer({
         setIsLoading(false);
         setIsVisible(true);
       }, delay);
-      
+
       return () => clearTimeout(timer);
     } else {
       setIsVisible(true);
@@ -49,7 +49,7 @@ export function PerformanceOptimizer({
     ];
 
     criticalImages.forEach(src => {
-      const img = new Image();
+      const img = new globalThis.Image();
       img.src = src;
     });
   }, []);
@@ -66,8 +66,8 @@ export function PerformanceOptimizer({
 }
 
 // Lazy loading wrapper
-export function LazyLoad({ 
-  children, 
+export function LazyLoad({
+  children,
   threshold = 0.1,
   fallback = <LoadingScreen message="Loading content..." />
 }: {
@@ -82,7 +82,7 @@ export function LazyLoad({
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasLoaded) {
+        if (entry?.isIntersecting && !hasLoaded) {
           setIsVisible(true);
           setHasLoaded(true);
           observer.disconnect();
@@ -142,7 +142,7 @@ export function OptimizedImage({
           <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
         </div>
       )}
-      
+
       {hasError ? (
         <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
           <div className="text-gray-400 text-sm">Image failed to load</div>

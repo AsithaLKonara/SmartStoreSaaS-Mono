@@ -5,5 +5,5 @@ export { whatsAppService } from '../whatsapp/whatsappService';
 
 export type { SMSTemplate, SMSOptions } from '../sms/smsService';
 export type { EmailTemplate, EmailOptions } from '../email/emailService';
-export type { WhatsAppMessage, WhatsAppTemplate } from '../whatsapp/whatsappService';
+export type { WhatsAppMessage } from '../whatsapp/whatsappService';
 

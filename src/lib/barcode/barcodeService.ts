@@ -68,7 +68,7 @@ export class BarcodeService {
       try {
         this.currentConfig = config;
 
-        Quagga.init(config, (err: unknown) => {
+        Quagga.init(config, (err: any) => {
           if (err) {
             logger.error({
               message: 'Error initializing Quagga',
@@ -118,7 +118,7 @@ export class BarcodeService {
    * Set up event listeners for barcode detection
    */
   private setupEventListeners(): void {
-    Quagga.onDetected((result: unknown) => {
+    Quagga.onDetected((result: any) => {
       const barcodeResult: BarcodeResult = {
         code: result.codeResult.code,
         format: result.codeResult.format,
@@ -132,14 +132,14 @@ export class BarcodeService {
       }
     });
 
-    Quagga.onProcessed((result: unknown) => {
+    Quagga.onProcessed((result: any) => {
       const drawingCtx = Quagga.canvas.ctx.overlay;
       const drawingCanvas = Quagga.canvas.dom.overlay;
 
       if (result) {
         if (result.boxes) {
           drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-          result.boxes.filter((box: unknown) => box !== result.box).forEach((box: unknown) => {
+          result.boxes.filter((box: any) => box !== result.box).forEach((box: any) => {
             Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: 'green', lineWidth: 2 });
           });
         }
@@ -168,13 +168,13 @@ export class BarcodeService {
   async scanFromImage(imageFile: File): Promise<BarcodeResult | null> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d')!;
-          
+
           canvas.width = img.width;
           canvas.height = img.height;
           ctx.drawImage(img, 0, 0);
@@ -206,7 +206,7 @@ export class BarcodeService {
           Quagga.decodeSingle({
             ...config,
             src: canvas.toDataURL(),
-          }, (result: unknown) => {
+          }, (result: any) => {
             if (result && result.codeResult) {
               const barcodeResult: BarcodeResult = {
                 code: result.codeResult.code,
@@ -280,11 +280,11 @@ export class BarcodeService {
         barcode,
         name: product.name,
         description: product.description || undefined,
-        price: product.price,
+        price: product.price.toNumber(),
         category: product.category?.name,
         brand: undefined, // Removed - not in schema
         manufacturer: undefined, // Removed - not in schema
-        images: product.images || [],
+        images: [],
         specifications: {}, // Removed - not in schema
         source: 'internal',
       };
@@ -317,7 +317,7 @@ export class BarcodeService {
           logger.error({
             message: 'External API lookup failed',
             error: error instanceof Error ? error : new Error(String(error)),
-            context: { service: 'BarcodeService', operation: 'lookupExternalProduct', barcode, apiName: api.name }
+            context: { service: 'BarcodeService', operation: 'lookupExternalProduct', barcode }
           });
           continue;
         }
@@ -348,7 +348,7 @@ export class BarcodeService {
       if (!response.ok) return null;
 
       const data = await response.json();
-      
+
       if (data.items && data.items.length > 0) {
         const item = data.items[0];
         return {
@@ -384,11 +384,11 @@ export class BarcodeService {
   private async lookupOpenFoodFacts(barcode: string): Promise<ProductLookup | null> {
     try {
       const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-      
+
       if (!response.ok) return null;
 
       const data = await response.json();
-      
+
       if (data.status === 1 && data.product) {
         const product = data.product;
         return {
@@ -434,11 +434,11 @@ export class BarcodeService {
       if (!apiKey) return null;
 
       const response = await fetch(`https://api.barcodelookup.com/v3/products?barcode=${barcode}&formatted=y&key=${apiKey}`);
-      
+
       if (!response.ok) return null;
 
       const data = await response.json();
-      
+
       if (data.products && data.products.length > 0) {
         const product = data.products[0];
         return {
@@ -516,7 +516,7 @@ export class BarcodeService {
     // Calculate check digit
     let sum = 0;
     for (let i = 0; i < 12; i++) {
-      const digit = parseInt(barcode[i]);
+      const digit = parseInt(barcode[i]!);
       sum += i % 2 === 0 ? digit : digit * 3;
     }
 
@@ -534,7 +534,7 @@ export class BarcodeService {
     // Calculate check digit
     let sum = 0;
     for (let i = 0; i < 11; i++) {
-      const digit = parseInt(barcode[i]);
+      const digit = parseInt(barcode[i]!);
       sum += i % 2 === 0 ? digit * 3 : digit;
     }
 
@@ -590,31 +590,31 @@ export class BarcodeService {
   private validateEAN13CheckDigit(barcode: string): boolean {
     let sum = 0;
     for (let i = 0; i < 12; i++) {
-      const digit = parseInt(barcode[i]);
+      const digit = parseInt(barcode[i]!);
       sum += i % 2 === 0 ? digit : digit * 3;
     }
     const checkDigit = (10 - (sum % 10)) % 10;
-    return checkDigit === parseInt(barcode[12]);
+    return checkDigit === parseInt(barcode[12]!);
   }
 
   private validateEAN8CheckDigit(barcode: string): boolean {
     let sum = 0;
     for (let i = 0; i < 7; i++) {
-      const digit = parseInt(barcode[i]);
+      const digit = parseInt(barcode[i]!);
       sum += i % 2 === 0 ? digit * 3 : digit;
     }
     const checkDigit = (10 - (sum % 10)) % 10;
-    return checkDigit === parseInt(barcode[7]);
+    return checkDigit === parseInt(barcode[7]!);
   }
 
   private validateUPCCheckDigit(barcode: string): boolean {
     let sum = 0;
     for (let i = 0; i < 11; i++) {
-      const digit = parseInt(barcode[i]);
+      const digit = parseInt(barcode[i]!);
       sum += i % 2 === 0 ? digit * 3 : digit;
     }
     const checkDigit = (10 - (sum % 10)) % 10;
-    return checkDigit === parseInt(barcode[11]);
+    return checkDigit === parseInt(barcode[11]!);
   }
 
   /**

@@ -163,7 +163,7 @@ export default function ReportsPage() {
       logger.error({
         message: 'Error generating report',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { reportType: reportData.type }
+        context: { templateId }
       });
       toast.error('Failed to generate report');
     }
@@ -319,11 +319,10 @@ export default function ReportsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as 'reports' | 'templates' | 'scheduled')}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}

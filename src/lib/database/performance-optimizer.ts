@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { cacheGet, cacheSet, cacheDelete, cacheDeletePattern } from '@/lib/cache';
+import { logger } from '@/lib/logger';
 
 export interface QueryPerformanceMetrics {
   query: string;
@@ -58,12 +59,12 @@ class DatabasePerformanceOptimizer {
     try {
       // Try to get from cache first
       const cacheKey = organizationId ? `${queryKey}:${organizationId}` : queryKey;
-      const cachedResult = await cacheGet(cacheKey);
+      const cachedResult = await cacheGet<T>(cacheKey);
 
       if (cachedResult) {
         cacheHit = true;
         fromCache = true;
-        
+
         this.recordQueryMetrics({
           query: queryKey,
           executionTime: Date.now() - startTime,
@@ -73,7 +74,7 @@ class DatabasePerformanceOptimizer {
         });
 
         return {
-          data: cachedResult,
+          data: cachedResult as T,
           executionTime: Date.now() - startTime,
           cacheHit: true,
           fromCache: true,
@@ -137,27 +138,72 @@ class DatabasePerformanceOptimizer {
   }
 
   /**
-   * Get optimized products with pagination
+   * Get optimized single product with related data
    */
-  async getOptimizedProducts(organizationId: string, page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
-    
+  async getOptimizedProduct(productId: string, organizationId: string) {
     return this.executeOptimizedQuery(
-      `products:${organizationId}:${page}:${limit}`,
-      () => prisma.product.findMany({
-        where: { organizationId },
-        skip,
-        take: limit,
+      `product:${productId}`,
+      () => prisma.product.findUnique({
+        where: { id: productId, organizationId },
         include: {
           category: {
             select: { id: true, name: true },
           },
-          _count: {
-            select: { orderItems: true },
-          },
         },
-        orderBy: { createdAt: 'desc' },
       }),
+      600, // 10 minutes
+      organizationId
+    );
+  }
+
+  /**
+   * Get optimized products with pagination
+   */
+  async getOptimizedProducts(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+    search?: string,
+    categoryId?: string
+  ) {
+    const skip = (page - 1) * limit;
+    const cacheKey = `products:${organizationId}:${page}:${limit}:${search || ''}:${categoryId || ''}`;
+
+    return this.executeOptimizedQuery(
+      cacheKey,
+      () => {
+        const where: any = { organizationId };
+
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { sku: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } }
+          ];
+        }
+
+        if (categoryId) {
+          where.categoryId = categoryId;
+        }
+
+        return Promise.all([
+          prisma.product.findMany({
+            where,
+            skip,
+            take: limit,
+            include: {
+              category: {
+                select: { id: true, name: true },
+              },
+              _count: {
+                select: { orderItems: true },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.product.count({ where })
+        ]).then(([products, total]) => ({ products, total }));
+      },
       300, // 5 minutes
       organizationId
     );
@@ -166,29 +212,44 @@ class DatabasePerformanceOptimizer {
   /**
    * Get optimized orders with pagination
    */
-  async getOptimizedOrders(organizationId: string, page: number = 1, limit: number = 20) {
+  async getOptimizedOrders(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+    status?: string,
+    customerId?: string
+  ) {
     const skip = (page - 1) * limit;
-    
+    const cacheKey = `orders:${organizationId}:${page}:${limit}:${status || ''}:${customerId || ''}`;
+
     return this.executeOptimizedQuery(
-      `orders:${organizationId}:${page}:${limit}`,
-      () => prisma.order.findMany({
-        where: { organizationId },
-        skip,
-        take: limit,
-        include: {
-          customer: {
-            select: { id: true, name: true, email: true },
-          },
-          orderItems: {
+      cacheKey,
+      () => {
+        const where: any = { organizationId };
+
+        if (status) {
+          where.status = status;
+        }
+
+        if (customerId) {
+          where.customerId = customerId;
+        }
+
+        return Promise.all([
+          prisma.order.findMany({
+            where,
+            skip,
+            take: limit,
             include: {
-              product: {
-                select: { id: true, name: true, price: true },
+              customer: {
+                select: { id: true, name: true, email: true },
               },
             },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.order.count({ where })
+        ]).then(([orders, total]) => ({ orders, total }));
+      },
       180, // 3 minutes
       organizationId
     );
@@ -202,7 +263,7 @@ class DatabasePerformanceOptimizer {
       `analytics:${type}:${organizationId}:${period}`,
       async () => {
         const dateFrom = this.getDateFromPeriod(period);
-        
+
         switch (type) {
           case 'sales':
             return this.getSalesAnalytics(organizationId, dateFrom);
@@ -222,8 +283,182 @@ class DatabasePerformanceOptimizer {
   }
 
   /**
-   * Generate database optimization report
+   * Get optimized dashboard statistics
    */
+  async getOptimizedDashboardStats(organizationId: string) {
+    return this.executeOptimizedQuery(
+      `dashboard-stats:${organizationId}`,
+      async () => {
+        const [productCount, orderCount, customerCount, revenueData] = await Promise.all([
+          prisma.product.count({
+            where: { organizationId, isActive: true },
+          }),
+          prisma.order.count({
+            where: {
+              organizationId,
+              status: { in: ['completed', 'processing', 'shipped'] },
+            },
+          }),
+          prisma.customer.count({
+            where: { organizationId },
+          }),
+          prisma.order.aggregate({
+            where: {
+              organizationId,
+              status: 'completed',
+            },
+            _sum: {
+              total: true,
+            },
+          }),
+        ]);
+
+        return {
+          products: productCount,
+          orders: orderCount,
+          customers: customerCount,
+          revenue: Number(revenueData._sum.total || 0),
+        };
+      },
+      300, // 5 minutes
+      organizationId
+    );
+  }
+
+  /**
+   * Get optimized customers with pagination
+   */
+  async getOptimizedCustomers(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+    search?: string
+  ) {
+    const skip = (page - 1) * limit;
+    const cacheKey = `customers:${organizationId}:${page}:${limit}:${search || ''}`;
+
+    return this.executeOptimizedQuery(
+      cacheKey,
+      () => {
+        const where: any = { organizationId };
+
+        if (search) {
+          where.OR = [
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+            { phone: { contains: search, mode: 'insensitive' } }
+          ];
+        }
+
+        return Promise.all([
+          prisma.customer.findMany({
+            where,
+            skip,
+            take: limit,
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              createdAt: true,
+              _count: {
+                select: { orders: true },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.customer.count({ where })
+        ]).then(([customers, total]) => ({ customers, total }));
+      },
+      300, // 5 minutes
+      organizationId
+    );
+  }
+
+  /**
+   * Get full optimized dashboard data
+   */
+  async getOptimizedFullDashboard(organizationId: string, periodDays: number = 30) {
+    const period = `${periodDays}d`;
+    return this.executeOptimizedQuery(
+      `full-dashboard:${organizationId}:${period}`,
+      async () => {
+        const startDate = this.getDateFromPeriod(period);
+        const where = { organizationId };
+        const orderWhere = {
+          organizationId,
+          createdAt: { gte: startDate }
+        };
+
+        const [
+          totalProducts,
+          totalCustomers,
+          totalOrders,
+          recentOrders,
+          orderStats,
+          topProductsData
+        ] = await Promise.all([
+          prisma.product.count({ where }),
+          prisma.customer.count({ where }),
+          prisma.order.count({ where: orderWhere }),
+          prisma.order.findMany({
+            where,
+            include: {
+              customer: { select: { name: true, email: true } }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 5
+          }),
+          prisma.order.aggregate({
+            where: orderWhere,
+            _sum: { total: true },
+            _count: true
+          }) as any,
+          prisma.product.findMany({
+            where,
+            include: {
+              orderItems: {
+                where: {
+                  order: {
+                    createdAt: { gte: startDate },
+                    status: 'completed'
+                  }
+                }
+              }
+            },
+            take: 5
+          })
+        ]);
+
+        const totalRevenue = Number((orderStats as any)._sum?.total || 0);
+
+        return {
+          revenue: { total: totalRevenue, trend: 'up' },
+          orders: { total: totalOrders, trend: 'up' },
+          customers: { total: totalCustomers, trend: 'up' },
+          products: { total: totalProducts, trend: 'up' },
+          topProducts: topProductsData.map(p => ({
+            productId: p.id,
+            name: p.name,
+            revenue: (p as any).orderItems.reduce((sum: number, item: any) => sum + Number(item.total || 0), 0),
+            orders: (p as any).orderItems.length
+          })),
+          recentOrders: recentOrders.map(o => ({
+            id: o.id,
+            orderNumber: o.orderNumber,
+            customer: o.customer,
+            totalAmount: Number(o.total),
+            status: o.status,
+            createdAt: o.createdAt.toISOString()
+          })),
+          period,
+          generatedAt: new Date().toISOString()
+        };
+      },
+      600, // 10 minutes
+      organizationId
+    );
+  }
   async generateOptimizationReport(organizationId?: string): Promise<DatabaseOptimizationReport> {
     try {
       const slowQueries = this.analyzeSlowQueries();
@@ -315,7 +550,7 @@ class DatabasePerformanceOptimizer {
 
   private recordQueryMetrics(metrics: QueryPerformanceMetrics): void {
     this.queryMetrics.push(metrics);
-    
+
     if (this.queryMetrics.length > this.maxMetricsHistory) {
       this.queryMetrics = this.queryMetrics.slice(-this.maxMetricsHistory);
     }
@@ -423,14 +658,6 @@ class DatabasePerformanceOptimizer {
                 status: 'completed',
               },
             },
-            _sum: { quantity: true },
-          },
-        },
-        orderBy: {
-          orderItems: {
-            _sum: {
-              quantity: 'desc',
-            },
           },
         },
         take: 10,
@@ -442,7 +669,7 @@ class DatabasePerformanceOptimizer {
       topProducts: topProducts.map(p => ({
         id: p.id,
         name: p.name,
-        totalSold: p.orderItems._sum.quantity || 0,
+        totalSold: p.orderItems.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
       })),
       period: 'custom',
       dateFrom,
@@ -494,7 +721,7 @@ class DatabasePerformanceOptimizer {
 
     if (this.queryMetrics.length > 0) {
       const queryGroups = new Map<string, number[]>();
-      
+
       this.queryMetrics.forEach(metric => {
         if (!queryGroups.has(metric.query)) {
           queryGroups.set(metric.query, []);
@@ -541,24 +768,24 @@ class DatabasePerformanceOptimizer {
 
   private generateOptimizationSuggestions(): string[] {
     const suggestions: string[] = [];
-    
+
     if (this.queryMetrics.length > 0) {
       const avgExecutionTime = this.queryMetrics.reduce((sum, m) => sum + m.executionTime, 0) / this.queryMetrics.length;
-      
+
       if (avgExecutionTime > 500) {
         suggestions.push('Consider adding database indexes for frequently queried fields');
       }
-      
+
       if (avgExecutionTime > 1000) {
         suggestions.push('Review and optimize slow queries with EXPLAIN ANALYZE');
       }
-      
+
       const cacheHitRate = this.queryMetrics.filter(m => m.cacheHit).length / this.queryMetrics.length;
       if (cacheHitRate < 0.5) {
         suggestions.push('Increase cache TTL for frequently accessed data');
       }
     }
-    
+
     return suggestions;
   }
 

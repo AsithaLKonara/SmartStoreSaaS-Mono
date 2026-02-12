@@ -1,63 +1,46 @@
 import { PrismaClient } from '@prisma/client';
-import { dbLogger } from '@/lib/utils/logger';
+import { prisma } from '@/lib/prisma';
+import { logger as dbLogger } from '@/lib/logger';
 
-// Global variable to store the Prisma client instance
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
+// Re-export the singleton Prisma client
+export const db = prisma;
 
-// Create a singleton Prisma client
-export const db = globalThis.__prisma || new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
-
-// Store the client globally to prevent multiple instances
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.__prisma = db;
-}
-
-// Database Manager Class
+// Database Manager Class 
 class DatabaseManager {
   private client: PrismaClient;
 
   constructor() {
-    this.client = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
-    });
+    this.client = prisma;
   }
 
   // Health check method
   async healthCheck() {
     try {
       const startTime = Date.now();
-      
+
       // Test database connection
       await this.client.$queryRaw`SELECT 1`;
-      
+
       const responseTime = Date.now() - startTime;
-      
-      dbLogger.debug('Database health check successful', { responseTime });
-      
+
+      dbLogger.debug({
+        message: 'Database health check successful',
+        context: { responseTime }
+      });
+
       return {
         status: 'healthy',
         responseTime,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      dbLogger.error('Database health check failed', { 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      dbLogger.error({
+        message: 'Database health check failed',
+        context: {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
       });
-      
+
       return {
         status: 'unhealthy',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -73,40 +56,49 @@ class DatabaseManager {
     maxRetries: number = 3
   ): Promise<T> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const startTime = Date.now();
         const result = await operation(this.client);
         const duration = Date.now() - startTime;
-        
-        dbLogger.debug(`Database operation successful: ${operationName}`, { 
-          attempt, 
-          duration 
+
+        dbLogger.debug({
+          message: `Database operation successful: ${operationName}`,
+          context: {
+            attempt,
+            duration
+          }
         });
-        
+
         return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
-        dbLogger.warn(`Database operation failed: ${operationName}`, { 
-          attempt, 
-          maxRetries, 
-          error: lastError.message 
+
+        dbLogger.warn({
+          message: `Database operation failed: ${operationName}`,
+          context: {
+            attempt,
+            maxRetries,
+            error: lastError.message
+          }
         });
-        
+
         if (attempt === maxRetries) {
-          dbLogger.error(`Database operation failed after ${maxRetries} attempts: ${operationName}`, { 
-            error: lastError.message 
+          dbLogger.error({
+            message: `Database operation failed after ${maxRetries} attempts: ${operationName}`,
+            context: {
+              error: lastError.message
+            }
           });
           throw lastError;
         }
-        
+
         // Wait before retry (exponential backoff)
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
       }
     }
-    
+
     throw lastError || new Error('Operation failed');
   }
 

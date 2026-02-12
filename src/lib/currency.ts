@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 // Currency utilities for Sri Lankan Rupee (LKR)
 export const CURRENCY_CONFIG = {
   LKR: {
@@ -30,7 +32,7 @@ export type CurrencyCode = keyof typeof CURRENCY_CONFIG;
 
 // Format currency with LKR as default
 export function formatCurrency(
-  amount: number, 
+  amount: number,
   currency: CurrencyCode = 'LKR',
   options: {
     showSymbol?: boolean;
@@ -58,8 +60,8 @@ export function formatCurrency(
 
   const symbol = showSymbol ? config.symbol : '';
   const code = showCode ? ` ${config.code}` : '';
-  
-  return config.symbolPosition === 'before' 
+
+  return config.symbolPosition === 'before'
     ? `${symbol}${formatted}${code}`
     : `${formatted}${symbol}${code}`;
 }
@@ -77,7 +79,7 @@ export function formatCurrencyInput(amount: number, currency: CurrencyCode = 'LK
 // Parse currency string to number
 export function parseCurrency(value: string, currency: CurrencyCode = 'LKR'): number {
   const config = CURRENCY_CONFIG[currency];
-  
+
   // Remove currency symbols and codes
   let cleanValue = value
     .replace(config.symbol, '')
@@ -129,7 +131,7 @@ export function convertCurrency(
 
   const rateKey = `${from}_${to}`;
   const rate = rates[rateKey];
-  
+
   if (!rate) {
     logger.warn({
       message: 'Exchange rate not found',
@@ -150,12 +152,12 @@ export function formatCurrencyWithConversion(
 ): string {
   const convertedAmount = convertCurrency(amount, from, to);
   const formatted = formatCurrency(convertedAmount, to);
-  
+
   if (showBoth && from !== to) {
     const original = formatCurrency(amount, from);
     return `${formatted} (${original})`;
   }
-  
+
   return formatted;
 }
 
@@ -166,28 +168,28 @@ export function validateCurrencyInput(value: string, currency: CurrencyCode = 'L
   parsedValue?: number;
 } {
   const parsed = parseCurrency(value, currency);
-  
+
   if (isNaN(parsed)) {
     return {
       isValid: false,
       error: 'Invalid currency format'
     };
   }
-  
+
   if (parsed < 0) {
     return {
       isValid: false,
       error: 'Amount cannot be negative'
     };
   }
-  
+
   if (parsed > 999999999) {
     return {
       isValid: false,
       error: 'Amount too large'
     };
   }
-  
+
   return {
     isValid: true,
     parsedValue: parsed

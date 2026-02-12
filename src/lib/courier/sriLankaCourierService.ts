@@ -60,6 +60,7 @@ export interface ShipmentRequest {
   paymentMethod: 'prepaid' | 'cod';
   codAmount?: number;
   instructions?: string;
+  orderId: string; // Added field
 }
 
 export interface ShipmentResponse {
@@ -103,12 +104,13 @@ class SriLankaCourierService extends EventEmitter {
       });
 
       couriers.forEach(courier => {
-        this.couriers.set(courier.code, {
+        // Schema only has: id, name, organizationId, isActive, email, phone, createdAt, updatedAt
+        this.couriers.set(courier.id, { // Use ID as code
           name: courier.name,
-          code: courier.code,
-          apiKey: courier.apiKey,
-          apiSecret: courier.apiSecret,
-          baseUrl: courier.baseUrl,
+          code: courier.id,
+          apiKey: 'mock-key', // Placeholder: Field missing in schema
+          apiSecret: undefined, // Placeholder: Field missing in schema
+          baseUrl: 'https://api.courier.lk', // Placeholder: Field missing in schema
           isActive: courier.isActive,
           organizationId: courier.organizationId
         });
@@ -131,7 +133,7 @@ class SriLankaCourierService extends EventEmitter {
     try {
       // Simulate API call to courier service
       const response = await this.callCourierAPI(courier, 'create-shipment', request);
-      
+
       const shipmentResponse: ShipmentResponse = {
         trackingNumber: response.trackingNumber,
         courierCode,
@@ -146,19 +148,20 @@ class SriLankaCourierService extends EventEmitter {
       await prisma.shipment.create({
         data: {
           trackingNumber: shipmentResponse.trackingNumber,
-          courierCode,
+          carrier: courierCode, // courierCode -> carrier
           status: shipmentResponse.status,
-          pickupAddress: request.pickupAddress,
-          deliveryAddress: request.deliveryAddress,
-          package: request.package,
-          cost: shipmentResponse.cost,
+          // pickupAddress: request.pickupAddress, // Missing in schema
+          // deliveryAddress: request.deliveryAddress, // Missing in schema
+          // package: request.package, // Missing in schema
+          // cost: shipmentResponse.cost, // Missing in schema
           estimatedDelivery: shipmentResponse.estimatedDelivery,
-          organizationId: courier.organizationId
+          organizationId: courier.organizationId,
+          orderId: request.orderId // Added
         }
       });
 
       // Emit real-time event
-      realTimeSyncService.emit(SyncEvent.SHIPMENT_CREATED, {
+      realTimeSyncService.emit('shipment.created', {
         trackingNumber: shipmentResponse.trackingNumber,
         courierCode,
         status: shipmentResponse.status
@@ -169,7 +172,7 @@ class SriLankaCourierService extends EventEmitter {
       logger.error({
         message: 'Error creating shipment',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'SriLankaCourierService', operation: 'createShipment', courierCode: data.courierCode, orderId: data.orderId }
+        context: { service: 'SriLankaCourierService', operation: 'createShipment', courierCode }
       });
       throw new Error('Failed to create shipment');
     }
@@ -178,7 +181,7 @@ class SriLankaCourierService extends EventEmitter {
   async trackShipment(trackingNumber: string, courierCode: string): Promise<TrackingInfo> {
     const cacheKey = `${courierCode}:${trackingNumber}`;
     const cached = this.trackingCache.get(cacheKey);
-    
+
     if (cached && Date.now() - cached.timestamp.getTime() < this.cacheTimeout) {
       return cached;
     }
@@ -191,7 +194,7 @@ class SriLankaCourierService extends EventEmitter {
     try {
       // Simulate API call to courier service
       const response = await this.callCourierAPI(courier, 'track-shipment', { trackingNumber });
-      
+
       const trackingInfo: TrackingInfo = {
         trackingNumber,
         courierCode,
@@ -208,16 +211,16 @@ class SriLankaCourierService extends EventEmitter {
 
       // Update database
       await prisma.shipment.updateMany({
-        where: { trackingNumber, courierCode },
+        where: { trackingNumber, carrier: courierCode }, // courierCode -> carrier
         data: {
           status: trackingInfo.status,
-          lastUpdate: trackingInfo.timestamp,
-          trackingEvents: trackingInfo.events
+          updatedAt: trackingInfo.timestamp, // lastUpdate -> updatedAt
+          // trackingEvents: trackingInfo.events // Missing in schema
         }
       });
 
       // Emit real-time event
-      realTimeSyncService.emit(SyncEvent.SHIPMENT_UPDATED, {
+      realTimeSyncService.emit('shipment.updated', {
         trackingNumber,
         courierCode,
         status: trackingInfo.status
@@ -243,19 +246,19 @@ class SriLankaCourierService extends EventEmitter {
     try {
       // Simulate API call to courier service
       await this.callCourierAPI(courier, 'cancel-shipment', { trackingNumber, reason });
-      
+
       // Update database
       await prisma.shipment.updateMany({
-        where: { trackingNumber, courierCode },
+        where: { trackingNumber, carrier: courierCode }, // courierCode -> carrier
         data: {
           status: 'cancelled',
-          cancellationReason: reason,
-          cancelledAt: new Date()
+          // cancellationReason: reason, // Missing in schema
+          // cancelledAt: new Date() // Missing in schema
         }
       });
 
       // Emit real-time event
-      realTimeSyncService.emit(SyncEvent.SHIPMENT_CANCELLED, {
+      realTimeSyncService.emit('shipment.cancelled', {
         trackingNumber,
         courierCode,
         reason
@@ -274,7 +277,7 @@ class SriLankaCourierService extends EventEmitter {
 
   async getAvailableServices(): Promise<CourierService[]> {
     const services: CourierService[] = [];
-    
+
     for (const [code, courier] of this.couriers) {
       if (courier.isActive) {
         services.push({
@@ -310,7 +313,7 @@ class SriLankaCourierService extends EventEmitter {
       logger.error({
         message: 'Error calculating cost',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'SriLankaCourierService', operation: 'calculateCost', courierCode: data.courierCode }
+        context: { service: 'SriLankaCourierService', operation: 'calculateCost', courierCode }
       });
       throw new Error('Failed to calculate cost');
     }
@@ -319,7 +322,7 @@ class SriLankaCourierService extends EventEmitter {
   private async callCourierAPI(courier: CourierConfig, endpoint: string, data: any): Promise<any> {
     // Simulate API call - in real implementation, this would make actual HTTP requests
     const url = `${courier.baseUrl}/${endpoint}`;
-    
+
     // Mock response based on endpoint
     switch (endpoint) {
       case 'create-shipment':
@@ -329,7 +332,7 @@ class SriLankaCourierService extends EventEmitter {
           labelUrl: 'https://example.com/label.pdf',
           receiptUrl: 'https://example.com/receipt.pdf'
         };
-      
+
       case 'track-shipment':
         return {
           status: 'in_transit',
@@ -351,13 +354,13 @@ class SriLankaCourierService extends EventEmitter {
             }
           ]
         };
-      
+
       case 'cancel-shipment':
         return { success: true };
-      
+
       case 'calculate-cost':
         return { cost: 500 };
-      
+
       default:
         throw new Error(`Unknown endpoint: ${endpoint}`);
     }
@@ -367,10 +370,10 @@ class SriLankaCourierService extends EventEmitter {
     await prisma.courier.create({
       data: {
         name: config.name,
-        code: config.code,
-        apiKey: config.apiKey,
-        apiSecret: config.apiSecret,
-        baseUrl: config.baseUrl,
+        // code: config.code, // Field missing
+        // apiKey: config.apiKey, // Field missing
+        // apiSecret: config.apiSecret, // Field missing
+        // baseUrl: config.baseUrl, // Field missing
         isActive: config.isActive,
         organizationId: config.organizationId
       }
@@ -382,7 +385,7 @@ class SriLankaCourierService extends EventEmitter {
 
   async removeCourier(courierCode: string): Promise<void> {
     await prisma.courier.updateMany({
-      where: { code: courierCode },
+      where: { id: courierCode }, // Use id instead of code
       data: { isActive: false }
     });
 

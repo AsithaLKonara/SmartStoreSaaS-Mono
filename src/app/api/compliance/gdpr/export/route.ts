@@ -46,7 +46,9 @@ export const POST = requireAuth(
 
       // Non-SUPER_ADMIN can only export data from their own organization
       if (user.role !== 'SUPER_ADMIN') {
-        await validateOrganizationAccess(user, targetUser.organizationId);
+        if (!targetUser.organizationId || !validateOrganizationAccess(user, targetUser.organizationId)) {
+          throw new AuthorizationError('Insufficient permissions to access this user data');
+        }
       }
 
       logger.info({
@@ -79,11 +81,11 @@ export const POST = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

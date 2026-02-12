@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -70,7 +70,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
     try {
       setLoading(true);
       const response = await fetch(`/api/procurement/purchase-orders/${params.id}`);
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           toast.error('Purchase order not found');

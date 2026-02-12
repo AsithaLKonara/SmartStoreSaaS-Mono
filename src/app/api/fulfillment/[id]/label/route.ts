@@ -27,14 +27,15 @@ export async function POST(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const fulfillmentId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_INVENTORY')(
     async (req: AuthenticatedRequest, user) => {
       try {
-        const body = await req.json();
+        let body: any = {};
+        try { body = await req.json(); } catch (e) { }
         const { carrier, service } = body;
 
-        const fulfillment = await prisma.delivery.findUnique({
+        const fulfillment = await prisma.fulfillment.findUnique({
           where: { id: fulfillmentId }
         });
 
@@ -77,11 +78,11 @@ export async function POST(
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

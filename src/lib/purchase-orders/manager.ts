@@ -29,6 +29,7 @@ export async function createPurchaseOrder(data: {
   }>;
   expectedDeliveryDate?: Date;
   notes?: string;
+  createdById: string;
 }): Promise<{ success: boolean; purchaseOrder?: any; error?: string }> {
   try {
     // Generate PO number
@@ -49,15 +50,16 @@ export async function createPurchaseOrder(data: {
         subtotal,
         tax,
         total,
-        expectedDeliveryDate: data.expectedDeliveryDate,
+        expectedDate: data.expectedDeliveryDate,
         notes: data.notes,
+        createdById: data.createdById,
         items: {
           create: data.items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
             receivedQuantity: 0,
-            unitCost: item.unitCost,
-            totalCost: item.quantity * item.unitCost,
+            unitPrice: item.unitCost,
+            total: item.quantity * item.unitCost,
           })),
         },
       },
@@ -114,7 +116,7 @@ export async function approvePurchaseOrder(
     logger.error({
       message: 'Approve PO error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'PurchaseOrderManager', operation: 'approvePurchaseOrder', purchaseOrderId }
+      context: { service: 'PurchaseOrderManager', operation: 'approvePurchaseOrder', purchaseOrderId: poId }
     });
     return { success: false, error: error.message };
   }
@@ -141,7 +143,7 @@ export async function sendPurchaseOrder(
     // Would send email to supplier
     logger.info({
       message: 'Sending PO to supplier',
-      context: { service: 'PurchaseOrderManager', operation: 'sendPurchaseOrder', purchaseOrderId, orderNumber: po.orderNumber, supplierEmail: po.supplier.email }
+      context: { service: 'PurchaseOrderManager', operation: 'sendPurchaseOrder', purchaseOrderId: poId, orderNumber: po.orderNumber, supplierEmail: po.supplier.email }
     });
 
     return { success: true };
@@ -149,7 +151,7 @@ export async function sendPurchaseOrder(
     logger.error({
       message: 'Send PO error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'PurchaseOrderManager', operation: 'sendPurchaseOrder', purchaseOrderId }
+      context: { service: 'PurchaseOrderManager', operation: 'sendPurchaseOrder', purchaseOrderId: poId }
     });
     return { success: false, error: error.message };
   }
@@ -220,7 +222,7 @@ export async function receivePurchaseOrderItems(
       where: { id: poId },
       data: {
         status: newStatus,
-        receivedAt: allReceived ? new Date() : undefined,
+        receivedDate: allReceived ? new Date() : undefined,
       },
     });
 
@@ -229,7 +231,7 @@ export async function receivePurchaseOrderItems(
     logger.error({
       message: 'Receive items error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'PurchaseOrderManager', operation: 'receiveItems', purchaseOrderId }
+      context: { service: 'PurchaseOrderManager', operation: 'receiveItems', purchaseOrderId: poId }
     });
     return { success: false, error: error.message };
   }
@@ -245,7 +247,7 @@ export async function completePurchaseOrder(
     await prisma.purchaseOrder.update({
       where: { id: poId },
       data: {
-        status: PurchaseOrderStatus.COMPLETED,
+        status: 'RECEIVED' as any, // Fixed: COMPLETED doesn't exist in Prisma enum, using RECEIVED
         completedAt: new Date(),
       },
     });
@@ -274,7 +276,7 @@ export async function completePurchaseOrder(
     logger.error({
       message: 'Complete PO error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'PurchaseOrderManager', operation: 'completePurchaseOrder', purchaseOrderId }
+      context: { service: 'PurchaseOrderManager', operation: 'completePurchaseOrder', purchaseOrderId: poId }
     });
     return { success: false, error: error.message };
   }
@@ -302,7 +304,7 @@ export async function cancelPurchaseOrder(
     logger.error({
       message: 'Cancel PO error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'PurchaseOrderManager', operation: 'cancelPurchaseOrder', purchaseOrderId }
+      context: { service: 'PurchaseOrderManager', operation: 'cancelPurchaseOrder', purchaseOrderId: poId }
     });
     return { success: false, error: error.message };
   }

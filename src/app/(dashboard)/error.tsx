@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { logger } from '@/lib/logger';
 
-export default function Error({
+export default function DashboardError({
   error,
   reset,
 }: {
@@ -13,10 +13,10 @@ export default function Error({
   useEffect(() => {
     logger.error({
       message: 'Dashboard error',
-      error: error instanceof Error ? error : new Error(error.message || 'Unknown error'),
-      context: { 
+      error: error,
+      context: {
         component: 'ErrorBoundary',
-        digest: error.digest 
+        digest: error.digest
       }
     });
   }, [error]);

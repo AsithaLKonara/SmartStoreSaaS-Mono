@@ -4,6 +4,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { generateRandomString } from '@/lib/utils';
 
 export enum RewardType {
   POINTS = 'POINTS',
@@ -79,47 +80,46 @@ export async function addPoints(
 ): Promise<{ success: boolean; newPoints: number; newTier: LoyaltyTier }> {
   try {
     // Get or create loyalty account
-    let loyalty = await prisma.loyaltyAccount.findUnique({
+    let loyalty = await prisma.customerLoyalty.findFirst({
       where: { customerId },
     });
 
     if (!loyalty) {
-      loyalty = await prisma.loyaltyAccount.create({
+      loyalty = await prisma.customerLoyalty.create({
         data: {
           customerId,
           points: 0,
           tier: LoyaltyTier.BRONZE,
-          lifetimePoints: 0,
         },
       });
     }
 
     const newPoints = loyalty.points + points;
-    const newLifetimePoints = loyalty.lifetimePoints + points;
-    const newTier = determineLoyaltyTier(newLifetimePoints);
+    // Lifetime points logic removed as field is missing. Using current points for tier.
+    const newTier = determineLoyaltyTier(newPoints);
 
     // Update loyalty account
-    await prisma.loyaltyAccount.update({
-      where: { customerId },
+    await prisma.customerLoyalty.update({
+      where: { id: loyalty.id },
       data: {
         points: newPoints,
-        lifetimePoints: newLifetimePoints,
         tier: newTier,
       },
     });
 
     // Record transaction
-    await prisma.loyaltyTransaction.create({
+    await prisma.loyalty_transactions.create({
       data: {
+        id: generateRandomString(12),
         customerId,
+        loyaltyId: loyalty.id,
         points,
         type: 'EARNED',
-        reason,
-        orderId,
+        description: reason + (orderId ? ` Order: ${orderId}` : ''),
       },
     });
 
-    return { success: true, newPoints, newTier };
+    return { success: true, newPoints, newTier: newTier as LoyaltyTier };
   } catch (error) {
     logger.error({
       message: 'Add points error',
@@ -140,7 +140,7 @@ export async function redeemPoints(
   orderId?: string
 ): Promise<{ success: boolean; newPoints: number; error?: string }> {
   try {
-    const loyalty = await prisma.loyaltyAccount.findUnique({
+    const loyalty = await prisma.customerLoyalty.findFirst({
       where: { customerId },
     });
 
@@ -154,18 +154,19 @@ export async function redeemPoints(
 
     const newPoints = loyalty.points - points;
 
-    await prisma.loyaltyAccount.update({
-      where: { customerId },
+    await prisma.customerLoyalty.update({
+      where: { id: loyalty.id },
       data: { points: newPoints },
     });
 
-    await prisma.loyaltyTransaction.create({
+    await prisma.loyalty_transactions.create({
       data: {
+        id: generateRandomString(12),
         customerId,
+        loyaltyId: loyalty.id,
         points: -points,
         type: 'REDEEMED',
-        reason,
-        orderId,
+        description: reason + (orderId ? ` Order: ${orderId}` : ''),
       },
     });
 
@@ -184,7 +185,7 @@ export async function redeemPoints(
  * Get customer loyalty status
  */
 export async function getLoyaltyStatus(customerId: string) {
-  const loyalty = await prisma.loyaltyAccount.findUnique({
+  const loyalty = await prisma.customerLoyalty.findFirst({
     where: { customerId },
     include: {
       customer: {
@@ -207,19 +208,19 @@ export async function getLoyaltyStatus(customerId: string) {
   }
 
   const currentTier = loyalty.tier as LoyaltyTier;
-  const benefits = DEFAULT_CONFIG.tierBenefits[currentTier];
-  
+  const benefits = DEFAULT_CONFIG.tierBenefits[currentTier] || DEFAULT_CONFIG.tierBenefits.BRONZE;
+
   // Calculate points to next tier
   const tiers = Object.entries(DEFAULT_CONFIG.tierThresholds)
     .sort((a, b) => a[1] - b[1]);
-  
+
   let nextTier: LoyaltyTier | null = null;
   let pointsToNextTier = 0;
 
   for (const [tier, threshold] of tiers) {
-    if (threshold > loyalty.lifetimePoints) {
+    if (threshold > loyalty.points) { // Using current points as proxy for lifetime
       nextTier = tier as LoyaltyTier;
-      pointsToNextTier = threshold - loyalty.lifetimePoints;
+      pointsToNextTier = threshold - loyalty.points;
       break;
     }
   }
@@ -236,18 +237,12 @@ export async function getLoyaltyStatus(customerId: string) {
  * Get loyalty transactions history
  */
 export async function getLoyaltyHistory(customerId: string, limit: number = 50) {
-  return await prisma.loyaltyTransaction.findMany({
+  // customerId is on relation? loyalty_transactions has customerId field.
+  return await prisma.loyalty_transactions.findMany({
     where: { customerId },
     orderBy: { createdAt: 'desc' },
     take: limit,
-    include: {
-      order: {
-        select: {
-          orderNumber: true,
-          total: true,
-        },
-      },
-    },
+    // include order not available directly as relation might not exist in schema
   });
 }
 
@@ -257,4 +252,3 @@ export async function getLoyaltyHistory(customerId: string, limit: number = 50) 
 export function calculatePointsValue(points: number, pointsPerDollar: number = 100): number {
   return points / pointsPerDollar;
 }
-

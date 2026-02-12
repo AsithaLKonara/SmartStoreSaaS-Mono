@@ -10,12 +10,12 @@ let client: any = null;
 
 function getTwilioClient() {
   if (client) return client;
-  
+
   // Only initialize if we have valid credentials (accountSid starts with AC)
   if (accountSid && authToken && accountSid.startsWith('AC')) {
     client = twilio(accountSid, authToken);
   }
-  
+
   return client;
 }
 
@@ -36,7 +36,7 @@ export interface SMSResponse {
 export async function sendSMS(data: SMSMessage): Promise<SMSResponse> {
   try {
     const twilioClient = getTwilioClient();
-    
+
     if (!twilioClient) {
       throw new Error('Twilio client not initialized. Check environment variables.');
     }
@@ -63,7 +63,7 @@ export async function sendSMS(data: SMSMessage): Promise<SMSResponse> {
     logger.error({
       message: 'SMS send error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'SMSIntegration', operation: 'sendSMS', to, message }
+      context: { service: 'SMSIntegration', operation: 'sendSMS', to: data.to, message: data.message }
     });
     return {
       success: false,
@@ -88,13 +88,13 @@ export async function sendBulkSMS(messages: SMSMessage[]): Promise<{
   for (const message of messages) {
     const result = await sendSMS(message);
     results.push(result);
-    
+
     if (result.success) {
       sent++;
     } else {
       failed++;
     }
-    
+
     // Add small delay to respect rate limits
     await new Promise(resolve => setTimeout(resolve, 100));
   }

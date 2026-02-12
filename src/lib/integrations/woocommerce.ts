@@ -154,7 +154,7 @@ export class WooCommerceService {
       logger.error({
         message: 'WooCommerce product export error',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'WooCommerceIntegration', operation: 'exportProduct', productId }
+        context: { service: 'WooCommerceIntegration', operation: 'exportProduct', productId: product.id }
       });
       throw new Error(`Failed to export product: ${error.message}`);
     }

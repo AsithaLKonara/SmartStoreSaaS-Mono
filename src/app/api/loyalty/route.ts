@@ -23,7 +23,11 @@ export const GET = requirePermission('VIEW_LOYALTY')(
       const limit = parseInt(searchParams.get('limit') || '10');
 
       // Get loyalty programs with organization scoping
-      const where: any = { organizationId };
+      const where: any = {
+        customer: {
+          organizationId
+        }
+      };
       const [loyaltyPrograms, total] = await Promise.all([
         prisma.customerLoyalty.findMany({
           where,
@@ -65,11 +69,11 @@ export const GET = requirePermission('VIEW_LOYALTY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -104,14 +108,27 @@ export const POST = requirePermission('MANAGE_LOYALTY')(
 
       // Get or create customer loyalty record
       let customerLoyalty = await prisma.customerLoyalty.findFirst({
-        where: { customerId, organizationId }
+        where: {
+          customerId,
+          customer: {
+            organizationId
+          }
+        }
       });
 
       if (!customerLoyalty) {
+        // Verify customer belongs to organization before creating loyalty record
+        const customer = await prisma.customer.findFirst({
+          where: { id: customerId, organizationId }
+        });
+
+        if (!customer) {
+          throw new ValidationError('Customer not found or access denied');
+        }
+
         customerLoyalty = await prisma.customerLoyalty.create({
           data: {
             customerId,
-            organizationId,
             points: 0
           }
         });
@@ -156,11 +173,11 @@ export const POST = requirePermission('MANAGE_LOYALTY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

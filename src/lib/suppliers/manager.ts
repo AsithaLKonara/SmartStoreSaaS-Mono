@@ -28,6 +28,7 @@ export async function createSupplier(
     const supplier = await prisma.supplier.create({
       data: {
         ...data,
+        code: `SUP-${Date.now()}`, // Auto-generate supplier code
         rating: 0,
         totalOrders: 0,
         totalSpent: 0,
@@ -153,7 +154,7 @@ export async function linkProductToSupplier(data: {
     logger.error({
       message: 'Link product error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'SupplierManager', operation: 'linkProduct', supplierId, productId }
+      context: { service: 'SupplierManager', operation: 'linkProduct', supplierId: data.supplierId, productId: data.productId }
     });
     return { success: false, error: error.message };
   }
@@ -214,7 +215,7 @@ export async function getSupplierPerformance(supplierId: string) {
     include: {
       purchaseOrders: {
         where: {
-          status: 'COMPLETED',
+          status: 'RECEIVED', // Fix: COMPLETED doesn't exist, use RECEIVED
         },
       },
     },
@@ -224,9 +225,9 @@ export async function getSupplierPerformance(supplierId: string) {
     return null;
   }
 
-  const totalOrders = supplier.purchaseOrders.length;
-  const totalSpent = supplier.purchaseOrders.reduce((sum, po) => sum + Number(po.total), 0);
-  
+  const totalOrders = supplier.purchaseOrders?.length ?? 0; // Add null safety
+  const totalSpent = supplier.purchaseOrders?.reduce((sum: number, po: any) => sum + Number(po.total), 0) ?? 0; // Add type annotations
+
   // Calculate on-time delivery rate (would need delivery dates)
   const onTimeRate = 0.95; // Placeholder
 

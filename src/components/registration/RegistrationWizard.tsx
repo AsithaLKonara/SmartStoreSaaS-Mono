@@ -24,12 +24,12 @@ interface RegistrationData {
     country: string;
     postalCode: string;
   };
-  
+
   // Step 2: Package Selection
   packageId: string;
   packageName: string;
   packagePrice: number;
-  
+
   // Step 3: Payment/Trial Decision
   paymentMethod: 'trial' | 'payment';
   paymentDetails?: {
@@ -86,7 +86,7 @@ export function RegistrationWizard() {
 
   const handleNext = (stepData: Partial<RegistrationData>) => {
     setRegistrationData(prev => ({ ...prev, ...stepData }));
-    
+
     if (currentStep < steps.length) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -129,7 +129,10 @@ export function RegistrationWizard() {
     }
   };
 
-  const CurrentStepComponent = steps[currentStep - 1].component;
+  const currentStepData = steps[currentStep - 1];
+  if (!currentStepData) return null;
+
+  const CurrentStepComponent = currentStepData.component;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
@@ -163,11 +166,10 @@ export function RegistrationWizard() {
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full ${
-                  currentStep >= step.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full ${currentStep >= step.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-600'
+                  }`}
               >
                 <div className="w-6 h-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-sm font-bold">
                   {step.id}
@@ -182,10 +184,10 @@ export function RegistrationWizard() {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl text-center">
-              {steps[currentStep - 1].title}
+              {currentStepData.title}
             </CardTitle>
             <CardDescription className="text-center">
-              {steps[currentStep - 1].description}
+              {currentStepData.description}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -210,7 +212,7 @@ export function RegistrationWizard() {
           >
             Previous
           </Button>
-          
+
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-2">
               Need help? Contact our support team

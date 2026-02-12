@@ -15,6 +15,11 @@ interface SearchResult {
   highlights: string[];
 }
 
+interface SearchAnalytics {
+  searchTime: number;
+  totalResults: number;
+}
+
 interface SearchFilters {
   category?: string;
   brand?: string;
@@ -49,7 +54,7 @@ export function AdvancedSearch({
   const [searchType, setSearchType] = useState(defaultType);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
-  const [analytics, setAnalytics] = useState<unknown>(null);
+  const [analytics, setAnalytics] = useState<SearchAnalytics | null>(null);
 
   const debouncedQuery = useDebounce(query, 300);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -103,7 +108,7 @@ export function AdvancedSearch({
 
       const response = await fetch(`/api/search?${params.toString()}`);
       const data = await response.json();
-      
+
       setResults(data.results || []);
       setAnalytics(data.analytics || null);
     } catch (error) {
@@ -133,7 +138,7 @@ export function AdvancedSearch({
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const totalItems = suggestions.length + results.length;
-    
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -147,11 +152,15 @@ export function AdvancedSearch({
         e.preventDefault();
         if (selectedIndex >= 0) {
           if (selectedIndex < suggestions.length) {
-            setQuery(suggestions[selectedIndex]);
+            const suggestion = suggestions[selectedIndex];
+            if (suggestion) {
+              setQuery(suggestion);
+            }
           } else {
             const resultIndex = selectedIndex - suggestions.length;
-            if (results[resultIndex]) {
-              handleResultSelect(results[resultIndex]);
+            const result = results[resultIndex];
+            if (result) {
+              handleResultSelect(result);
             }
           }
         } else if (query.trim()) {
@@ -212,7 +221,7 @@ export function AdvancedSearch({
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-gray-400" />
         </div>
-        
+
         <input
           ref={inputRef}
           type="text"
@@ -228,7 +237,7 @@ export function AdvancedSearch({
         <div className="absolute inset-y-0 right-0 flex items-center">
           <select
             value={searchType}
-                            onChange={(e) => setSearchType(e.target.value as 'global' | 'products' | 'customers' | 'orders')}
+            onChange={(e) => setSearchType(e.target.value as 'global' | 'products' | 'customers' | 'orders')}
             className="h-full px-3 py-2 text-sm border-l border-gray-300 dark:border-gray-600 bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none"
           >
             <option value="global">All</option>
@@ -344,9 +353,8 @@ export function AdvancedSearch({
                 <button
                   key={index}
                   onClick={() => handleSuggestionSelect(suggestion)}
-                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                    selectedIndex === index ? 'bg-blue-50 dark:bg-blue-900' : ''
-                  }`}
+                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${selectedIndex === index ? 'bg-blue-50 dark:bg-blue-900' : ''
+                    }`}
                 >
                   <div className="flex items-center">
                     <Search className="h-4 w-4 text-gray-400 mr-2" />
@@ -367,9 +375,8 @@ export function AdvancedSearch({
                 <button
                   key={result.id}
                   onClick={() => handleResultSelect(result)}
-                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                    selectedIndex === suggestions.length + index ? 'bg-blue-50 dark:bg-blue-900' : ''
-                  }`}
+                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${selectedIndex === suggestions.length + index ? 'bg-blue-50 dark:bg-blue-900' : ''
+                    }`}
                 >
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center mr-3">

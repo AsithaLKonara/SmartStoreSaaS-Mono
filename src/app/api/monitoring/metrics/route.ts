@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/monitoring/metrics
  * Monitoring metrics (MANAGER or higher)
  */
-export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'])(
+export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -81,7 +81,7 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'MANAGER'])(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

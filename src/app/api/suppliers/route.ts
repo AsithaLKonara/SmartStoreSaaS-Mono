@@ -15,19 +15,19 @@ export const GET = withErrorHandlerApp(
 
         const organizationId = getOrganizationScope(user);
         if (!organizationId) {
-          throw new AppError('Organization ID not found for user', 'ERR_MISSING_ORG_ID', 400);
+          throw new AppError('Organization ID not found for user', 'ERR_VALIDATION', 400);
         }
 
-    const suppliers = await prisma.supplier.findMany({
-      where: { organizationId },
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { createdAt: 'desc' }
-    });
+        const suppliers = await prisma.supplier.findMany({
+          where: { organizationId },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: 'desc' }
+        });
 
-    const total = await prisma.supplier.count({
-      where: { organizationId }
-    });
+        const total = await prisma.supplier.count({
+          where: { organizationId }
+        });
 
         logger.info({
           message: 'Suppliers fetched',
@@ -67,7 +67,7 @@ export const POST = withErrorHandlerApp(
         const body = await req.json();
         const organizationId = getOrganizationScope(user);
         if (!organizationId) {
-          throw new AppError('Organization ID not found for user', 'ERR_MISSING_ORG_ID', 400);
+          throw new AppError('Organization ID not found for user', 'ERR_VALIDATION', 400);
         }
 
         const supplier = await prisma.supplier.create({

@@ -1,0 +1,1100 @@
+src/lib/email/emailService.ts(322,11): error TS2353: Object literal may only specify known properties, and 'htmlContent' does not exist in type '(Without<EmailTemplateCreateInput, EmailTemplateUncheckedCreateInput> & EmailTemplateUncheckedCreateInput) | (Without<...> & EmailTemplateCreateInput)'.
+src/lib/email/emailService.ts(340,38): error TS2339: Property 'htmlContent' does not exist on type '{ name: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; variables: JsonValue; subject: string; body: string; }'.
+src/lib/email/emailService.ts(341,38): error TS2339: Property 'textContent' does not exist on type '{ name: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; variables: JsonValue; subject: string; body: string; }'.
+src/lib/email/emailService.ts(342,9): error TS2322: Type 'JsonValue' is not assignable to type 'string[]'.
+  Type 'null' is not assignable to type 'string[]'.
+src/lib/email/emailService.ts(348,88): error TS2552: Cannot find name 'templateData'. Did you mean 'template'?
+src/lib/email/emailService.ts(381,102): error TS2339: Property 'name' does not exist on type '{ TemplateName: any; TemplateData: { SubjectPart: any; HtmlPart: any; TextPart: any; }; }'.
+src/lib/email/emailService.ts(389,24): error TS18046: 'order' is of type 'unknown'.
+src/lib/email/emailService.ts(523,11): error TS2353: Object literal may only specify known properties, and 'email_listId' does not exist in type 'EmailSubscriptionWhereUniqueInput'.
+src/lib/email/emailService.ts(529,11): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type '(Without<EmailSubscriptionUpdateInput, EmailSubscriptionUncheckedUpdateInput> & EmailSubscriptionUncheckedUpdateInput) | (Without<...> & EmailSubscriptionUpdateInput)'.
+src/lib/email/emailService.ts(535,11): error TS2353: Object literal may only specify known properties, and 'listId' does not exist in type '(Without<EmailSubscriptionCreateInput, EmailSubscriptionUncheckedCreateInput> & EmailSubscriptionUncheckedCreateInput) | (Without<...> & EmailSubscriptionCreateInput)'.
+src/lib/email/emailService.ts(554,25): error TS2353: Object literal may only specify known properties, and 'listId' does not exist in type 'EmailSubscriptionWhereInput'.
+src/lib/email/emailService.ts(555,17): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type '(Without<EmailSubscriptionUpdateManyMutationInput, EmailSubscriptionUncheckedUpdateManyInput> & EmailSubscriptionUncheckedUpdateManyInput) | (Without<...> & EmailSubscriptionUpdateManyMutationInput)'.
+src/lib/email/emailService.ts(574,9): error TS2322: Type '{ template: true; }' is not assignable to type 'never'.
+src/lib/email/emailService.ts(591,30): error TS2551: Property 'templateId' does not exist on type '{ template: never; } & { status: string; name: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; sentAt: Date | null; ... 4 more ...; clickCount: number; }'. Did you mean 'template'?
+src/lib/email/emailService.ts(641,24): error TS18046: 'order' is of type 'unknown'.
+src/lib/enhanced-security-middleware.ts(3,54): error TS2306: File '/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/src/lib/security.ts' is not a module.
+src/lib/enhanced-security-middleware.ts(5,82): error TS2307: Cannot find module './auth-middleware' or its corresponding type declarations.
+src/lib/enhanced-security-middleware.ts(387,51): error TS2339: Property 'entries' does not exist on type 'Headers'.
+src/lib/enhanced-security-middleware.ts(394,46): error TS2345: Argument of type '{ type: "api_access"; ipAddress: string; userAgent: string; userId: string | undefined; details: { method: string; url: string; headers: { [k: string]: any; }; }; severity: "low"; timestamp: Date; organizationId: string | undefined; }' is not assignable to parameter of type 'SecurityEvent'.
+  Types of property 'type' are incompatible.
+    Type '"api_access"' is not assignable to type '"login_attempt" | "failed_login" | "suspicious_activity" | "data_access" | "permission_change" | "api_abuse" | "brute_force" | "account_lockout" | "password_reset" | "mfa_bypass_attempt" | "unusual_location" | "device_change"'.
+src/lib/enhanced-security-middleware.ts(456,12): error TS2532: Object is possibly 'undefined'.
+src/lib/error-handling.ts(206,32): error TS2339: Property 'fieldErrors' does not exist on type 'ZodError<any>'.
+src/lib/error-tracking.ts(99,82): error TS2304: Cannot find name 'errorData'.
+src/lib/error-tracking.ts(121,11): error TS2322: Type '{ timestamp: { gte: Date; lte: Date; }; organizationId: string; } | { timestamp: { gte: Date; lte: Date; }; organizationId?: undefined; }' is not assignable to type 'ErrorEventWhereInput | undefined'.
+  Object literal may only specify known properties, and 'timestamp' does not exist in type 'ErrorEventWhereInput'.
+src/lib/error-tracking.ts(145,19): error TS2339: Property 'severity' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(145,42): error TS2339: Property 'severity' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(153,27): error TS2339: Property 'timestamp' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(153,51): error TS2339: Property 'timestamp' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(158,27): error TS2339: Property 'severity' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(160,26): error TS2339: Property 'context' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(160,53): error TS2339: Property 'context' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(161,49): error TS2345: Argument of type 'string | number | true | JsonObject | JsonArray' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/lib/error-tracking.ts(162,28): error TS2339: Property 'timestamp' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(163,27): error TS2339: Property 'resolved' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(164,29): error TS2339: Property 'resolvedAt' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(165,29): error TS2339: Property 'resolvedBy' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(166,23): error TS2339: Property 'tags' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(166,36): error TS2339: Property 'tags' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(167,23): error TS2339: Property 'user' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(179,9): error TS2322: Type '{ id: string; type: string; severity: any; message: string; context: any; metadata: any; timestamp: any; resolved: any; resolvedAt: any; resolvedBy: any; tags: any; user: any; }[]' is not assignable to type 'ErrorEvent[]'.
+  Type '{ id: string; type: string; severity: any; message: string; context: any; metadata: any; timestamp: any; resolved: any; resolvedAt: any; resolvedBy: any; tags: any; user: any; }' is not assignable to type 'ErrorEvent'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type '"api_error" | "database_error" | "validation_error" | "authentication_error" | "authorization_error" | "business_logic_error" | "external_service_error" | "system_error"'.
+src/lib/error-tracking.ts(200,9): error TS2322: Type '{ user: { select: { id: true; name: true; email: true; }; }; }' is not assignable to type 'never'.
+src/lib/error-tracking.ts(216,25): error TS2339: Property 'severity' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(218,27): error TS2339: Property 'stackTrace' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(219,24): error TS2339: Property 'context' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(219,51): error TS2339: Property 'context' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(220,47): error TS2345: Argument of type 'string | number | true | JsonObject | JsonArray' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/lib/error-tracking.ts(221,26): error TS2339: Property 'timestamp' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(222,25): error TS2339: Property 'resolved' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(223,27): error TS2339: Property 'resolvedAt' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(224,27): error TS2339: Property 'resolvedBy' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(225,21): error TS2339: Property 'tags' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(225,34): error TS2339: Property 'tags' does not exist on type '{ user: never; } & { message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(245,11): error TS2353: Object literal may only specify known properties, and 'resolved' does not exist in type '(Without<ErrorEventUpdateInput, ErrorEventUncheckedUpdateInput> & ErrorEventUncheckedUpdateInput) | (Without<...> & ErrorEventUpdateInput)'.
+src/lib/error-tracking.ts(255,82): error TS18004: No value exists in scope for the shorthand property 'userId'. Either declare one or provide an initializer.
+src/lib/error-tracking.ts(273,11): error TS2322: Type 'string | null' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+  Type 'null' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+src/lib/error-tracking.ts(287,85): error TS2304: Cannot find name 'errorEvent'.
+src/lib/error-tracking.ts(326,9): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'ErrorEventWhereInput'.
+src/lib/error-tracking.ts(351,9): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'ErrorEventWhereInput'.
+src/lib/error-tracking.ts(425,11): error TS2322: Type '{ timestamp: { gte: Date; lte: Date; } | undefined; organizationId: string; } | { timestamp: { gte: Date; lte: Date; } | undefined; organizationId?: undefined; }' is not assignable to type 'ErrorEventWhereInput | undefined'.
+  Object literal may only specify known properties, and 'timestamp' does not exist in type 'ErrorEventWhereInput'.
+src/lib/error-tracking.ts(438,27): error TS2339: Property 'severity' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(439,33): error TS2339: Property 'timestamp' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(446,77): error TS2339: Property 'severity' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(447,19): error TS2339: Property 'timestamp' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(448,43): error TS2339: Property 'timestamp' does not exist on type '{ message: string; stack: string | null; url: string | null; userId: string | null; id: string; organizationId: string | null; createdAt: Date; type: string; userAgent: string | null; metadata: JsonValue; }'.
+src/lib/error-tracking.ts(452,34): error TS2339: Property 'add' does not exist on type 'number | Set<string>'.
+  Property 'add' does not exist on type 'number'.
+src/lib/error-tracking.ts(455,42): error TS2339: Property 'add' does not exist on type 'number | Set<string>'.
+  Property 'add' does not exist on type 'number'.
+src/lib/error-tracking.ts(458,33): error TS2345: Argument of type 'ErrorAggregation | { type: string; count: number; severity: any; lastOccurrence: any; trend: "stable"; affectedUsers: Set<string>; affectedOrganizations: Set<string>; }' is not assignable to parameter of type 'ErrorAggregation'.
+  Type '{ type: string; count: number; severity: any; lastOccurrence: any; trend: "stable"; affectedUsers: Set<string>; affectedOrganizations: Set<string>; }' is not assignable to type 'ErrorAggregation'.
+    Types of property 'affectedUsers' are incompatible.
+      Type 'Set<string>' is not assignable to type 'number'.
+src/lib/error-tracking.ts(463,42): error TS2339: Property 'size' does not exist on type 'number'.
+src/lib/error-tracking.ts(464,58): error TS2339: Property 'size' does not exist on type 'number'.
+src/lib/errors/errorHandler.ts(116,5): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'Omit<LogEntry, "level" | "timestamp">'.
+src/lib/errors/errorHandler.ts(241,11): error TS2353: Object literal may only specify known properties, and 'delay' does not exist in type 'Omit<LogEntry, "level" | "timestamp">'.
+src/lib/fulfillment/automation.ts(68,9): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type '(Without<FulfillmentCreateInput, FulfillmentUncheckedCreateInput> & FulfillmentUncheckedCreateInput) | (Without<...> & FulfillmentCreateInput)'.
+src/lib/fulfillment/automation.ts(96,92): error TS2304: Cannot find name 'data'.
+src/lib/fulfillment/automation.ts(108,5): error TS2322: Type '{ items: true; order: { include: { orderItems: true; }; }; }' is not assignable to type 'never'.
+src/lib/fulfillment/automation.ts(121,22): error TS2488: Type 'never' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/lib/fulfillment/automation.ts(148,18): error TS2551: Property 'fulfillmentItem' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'fulfillment'?
+src/lib/fulfillment/automation.ts(161,7): error TS2322: Type '{ items: true; }' is not assignable to type 'never'.
+src/lib/fulfillment/automation.ts(164,42): error TS2339: Property 'every' does not exist on type 'never'.
+src/lib/fulfillment/automation.ts(164,48): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/lib/fulfillment/automation.ts(202,9): error TS2353: Object literal may only specify known properties, and 'weight' does not exist in type '(Without<FulfillmentUpdateInput, FulfillmentUncheckedUpdateInput> & FulfillmentUncheckedUpdateInput) | (Without<...> & FulfillmentUpdateInput)'.
+src/lib/fulfillment/automation.ts(239,7): error TS2322: Type '{ order: { include: { customer: true; }; }; }' is not assignable to type 'never'.
+src/lib/fulfillment/automation.ts(264,93): error TS18004: No value exists in scope for the shorthand property 'trackingNumber'. Either declare one or provide an initializer.
+src/lib/fulfillment/automation.ts(298,5): error TS2322: Type '{ items: { include: { product: { select: { name: true; sku: true; }; }; }; }; }' is not assignable to type 'never'.
+src/lib/fulfillment/automation.ts(320,7): error TS2561: Object literal may only specify known properties, but 'order' does not exist in type 'FulfillmentWhereInput'. Did you mean to write 'orderId'?
+src/lib/index.ts(8,15): error TS2306: File '/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/src/lib/security.ts' is not a module.
+src/lib/integrations/shopify.ts(2,40): error TS2307: Cannot find module '@shopify/shopify-api' or its corresponding type declarations.
+src/lib/integrations/sms.ts(66,67): error TS18004: No value exists in scope for the shorthand property 'to'. Either declare one or provide an initializer.
+src/lib/integrations/sms.ts(66,71): error TS2552: Cannot find name 'message'. Did you mean 'onmessage'?
+src/lib/integrations/whatsapp.ts(68,76): error TS18004: No value exists in scope for the shorthand property 'to'. Either declare one or provide an initializer.
+src/lib/integrations/whatsapp.ts(68,80): error TS18004: No value exists in scope for the shorthand property 'message'. Either declare one or provide an initializer.
+src/lib/integrations/woocommerce.ts(1,32): error TS2307: Cannot find module '@woocommerce/woocommerce-rest-api' or its corresponding type declarations.
+src/lib/integrations/woocommerce.ts(157,83): error TS18004: No value exists in scope for the shorthand property 'productId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(148,33): error TS2339: Property 'lowStockThreshold' does not exist on type '{ variants: { name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; sku: string; price: Decimal; cost: Decimal | null; stock: number; weight: number | null; dimensions: string | null; productId: string; }[]; } & { ...; }'.
+src/lib/inventory/inventoryService.ts(149,34): error TS2339: Property 'reorderPoint' does not exist on type '{ variants: { name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; sku: string; price: Decimal; cost: Decimal | null; stock: number; weight: number | null; dimensions: string | null; productId: string; }[]; } & { ...; }'.
+src/lib/inventory/inventoryService.ts(150,11): error TS2322: Type 'number | Decimal' is not assignable to type 'number'.
+  Type 'Decimal' is not assignable to type 'number'.
+src/lib/inventory/inventoryService.ts(169,13): error TS2322: Type 'number | Decimal' is not assignable to type 'number'.
+  Type 'Decimal' is not assignable to type 'number'.
+src/lib/inventory/inventoryService.ts(181,94): error TS18004: No value exists in scope for the shorthand property 'warehouseId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(242,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type '(Without<ProductUpdateInput, ProductUncheckedUpdateInput> & ProductUncheckedUpdateInput) | (Without<...> & ProductUpdateInput)'.
+src/lib/inventory/inventoryService.ts(255,13): error TS2322: Type '{ reason: string; previousQuantity: number; newQuantity: number; adjustedBy: string; timestamp: Date; }' is not assignable to type 'string'.
+src/lib/inventory/inventoryService.ts(271,13): error TS2322: Type '{ reason: string; previousQuantity: number; newQuantity: number; adjustedBy: string; timestamp: Date; }' is not assignable to type 'string'.
+src/lib/inventory/inventoryService.ts(369,13): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type '(Without<ProductUpdateInput, ProductUncheckedUpdateInput> & ProductUncheckedUpdateInput) | (Without<...> & ProductUpdateInput)'.
+src/lib/inventory/inventoryService.ts(379,13): error TS2322: Type '{ warehouseId: string; orderId: string; reservedQuantity: number; }' is not assignable to type 'string'.
+src/lib/inventory/inventoryService.ts(394,89): error TS18004: No value exists in scope for the shorthand property 'productId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(394,100): error TS18004: No value exists in scope for the shorthand property 'warehouseId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(394,113): error TS18004: No value exists in scope for the shorthand property 'quantity'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(438,41): error TS2339: Property 'lowStockThreshold' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; sku: string; price: Decimal; cost: Decimal | null; ... 9 more ...; reviewCount: number; }'.
+src/lib/inventory/inventoryService.ts(439,36): error TS2339: Property 'reorderPoint' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; sku: string; price: Decimal; cost: Decimal | null; ... 9 more ...; reviewCount: number; }'.
+src/lib/inventory/inventoryService.ts(522,13): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/lib/inventory/inventoryService.ts(562,17): error TS2353: Object literal may only specify known properties, and 'alertType' does not exist in type 'StockAlertWhereInput'.
+src/lib/inventory/inventoryService.ts(563,17): error TS2353: Object literal may only specify known properties, and 'alertType' does not exist in type 'StockAlertWhereInput'.
+src/lib/inventory/inventoryService.ts(564,17): error TS2353: Object literal may only specify known properties, and 'alertType' does not exist in type 'StockAlertWhereInput'.
+src/lib/inventory/inventoryService.ts(568,13): error TS2561: Object literal may only specify known properties, but 'isResolved' does not exist in type '(Without<StockAlertUpdateManyMutationInput, StockAlertUncheckedUpdateManyInput> & StockAlertUncheckedUpdateManyInput) | (Without<...> & StockAlertUpdateManyMutationInput)'. Did you mean to write 'resolvedAt'?
+src/lib/inventory/inventoryService.ts(597,22): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(608,36): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(612,24): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(613,30): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(614,24): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(615,23): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(623,102): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(623,123): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(631,11): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/inventory/inventoryService.ts(637,102): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(637,123): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(643,31): error TS2339: Property 'sendTemplateMessage' does not exist on type 'WhatsAppService'.
+src/lib/inventory/inventoryService.ts(653,102): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(653,123): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(663,11): error TS2322: Type '{ alertId: any; notificationsSent: any; lastNotificationAt: Date; threshold: any; currentStock: number; }' is not assignable to type 'string'.
+src/lib/inventory/inventoryService.ts(664,22): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(665,33): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(667,24): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(676,100): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(683,81): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(683,118): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(684,76): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(685,78): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(690,21): error TS18046: 'alert' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(728,37): error TS2339: Property 'quantity' does not exist on type '{ id: string; createdAt: Date; type: string; description: string; metadata: string | null; productId: string; }'.
+src/lib/inventory/inventoryService.ts(731,37): error TS2339: Property 'quantity' does not exist on type '{ id: string; createdAt: Date; type: string; description: string; metadata: string | null; productId: string; }'.
+src/lib/inventory/inventoryService.ts(768,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type 'ProductSelect<DefaultArgs>'.
+src/lib/inventory/inventoryService.ts(785,34): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/inventory/inventoryService.ts(789,9): error TS2365: Operator '+=' cannot be applied to types 'number' and 'number | Decimal'.
+src/lib/inventory/inventoryService.ts(792,38): error TS2551: Property 'category' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; sku: string; price: Decimal; cost: Decimal | null; ... 9 more ...; reviewCount: number; }'. Did you mean 'categoryId'?
+src/lib/inventory/inventoryService.ts(810,9): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(810,45): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(811,13): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(811,42): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(816,9): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(816,47): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(817,13): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(817,44): error TS2532: Object is possibly 'undefined'.
+src/lib/inventory/inventoryService.ts(834,97): error TS18004: No value exists in scope for the shorthand property 'warehouseId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(847,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type 'ProductSelect<DefaultArgs>'.
+src/lib/inventory/inventoryService.ts(872,34): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/inventory/inventoryService.ts(879,41): error TS2339: Property 'lowStockThreshold' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; sku: string; price: Decimal; cost: Decimal | null; ... 9 more ...; reviewCount: number; }'.
+src/lib/inventory/inventoryService.ts(881,40): error TS2339: Property 'reorderPoint' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; sku: string; price: Decimal; cost: Decimal | null; ... 9 more ...; reviewCount: number; }'.
+src/lib/inventory/inventoryService.ts(927,17): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(927,38): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(929,21): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(931,30): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(933,28): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(936,27): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(937,36): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(938,37): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(938,77): error TS18046: 'alertData' is of type 'unknown'.
+src/lib/inventory/inventoryService.ts(963,103): error TS18004: No value exists in scope for the shorthand property 'warehouseId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(976,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type 'ProductSelect<DefaultArgs>'.
+src/lib/inventory/inventoryService.ts(980,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type 'ProductOrderByWithRelationInput | ProductOrderByWithRelationInput[]'.
+src/lib/inventory/inventoryService.ts(995,101): error TS18004: No value exists in scope for the shorthand property 'limit'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(1010,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type 'ProductSelect<DefaultArgs>'.
+src/lib/inventory/inventoryService.ts(1029,101): error TS18004: No value exists in scope for the shorthand property 'daysThreshold'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(1087,81): error TS18004: No value exists in scope for the shorthand property 'warehouseId'. Either declare one or provide an initializer.
+src/lib/inventory/inventoryService.ts(1114,34): error TS2339: Property 'warehouseId' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1117,39): error TS2339: Property 'previousQuantity' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1118,34): error TS2339: Property 'newQuantity' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1119,29): error TS2339: Property 'reason' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1120,32): error TS2339: Property 'reference' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1121,30): error TS2339: Property 'orderId' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1122,29): error TS2339: Property 'userId' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1124,27): error TS2339: Property 'cost' does not exist on type '{}'.
+src/lib/inventory/inventoryService.ts(1125,28): error TS2339: Property 'notes' does not exist on type '{}'.
+src/lib/inventory/management.ts(57,18): error TS2339: Property 'stockMovement' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/inventory/management.ts(73,5): error TS2304: Cannot find name 'logger'.
+src/lib/inventory/management.ts(90,32): error TS2339: Property 'raw' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/inventory/management.ts(121,23): error TS2339: Property 'stockMovement' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/iot/iotService.ts(1,10): error TS2300: Duplicate identifier 'prisma'.
+src/lib/iot/iotService.ts(2,10): error TS2300: Duplicate identifier 'realTimeSyncService'.
+src/lib/iot/iotService.ts(3,10): error TS2300: Duplicate identifier 'emailService'.
+src/lib/iot/iotService.ts(4,10): error TS2300: Duplicate identifier 'smsService'.
+src/lib/iot/iotService.ts(5,27): error TS2306: File '/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/src/lib/utils/logger.ts' is not a module.
+src/lib/iot/iotService.ts(130,14): error TS2300: Duplicate identifier 'IoTService'.
+src/lib/iot/iotService.ts(636,11): error TS2322: Type '{ productId: string; type: string; description: string; metadata: string; }' is not assignable to type '(Without<product_activitiesCreateInput, product_activitiesUncheckedCreateInput> & product_activitiesUncheckedCreateInput) | (Without<...> & product_activitiesCreateInput)'.
+  Type '{ productId: string; type: string; description: string; metadata: string; }' is not assignable to type 'Without<product_activitiesCreateInput, product_activitiesUncheckedCreateInput> & product_activitiesUncheckedCreateInput'.
+    Property 'id' is missing in type '{ productId: string; type: string; description: string; metadata: string; }' but required in type 'product_activitiesUncheckedCreateInput'.
+src/lib/iot/iotService.ts(826,14): error TS2451: Cannot redeclare block-scoped variable 'iotService'.
+src/lib/iot/iotService.ts(826,31): error TS2449: Class 'IoTService' used before its declaration.
+src/lib/iot/iotService.ts(828,10): error TS2300: Duplicate identifier 'prisma'.
+src/lib/iot/iotService.ts(829,10): error TS2300: Duplicate identifier 'realTimeSyncService'.
+src/lib/iot/iotService.ts(830,10): error TS2300: Duplicate identifier 'emailService'.
+src/lib/iot/iotService.ts(831,10): error TS2300: Duplicate identifier 'smsService'.
+src/lib/iot/iotService.ts(955,14): error TS2300: Duplicate identifier 'IoTService'.
+src/lib/iot/iotService.ts(1010,82): error TS2304: Cannot find name 'device'.
+src/lib/iot/iotService.ts(1010,105): error TS2304: Cannot find name 'device'.
+src/lib/iot/iotService.ts(1091,96): error TS2339: Property 'deviceId' does not exist on type 'Omit<SensorReading, "timestamp" | "id" | "deviceId">'.
+src/lib/iot/iotService.ts(1240,84): error TS18004: No value exists in scope for the shorthand property 'deviceId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1308,69): error TS18004: No value exists in scope for the shorthand property 'deviceId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1308,96): error TS2339: Property 'type' does not exist on type '(message?: any) => void'.
+src/lib/iot/iotService.ts(1308,118): error TS2339: Property 'severity' does not exist on type '(message?: any) => void'.
+src/lib/iot/iotService.ts(1426,40): error TS2339: Property 'min' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1426,74): error TS2339: Property 'max' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1428,104): error TS2339: Property 'min' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1428,122): error TS2339: Property 'max' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1431,40): error TS2339: Property 'min' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1431,74): error TS2339: Property 'max' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1433,101): error TS2339: Property 'min' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1433,119): error TS2339: Property 'max' does not exist on type '{}'.
+src/lib/iot/iotService.ts(1480,17): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type '(Without<ProductUpdateInput, ProductUncheckedUpdateInput> & ProductUncheckedUpdateInput) | (Without<...> & ProductUpdateInput)'.
+src/lib/iot/iotService.ts(1536,13): error TS2322: Type '{ lastRFIDScan: Date; lastLocation: string; signalStrength: number; }' is not assignable to type 'string'.
+src/lib/iot/iotService.ts(1575,75): error TS18004: No value exists in scope for the shorthand property 'tagId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1586,77): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1592,77): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1629,81): error TS18004: No value exists in scope for the shorthand property 'deviceId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1640,76): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1646,76): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/iot/iotService.ts(1749,14): error TS2451: Cannot redeclare block-scoped variable 'iotService'.
+src/lib/iot/productionIoTService.ts(309,13): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(98,7): error TS2451: Cannot redeclare block-scoped variable 'DEFAULT_TIERS'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(140,14): error TS2300: Duplicate identifier 'EnhancedLoyaltySystem'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(276,11): error TS2365: Operator '>' cannot be applied to types 'number' and 'Promise<number>'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(433,14): error TS2451: Cannot redeclare block-scoped variable 'enhancedLoyaltySystem'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(433,42): error TS2449: Class 'EnhancedLoyaltySystem' used before its declaration.
+src/lib/loyalty/enhancedLoyaltySystem.ts(529,7): error TS2451: Cannot redeclare block-scoped variable 'DEFAULT_TIERS'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(571,14): error TS2300: Duplicate identifier 'EnhancedLoyaltySystem'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(707,11): error TS2365: Operator '>' cannot be applied to types 'number' and 'Promise<number>'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(864,14): error TS2451: Cannot redeclare block-scoped variable 'enhancedLoyaltySystem'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(864,42): error TS2449: Class 'EnhancedLoyaltySystem' used before its declaration.
+src/lib/loyalty/enhancedLoyaltySystem.ts(960,7): error TS2451: Cannot redeclare block-scoped variable 'DEFAULT_TIERS'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(1002,14): error TS2300: Duplicate identifier 'EnhancedLoyaltySystem'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(1138,11): error TS2365: Operator '>' cannot be applied to types 'number' and 'Promise<number>'.
+src/lib/loyalty/enhancedLoyaltySystem.ts(1295,14): error TS2451: Cannot redeclare block-scoped variable 'enhancedLoyaltySystem'.
+src/lib/loyalty/loyaltySystem.ts(2,10): error TS2305: Module '"@/lib/utils"' has no exported member 'generateRandomString'.
+src/lib/loyalty/loyaltySystem.ts(82,11): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(106,19): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type 'CustomerSelect<DefaultArgs>'.
+src/lib/loyalty/loyaltySystem.ts(109,33): error TS2339: Property 'points' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(117,11): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(142,19): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type 'CustomerSelect<DefaultArgs>'.
+src/lib/loyalty/loyaltySystem.ts(145,24): error TS2339: Property 'points' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(191,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(205,101): error TS2304: Cannot find name 'tier'.
+src/lib/loyalty/loyaltySystem.ts(215,19): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'CustomerSelect<DefaultArgs>'.
+src/lib/loyalty/loyaltySystem.ts(221,32): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(289,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(311,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'CustomerWhereInput'.
+src/lib/loyalty/loyaltySystem.ts(325,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(334,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(356,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'CustomerWhereInput'.
+src/lib/loyalty/loyaltySystem.ts(371,38): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(376,19): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/loyalty/loyaltySystem.ts(390,77): error TS18004: No value exists in scope for the shorthand property 'referralCode'. Either declare one or provide an initializer.
+src/lib/loyalty/loyaltySystem.ts(390,91): error TS18004: No value exists in scope for the shorthand property 'newCustomerId'. Either declare one or provide an initializer.
+src/lib/loyalty/loyaltySystem.ts(395,47): error TS2304: Cannot find name 'Promiseany'.
+src/lib/loyalty/loyaltySystem.ts(399,19): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'CustomerSelect<DefaultArgs>'.
+src/lib/loyalty/loyaltySystem.ts(404,34): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(404,46): error TS7006: Parameter 'tag' implicitly has an 'any' type.
+src/lib/loyalty/loyaltySystem.ts(405,43): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(405,55): error TS7006: Parameter 'tag' implicitly has an 'any' type.
+src/lib/loyalty/loyaltySystem.ts(445,7): error TS2571: Object is of type 'unknown'.
+src/lib/loyalty/loyaltySystem.ts(445,38): error TS2571: Object is of type 'unknown'.
+src/lib/loyalty/loyaltySystem.ts(446,7): error TS2571: Object is of type 'unknown'.
+src/lib/loyalty/loyaltySystem.ts(458,76): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/loyalty/loyaltySystem.ts(458,98): error TS2304: Cannot find name 'promotionData'.
+src/lib/loyalty/loyaltySystem.ts(466,25): error TS2571: Object is of type 'unknown'.
+src/lib/loyalty/loyaltySystem.ts(479,19): error TS2353: Object literal may only specify known properties, and 'totalAmount' does not exist in type 'OrderSelect<DefaultArgs>'.
+src/lib/loyalty/loyaltySystem.ts(490,37): error TS2345: Argument of type 'Decimal' is not assignable to parameter of type 'number'.
+src/lib/loyalty/loyaltySystem.ts(551,54): error TS2304: Cannot find name 'Promiseany'.
+src/lib/loyalty/loyaltySystem.ts(556,19): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type 'CustomerSelect<DefaultArgs>'.
+src/lib/loyalty/loyaltySystem.ts(575,34): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/loyaltySystem.ts(584,36): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/loyalty/program.ts(92,11): error TS2353: Object literal may only specify known properties, and 'lifetimePoints' does not exist in type '(Without<LoyaltyAccountCreateInput, LoyaltyAccountUncheckedCreateInput> & LoyaltyAccountUncheckedCreateInput) | (Without<...> & LoyaltyAccountCreateInput)'.
+src/lib/loyalty/program.ts(98,39): error TS2339: Property 'lifetimePoints' does not exist on type '{ id: string; organizationId: string; createdAt: Date; updatedAt: Date; customerId: string; points: number; tier: string; }'.
+src/lib/loyalty/program.ts(106,9): error TS2353: Object literal may only specify known properties, and 'lifetimePoints' does not exist in type '(Without<LoyaltyAccountUpdateInput, LoyaltyAccountUncheckedUpdateInput> & LoyaltyAccountUncheckedUpdateInput) | (Without<...> & LoyaltyAccountUpdateInput)'.
+src/lib/loyalty/program.ts(112,18): error TS2551: Property 'loyaltyTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'loyalty_transactions'?
+src/lib/loyalty/program.ts(162,18): error TS2551: Property 'loyaltyTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'loyalty_transactions'?
+src/lib/loyalty/program.ts(189,5): error TS2322: Type '{ customer: { select: { name: true; email: true; }; }; }' is not assignable to type 'never'.
+src/lib/loyalty/program.ts(220,29): error TS2339: Property 'lifetimePoints' does not exist on type '{ customer: never; } & { id: string; organizationId: string; createdAt: Date; updatedAt: Date; customerId: string; points: number; tier: string; }'.
+src/lib/loyalty/program.ts(222,46): error TS2339: Property 'lifetimePoints' does not exist on type '{ customer: never; } & { id: string; organizationId: string; createdAt: Date; updatedAt: Date; customerId: string; points: number; tier: string; }'.
+src/lib/loyalty/program.ts(239,23): error TS2551: Property 'loyaltyTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'loyalty_transactions'?
+src/lib/marketplace/marketplaceService.ts(188,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'Without<CustomerCreateInput, CustomerUncheckedCreateInput> & CustomerUncheckedCreateInput'.
+src/lib/marketplace/marketplaceService.ts(249,99): error TS2339: Property 'userId' does not exist on type 'VendorRegistrationData'.
+src/lib/marketplace/marketplaceService.ts(264,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/marketplace/marketplaceService.ts(303,30): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/marketplace/marketplaceService.ts(312,11): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type 'Without<ProductUncheckedCreateInput, ProductCreateInput> & ProductCreateInput'.
+src/lib/marketplace/marketplaceService.ts(326,117): error TS2339: Property 'name' does not exist on type 'Omit<VendorProduct, "id" | "createdAt" | "updatedAt" | "vendorId">'.
+src/lib/marketplace/marketplaceService.ts(341,11): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'OrderInclude<DefaultArgs>'.
+src/lib/marketplace/marketplaceService.ts(416,97): error TS18004: No value exists in scope for the shorthand property 'period'. Either declare one or provide an initializer.
+src/lib/marketplace/marketplaceService.ts(430,11): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type 'CustomerWhereInput'.
+src/lib/marketplace/marketplaceService.ts(467,11): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'OrderInclude<DefaultArgs>'.
+src/lib/marketplace/marketplaceService.ts(502,11): error TS2365: Operator '+=' cannot be applied to types 'number' and 'Decimal'.
+src/lib/marketplace/marketplaceService.ts(528,9): error TS2322: Type 'unknown[]' is not assignable to type '{ month: string; revenue: number; orders: number; }[]'.
+  Type 'unknown' is not assignable to type '{ month: string; revenue: number; orders: number; }'.
+src/lib/marketplace/marketplaceService.ts(535,94): error TS18004: No value exists in scope for the shorthand property 'period'. Either declare one or provide an initializer.
+src/lib/marketplace/marketplaceService.ts(569,15): error TS2322: Type '{ tags: { has: string; }; } | {}' is not assignable to type 'CustomerWhereInput'.
+  Object literal may only specify known properties, and 'tags' does not exist in type 'CustomerWhereInput'.
+src/lib/marketplace/marketplaceService.ts(737,21): error TS18046: 'order' is of type 'unknown'.
+src/lib/marketplace/marketplaceService.ts(744,28): error TS18046: 'order' is of type 'unknown'.
+src/lib/marketplace/marketplaceService.ts(768,53): error TS2339: Property 'commissionRate' does not exist on type '{}'.
+src/lib/marketplace/marketplaceService.ts(790,7): error TS2322: Type 'unknown' is not assignable to type '{ length: number; width: number; height: number; }'.
+src/lib/marketplace/marketplaceService.ts(802,46): error TS2339: Property 'vendorId' does not exist on type '{}'.
+src/lib/marketplace/marketplaceService.ts(808,49): error TS2339: Property 'commission' does not exist on type '{}'.
+src/lib/marketplace/marketplaceService.ts(809,51): error TS2339: Property 'vendorPayout' does not exist on type '{}'.
+src/lib/marketplace/marketplaceService.ts(812,48): error TS2339: Property 'commissionAmount' does not exist on type '{}'.
+src/lib/messaging/index.ts(8,32): error TS2305: Module '"../whatsapp/whatsappService"' has no exported member 'WhatsAppTemplate'.
+src/lib/messenger/messengerService.ts(134,9): error TS18046: 'messageData' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(149,41): error TS18046: 'messageData' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(170,20): error TS2339: Property 'activity' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/messenger/messengerService.ts(242,20): error TS2339: Property 'activity' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/messenger/messengerService.ts(262,89): error TS18004: No value exists in scope for the shorthand property 'templateName'. Either declare one or provide an initializer.
+src/lib/messenger/messengerService.ts(320,20): error TS2339: Property 'activity' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/messenger/messengerService.ts(340,107): error TS2304: Cannot find name 'attachment'.
+src/lib/messenger/messengerService.ts(404,94): error TS18004: No value exists in scope for the shorthand property 'messageId'. Either declare one or provide an initializer.
+src/lib/messenger/messengerService.ts(501,48): error TS18046: 'body' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(538,24): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(539,27): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(545,11): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(547,18): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(549,18): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(551,18): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(566,13): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(567,19): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(568,22): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(570,17): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(571,24): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(573,29): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(596,20): error TS2339: Property 'activity' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/messenger/messengerService.ts(615,96): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(622,24): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(623,23): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(624,21): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(648,89): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(660,96): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(678,88): error TS18046: 'event' is of type 'unknown'.
+src/lib/messenger/messengerService.ts(713,80): error TS18004: No value exists in scope for the shorthand property 'senderId'. Either declare one or provide an initializer.
+src/lib/messenger/messengerService.ts(743,11): error TS2353: Object literal may only specify known properties, and 'isFeatured' does not exist in type 'ProductWhereInput'.
+src/lib/messenger/messengerService.ts(898,18): error TS2551: Property 'supportTicket' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'support_tickets'?
+src/lib/messenger/messengerService.ts(939,18): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'OrderInclude<DefaultArgs>'.
+src/lib/middleware/auth.ts(20,10): error TS2459: Module '"@/app/api/auth/[...nextauth]/route"' declares 'authOptions' locally, but it is not exported.
+src/lib/middleware/withErrorHandler.ts(96,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/middleware/withErrorHandlerApp.ts(127,9): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'Omit<LogEntry, "level" | "timestamp">'.
+src/lib/ml/demandForecasting.ts(49,40): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/lib/ml/demandForecasting.ts(58,30): error TS18048: 'lastLevel' is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(58,52): error TS18048: 'lastTrend' is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(58,65): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(98,18): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(135,38): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(135,48): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(136,44): error TS18048: 'lastLevel' is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(136,56): error TS18048: 'lastTrend' is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(140,48): error TS18048: 'lastLevel' is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(141,42): error TS18048: 'lastTrend' is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(145,45): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(146,50): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(216,21): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(216,40): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(220,31): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/demandForecasting.ts(239,55): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/personalizationEngine.ts(230,11): error TS2353: Object literal may only specify known properties, and 'createdOrders' does not exist in type 'UserInclude<DefaultArgs>'.
+src/lib/ml/personalizationEngine.ts(257,62): error TS2339: Property 'createdOrders' does not exist on type '{ role: UserRole; name: string | null; id: string; email: string; password: string | null; roleTag: string | null; organizationId: string | null; isActive: boolean; emailVerified: Date | null; ... 7 more ...; updatedAt: Date; }'.
+src/lib/ml/personalizationEngine.ts(403,95): error TS18004: No value exists in scope for the shorthand property 'contentType'. Either declare one or provide an initializer.
+src/lib/ml/personalizationEngine.ts(515,85): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/ml/personalizationEngine.ts(750,5): error TS2322: Type 'unknown' is not assignable to type 'number'.
+src/lib/ml/personalizationEngine.ts(750,48): error TS18046: 'order' is of type 'unknown'.
+src/lib/ml/personalizationEngine.ts(784,7): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/personalizationEngine.ts(784,26): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/personalizationEngine.ts(862,5): error TS2322: Type 'ABTestVariant | undefined' is not assignable to type 'ABTestVariant'.
+  Type 'undefined' is not assignable to type 'ABTestVariant'.
+src/lib/ml/recommendationEngine.ts(43,68): error TS2532: Object is possibly 'undefined'.
+src/lib/ml/recommendationEngine.ts(320,22): error TS18048: 'product' is possibly 'undefined'.
+src/lib/ml/recommendationEngine.ts(321,24): error TS18048: 'product' is possibly 'undefined'.
+src/lib/monitoring/error-tracking.tsx(128,22): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(128,53): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(128,84): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(129,135): error TS2339: Property 'source' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(134,22): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(134,53): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(134,84): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(135,135): error TS2339: Property 'source' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(140,22): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(140,53): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(140,84): error TS2339: Property 'error' does not exist on type 'ErrorEvent'.
+src/lib/monitoring/error-tracking.tsx(141,135): error TS2339: Property 'source' does not exist on type 'ErrorEvent'.
+src/lib/notifications/service.ts(211,24): error TS2322: Type '"ADMIN"' is not assignable to type 'UserRole'.
+src/lib/notifications/service.ts(262,24): error TS2322: Type '"ADMIN"' is not assignable to type 'UserRole'.
+src/lib/notifications/service.ts(262,33): error TS2322: Type '"INVENTORY_MANAGER"' is not assignable to type 'UserRole'.
+src/lib/omnichannel/omnichannelService.ts(54,18): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type 'CustomerConversationOrderByWithRelationInput | CustomerConversationOrderByWithRelationInput[]'.
+src/lib/omnichannel/omnichannelService.ts(91,7): error TS2322: Type '{ messages: { orderBy: { timestamp: string; }; }; customer: true; assignedAgent: true; }' is not assignable to type 'never'.
+src/lib/omnichannel/omnichannelService.ts(105,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/lib/omnichannel/omnichannelService.ts(106,29): error TS2339: Property 'channel' does not exist on type '{ customer: never; messages: never; assignedAgent: never; } & { message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(108,28): error TS2339: Property 'status' does not exist on type '{ customer: never; messages: never; assignedAgent: never; } & { message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(109,50): error TS2339: Property 'id' does not exist on type 'never'.
+src/lib/omnichannel/omnichannelService.ts(110,30): error TS2339: Property 'priority' does not exist on type '{ customer: never; messages: never; assignedAgent: never; } & { message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(111,26): error TS2339: Property 'tags' does not exist on type '{ customer: never; messages: never; assignedAgent: never; } & { message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(113,31): error TS2339: Property 'updatedAt' does not exist on type '{ customer: never; messages: never; assignedAgent: never; } & { message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(115,37): error TS2551: Property 'assignedAgentId' does not exist on type '{ customer: never; messages: never; assignedAgent: never; } & { message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'. Did you mean 'assignedAgent'?
+src/lib/omnichannel/omnichannelService.ts(129,39): error TS2339: Property 'channelMessage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/omnichannel/omnichannelService.ts(146,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<CustomerConversationUpdateInput, CustomerConversationUncheckedUpdateInput> & CustomerConversationUncheckedUpdateInput) | (Without<...> & CustomerConversationUpdateInput)'.
+src/lib/omnichannel/omnichannelService.ts(157,15): error TS2353: Object literal may only specify known properties, and 'assignedAgentId' does not exist in type '(Without<CustomerConversationUpdateInput, CustomerConversationUncheckedUpdateInput> & CustomerConversationUncheckedUpdateInput) | (Without<...> & CustomerConversationUpdateInput)'.
+src/lib/omnichannel/omnichannelService.ts(164,15): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<CustomerConversationUpdateInput, CustomerConversationUncheckedUpdateInput> & CustomerConversationUncheckedUpdateInput) | (Without<...> & CustomerConversationUpdateInput)'.
+src/lib/omnichannel/omnichannelService.ts(175,61): error TS2339: Property 'tags' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(179,15): error TS2353: Object literal may only specify known properties, and 'tags' does not exist in type '(Without<CustomerConversationUpdateInput, CustomerConversationUncheckedUpdateInput> & CustomerConversationUncheckedUpdateInput) | (Without<...> & CustomerConversationUpdateInput)'.
+src/lib/omnichannel/omnichannelService.ts(184,39): error TS2551: Property 'channelIntegration' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'channel_integrations'?
+src/lib/omnichannel/omnichannelService.ts(197,18): error TS2551: Property 'channelIntegration' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'channel_integrations'?
+src/lib/omnichannel/omnichannelService.ts(220,38): error TS2551: Property 'channelIntegration' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'channel_integrations'?
+src/lib/omnichannel/omnichannelService.ts(237,18): error TS2551: Property 'channelIntegration' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'channel_integrations'?
+src/lib/omnichannel/omnichannelService.ts(244,5): error TS2322: Type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }[]' is not assignable to type 'CustomerConversation[]'.
+  Type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }' is missing the following properties from type 'CustomerConversation': channel, messages, status, priority, and 2 more.
+src/lib/omnichannel/omnichannelService.ts(252,18): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type 'CustomerConversationOrderByWithRelationInput | CustomerConversationOrderByWithRelationInput[]'.
+src/lib/omnichannel/omnichannelService.ts(260,9): error TS2353: Object literal may only specify known properties, and 'channel' does not exist in type '(Without<CustomerConversationCreateInput, CustomerConversationUncheckedCreateInput> & CustomerConversationUncheckedCreateInput) | (Without<...> & CustomerConversationCreateInput)'.
+src/lib/omnichannel/omnichannelService.ts(277,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/lib/omnichannel/omnichannelService.ts(278,29): error TS2339: Property 'channel' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(279,30): error TS2551: Property 'messages' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'. Did you mean 'message'?
+src/lib/omnichannel/omnichannelService.ts(280,28): error TS2339: Property 'status' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(282,30): error TS2339: Property 'priority' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(283,26): error TS2339: Property 'tags' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(285,31): error TS2339: Property 'updatedAt' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(287,37): error TS2339: Property 'assignedAgentId' does not exist on type '{ message: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; sessionId: string; sender: string; }'.
+src/lib/omnichannel/omnichannelService.ts(291,86): error TS2304: Cannot find name 'Promiseany'.
+src/lib/omnichannel/omnichannelService.ts(328,9): error TS2353: Object literal may only specify known properties, and 'channel' does not exist in type 'CustomerConversationWhereInput'.
+src/lib/omnichannel/omnichannelService.ts(343,18): error TS2339: Property 'channelMessage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/omnichannel/omnichannelService.ts(345,38): error TS2339: Property 'id' does not exist on type '{}'.
+src/lib/omnichannel/omnichannelService.ts(347,39): error TS2339: Property 'id' does not exist on type '{}'.
+src/lib/omnichannel/omnichannelService.ts(360,33): error TS2339: Property 'id' does not exist on type '{}'.
+src/lib/omnichannel/omnichannelService.ts(362,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<CustomerConversationUpdateInput, CustomerConversationUncheckedUpdateInput> & CustomerConversationUncheckedUpdateInput) | (Without<...> & CustomerConversationUpdateInput)'.
+src/lib/omnichannel/omnichannelService.ts(369,75): error TS2304: Cannot find name 'Promiseany'.
+src/lib/omnichannel/omnichannelService.ts(374,75): error TS2304: Cannot find name 'Promiseany'.
+src/lib/omnichannel/omnichannelService.ts(379,76): error TS2304: Cannot find name 'Promiseany'.
+src/lib/omnichannel/omnichannelService.ts(384,72): error TS2304: Cannot find name 'Promiseany'.
+src/lib/omnichannel/omnichannelService.ts(389,70): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/advancedPaymentService.ts(2,20): error TS2307: Cannot find module 'stripe' or its corresponding type declarations.
+src/lib/payments/advancedPaymentService.ts(95,9): error TS2322: Type 'unknown' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+src/lib/payments/advancedPaymentService.ts(101,7): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+src/lib/payments/advancedPaymentService.ts(104,38): error TS2551: Property 'paymentMethodId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'. Did you mean 'paymentMethod'?
+src/lib/payments/advancedPaymentService.ts(105,33): error TS2339: Property 'customerId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(110,44): error TS2339: Property 'stripePaymentIntentId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(119,9): error TS2322: Type 'unknown' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+src/lib/payments/advancedPaymentService.ts(127,7): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+src/lib/payments/advancedPaymentService.ts(130,38): error TS2551: Property 'paymentMethodId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'. Did you mean 'paymentMethod'?
+src/lib/payments/advancedPaymentService.ts(131,33): error TS2339: Property 'customerId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(136,44): error TS2339: Property 'stripePaymentIntentId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(146,16): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'PaymentIntentWhereUniqueInput'.
+src/lib/payments/advancedPaymentService.ts(153,7): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+src/lib/payments/advancedPaymentService.ts(156,38): error TS2551: Property 'paymentMethodId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'. Did you mean 'paymentMethod'?
+src/lib/payments/advancedPaymentService.ts(157,33): error TS2339: Property 'customerId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(188,45): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/advancedPaymentService.ts(213,59): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/advancedPaymentService.ts(239,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/lib/payments/advancedPaymentService.ts(261,49): error TS2339: Property 'stripePaymentMethodId' does not exist on type '{ id: string; organizationId: string; createdAt: Date; updatedAt: Date; type: string; customerId: string; stripeId: string | null; last4: string | null; brand: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean; }'.
+src/lib/payments/advancedPaymentService.ts(262,36): error TS2339: Property 'metadata' does not exist on type '{ id: string; organizationId: string; createdAt: Date; updatedAt: Date; type: string; customerId: string; stripeId: string | null; last4: string | null; brand: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean; }'.
+src/lib/payments/advancedPaymentService.ts(281,9): error TS2353: Object literal may only specify known properties, and 'customerId' does not exist in type '(Without<SubscriptionCreateInput, SubscriptionUncheckedCreateInput> & SubscriptionUncheckedCreateInput) | (Without<...> & SubscriptionCreateInput)'.
+src/lib/payments/advancedPaymentService.ts(293,37): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/payments/advancedPaymentService.ts(299,35): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/payments/advancedPaymentService.ts(311,7): error TS2322: Type '{ stripeSubscriptionId: string; }' is not assignable to type 'SubscriptionWhereUniqueInput'.
+  Type '{ stripeSubscriptionId: string; }' is not assignable to type '{ id: string; organizationId: string; } & { id?: string | undefined; organizationId?: string | undefined; AND?: SubscriptionWhereInput | SubscriptionWhereInput[] | undefined; ... 12 more ...; organization?: (Without<...> & OrganizationWhereInput) | ... 1 more ... | undefined; }'.
+    Type '{ stripeSubscriptionId: string; }' is missing the following properties from type '{ id: string; organizationId: string; }': id, organizationId
+src/lib/payments/advancedPaymentService.ts(318,5): error TS2739: Type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' is missing the following properties from type 'Subscription': customerId, planId
+src/lib/payments/advancedPaymentService.ts(321,83): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/advancedPaymentService.ts(338,9): error TS2353: Object literal may only specify known properties, and 'paymentIntentId' does not exist in type '(Without<RefundCreateInput, RefundUncheckedCreateInput> & RefundUncheckedCreateInput) | (Without<...> & RefundCreateInput)'.
+src/lib/payments/advancedPaymentService.ts(352,9): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type 'PaymentIntentWhereInput'.
+src/lib/payments/advancedPaymentService.ts(400,7): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+src/lib/payments/advancedPaymentService.ts(403,38): error TS2551: Property 'paymentMethodId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'. Did you mean 'paymentMethod'?
+src/lib/payments/advancedPaymentService.ts(404,33): error TS2339: Property 'customerId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(409,44): error TS2339: Property 'stripePaymentIntentId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; currency: string; orderId: string | null; paymentMethod: string | null; amount: Decimal; metadata: JsonValue; stripeId: string | null; }'.
+src/lib/payments/advancedPaymentService.ts(447,25): error TS2339: Property 'stripePaymentMethodId' does not exist on type '{ id: string; organizationId: string; createdAt: Date; updatedAt: Date; type: string; customerId: string; stripeId: string | null; last4: string | null; brand: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean; }'.
+src/lib/payments/advancedPaymentService.ts(448,61): error TS2339: Property 'stripePaymentMethodId' does not exist on type '{ id: string; organizationId: string; createdAt: Date; updatedAt: Date; type: string; customerId: string; stripeId: string | null; last4: string | null; brand: string | null; expiryMonth: number | null; expiryYear: number | null; isDefault: boolean; }'.
+src/lib/payments/advancedPaymentService.ts(501,16): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'PaymentIntentWhereUniqueInput'.
+src/lib/payments/advancedPaymentService.ts(516,16): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'PaymentIntentWhereUniqueInput'.
+src/lib/payments/advancedPaymentService.ts(533,9): error TS2353: Object literal may only specify known properties, and 'stripeInvoiceId' does not exist in type '(Without<InvoiceCreateInput, InvoiceUncheckedCreateInput> & InvoiceUncheckedCreateInput) | (Without<...> & InvoiceCreateInput)'.
+src/lib/payments/advancedPaymentService.ts(547,9): error TS2353: Object literal may only specify known properties, and 'stripeInvoiceId' does not exist in type '(Without<InvoiceCreateInput, InvoiceUncheckedCreateInput> & InvoiceUncheckedCreateInput) | (Without<...> & InvoiceCreateInput)'.
+src/lib/payments/advancedPaymentService.ts(559,7): error TS2322: Type '{ stripeSubscriptionId: any; }' is not assignable to type 'SubscriptionWhereUniqueInput'.
+  Type '{ stripeSubscriptionId: any; }' is not assignable to type '{ id: string; organizationId: string; } & { id?: string | undefined; organizationId?: string | undefined; AND?: SubscriptionWhereInput | SubscriptionWhereInput[] | undefined; ... 12 more ...; organization?: (Without<...> & OrganizationWhereInput) | ... 1 more ... | undefined; }'.
+    Type '{ stripeSubscriptionId: any; }' is missing the following properties from type '{ id: string; organizationId: string; }': id, organizationId
+src/lib/payments/advancedPaymentService.ts(571,7): error TS2322: Type '{ stripeSubscriptionId: any; }' is not assignable to type 'SubscriptionWhereUniqueInput'.
+  Type '{ stripeSubscriptionId: any; }' is not assignable to type '{ id: string; organizationId: string; } & { id?: string | undefined; organizationId?: string | undefined; AND?: SubscriptionWhereInput | SubscriptionWhereInput[] | undefined; ... 12 more ...; organization?: (Without<...> & OrganizationWhereInput) | ... 1 more ... | undefined; }'.
+    Type '{ stripeSubscriptionId: any; }' is missing the following properties from type '{ id: string; organizationId: string; }': id, organizationId
+src/lib/payments/advancedPaymentService.ts(573,9): error TS2820: Type '"canceled"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'. Did you mean '"CANCELLED"'?
+src/lib/payments/index.ts(12,48): error TS2554: Expected 0 arguments, but got 1.
+src/lib/payments/index.ts(19,48): error TS2554: Expected 0 arguments, but got 1.
+src/lib/payments/index.ts(25,66): error TS2554: Expected 0 arguments, but got 1.
+src/lib/payments/paypalService.ts(181,17): error TS2353: Object literal may only specify known properties, and 'paypalOrderId' does not exist in type '(Without<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyInput> & OrderUncheckedUpdateManyInput) | (Without<...> & OrderUpdateManyMutationInput)'.
+src/lib/payments/paypalService.ts(231,18): error TS2353: Object literal may only specify known properties, and 'paypalOrderId' does not exist in type 'OrderWhereInput'.
+src/lib/payments/paypalService.ts(234,11): error TS2353: Object literal may only specify known properties, and 'paypalPaymentId' does not exist in type '(Without<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyInput> & OrderUncheckedUpdateManyInput) | (Without<...> & OrderUpdateManyMutationInput)'.
+src/lib/payments/paypalService.ts(273,6): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/paypalService.ts(282,9): error TS18046: 'refundData' is of type 'unknown'.
+src/lib/payments/paypalService.ts(316,42): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/paypalService.ts(423,18): error TS2353: Object literal may only specify known properties, and 'paypalOrderId' does not exist in type 'OrderWhereInput'.
+src/lib/payments/paypalService.ts(426,11): error TS2353: Object literal may only specify known properties, and 'paypalPaymentId' does not exist in type '(Without<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyInput> & OrderUncheckedUpdateManyInput) | (Without<...> & OrderUpdateManyMutationInput)'.
+src/lib/payments/paypalService.ts(442,18): error TS2353: Object literal may only specify known properties, and 'paypalOrderId' does not exist in type 'OrderWhereInput'.
+src/lib/payments/paypalService.ts(474,6): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/stripeService.ts(2,20): error TS2307: Cannot find module 'stripe' or its corresponding type declarations.
+src/lib/payments/stripeService.ts(128,38): error TS7006: Parameter 'pm' implicitly has an 'any' type.
+src/lib/payments/stripeService.ts(156,6): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/stripeService.ts(181,53): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/stripeService.ts(201,6): error TS2304: Cannot find name 'Promiseany'.
+src/lib/payments/stripeService.ts(209,9): error TS18046: 'refundData' is of type 'unknown'.
+src/lib/payments/stripeService.ts(275,11): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'OrderWhereInput'.
+src/lib/payments/stripeService.ts(302,11): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'OrderWhereInput'.
+src/lib/payments/stripeService.ts(328,11): error TS2353: Object literal may only specify known properties, and 'customerId' does not exist in type '(Without<SubscriptionCreateInput, SubscriptionUncheckedCreateInput> & SubscriptionUncheckedCreateInput) | (Without<...> & SubscriptionCreateInput)'.
+src/lib/payments/stripeService.ts(382,11): error TS2820: Type '"canceled"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'. Did you mean '"CANCELLED"'?
+src/lib/payments/stripeService.ts(424,30): error TS7006: Parameter 'price' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(102,92): error TS2304: Cannot find name 'monitoringMetric'.
+src/lib/production-monitoring.ts(102,131): error TS2304: Cannot find name 'monitoringMetric'.
+src/lib/production-monitoring.ts(120,36): error TS2339: Property 'monitoringMetric' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/production-monitoring.ts(130,50): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(131,43): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(132,48): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(134,58): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(135,60): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(135,63): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(143,47): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(143,52): error TS7006: Parameter 'val' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(146,47): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(146,52): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(197,20): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'ProductionAlertOrderByWithRelationInput | ProductionAlertOrderByWithRelationInput[]'.
+src/lib/production-monitoring.ts(204,22): error TS2339: Property 'title' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(205,28): error TS2339: Property 'description' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(206,23): error TS2339: Property 'status' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(208,24): error TS2339: Property 'service' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(209,23): error TS2339: Property 'metric' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(210,26): error TS2339: Property 'threshold' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(211,29): error TS2339: Property 'currentValue' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(212,26): error TS2339: Property 'timestamp' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(214,27): error TS2551: Property 'resolvedBy' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'. Did you mean 'resolved'?
+src/lib/production-monitoring.ts(215,21): error TS2339: Property 'tags' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(215,34): error TS2339: Property 'tags' does not exist on type '{ message: string; id: string; organizationId: string | null; createdAt: Date; type: string; metadata: JsonValue; severity: string; resolvedAt: Date | null; source: string | null; resolved: boolean; }'.
+src/lib/production-monitoring.ts(216,47): error TS2345: Argument of type 'string | number | true | JsonObject | JsonArray' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/lib/production-monitoring.ts(251,79): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/production-monitoring.ts(251,101): error TS2304: Cannot find name 'alertData'.
+src/lib/production-monitoring.ts(251,127): error TS2304: Cannot find name 'alertData'.
+src/lib/production-monitoring.ts(265,11): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<ProductionAlertUpdateInput, ProductionAlertUncheckedUpdateInput> & ProductionAlertUncheckedUpdateInput) | (Without<...> & ProductionAlertUpdateInput)'.
+src/lib/production-monitoring.ts(273,93): error TS18004: No value exists in scope for the shorthand property 'userId'. Either declare one or provide an initializer.
+src/lib/production-monitoring.ts(287,11): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<ProductionAlertUpdateInput, ProductionAlertUncheckedUpdateInput> & ProductionAlertUncheckedUpdateInput) | (Without<...> & ProductionAlertUpdateInput)'.
+src/lib/production-monitoring.ts(296,89): error TS18004: No value exists in scope for the shorthand property 'userId'. Either declare one or provide an initializer.
+src/lib/production-monitoring.ts(497,20): error TS2339: Property 'monitoringMetric' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/production-monitoring.ts(538,11): error TS2322: Type 'string | null' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+  Type 'null' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+src/lib/production-monitoring.ts(553,22): error TS2339: Property 'healthCheck' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/production-monitoring.ts(569,91): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/production-monitoring.ts(635,36): error TS2339: Property 'monitoringMetric' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/production-monitoring.ts(641,26): error TS7006: Parameter 'metric' implicitly has an 'any' type.
+src/lib/production-monitoring.ts(722,7): error TS2353: Object literal may only specify known properties, and 'html' does not exist in type 'EmailOptions'.
+src/lib/production-monitoring.ts(731,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/purchase-orders/manager.ts(55,11): error TS2322: Type '{ productId: string; quantity: number; receivedQuantity: number; unitCost: number; totalCost: number; }[]' is not assignable to type '(Without<PurchaseOrderItemCreateWithoutPurchaseOrderInput, PurchaseOrderItemUncheckedCreateWithoutPurchaseOrderInput> & PurchaseOrderItemUncheckedCreateWithoutPurchaseOrderInput) | (Without<...> & PurchaseOrderItemCreateWithoutPurchaseOrderInput) | PurchaseOrderItemCreateWithoutPurchaseOrderInput[] | PurchaseOrderIt...'.
+  Type '{ productId: string; quantity: number; receivedQuantity: number; unitCost: number; totalCost: number; }[]' is not assignable to type 'PurchaseOrderItemCreateWithoutPurchaseOrderInput[]'.
+    Type '{ productId: string; quantity: number; receivedQuantity: number; unitCost: number; totalCost: number; }' is missing the following properties from type 'PurchaseOrderItemCreateWithoutPurchaseOrderInput': unitPrice, total, product
+src/lib/purchase-orders/manager.ts(78,13): error TS2353: Object literal may only specify known properties, and 'contactPerson' does not exist in type 'SupplierSelect<DefaultArgs>'.
+src/lib/purchase-orders/manager.ts(107,9): error TS2353: Object literal may only specify known properties, and 'approvedAt' does not exist in type '(Without<PurchaseOrderUpdateInput, PurchaseOrderUncheckedUpdateInput> & PurchaseOrderUncheckedUpdateInput) | (Without<...> & PurchaseOrderUpdateInput)'.
+src/lib/purchase-orders/manager.ts(117,86): error TS18004: No value exists in scope for the shorthand property 'purchaseOrderId'. Either declare one or provide an initializer.
+src/lib/purchase-orders/manager.ts(134,9): error TS2561: Object literal may only specify known properties, but 'orderedAt' does not exist in type '(Without<PurchaseOrderUpdateInput, PurchaseOrderUncheckedUpdateInput> & PurchaseOrderUncheckedUpdateInput) | (Without<...> & PurchaseOrderUpdateInput)'. Did you mean to write 'orderDate'?
+src/lib/purchase-orders/manager.ts(144,83): error TS18004: No value exists in scope for the shorthand property 'purchaseOrderId'. Either declare one or provide an initializer.
+src/lib/purchase-orders/manager.ts(144,147): error TS2551: Property 'supplier' does not exist on type '{ status: PurchaseOrderStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; createdById: string; orderNumber: string; supplierId: string; ... 8 more ...; notes: string | null; }'. Did you mean 'supplierId'?
+src/lib/purchase-orders/manager.ts(152,83): error TS18004: No value exists in scope for the shorthand property 'purchaseOrderId'. Either declare one or provide an initializer.
+src/lib/purchase-orders/manager.ts(223,9): error TS2561: Object literal may only specify known properties, but 'receivedAt' does not exist in type '(Without<PurchaseOrderUpdateInput, PurchaseOrderUncheckedUpdateInput> & PurchaseOrderUncheckedUpdateInput) | (Without<...> & PurchaseOrderUpdateInput)'. Did you mean to write 'receivedDate'?
+src/lib/purchase-orders/manager.ts(232,78): error TS18004: No value exists in scope for the shorthand property 'purchaseOrderId'. Either declare one or provide an initializer.
+src/lib/purchase-orders/manager.ts(248,9): error TS2322: Type 'PurchaseOrderStatus.COMPLETED' is not assignable to type 'PurchaseOrderStatus | EnumPurchaseOrderStatusFieldUpdateOperationsInput | undefined'.
+src/lib/purchase-orders/manager.ts(277,87): error TS18004: No value exists in scope for the shorthand property 'purchaseOrderId'. Either declare one or provide an initializer.
+src/lib/purchase-orders/manager.ts(295,9): error TS2353: Object literal may only specify known properties, and 'cancelReason' does not exist in type '(Without<PurchaseOrderUpdateInput, PurchaseOrderUncheckedUpdateInput> & PurchaseOrderUncheckedUpdateInput) | (Without<...> & PurchaseOrderUpdateInput)'.
+src/lib/purchase-orders/manager.ts(305,85): error TS18004: No value exists in scope for the shorthand property 'purchaseOrderId'. Either declare one or provide an initializer.
+src/lib/pwa/advancedPWAService.ts(149,9): error TS18046: 'notificationOptions' is of type 'unknown'.
+src/lib/pwa/advancedPWAService.ts(152,76): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'NotificationOptions | undefined'.
+src/lib/pwa/advancedPWAService.ts(236,13): error TS2571: Object is of type 'unknown'.
+src/lib/pwa/advancedPWAService.ts(244,98): error TS2339: Property 'tag' does not exist on type 'BackgroundSyncTask'.
+src/lib/pwa/advancedPWAService.ts(370,31): error TS2571: Object is of type 'unknown'.
+src/lib/pwa/advancedPWAService.ts(421,16): error TS2532: Object is possibly 'undefined'.
+src/lib/pwa/advancedPWAService.ts(422,16): error TS2532: Object is possibly 'undefined'.
+src/lib/pwa/advancedPWAService.ts(427,20): error TS2532: Object is possibly 'undefined'.
+src/lib/pwa/advancedPWAService.ts(428,20): error TS2532: Object is possibly 'undefined'.
+src/lib/pwa/advancedPWAService.ts(561,49): error TS2571: Object is of type 'unknown'.
+src/lib/pwa/advancedPWAService.ts(562,9): error TS2571: Object is of type 'unknown'.
+src/lib/pwa/advancedPWAService.ts(583,51): error TS2571: Object is of type 'unknown'.
+src/lib/pwa/advancedPWAService.ts(588,15): error TS2571: Object is of type 'unknown'.
+src/lib/pwa/pwaService.ts(322,11): error TS2353: Object literal may only specify known properties, and 'recipient' does not exist in type '(Without<NotificationCreateInput, NotificationUncheckedCreateInput> & NotificationUncheckedCreateInput) | (Without<...> & NotificationCreateInput)'.
+src/lib/pwa/pwaService.ts(325,13): error TS2698: Spread types may only be created from object types.
+src/lib/query-client.ts(27,5): error TS2353: Object literal may only specify known properties, and 'suspense' does not exist in type 'OmitKeyof<QueryObserverOptions<unknown, Error, unknown, unknown, readonly unknown[], never>, "suspense" | "queryKey", "strictly">'.
+src/lib/rate-limit.ts(1,23): error TS2307: Cannot find module '@upstash/redis' or its corresponding type declarations.
+src/lib/rate-limit.ts(131,14): error TS2304: Cannot find name 'now'.
+src/lib/rate-limit.ts(182,22): error TS2345: Argument of type '[Request, ...T]' is not assignable to parameter of type 'T'.
+  '[Request, ...T]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'any[]'.
+src/lib/returns/manager.ts(72,9): error TS2322: Type 'ReturnStatus.REQUESTED' is not assignable to type 'ReturnStatus | undefined'.
+src/lib/returns/manager.ts(197,9): error TS2353: Object literal may only specify known properties, and 'receivedAt' does not exist in type '(Without<ReturnUpdateInput, ReturnUncheckedUpdateInput> & ReturnUncheckedUpdateInput) | (Without<...> & ReturnUpdateInput)'.
+src/lib/returns/manager.ts(237,9): error TS2322: Type 'Decimal | null' is not assignable to type 'string | number | Decimal | DecimalJsLike'.
+  Type 'null' is not assignable to type 'string | number | Decimal | DecimalJsLike'.
+src/lib/returns/manager.ts(247,9): error TS2353: Object literal may only specify known properties, and 'refundedAt' does not exist in type '(Without<ReturnUpdateInput, ReturnUncheckedUpdateInput> & ReturnUncheckedUpdateInput) | (Without<...> & ReturnUpdateInput)'.
+src/lib/search/advancedSearchService.ts(458,24): error TS2532: Object is possibly 'undefined'.
+src/lib/search/advancedSearchService.ts(459,29): error TS2532: Object is possibly 'undefined'.
+src/lib/search/advancedSearchService.ts(460,30): error TS2532: Object is possibly 'undefined'.
+src/lib/search/advancedSearchService.ts(461,12): error TS2532: Object is possibly 'undefined'.
+src/lib/security-monitoring.ts(45,11): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type '(Without<SecurityAuditCreateInput, SecurityAuditUncheckedCreateInput> & SecurityAuditUncheckedCreateInput) | (Without<...> & SecurityAuditCreateInput)'.
+src/lib/security-monitoring.ts(160,9): error TS2322: Type '"type"[]' is not assignable to type 'SecurityAuditScalarFieldEnum | SecurityAuditScalarFieldEnum[]'.
+  Type '"type"[]' is not assignable to type 'SecurityAuditScalarFieldEnum[]'.
+    Type '"type"' is not assignable to type 'SecurityAuditScalarFieldEnum'.
+src/lib/security-monitoring.ts(162,19): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'SecurityAuditCountAggregateInputType'.
+src/lib/security-monitoring.ts(163,30): error TS2322: Type '{ _count: { type: string; }; }' is not assignable to type 'SecurityAuditOrderByWithAggregationInput | SecurityAuditOrderByWithAggregationInput[] | undefined'.
+  Types of property '_count' are incompatible.
+    Object literal may only specify known properties, and 'type' does not exist in type 'SecurityAuditCountOrderByAggregateInput'.
+src/lib/security-monitoring.ts(168,9): error TS2322: Type '"severity"[]' is not assignable to type 'SecurityAuditScalarFieldEnum | SecurityAuditScalarFieldEnum[]'.
+  Type '"severity"[]' is not assignable to type 'SecurityAuditScalarFieldEnum[]'.
+    Type '"severity"' is not assignable to type 'SecurityAuditScalarFieldEnum'.
+src/lib/security-monitoring.ts(170,19): error TS2353: Object literal may only specify known properties, and 'severity' does not exist in type 'SecurityAuditCountAggregateInputType'.
+src/lib/security-monitoring.ts(190,20): error TS2339: Property 'type' does not exist on type 'PickEnumerable<SecurityAuditGroupByOutputType, SecurityAuditScalarFieldEnum | SecurityAuditScalarFieldEnum[]> & { ...; }'.
+src/lib/security-monitoring.ts(191,16): error TS18048: 'item._count' is possibly 'undefined'.
+src/lib/security-monitoring.ts(191,28): error TS2339: Property 'type' does not exist on type 'true | { id?: number | undefined; userId?: number | undefined; action?: number | undefined; ipAddress?: number | undefined; userAgent?: number | undefined; organizationId?: number | undefined; metadata?: number | undefined; createdAt?: number | undefined; _all?: number | undefined; }'.
+  Property 'type' does not exist on type 'true'.
+src/lib/security-monitoring.ts(192,16): error TS18048: 'item._count' is possibly 'undefined'.
+src/lib/security-monitoring.ts(192,28): error TS2339: Property 'type' does not exist on type 'true | { id?: number | undefined; userId?: number | undefined; action?: number | undefined; ipAddress?: number | undefined; userAgent?: number | undefined; organizationId?: number | undefined; metadata?: number | undefined; createdAt?: number | undefined; _all?: number | undefined; }'.
+  Property 'type' does not exist on type 'true'.
+src/lib/security-monitoring.ts(193,16): error TS18048: 'item._count' is possibly 'undefined'.
+src/lib/security-monitoring.ts(193,28): error TS2339: Property 'type' does not exist on type 'true | { id?: number | undefined; userId?: number | undefined; action?: number | undefined; ipAddress?: number | undefined; userAgent?: number | undefined; organizationId?: number | undefined; metadata?: number | undefined; createdAt?: number | undefined; _all?: number | undefined; }'.
+  Property 'type' does not exist on type 'true'.
+src/lib/security-monitoring.ts(197,24): error TS2339: Property 'severity' does not exist on type 'PickEnumerable<SecurityAuditGroupByOutputType, SecurityAuditScalarFieldEnum | SecurityAuditScalarFieldEnum[]> & { ...; }'.
+src/lib/security-monitoring.ts(198,16): error TS18048: 'item._count' is possibly 'undefined'.
+src/lib/security-monitoring.ts(198,28): error TS2339: Property 'severity' does not exist on type 'true | { id?: number | undefined; userId?: number | undefined; action?: number | undefined; ipAddress?: number | undefined; userAgent?: number | undefined; organizationId?: number | undefined; metadata?: number | undefined; createdAt?: number | undefined; _all?: number | undefined; }'.
+  Property 'severity' does not exist on type 'true'.
+src/lib/security-monitoring.ts(203,30): error TS2532: Object is possibly 'undefined'.
+src/lib/security-monitoring.ts(203,59): error TS2339: Property 'severity' does not exist on type 'PickEnumerable<SecurityAuditGroupByOutputType, SecurityAuditScalarFieldEnum | SecurityAuditScalarFieldEnum[]> & { ...; }'.
+src/lib/security-monitoring.ts(203,92): error TS2339: Property 'severity' does not exist on type 'true | { id?: number | undefined; userId?: number | undefined; action?: number | undefined; ipAddress?: number | undefined; userAgent?: number | undefined; organizationId?: number | undefined; metadata?: number | undefined; createdAt?: number | undefined; _all?: number | undefined; }'.
+  Property 'severity' does not exist on type 'true'.
+src/lib/security-monitoring.ts(204,26): error TS2532: Object is possibly 'undefined'.
+src/lib/security-monitoring.ts(204,55): error TS2339: Property 'severity' does not exist on type 'PickEnumerable<SecurityAuditGroupByOutputType, SecurityAuditScalarFieldEnum | SecurityAuditScalarFieldEnum[]> & { ...; }'.
+src/lib/security-monitoring.ts(204,84): error TS2339: Property 'severity' does not exist on type 'true | { id?: number | undefined; userId?: number | undefined; action?: number | undefined; ipAddress?: number | undefined; userAgent?: number | undefined; organizationId?: number | undefined; metadata?: number | undefined; createdAt?: number | undefined; _all?: number | undefined; }'.
+  Property 'severity' does not exist on type 'true'.
+src/lib/security-monitoring.ts(250,9): error TS2353: Object literal may only specify known properties, and 'html' does not exist in type 'EmailOptions'.
+src/lib/security-monitoring.ts(263,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/security/advancedSecurityService.ts(135,11): error TS2322: Type '{ severity: "low" | "medium" | "high" | "critical"; details: unknown; location: { country: string; region: string; city: string; coordinates?: [number, number]; } | undefined; deviceFingerprint: string | undefined; sessionId: string | undefined; organizationId: string | undefined; }' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+  Types of property 'details' are incompatible.
+    Type 'unknown' is not assignable to type 'InputJsonValue | null | undefined'.
+src/lib/security/advancedSecurityService.ts(307,13): error TS2322: Type 'unknown' is not assignable to type '"LOW" | "MEDIUM" | "HIGH" | "CRITICAL"'.
+src/lib/security/advancedSecurityService.ts(436,13): error TS2322: Type 'null' is not assignable to type 'InputJsonValue | FieldRef<"SecurityAudit", "Json"> | JsonNullValueFilter | undefined'.
+src/lib/security/advancedSecurityService.ts(497,13): error TS2322: Type 'null' is not assignable to type 'InputJsonValue | FieldRef<"SecurityAudit", "Json"> | JsonNullValueFilter | undefined'.
+src/lib/security/advancedSecurityService.ts(563,13): error TS2322: Type 'null' is not assignable to type 'InputJsonValue | FieldRef<"SecurityAudit", "Json"> | JsonNullValueFilter | undefined'.
+src/lib/security/advancedSecurityService.ts(580,15): error TS2322: Type 'null' is not assignable to type 'InputJsonValue | FieldRef<"SecurityAudit", "Json"> | JsonNullValueFilter | undefined'.
+src/lib/security/advancedSecurityService.ts(656,16): error TS18046: 'data' is of type 'unknown'.
+src/lib/security/advancedSecurityService.ts(657,22): error TS18046: 'data' is of type 'unknown'.
+src/lib/security/advancedSecurityService.ts(670,9): error TS2322: Type 'unknown[]' is not assignable to type '{ timestamp: Date; count: number; severity: string; }[]'.
+  Type 'unknown' is not assignable to type '{ timestamp: Date; count: number; severity: string; }'.
+src/lib/security/advancedSecurityService.ts(810,96): error TS18004: No value exists in scope for the shorthand property 'userAgent'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(825,95): error TS18004: No value exists in scope for the shorthand property 'ipAddress'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(884,90): error TS18004: No value exists in scope for the shorthand property 'type'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(884,96): error TS18004: No value exists in scope for the shorthand property 'severity'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(895,108): error TS18004: No value exists in scope for the shorthand property 'reason'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(910,18): error TS2322: Type '"ADMIN"' is not assignable to type 'UserRole | EnumUserRoleFilter<"User"> | undefined'.
+src/lib/security/advancedSecurityService.ts(936,91): error TS18004: No value exists in scope for the shorthand property 'organizationId'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(936,107): error TS18004: No value exists in scope for the shorthand property 'alertType'. Either declare one or provide an initializer.
+src/lib/security/advancedSecurityService.ts(956,9): error TS2322: Type 'unknown' is not assignable to type '"LOW" | "MEDIUM" | "HIGH" | "CRITICAL"'.
+src/lib/security/advancedSecurityService.ts(1012,11): error TS18046: 'event' is of type 'unknown'.
+src/lib/security/advancedSecurityService.ts(1012,47): error TS18046: 'event' is of type 'unknown'.
+src/lib/security/advancedSecurityService.ts(1017,31): error TS18046: 'event' is of type 'unknown'.
+src/lib/security/advancedSecurityService.ts(1017,59): error TS2339: Property 'severity' does not exist on type '{}'.
+src/lib/security/advancedSecurityService.ts(1018,78): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/lib/security/securityService.ts(68,11): error TS2322: Type 'string[]' is not assignable to type 'string | NullableStringFieldUpdateOperationsInput | null | undefined'.
+src/lib/security/securityService.ts(106,40): error TS2339: Property 'filter' does not exist on type 'string'.
+src/lib/security/securityService.ts(189,11): error TS2367: This comparison appears to be unintentional because the types 'UserRole' and '"ADMIN"' have no overlap.
+src/lib/security/securityService.ts(223,11): error TS2322: Type '{ resource: string; success: boolean; details: unknown; }' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+  Types of property 'details' are incompatible.
+    Type 'unknown' is not assignable to type 'InputJsonValue | null | undefined'.
+src/lib/security/securityService.ts(253,27): error TS18046: 'where' is of type 'unknown'.
+src/lib/security/securityService.ts(254,27): error TS18046: 'where' is of type 'unknown'.
+src/lib/security/securityService.ts(256,9): error TS18046: 'where' is of type 'unknown'.
+src/lib/security/securityService.ts(257,32): error TS18046: 'where' is of type 'unknown'.
+src/lib/security/securityService.ts(258,30): error TS18046: 'where' is of type 'unknown'.
+src/lib/security/securityService.ts(262,9): error TS2322: Type 'unknown' is not assignable to type 'SecurityAuditWhereInput | undefined'.
+src/lib/security/securityService.ts(272,48): error TS2339: Property 'resource' does not exist on type '{}'.
+src/lib/security/securityService.ts(276,47): error TS2339: Property 'success' does not exist on type '{}'.
+src/lib/security/securityService.ts(277,47): error TS2339: Property 'details' does not exist on type '{}'.
+src/lib/security/securityService.ts(304,11): error TS2322: Type '{ userId: string | undefined; ipAddress: string; details: unknown; }' is not assignable to type 'InputJsonValue | NullableJsonNullValueInput | undefined'.
+  Types of property 'details' are incompatible.
+    Type 'unknown' is not assignable to type 'InputJsonValue | null | undefined'.
+src/lib/security/securityService.ts(319,49): error TS2339: Property 'ipAddress' does not exist on type '{}'.
+src/lib/security/securityService.ts(331,49): error TS2339: Property 'ipAddress' does not exist on type '{}'.
+src/lib/security/securityService.ts(354,13): error TS2322: Type 'null' is not assignable to type 'InputJsonValue | FieldRef<"SecurityAudit", "Json"> | JsonNullValueFilter | undefined'.
+src/lib/security/securityService.ts(365,13): error TS2322: Type 'null' is not assignable to type 'InputJsonValue | FieldRef<"SecurityAudit", "Json"> | JsonNullValueFilter | undefined'.
+src/lib/security/securityService.ts(412,18): error TS2322: Type '"ADMIN"' is not assignable to type 'UserRole | EnumUserRoleFilter<"User"> | undefined'.
+src/lib/security/securityService.ts(459,30): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
+  Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
+src/lib/security/securityService.ts(463,39): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(data: ArrayBufferView<ArrayBufferLike>, inputEncoding: undefined, outputEncoding: Encoding): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'ArrayBufferView<ArrayBufferLike>'.
+      Type 'undefined' is not assignable to type 'ArrayBufferView<ArrayBufferLike>'.
+  Overload 2 of 4, '(data: string, inputEncoding: Encoding | undefined, outputEncoding: Encoding): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/lib/security/securityService.ts(464,7): error TS2322: Type 'string' is not assignable to type 'NonSharedBuffer & string'.
+  Type 'string' is not assignable to type 'NonSharedBuffer'.
+src/lib/security/securityService.ts(477,41): error TS2304: Cannot find name 'Promiseany'.
+src/lib/sms/smsService.ts(3,27): error TS2306: File '/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/src/lib/utils/logger.ts' is not a module.
+src/lib/sms/smsService.ts(115,11): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(147,44): error TS2551: Property 'smsTemplate' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_templates'?
+src/lib/sms/smsService.ts(194,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(218,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(236,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(245,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(254,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(264,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(274,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(283,37): error TS2551: Property 'smsCampaign' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_campaigns'?
+src/lib/sms/smsService.ts(321,13): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(327,43): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/lib/sms/smsService.ts(332,20): error TS2551: Property 'smsCampaign' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_campaigns'?
+src/lib/sms/smsService.ts(358,20): error TS2551: Property 'smsLog' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_logs'?
+src/lib/sms/smsService.ts(399,11): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(417,20): error TS2551: Property 'supportTicket' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'support_tickets'?
+src/lib/sms/smsService.ts(435,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(449,33): error TS2551: Property 'smsLog' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_logs'?
+src/lib/sms/smsService.ts(485,20): error TS2551: Property 'smsSubscription' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_subscriptions'?
+src/lib/sms/smsService.ts(508,20): error TS2551: Property 'smsSubscription' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_subscriptions'?
+src/lib/sms/smsService.ts(590,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'SendSMSParams'.
+src/lib/sms/smsService.ts(594,20): error TS2551: Property 'smsLog' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'sms_logs'?
+src/lib/sms/smsService.ts(608,7): error TS2741: Property 'success' is missing in type '{ sid: string; }' but required in type '{ success: boolean; messageId?: string | undefined; error?: string | undefined; }'.
+src/lib/social/socialCommerceService.ts(66,21): error TS2561: Object literal may only specify known properties, but 'socialProducts' does not exist in type 'Social_commerceCountOutputTypeSelect<DefaultArgs>'. Did you mean to write 'social_products'?
+src/lib/social/socialCommerceService.ts(77,30): error TS2339: Property '_count' does not exist on type '{ id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; expiresAt: Date | null; settings: string | null; platform: string; accessToken: string | null; refreshToken: string | null; lastSync: Date | null; }'.
+src/lib/social/socialCommerceService.ts(102,9): error TS2322: Type '{ id: string; organizationId: string; platform: string; settings: string; isActive: true; lastSync: Date; }' is not assignable to type '(Without<social_commerceCreateInput, social_commerceUncheckedCreateInput> & social_commerceUncheckedCreateInput) | (Without<...> & social_commerceCreateInput)'.
+  Type '{ id: string; organizationId: string; platform: string; settings: string; isActive: true; lastSync: Date; }' is not assignable to type 'Without<social_commerceCreateInput, social_commerceUncheckedCreateInput> & social_commerceUncheckedCreateInput'.
+    Property 'updatedAt' is missing in type '{ id: string; organizationId: string; platform: string; settings: string; isActive: true; lastSync: Date; }' but required in type 'social_commerceUncheckedCreateInput'.
+src/lib/social/socialCommerceService.ts(145,15): error TS2353: Object literal may only specify known properties, and 'productId_platformId' does not exist in type 'social_productsWhereUniqueInput'.
+src/lib/social/socialCommerceService.ts(148,15): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<social_productsUpdateInput, social_productsUncheckedUpdateInput> & social_productsUncheckedUpdateInput) | (Without<...> & social_productsUpdateInput)'.
+src/lib/social/socialCommerceService.ts(153,15): error TS2353: Object literal may only specify known properties, and 'platformId' does not exist in type 'Without<social_productsCreateInput, social_productsUncheckedCreateInput> & social_productsUncheckedCreateInput'.
+src/lib/social/socialCommerceService.ts(165,39): error TS2339: Property 'platformId' does not exist on type '{ id: string; isActive: boolean; createdAt: Date; productId: string; socialCommerceId: string; platformProductId: string; }'.
+src/lib/social/socialCommerceService.ts(167,35): error TS2339: Property 'status' does not exist on type '{ id: string; isActive: boolean; createdAt: Date; productId: string; socialCommerceId: string; platformProductId: string; }'.
+src/lib/social/socialCommerceService.ts(168,37): error TS2339: Property 'metadata' does not exist on type '{ id: string; isActive: boolean; createdAt: Date; productId: string; socialCommerceId: string; platformProductId: string; }'.
+src/lib/social/socialCommerceService.ts(169,37): error TS2339: Property 'lastSync' does not exist on type '{ id: string; isActive: boolean; createdAt: Date; productId: string; socialCommerceId: string; platformProductId: string; }'.
+src/lib/social/socialCommerceService.ts(181,15): error TS2353: Object literal may only specify known properties, and 'productId_platformId' does not exist in type 'social_productsWhereUniqueInput'.
+src/lib/social/socialCommerceService.ts(184,15): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<social_productsUpdateInput, social_productsUncheckedUpdateInput> & social_productsUncheckedUpdateInput) | (Without<...> & social_productsUpdateInput)'.
+src/lib/social/socialCommerceService.ts(188,15): error TS2353: Object literal may only specify known properties, and 'platformId' does not exist in type 'Without<social_productsCreateInput, social_productsUncheckedCreateInput> & social_productsUncheckedCreateInput'.
+src/lib/social/socialCommerceService.ts(218,11): error TS2322: Type 'string[]' is not assignable to type 'string'.
+src/lib/social/socialCommerceService.ts(222,11): error TS2322: Type '{ likes: number; comments: number; shares: number; clicks: number; }' is not assignable to type 'string'.
+src/lib/social/socialCommerceService.ts(228,26): error TS2551: Property 'platformId' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'. Did you mean 'platform'?
+src/lib/social/socialCommerceService.ts(229,20): error TS2339: Property 'type' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(231,9): error TS2322: Type 'string | null' is not assignable to type 'string[]'.
+  Type 'null' is not assignable to type 'string[]'.
+src/lib/social/socialCommerceService.ts(232,26): error TS2339: Property 'productIds' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(236,9): error TS2322: Type 'unknown' is not assignable to type '{ likes: number; comments: number; shares: number; clicks: number; }'.
+src/lib/social/socialCommerceService.ts(254,27): error TS2551: Property 'platformId' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'. Did you mean 'platform'?
+src/lib/social/socialCommerceService.ts(269,13): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<social_postsUpdateInput, social_postsUncheckedUpdateInput> & social_postsUncheckedUpdateInput) | (Without<...> & social_postsUpdateInput)'.
+src/lib/social/socialCommerceService.ts(275,35): error TS2551: Property 'platformId' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'. Did you mean 'platform'?
+src/lib/social/socialCommerceService.ts(276,29): error TS2339: Property 'type' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(278,11): error TS2322: Type 'string | null' is not assignable to type 'string[]'.
+  Type 'null' is not assignable to type 'string[]'.
+src/lib/social/socialCommerceService.ts(279,35): error TS2339: Property 'productIds' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(283,11): error TS2322: Type 'unknown' is not assignable to type '{ likes: number; comments: number; shares: number; clicks: number; }'.
+src/lib/social/socialCommerceService.ts(291,13): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<social_postsUpdateInput, social_postsUncheckedUpdateInput> & social_postsUncheckedUpdateInput) | (Without<...> & social_postsUpdateInput)'.
+src/lib/social/socialCommerceService.ts(309,23): error TS2353: Object literal may only specify known properties, and 'organizationId' does not exist in type 'StringFilter<"social_posts">'.
+src/lib/social/socialCommerceService.ts(332,57): error TS2551: Property 'platformId' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'. Did you mean 'platform'?
+src/lib/social/socialCommerceService.ts(349,36): error TS2339: Property 'name' does not exist on type '{ id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; expiresAt: Date | null; settings: string | null; platform: string; accessToken: string | null; refreshToken: string | null; lastSync: Date | null; }'.
+src/lib/social/socialCommerceService.ts(361,38): error TS2339: Property 'productIds' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(392,9): error TS2322: Type 'Record<string, unknown>' is not assignable to type 'Record<string, { followers: number; posts: number; engagement: number; sales: number; }>'.
+  'string' index signatures are incompatible.
+    Type 'unknown' is not assignable to type '{ followers: number; posts: number; engagement: number; sales: number; }'.
+src/lib/social/socialCommerceService.ts(419,9): error TS18046: 'whereClause' is of type 'unknown'.
+src/lib/social/socialCommerceService.ts(423,9): error TS2322: Type 'unknown' is not assignable to type 'social_postsWhereInput | undefined'.
+src/lib/social/socialCommerceService.ts(424,20): error TS2353: Object literal may only specify known properties, and 'platform' does not exist in type 'social_postsInclude<DefaultArgs>'.
+src/lib/social/socialCommerceService.ts(427,7): error TS2322: Type '{ id: string; platformId: any; type: "product" | "post" | "story" | "reel"; content: string; mediaUrls: string | null; productIds: any; scheduledAt: Date | undefined; publishedAt: Date | undefined; status: "draft" | ... 2 more ... | "published"; engagement: unknown; }[]' is not assignable to type 'SocialPost[]'.
+  Type '{ id: string; platformId: any; type: "product" | "story" | "reel" | "post"; content: string; mediaUrls: string | null; productIds: any; scheduledAt: Date | undefined; publishedAt: Date | undefined; status: "draft" | "scheduled" | "published" | "failed"; engagement: unknown; }' is not assignable to type 'SocialPost'.
+    Types of property 'mediaUrls' are incompatible.
+      Type 'string | null' is not assignable to type 'string[]'.
+        Type 'null' is not assignable to type 'string[]'.
+src/lib/social/socialCommerceService.ts(429,26): error TS2551: Property 'platformId' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'. Did you mean 'platform'?
+src/lib/social/socialCommerceService.ts(430,20): error TS2339: Property 'type' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(433,26): error TS2339: Property 'productIds' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(450,56): error TS2339: Property 'metadata' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(450,78): error TS2339: Property 'platformPostId' does not exist on type '{}'.
+src/lib/social/socialCommerceService.ts(452,29): error TS2551: Property 'platformId' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'. Did you mean 'platform'?
+src/lib/social/socialCommerceService.ts(456,51): error TS2571: Object is of type 'unknown'.
+src/lib/social/socialCommerceService.ts(456,57): error TS2339: Property 'metadata' does not exist on type '{ status: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; scheduledAt: Date | null; content: string; platform: string; externalId: string | null; ... 4 more ...; engagement: string | null; }'.
+src/lib/social/socialCommerceService.ts(479,18): error TS2353: Object literal may only specify known properties, and 'platformId' does not exist in type 'social_productsWhereInput'.
+src/lib/social/socialCommerceService.ts(488,21): error TS2353: Object literal may only specify known properties, and 'lastSync' does not exist in type '(Without<social_productsUpdateInput, social_productsUncheckedUpdateInput> & social_productsUncheckedUpdateInput) | (Without<...> & social_productsUpdateInput)'.
+src/lib/social/socialCommerceService.ts(500,15): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '(Without<social_productsUpdateInput, social_productsUncheckedUpdateInput> & social_productsUncheckedUpdateInput) | (Without<...> & social_productsUpdateInput)'.
+src/lib/social/socialService.ts(9,14): error TS2300: Duplicate identifier 'SocialCommerceService'.
+src/lib/social/socialService.ts(46,14): error TS2451: Cannot redeclare block-scoped variable 'socialCommerceService'.
+src/lib/social/socialService.ts(46,42): error TS2449: Class 'SocialCommerceService' used before its declaration.
+src/lib/social/socialService.ts(54,14): error TS2300: Duplicate identifier 'SocialCommerceService'.
+src/lib/social/socialService.ts(91,14): error TS2451: Cannot redeclare block-scoped variable 'socialCommerceService'.
+src/lib/social/socialService.ts(91,42): error TS2449: Class 'SocialCommerceService' used before its declaration.
+src/lib/social/socialService.ts(99,14): error TS2300: Duplicate identifier 'SocialCommerceService'.
+src/lib/social/socialService.ts(136,14): error TS2451: Cannot redeclare block-scoped variable 'socialCommerceService'.
+src/lib/subscription/subscriptionService.ts(119,11): error TS2820: Type '"active"' is not assignable to type 'SubscriptionStatus | undefined'. Did you mean '"ACTIVE"'?
+src/lib/subscription/subscriptionService.ts(172,11): error TS2820: Type '"active"' is not assignable to type 'SubscriptionStatus | undefined'. Did you mean '"ACTIVE"'?
+src/lib/subscription/subscriptionService.ts(197,38): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(209,14): error TS2352: Conversion of type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' to type 'Subscription' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'customerId' is missing in type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' but required in type 'Subscription'.
+src/lib/subscription/subscriptionService.ts(233,9): error TS2322: Type 'Partial<Subscription>' is not assignable to type '(Without<SubscriptionUpdateInput, SubscriptionUncheckedUpdateInput> & SubscriptionUncheckedUpdateInput) | (Without<...> & SubscriptionUpdateInput)'.
+  Type 'Partial<Subscription>' is not assignable to type 'Without<SubscriptionUncheckedUpdateInput, SubscriptionUpdateInput> & SubscriptionUpdateInput'.
+    Types of property 'status' are incompatible.
+      Type 'string | undefined' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'.
+        Type 'string' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'.
+src/lib/subscription/subscriptionService.ts(242,41): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(248,45): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(260,14): error TS2352: Conversion of type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' to type 'Subscription' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'customerId' is missing in type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' but required in type 'Subscription'.
+src/lib/subscription/subscriptionService.ts(301,11): error TS2322: Type '"active" | "canceled"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'.
+  Type '"active"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'. Did you mean '"ACTIVE"'?
+src/lib/subscription/subscriptionService.ts(304,30): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(329,41): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(335,45): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(348,14): error TS2352: Conversion of type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' to type 'Subscription' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'customerId' is missing in type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }' but required in type 'Subscription'.
+src/lib/subscription/subscriptionService.ts(367,19): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'SubscriptionSelect<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(375,42): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(385,11): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<SubscriptionUpdateInput, SubscriptionUncheckedUpdateInput> & SubscriptionUncheckedUpdateInput) | (Without<...> & SubscriptionUpdateInput)'.
+src/lib/subscription/subscriptionService.ts(386,30): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(428,11): error TS2820: Type '"active"' is not assignable to type 'SubscriptionStatus | undefined'. Did you mean '"ACTIVE"'?
+src/lib/subscription/subscriptionService.ts(456,23): error TS2353: Object literal may only specify known properties, and 'totalAmount' does not exist in type 'OrderSelect<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(466,35): error TS2339: Property 'orders' does not exist on type '{ name: string; id: string; email: string; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; address: string | null; }'.
+src/lib/subscription/subscriptionService.ts(484,17): error TS2353: Object literal may only specify known properties, and 'totalSpent' does not exist in type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+src/lib/subscription/subscriptionService.ts(520,11): error TS2820: Type '"active"' is not assignable to type 'SubscriptionStatus | undefined'. Did you mean '"ACTIVE"'?
+src/lib/subscription/subscriptionService.ts(574,19): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'SubscriptionSelect<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(579,34): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(605,20): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(608,42): error TS2339: Property 'customer' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(613,35): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(626,35): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(645,20): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(648,42): error TS2339: Property 'customer' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(653,35): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(666,35): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(684,20): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(687,42): error TS2339: Property 'customer' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(692,35): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(705,35): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(706,39): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(707,37): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(724,19): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'SubscriptionSelect<DefaultArgs>'.
+src/lib/subscription/subscriptionService.ts(729,35): error TS2339: Property 'metadata' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscription/subscriptionService.ts(752,50): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/subscription/subscriptionService.ts(769,37): error TS18048: 'currentThreshold' is possibly 'undefined'.
+src/lib/subscription/subscriptionService.ts(769,58): error TS18048: 'nextThreshold' is possibly 'undefined'.
+src/lib/subscription/subscriptionService.ts(769,74): error TS18048: 'currentThreshold' is possibly 'undefined'.
+src/lib/subscriptions/manager.ts(55,9): error TS2353: Object literal may only specify known properties, and 'customerId' does not exist in type '(Without<SubscriptionCreateInput, SubscriptionUncheckedCreateInput> & SubscriptionUncheckedCreateInput) | (Without<...> & SubscriptionCreateInput)'.
+src/lib/subscriptions/manager.ts(65,9): error TS2353: Object literal may only specify known properties, and 'plan' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/subscriptions/manager.ts(130,9): error TS2353: Object literal may only specify known properties, and 'cancelledAt' does not exist in type '(Without<SubscriptionUpdateInput, SubscriptionUncheckedUpdateInput> & SubscriptionUncheckedUpdateInput) | (Without<...> & SubscriptionUpdateInput)'.
+src/lib/subscriptions/manager.ts(154,9): error TS2322: Type 'SubscriptionStatus.PAUSED' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'.
+src/lib/subscriptions/manager.ts(179,9): error TS2353: Object literal may only specify known properties, and 'pausedAt' does not exist in type '(Without<SubscriptionUpdateInput, SubscriptionUncheckedUpdateInput> & SubscriptionUncheckedUpdateInput) | (Without<...> & SubscriptionUpdateInput)'.
+src/lib/subscriptions/manager.ts(213,9): error TS2561: Object literal may only specify known properties, but 'planId' does not exist in type '(Without<SubscriptionUpdateInput, SubscriptionUncheckedUpdateInput> & SubscriptionUncheckedUpdateInput) | (Without<...> & SubscriptionUpdateInput)'. Did you mean to write 'plan'?
+src/lib/subscriptions/manager.ts(237,7): error TS2353: Object literal may only specify known properties, and 'nextBillingDate' does not exist in type 'SubscriptionWhereInput'.
+src/lib/subscriptions/manager.ts(240,7): error TS2353: Object literal may only specify known properties, and 'plan' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/subscriptions/manager.ts(257,18): error TS2353: Object literal may only specify known properties, and 'plan' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/subscriptions/manager.ts(267,34): error TS2339: Property 'customerId' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscriptions/manager.ts(268,9): error TS2353: Object literal may only specify known properties, and 'subscriptionId' does not exist in type '(Without<InvoiceCreateInput, InvoiceUncheckedCreateInput> & InvoiceUncheckedCreateInput) | (Without<...> & InvoiceCreateInput)'.
+src/lib/subscriptions/manager.ts(269,35): error TS2339: Property 'price' does not exist on type 'PlanType'.
+  Property 'price' does not exist on type '"FREE"'.
+src/lib/subscriptions/manager.ts(277,20): error TS2339: Property 'nextBillingDate' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscriptions/manager.ts(278,25): error TS2339: Property 'interval' does not exist on type 'PlanType'.
+  Property 'interval' does not exist on type '"FREE"'.
+src/lib/subscriptions/manager.ts(284,42): error TS2339: Property 'nextBillingDate' does not exist on type '{ status: SubscriptionStatus; id: string; organizationId: string; createdAt: Date; updatedAt: Date; plan: PlanType; stripeCustomerId: string | null; ... 4 more ...; trialEndsAt: Date | null; }'.
+src/lib/subscriptions/manager.ts(286,9): error TS2353: Object literal may only specify known properties, and 'nextBillingDate' does not exist in type '(Without<SubscriptionUpdateInput, SubscriptionUncheckedUpdateInput> & SubscriptionUncheckedUpdateInput) | (Without<...> & SubscriptionUpdateInput)'.
+src/lib/subscriptions/manager.ts(306,14): error TS2353: Object literal may only specify known properties, and 'customerId' does not exist in type 'SubscriptionWhereInput'.
+src/lib/subscriptions/manager.ts(308,7): error TS2353: Object literal may only specify known properties, and 'plan' does not exist in type 'SubscriptionInclude<DefaultArgs>'.
+src/lib/suppliers/manager.ts(29,7): error TS2322: Type '{ rating: number; totalOrders: number; totalSpent: number; name: string; contactPerson?: string; email?: string; phone?: string; address?: string; taxId?: string; paymentTerms?: string; leadTime?: number; minimumOrderValue?: number; isActive: boolean; organizationId: string; }' is not assignable to type '(Without<SupplierCreateInput, SupplierUncheckedCreateInput> & SupplierUncheckedCreateInput) | (Without<...> & SupplierCreateInput)'.
+  Type '{ rating: number; totalOrders: number; totalSpent: number; name: string; contactPerson?: string; email?: string; phone?: string; address?: string; taxId?: string; paymentTerms?: string; leadTime?: number; minimumOrderValue?: number; isActive: boolean; organizationId: string; }' is not assignable to type 'Without<SupplierCreateInput, SupplierUncheckedCreateInput> & SupplierUncheckedCreateInput'.
+    Property 'code' is missing in type '{ rating: number; totalOrders: number; totalSpent: number; name: string; contactPerson?: string; email?: string; phone?: string; address?: string; taxId?: string; paymentTerms?: string; leadTime?: number; minimumOrderValue?: number; isActive: boolean; organizationId: string; }' but required in type 'SupplierUncheckedCreateInput'.
+src/lib/suppliers/manager.ts(121,7): error TS2353: Object literal may only specify known properties, and 'supplierProducts' does not exist in type 'SupplierInclude<DefaultArgs>'.
+src/lib/suppliers/manager.ts(147,18): error TS2339: Property 'supplierProduct' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/suppliers/manager.ts(156,72): error TS18004: No value exists in scope for the shorthand property 'supplierId'. Either declare one or provide an initializer.
+src/lib/suppliers/manager.ts(156,84): error TS18004: No value exists in scope for the shorthand property 'productId'. Either declare one or provide an initializer.
+src/lib/suppliers/manager.ts(184,35): error TS2339: Property 'totalRatings' does not exist on type '{ status: SupplierStatus; name: string; id: string; email: string | null; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; currency: string; ... 8 more ...; totalSpent: Decimal; }'.
+src/lib/suppliers/manager.ts(193,9): error TS2353: Object literal may only specify known properties, and 'totalRatings' does not exist in type '(Without<SupplierUpdateInput, SupplierUncheckedUpdateInput> & SupplierUncheckedUpdateInput) | (Without<...> & SupplierUpdateInput)'.
+src/lib/suppliers/manager.ts(217,11): error TS2322: Type '"COMPLETED"' is not assignable to type 'PurchaseOrderStatus | EnumPurchaseOrderStatusFilter<"PurchaseOrder"> | undefined'.
+src/lib/suppliers/manager.ts(227,32): error TS2339: Property 'purchaseOrders' does not exist on type '{ status: SupplierStatus; name: string; id: string; email: string | null; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; currency: string; ... 8 more ...; totalSpent: Decimal; }'.
+src/lib/suppliers/manager.ts(228,31): error TS2339: Property 'purchaseOrders' does not exist on type '{ status: SupplierStatus; name: string; id: string; email: string | null; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; currency: string; ... 8 more ...; totalSpent: Decimal; }'.
+src/lib/suppliers/manager.ts(228,54): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/suppliers/manager.ts(228,59): error TS7006: Parameter 'po' implicitly has an 'any' type.
+src/lib/suppliers/manager.ts(240,31): error TS2339: Property 'leadTime' does not exist on type '{ status: SupplierStatus; name: string; id: string; email: string | null; organizationId: string; phone: string | null; createdAt: Date; updatedAt: Date; currency: string; ... 8 more ...; totalSpent: Decimal; }'.
+src/lib/sync/realTimeSyncService.ts(54,18): error TS2749: 'Redis' refers to a value, but is being used as a type here. Did you mean 'typeof Redis'?
+src/lib/sync/realTimeSyncService.ts(55,16): error TS2749: 'WebSocketServer' refers to a value, but is being used as a type here. Did you mean 'typeof WebSocketServer'?
+src/lib/sync/realTimeSyncService.ts(68,23): error TS2749: 'Redis' refers to a value, but is being used as a type here. Did you mean 'typeof Redis'?
+src/lib/sync/realTimeSyncService.ts(82,49): error TS7006: Parameter 'request' implicitly has an 'any' type.
+src/lib/sync/realTimeSyncService.ts(243,17): error TS18046: 'event.data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(243,34): error TS18046: 'event.data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(245,16): error TS18046: 'c' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(246,21): error TS18046: 'c' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(247,22): error TS18046: 'c' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(259,9): error TS2353: Object literal may only specify known properties, and 'conflicts' does not exist in type '(Without<SyncConflictCreateInput, SyncConflictUncheckedCreateInput> & SyncConflictUncheckedCreateInput) | (Without<...> & SyncConflictCreateInput)'.
+src/lib/sync/realTimeSyncService.ts(304,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(311,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(313,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(319,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(332,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(339,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(341,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(347,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(360,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(367,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(369,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(375,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(387,24): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(389,13): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type '(Without<ProductUpdateInput, ProductUncheckedUpdateInput> & ProductUncheckedUpdateInput) | (Without<...> & ProductUpdateInput)'.
+src/lib/sync/realTimeSyncService.ts(389,28): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(402,22): error TS2339: Property 'chatMessage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/sync/realTimeSyncService.ts(404,13): error TS2698: Spread types may only be created from object types.
+src/lib/sync/realTimeSyncService.ts(418,78): error TS1361: 'WebSocket' cannot be used as a value because it was imported using 'import type'.
+src/lib/sync/realTimeSyncService.ts(433,51): error TS2552: Cannot find name 'Promiseany'. Did you mean 'Promise'?
+src/lib/sync/realTimeSyncService.ts(442,46): error TS2552: Cannot find name 'Promiseany'. Did you mean 'Promise'?
+src/lib/sync/realTimeSyncService.ts(444,22): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(444,33): error TS18046: 'data' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(469,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(o: {}): string[]', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type '{}'.
+  Overload 2 of 2, '(o: object): string[]', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'object'.
+src/lib/sync/realTimeSyncService.ts(472,26): error TS18046: 'newData' is of type 'unknown'.
+src/lib/sync/realTimeSyncService.ts(483,27): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/sync/realTimeSyncService.ts(527,9): error TS2353: Object literal may only specify known properties, and 'conflicts' does not exist in type '(Without<SyncConflictUpdateInput, SyncConflictUncheckedUpdateInput> & SyncConflictUncheckedUpdateInput) | (Without<...> & SyncConflictUpdateInput)'.
+src/lib/sync/realTimeSyncService.ts(540,55): error TS2552: Cannot find name 'Promiseany'. Did you mean 'Promise'?
+src/lib/utils/export.ts(87,19): error TS2532: Object is possibly 'undefined'.
+src/lib/utils/export.ts(91,10): error TS2532: Object is possibly 'undefined'.
+src/lib/utils/export.ts(93,20): error TS2532: Object is possibly 'undefined'.
+src/lib/voice/voiceCommerceService.ts(74,61): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(85,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(86,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(87,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(89,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(97,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(105,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(114,7): error TS2571: Object is of type 'unknown'.
+src/lib/voice/voiceCommerceService.ts(288,26): error TS2339: Property 'start' does not exist on type '{}'.
+src/lib/voice/voiceCommerceService.ts(301,24): error TS2339: Property 'stop' does not exist on type '{}'.
+src/lib/voice/voiceCommerceService.ts(361,96): error TS2304: Cannot find name 'command'.
+src/lib/voice/voiceCommerceService.ts(521,29): error TS2532: Object is possibly 'undefined'.
+src/lib/voice/voiceCommerceService.ts(524,20): error TS2538: Type 'undefined' cannot be used as an index type.
+src/lib/voice/voiceCommerceService.ts(524,56): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/voice/voiceCommerceService.ts(546,35): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/voice/voiceCommerceService.ts(613,23): error TS2322: Type '{}' is not assignable to type 'string | FieldRef<"Product", "String"> | undefined'.
+src/lib/voice/voiceCommerceService.ts(614,30): error TS2322: Type '{}' is not assignable to type 'string | FieldRef<"Product", "String"> | undefined'.
+src/lib/voice/voiceCommerceService.ts(615,35): error TS2322: Type '{}' is not assignable to type 'string | FieldRef<"Category", "String"> | undefined'.
+src/lib/voice/voiceCommerceService.ts(645,82): error TS18004: No value exists in scope for the shorthand property 'query'. Either declare one or provide an initializer.
+src/lib/voice/voiceCommerceService.ts(673,19): error TS2322: Type '{}' is not assignable to type 'string | FieldRef<"Product", "String"> | undefined'.
+src/lib/voice/voiceCommerceService.ts(686,81): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/voice/voiceCommerceService.ts(686,97): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/voice/voiceCommerceService.ts(699,77): error TS18004: No value exists in scope for the shorthand property 'productId'. Either declare one or provide an initializer.
+src/lib/voice/voiceCommerceService.ts(699,98): error TS18004: No value exists in scope for the shorthand property 'customerId'. Either declare one or provide an initializer.
+src/lib/voice/voiceCommerceService.ts(731,26): error TS18048: 'order' is possibly 'undefined'.
+src/lib/voice/voiceCommerceService.ts(731,41): error TS18048: 'order' is possibly 'undefined'.
+src/lib/voice/voiceCommerceService.ts(731,87): error TS18048: 'order' is possibly 'undefined'.
+src/lib/voice/voiceCommerceService.ts(735,32): error TS18048: 'order' is possibly 'undefined'.
+src/lib/voice/voiceCommerceService.ts(758,93): error TS18004: No value exists in scope for the shorthand property 'customerId'. Either declare one or provide an initializer.
+src/lib/voice/voiceCommerceService.ts(803,9): error TS2322: Type '{ price?: { lte: any; } | undefined; category?: { name: { contains: {}; mode: "insensitive"; }; } | undefined; organizationId: string; }' is not assignable to type 'ProductWhereInput'.
+  Types of property 'category' are incompatible.
+    Type '{ name: { contains: {}; mode: "insensitive"; }; }' is not assignable to type '(Without<CategoryNullableScalarRelationFilter, CategoryWhereInput> & CategoryWhereInput) | (Without<...> & CategoryNullableScalarRelationFilter) | null | undefined'.
+      Types of property 'name' are incompatible.
+        Type '{ contains: {}; mode: "insensitive"; }' is not assignable to type 'string | StringFilter<"Category"> | undefined'.
+          Types of property 'contains' are incompatible.
+            Type '{}' is not assignable to type 'string | FieldRef<"Category", "String"> | undefined'.
+src/lib/voice/voiceCommerceService.ts(808,27): error TS2339: Property 'max' does not exist on type '{}'.
+src/lib/voice/voiceCommerceService.ts(808,60): error TS2339: Property 'max' does not exist on type '{}'.
+src/lib/voice/voiceCommerceService.ts(837,86): error TS18004: No value exists in scope for the shorthand property 'customerId'. Either declare one or provide an initializer.
+src/lib/voice/voiceCommerceService.ts(866,9): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '(Without<VoiceCommandCreateInput, VoiceCommandUncheckedCreateInput> & VoiceCommandUncheckedCreateInput) | (Without<...> & VoiceCommandCreateInput)'.
+src/lib/voice/voiceCommerceService.ts(881,28): error TS2339: Property 'userId' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; response: string | null; command: string; transcript: string | null; intent: string | null; }'.
+src/lib/voice/voiceCommerceService.ts(884,30): error TS2339: Property 'entities' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; response: string | null; command: string; transcript: string | null; intent: string | null; }'.
+src/lib/voice/voiceCommerceService.ts(885,32): error TS2339: Property 'confidence' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; response: string | null; command: string; transcript: string | null; intent: string | null; }'.
+src/lib/voice/voiceCommerceService.ts(887,31): error TS2339: Property 'timestamp' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; response: string | null; command: string; transcript: string | null; intent: string | null; }'.
+src/lib/voice/voiceCommerceService.ts(888,31): error TS2339: Property 'processed' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; response: string | null; command: string; transcript: string | null; intent: string | null; }'.
+src/lib/voice/voiceCommerceService.ts(890,28): error TS2339: Property 'action' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; customerId: string | null; response: string | null; command: string; transcript: string | null; intent: string | null; }'.
+src/lib/voice/voiceCommerceService.ts(900,15): error TS2353: Object literal may only specify known properties, and 'processed' does not exist in type '(Without<VoiceCommandUpdateInput, VoiceCommandUncheckedUpdateInput> & VoiceCommandUncheckedUpdateInput) | (Without<...> & VoiceCommandUpdateInput)'.
+src/lib/voice/voiceCommerceService.ts(909,16): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'VoiceCommandWhereInput'.
+src/lib/voice/voiceCommerceService.ts(910,18): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'VoiceCommandOrderByWithRelationInput | VoiceCommandOrderByWithRelationInput[]'.
+src/lib/whatsapp/whatsappService.ts(56,11): error TS2353: Object literal may only specify known properties, and 'webhookUrl' does not exist in type '(Without<WhatsAppIntegrationUpdateInput, WhatsAppIntegrationUncheckedUpdateInput> & WhatsAppIntegrationUncheckedUpdateInput) | (Without<...> & WhatsAppIntegrationUpdateInput)'.
+src/lib/whatsapp/whatsappService.ts(68,11): error TS2353: Object literal may only specify known properties, and 'webhookUrl' does not exist in type 'Without<WhatsAppIntegrationCreateInput, WhatsAppIntegrationUncheckedCreateInput> & WhatsAppIntegrationUncheckedCreateInput'.
+src/lib/whatsapp/whatsappService.ts(288,11): error TS2322: Type '{ street: string; city: string; district: string; postalCode: string; }' is not assignable to type 'string'.
+src/lib/whatsapp/whatsappService.ts(301,9): error TS2353: Object literal may only specify known properties, and 'createdById' does not exist in type 'Without<OrderCreateInput, OrderUncheckedCreateInput> & OrderUncheckedCreateInput'.
+src/lib/whatsapp/whatsappService.ts(326,13): error TS2353: Object literal may only specify known properties, and 'createdById' does not exist in type 'Without<ProductCreateInput, ProductUncheckedCreateInput> & ProductUncheckedCreateInput'.
+src/lib/woocommerce/woocommerceService.ts(42,32): error TS2339: Property 'siteUrl' does not exist on type '{ id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; lastSync: Date | null; storeUrl: string; consumerKey: string; consumerSecret: string; syncSettings: string | null; }'.
+src/lib/woocommerce/woocommerceService.ts(45,32): error TS2339: Property 'apiVersion' does not exist on type '{ id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; lastSync: Date | null; storeUrl: string; consumerKey: string; consumerSecret: string; syncSettings: string | null; }'.
+src/lib/woocommerce/woocommerceService.ts(153,19): error TS2353: Object literal may only specify known properties, and 'syncedAt' does not exist in type '(Without<ProductUpdateInput, ProductUncheckedUpdateInput> & ProductUncheckedUpdateInput) | (Without<...> & ProductUpdateInput)'.
+src/lib/woocommerce/woocommerceService.ts(251,9): error TS2353: Object literal may only specify known properties, and 'siteUrl' does not exist in type 'Without<WooCommerceIntegrationCreateInput, WooCommerceIntegrationUncheckedCreateInput> & WooCommerceIntegrationUncheckedCreateInput'.
+src/lib/workflows/advancedWorkflowEngine.ts(87,11): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Without<WorkflowCreateInput, WorkflowUncheckedCreateInput> & WorkflowUncheckedCreateInput'.
+src/lib/workflows/advancedWorkflowEngine.ts(99,9): error TS2740: Type '{}' is missing the following properties from type 'WorkflowNode[]': length, pop, push, concat, and 29 more.
+src/lib/workflows/advancedWorkflowEngine.ts(99,26): error TS2339: Property 'nodes' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(100,9): error TS2740: Type '{}' is missing the following properties from type 'WorkflowConnection[]': length, pop, push, concat, and 29 more.
+src/lib/workflows/advancedWorkflowEngine.ts(100,32): error TS2339: Property 'connections' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(101,9): error TS2740: Type '{}' is missing the following properties from type 'string[]': length, pop, push, concat, and 29 more.
+src/lib/workflows/advancedWorkflowEngine.ts(101,29): error TS2551: Property 'triggers' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'. Did you mean 'trigger'?
+src/lib/workflows/advancedWorkflowEngine.ts(102,27): error TS2339: Property 'version' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(104,26): error TS2339: Property 'config' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(131,9): error TS2740: Type '{}' is missing the following properties from type 'WorkflowNode[]': length, pop, push, concat, and 29 more.
+src/lib/workflows/advancedWorkflowEngine.ts(131,26): error TS2339: Property 'nodes' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(132,9): error TS2740: Type '{}' is missing the following properties from type 'WorkflowConnection[]': length, pop, push, concat, and 29 more.
+src/lib/workflows/advancedWorkflowEngine.ts(132,32): error TS2339: Property 'connections' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(133,9): error TS2740: Type '{}' is missing the following properties from type 'string[]': length, pop, push, concat, and 29 more.
+src/lib/workflows/advancedWorkflowEngine.ts(133,29): error TS2551: Property 'triggers' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'. Did you mean 'trigger'?
+src/lib/workflows/advancedWorkflowEngine.ts(134,27): error TS2339: Property 'version' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(136,26): error TS2339: Property 'config' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; conditions: JsonValue; actions: JsonValue; lastRunAt: Date | null; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(144,11): error TS2353: Object literal may only specify known properties, and 'currentNodeId' does not exist in type 'Without<WorkflowExecutionCreateInput, WorkflowExecutionUncheckedCreateInput> & WorkflowExecutionUncheckedCreateInput'.
+src/lib/workflows/advancedWorkflowEngine.ts(156,34): error TS2339: Property 'currentNodeId' does not exist on type '{ status: string; error: string | null; id: string; startedAt: Date; completedAt: Date | null; workflowId: string; logs: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(157,25): error TS2339: Property 'data' does not exist on type '{ status: string; error: string | null; id: string; startedAt: Date; completedAt: Date | null; workflowId: string; logs: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(158,26): error TS2339: Property 'input' does not exist on type '{ status: string; error: string | null; id: string; startedAt: Date; completedAt: Date | null; workflowId: string; logs: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(159,27): error TS2339: Property 'output' does not exist on type '{ status: string; error: string | null; id: string; startedAt: Date; completedAt: Date | null; workflowId: string; logs: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(184,11): error TS2353: Object literal may only specify known properties, and 'data' does not exist in type '(Without<WorkflowExecutionUpdateInput, WorkflowExecutionUncheckedUpdateInput> & WorkflowExecutionUncheckedUpdateInput) | (Without<...> & WorkflowExecutionUpdateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(228,15): error TS2353: Object literal may only specify known properties, and 'currentNodeId' does not exist in type '(Without<WorkflowExecutionUpdateInput, WorkflowExecutionUncheckedUpdateInput> & WorkflowExecutionUncheckedUpdateInput) | (Without<...> & WorkflowExecutionUpdateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(236,15): error TS2353: Object literal may only specify known properties, and 'executionId' does not exist in type '(Without<WorkflowLogCreateInput, WorkflowLogUncheckedCreateInput> & WorkflowLogUncheckedCreateInput) | (Without<...> & WorkflowLogCreateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(268,15): error TS2353: Object literal may only specify known properties, and 'executionId' does not exist in type '(Without<WorkflowLogCreateInput, WorkflowLogUncheckedCreateInput> & WorkflowLogUncheckedCreateInput) | (Without<...> & WorkflowLogCreateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(337,20): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(356,23): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(365,21): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(371,17): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(372,20): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(373,21): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(392,22): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(393,24): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(394,21): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(407,21): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(408,24): error TS18046: 'node.config' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(428,9): error TS2353: Object literal may only specify known properties, and 'totalAmount' does not exist in type '(Without<OrderCreateInput, OrderUncheckedCreateInput> & OrderUncheckedCreateInput) | (Without<...> & OrderCreateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(462,15): error TS2353: Object literal may only specify known properties, and 'stockQuantity' does not exist in type '(Without<ProductUpdateInput, ProductUncheckedUpdateInput> & ProductUncheckedUpdateInput) | (Without<...> & ProductUpdateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(539,11): error TS2353: Object literal may only specify known properties, and 'category' does not exist in type '(Without<WorkflowTemplateCreateInput, WorkflowTemplateUncheckedCreateInput> & WorkflowTemplateUncheckedCreateInput) | (Without<...> & WorkflowTemplateCreateInput)'.
+src/lib/workflows/advancedWorkflowEngine.ts(551,36): error TS2339: Property 'category' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(552,38): error TS2339: Property 'definition' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(553,32): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(554,38): error TS2339: Property 'usageCount' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(555,36): error TS2339: Property 'isPublic' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(558,34): error TS2339: Property 'config' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(575,9): error TS2322: Type '{ category: string; } | { category?: undefined; }' is not assignable to type 'WorkflowTemplateWhereInput | undefined'.
+  Type '{ category: string; }' has no properties in common with type 'WorkflowTemplateWhereInput'.
+src/lib/workflows/advancedWorkflowEngine.ts(583,28): error TS2339: Property 'category' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(584,30): error TS2339: Property 'definition' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(585,24): error TS2339: Property 'tags' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(586,30): error TS2339: Property 'usageCount' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(587,28): error TS2339: Property 'isPublic' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(590,26): error TS2339: Property 'config' does not exist on type '{ name: string; id: string; organizationId: string; isActive: boolean; createdAt: Date; updatedAt: Date; description: string | null; trigger: string; actions: JsonValue; }'.
+src/lib/workflows/advancedWorkflowEngine.ts(613,23): error TS18046: 'where' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(614,19): error TS18046: 'where' is of type 'unknown'.
+src/lib/workflows/advancedWorkflowEngine.ts(617,9): error TS2322: Type 'unknown' is not assignable to type 'WorkflowExecutionWhereInput | undefined'.
+src/lib/workflows/advancedWorkflowEngine.ts(621,20): error TS2353: Object literal may only specify known properties, and 'logs' does not exist in type 'WorkflowExecutionInclude<DefaultArgs>'.
+src/lib/workflows/workflowEngine.ts(5,36): error TS2306: File '/Users/asithalakmal/Documents/web/SmartStoreSaaS-Mono-main/src/lib/notifications.ts' is not a module.
+src/lib/workflows/workflowEngine.ts(228,13): error TS18048: 'step' is possibly 'undefined'.
+src/lib/workflows/workflowEngine.ts(228,57): error TS18048: 'step' is possibly 'undefined'.
+src/lib/workflows/workflowEngine.ts(231,112): error TS18048: 'step' is possibly 'undefined'.
+src/lib/workflows/workflowEngine.ts(237,32): error TS2345: Argument of type 'WorkflowStep | undefined' is not assignable to parameter of type 'WorkflowStep'.
+  Type 'undefined' is not assignable to type 'WorkflowStep'.
+src/lib/workflows/workflowEngine.ts(240,13): error TS18048: 'step' is possibly 'undefined'.
+src/lib/workflows/workflowEngine.ts(241,60): error TS18048: 'step' is possibly 'undefined'.
+src/lib/workflows/workflowEngine.ts(339,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(340,34): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'OrderInclude<DefaultArgs>'.
+src/lib/workflows/workflowEngine.ts(348,16): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(348,41): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(353,15): error TS2339: Property 'items' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'.
+src/lib/workflows/workflowEngine.ts(358,31): error TS2339: Property 'items' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'.
+src/lib/workflows/workflowEngine.ts(359,32): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/lib/workflows/workflowEngine.ts(366,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(367,18): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'OrderInclude<DefaultArgs>'.
+src/lib/workflows/workflowEngine.ts(372,30): error TS2339: Property 'items' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'.
+src/lib/workflows/workflowEngine.ts(381,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(384,25): error TS2339: Property 'paymentMethod' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'.
+src/lib/workflows/workflowEngine.ts(393,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(394,15): error TS2353: Object literal may only specify known properties, and 'paymentStatus' does not exist in type '(Without<OrderUpdateInput, OrderUncheckedUpdateInput> & OrderUncheckedUpdateInput) | (Without<...> & OrderUpdateInput)'.
+src/lib/workflows/workflowEngine.ts(400,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(401,15): error TS2322: Type 'unknown' is not assignable to type 'string | StringFieldUpdateOperationsInput | undefined'.
+src/lib/workflows/workflowEngine.ts(407,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(410,9): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'OrderInclude<DefaultArgs>'.
+src/lib/workflows/workflowEngine.ts(421,15): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(423,19): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(428,31): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(430,24): error TS2339: Property 'items' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'.
+src/lib/workflows/workflowEngine.ts(440,15): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(441,29): error TS2551: Property 'sendTextMessage' does not exist on type 'WhatsAppService'. Did you mean 'sendMessage'?
+src/lib/workflows/workflowEngine.ts(442,15): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(451,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(478,16): error TS2322: Type 'unknown' is not assignable to type 'string | StringFilter<"Product"> | undefined'.
+src/lib/workflows/workflowEngine.ts(519,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(525,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(545,29): error TS2551: Property 'sendTextMessage' does not exist on type 'WhatsAppService'. Did you mean 'sendMessage'?
+src/lib/workflows/workflowEngine.ts(588,16): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/lib/workflows/workflowEngine.ts(595,15): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?
+src/lib/workflows/workflowEngine.ts(597,19): error TS2551: Property 'customer' does not exist on type '{ status: string; id: string; organizationId: string; createdAt: Date; updatedAt: Date; orderNumber: string; subtotal: Decimal; tax: Decimal; shipping: Decimal; total: Decimal; notes: string | null; customerId: string; discount: Decimal; }'. Did you mean 'customerId'?

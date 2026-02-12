@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
+import { JWTUtils } from '@/lib/auth/jwt';
 
 export async function GET(request: NextRequest) {
   const correlationId = request.headers.get('x-request-id') || uuidv4();
-  
+
   try {
     // Use NextAuth's getToken to get the JWT token (same as middleware)
-    const token = await getToken({ 
-      req: request, 
+    const token = await getToken({
+      req: request,
       secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET
     });
 
@@ -40,10 +41,10 @@ export async function GET(request: NextRequest) {
       },
       correlation: correlationId
     });
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Session validation failed',
         correlation: correlationId
       },
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const correlationId = request.headers.get('x-request-id') || uuidv4();
-  
+
   try {
     const { refreshToken } = await request.json();
 
@@ -106,10 +107,10 @@ export async function POST(request: NextRequest) {
       },
       correlation: correlationId
     });
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Token refresh failed',
         correlation: correlationId
       },

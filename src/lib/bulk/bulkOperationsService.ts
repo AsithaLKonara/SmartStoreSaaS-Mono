@@ -37,7 +37,7 @@ export interface ExportResult {
 }
 
 export class BulkOperationsService {
-  async createBulkOperation(type: 'import' | 'export', entity: string, metadata?: unknown): Promise<BulkOperation> {
+  async createBulkOperation(type: 'import' | 'export', entity: string, metadata?: any): Promise<BulkOperation> {
     const operation = await prisma.bulkOperation.create({
       data: {
         type,
@@ -48,7 +48,7 @@ export class BulkOperationsService {
         successRecords: 0,
         failedRecords: 0,
         errors: [],
-        metadata,
+        metadata: metadata as any,
         organization: {
           connect: {
             id: process.env.DEFAULT_ORGANIZATION_ID || 'default'
@@ -76,10 +76,10 @@ export class BulkOperationsService {
 
   async importProducts(organizationId: string, fileBuffer: Buffer, format: 'csv' | 'xlsx'): Promise<ImportResult> {
     const operation = await this.createBulkOperation('import', 'products');
-    
+
     try {
       let data: unknown[];
-      
+
       if (format === 'csv') {
         data = parse(fileBuffer.toString(), {
           columns: true,
@@ -88,7 +88,11 @@ export class BulkOperationsService {
       } else {
         const workbook = XLSX.read(fileBuffer);
         const sheetName = workbook.SheetNames[0];
+        if (!sheetName) {
+          throw new Error('No sheets found in the Excel file');
+        }
         const worksheet = workbook.Sheets[sheetName];
+        if (!worksheet) throw new Error('Worksheet not found');
         data = XLSX.utils.sheet_to_json(worksheet);
       }
 
@@ -102,7 +106,7 @@ export class BulkOperationsService {
       let failedCount = 0;
 
       for (let i = 0; i < data.length; i++) {
-        const row = data[i];
+        const row = data[i] as any;
         try {
           await prisma.product.create({
             data: {
@@ -111,15 +115,11 @@ export class BulkOperationsService {
               price: parseFloat(row.price) || 0,
               sku: row.sku || '',
               weight: parseFloat(row.weight) || 0,
-              stockQuantity: parseInt(row.stockQuantity) || 0,
-              reorderPoint: parseInt(row.reorderPoint) || 0,
+              stock: parseInt(row.stock) || 0,
+              minStock: parseInt(row.reorderPoint) || 0,
               isActive: row.isActive === 'true' || row.isActive === true,
               organization: {
                 connect: { id: organizationId }
-              },
-              slug: row.sku || row.name?.toLowerCase().replace(/\s+/g, '-') || `product-${Date.now()}`,
-              createdBy: {
-                connect: { id: process.env.DEFAULT_USER_ID || 'default' }
               }
             }
           });
@@ -175,10 +175,10 @@ export class BulkOperationsService {
 
   async importCustomers(organizationId: string, fileBuffer: Buffer, format: 'csv' | 'xlsx'): Promise<ImportResult> {
     const operation = await this.createBulkOperation('import', 'customers');
-    
+
     try {
       let data: unknown[];
-      
+
       if (format === 'csv') {
         data = parse(fileBuffer.toString(), {
           columns: true,
@@ -187,7 +187,9 @@ export class BulkOperationsService {
       } else {
         const workbook = XLSX.read(fileBuffer);
         const sheetName = workbook.SheetNames[0];
+        if (!sheetName) throw new Error('No sheets found');
         const worksheet = workbook.Sheets[sheetName];
+        if (!worksheet) throw new Error('Worksheet not found');
         data = XLSX.utils.sheet_to_json(worksheet);
       }
 
@@ -201,7 +203,7 @@ export class BulkOperationsService {
       let failedCount = 0;
 
       for (let i = 0; i < data.length; i++) {
-        const row = data[i];
+        const row = data[i] as any;
         try {
           // Combine address information into a single address field
           const fullAddress = [
@@ -218,11 +220,6 @@ export class BulkOperationsService {
               email: row.email || '',
               phone: row.phone || '',
               address: fullAddress,
-              tags: row.tags ? row.tags.split(',').map((tag: string) => tag.trim()) : [],
-              source: row.source || 'bulk_import',
-              totalSpent: parseFloat(row.totalSpent) || 0,
-              points: parseInt(row.points) || 0,
-              isActive: row.isActive === 'true' || row.isActive === true,
               organization: {
                 connect: { id: organizationId }
               }
@@ -280,7 +277,7 @@ export class BulkOperationsService {
 
   async exportProducts(organizationId: string, format: 'csv' | 'xlsx' | 'json'): Promise<ExportResult> {
     const operation = await this.createBulkOperation('export', 'products');
-    
+
     try {
       const products = await prisma.product.findMany({
         where: { organizationId },
@@ -291,8 +288,8 @@ export class BulkOperationsService {
           price: true,
           sku: true,
           weight: true,
-          stockQuantity: true,
-          reorderPoint: true,
+          stock: true,
+          minStock: true,
           isActive: true,
           createdAt: true,
           updatedAt: true
@@ -309,7 +306,7 @@ export class BulkOperationsService {
 
       if (format === 'csv') {
         fileData = stringify(products, { header: true });
-        fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData)}`;
+        fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       } else if (format === 'xlsx') {
         const worksheet = XLSX.utils.json_to_sheet(products);
         const workbook = XLSX.utils.book_new();
@@ -319,7 +316,7 @@ export class BulkOperationsService {
         fileUrl = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${buffer.toString('base64')}`;
       } else {
         fileData = JSON.stringify(products, null, 2);
-        fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData)}`;
+        fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       }
 
       await prisma.bulkOperation.update({
@@ -357,7 +354,7 @@ export class BulkOperationsService {
 
   async exportCustomers(organizationId: string, format: 'csv' | 'xlsx' | 'json'): Promise<ExportResult> {
     const operation = await this.createBulkOperation('export', 'customers');
-    
+
     try {
       const customers = await prisma.customer.findMany({
         where: { organizationId },
@@ -367,11 +364,7 @@ export class BulkOperationsService {
           email: true,
           phone: true,
           address: true,
-          tags: true,
-          source: true,
-          totalSpent: true,
-          points: true,
-          isActive: true,
+
           createdAt: true,
           updatedAt: true
         }
@@ -387,7 +380,7 @@ export class BulkOperationsService {
 
       if (format === 'csv') {
         fileData = stringify(customers, { header: true });
-        fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData)}`;
+        fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       } else if (format === 'xlsx') {
         const worksheet = XLSX.utils.json_to_sheet(customers);
         const workbook = XLSX.utils.book_new();
@@ -397,7 +390,7 @@ export class BulkOperationsService {
         fileUrl = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${buffer.toString('base64')}`;
       } else {
         fileData = JSON.stringify(customers, null, 2);
-        fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData)}`;
+        fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       }
 
       await prisma.bulkOperation.update({
@@ -435,7 +428,7 @@ export class BulkOperationsService {
 
   async exportOrders(organizationId: string, format: 'csv' | 'xlsx' | 'json'): Promise<ExportResult> {
     const operation = await this.createBulkOperation('export', 'orders');
-    
+
     try {
       const orders = await prisma.order.findMany({
         where: { organizationId },
@@ -447,7 +440,7 @@ export class BulkOperationsService {
               phone: true
             }
           },
-          items: {
+          orderItems: {
             select: {
               productId: true,
               quantity: true,
@@ -464,20 +457,16 @@ export class BulkOperationsService {
       });
 
       // Transform orders to exportable format
-      const exportData = orders.map((order: unknown) => ({
+      const exportData = orders.map((order: any) => ({
         id: order.id,
         orderNumber: order.orderNumber,
         customerName: order.customer?.name || '',
         customerEmail: order.customer?.email || '',
         customerPhone: order.customer?.phone || '',
-        totalAmount: order.totalAmount,
+        totalAmount: order.total,
         status: order.status,
-        paymentStatus: order.paymentStatus,
         createdAt: order.createdAt,
-        updatedAt: order.updatedAt,
-        // Store address information in metadata since shippingAddress and billingAddress don't exist
-        shippingAddress: order.metadata?.shippingAddress || '',
-        billingAddress: order.metadata?.billingAddress || ''
+        updatedAt: order.updatedAt
       }));
 
       let fileUrl: string;
@@ -485,7 +474,7 @@ export class BulkOperationsService {
 
       if (format === 'csv') {
         fileData = stringify(exportData, { header: true });
-        fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData)}`;
+        fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       } else if (format === 'xlsx') {
         const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
@@ -495,7 +484,7 @@ export class BulkOperationsService {
         fileUrl = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${buffer.toString('base64')}`;
       } else {
         fileData = JSON.stringify(exportData, null, 2);
-        fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData)}`;
+        fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       }
 
       await prisma.bulkOperation.update({
@@ -537,7 +526,7 @@ export class BulkOperationsService {
       orderBy: { createdAt: 'desc' }
     });
 
-    return operations.map((operation: unknown) => ({
+    return operations.map((operation: any) => ({
       id: operation.id,
       type: operation.type as 'import' | 'export',
       entity: operation.entity as 'products' | 'customers' | 'orders' | 'inventory',

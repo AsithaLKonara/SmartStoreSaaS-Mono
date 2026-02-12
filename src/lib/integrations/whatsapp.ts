@@ -10,12 +10,12 @@ let client: any = null;
 
 function getTwilioClient() {
   if (client) return client;
-  
+
   // Only initialize if we have valid credentials (accountSid starts with AC)
   if (accountSid && authToken && accountSid.startsWith('AC')) {
     client = twilio(accountSid, authToken);
   }
-  
+
   return client;
 }
 
@@ -39,14 +39,14 @@ export async function sendWhatsAppMessage(
 ): Promise<WhatsAppResponse> {
   try {
     const twilioClient = getTwilioClient();
-    
+
     if (!twilioClient) {
       throw new Error('Twilio client not initialized. Check environment variables.');
     }
 
     // Format phone number for WhatsApp
-    const toNumber = data.to.startsWith('whatsapp:') 
-      ? data.to 
+    const toNumber = data.to.startsWith('whatsapp:')
+      ? data.to
       : `whatsapp:${data.to}`;
 
     // Send message
@@ -65,7 +65,7 @@ export async function sendWhatsAppMessage(
     logger.error({
       message: 'WhatsApp send error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'WhatsAppIntegration', operation: 'sendMessage', to, message }
+      context: { service: 'WhatsAppIntegration', operation: 'sendMessage', to: data.to, message: data.message }
     });
     return {
       success: false,

@@ -9,13 +9,13 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Building2, 
-  Users, 
-  Brain, 
-  Shield, 
-  Settings, 
-  Bell, 
+import {
+  Building2,
+  Users,
+  Brain,
+  Shield,
+  Settings,
+  Bell,
   CreditCard,
   Save,
   Edit,
@@ -73,7 +73,7 @@ export default function SettingsPage() {
         </TabsList>
 
         {/* Organization Settings */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="organization" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Organization Information</CardTitle>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* User Management */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="users" className="space-y-6">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -173,7 +173,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* AI Settings */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="ai" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>AI Configuration</CardTitle>
@@ -255,7 +255,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Security Settings */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Security & Privacy</CardTitle>
@@ -329,7 +329,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Integrations */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="integrations" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Third-Party Integrations</CardTitle>
@@ -425,7 +425,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Notifications */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Notification Preferences</CardTitle>
@@ -521,7 +521,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Billing */}
-        <TabsContent className="space-y-6">
+        <TabsContent value="billing" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Billing & Subscription</CardTitle>

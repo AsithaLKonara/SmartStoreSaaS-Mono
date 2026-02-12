@@ -56,7 +56,7 @@ export async function callExternalAPI<T = any>(
         if (!response.ok) {
           const errorText = await response.text().catch(() => 'Unknown error');
           let errorData: any;
-          
+
           try {
             errorData = JSON.parse(errorText);
           } catch {
@@ -98,10 +98,9 @@ export async function callExternalAPI<T = any>(
       if (attempt < retries) {
         logger.warn({
           message: `External API call failed, retrying (${attempt + 1}/${retries})`,
-          url,
-          error: error.message,
+          context: { url, error: error.message }
         });
-        
+
         await new Promise(resolve => setTimeout(resolve, retryDelay * (attempt + 1)));
         continue;
       }
@@ -111,8 +110,7 @@ export async function callExternalAPI<T = any>(
   // All retries failed
   logger.error({
     message: 'External API call failed after retries',
-    url,
-    error: lastError?.message,
+    context: { url, error: lastError?.message }
   });
 
   throw lastError || new ExternalAPIError('External API call failed');

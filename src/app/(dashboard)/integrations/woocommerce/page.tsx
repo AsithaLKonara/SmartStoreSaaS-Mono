@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  XCircle, 
+import {
+  CheckCircle,
+  XCircle,
   AlertTriangle,
   ShoppingBag,
   Settings,
@@ -108,7 +108,7 @@ export default function WooCommerceIntegrationPage() {
     try {
       setIsLoading(true);
       setTestResult(null);
-      
+
       const response = await fetch('/api/integrations/woocommerce/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,11 +121,11 @@ export default function WooCommerceIntegrationPage() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
-        setTestResult({ 
-          success: true, 
-          message: `Connected to ${data.storeName || 'WooCommerce store'}! Version: ${data.version || 'N/A'}` 
+        setTestResult({
+          success: true,
+          message: `Connected to ${data.storeName || 'WooCommerce store'}! Version: ${data.version || 'N/A'}`
         });
         setIsConnected(true);
       } else {
@@ -143,7 +143,7 @@ export default function WooCommerceIntegrationPage() {
   const saveConfiguration = async () => {
     try {
       setIsSaving(true);
-      
+
       const response = await fetch('/api/integrations/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -170,7 +170,7 @@ export default function WooCommerceIntegrationPage() {
   const triggerSync = async (type: string) => {
     try {
       setIsSyncing(true);
-      
+
       const response = await fetch('/api/integrations/woocommerce/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -231,11 +231,10 @@ export default function WooCommerceIntegrationPage() {
 
       {/* Test Result Alert */}
       {testResult && (
-        <div className={`p-4 rounded-lg border ${
-          testResult.success 
-            ? 'bg-green-500/10 border-green-500 text-green-400' 
+        <div className={`p-4 rounded-lg border ${testResult.success
+            ? 'bg-green-500/10 border-green-500 text-green-400'
             : 'bg-red-500/10 border-red-500 text-red-400'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
             {testResult.success ? (
               <CheckCircle className="w-5 h-5" />
@@ -264,7 +263,7 @@ export default function WooCommerceIntegrationPage() {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -347,7 +346,7 @@ export default function WooCommerceIntegrationPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-4">
-                <Button 
+                <Button
                   onClick={testConnection}
                   disabled={isLoading || !config.siteUrl || !config.consumerKey || !config.consumerSecret}
                   className="flex-1"
@@ -356,8 +355,8 @@ export default function WooCommerceIntegrationPage() {
                   <TestTube className="w-4 h-4 mr-2" />
                   {isLoading ? 'Testing...' : 'Test Connection'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={saveConfiguration}
                   disabled={isSaving || !config.siteUrl || !config.consumerKey || !config.consumerSecret}
                   className="flex-1"
@@ -388,7 +387,7 @@ export default function WooCommerceIntegrationPage() {
         </TabsContent>
 
         {/* Sync Settings Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="sync" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -503,7 +502,7 @@ export default function WooCommerceIntegrationPage() {
               {/* Manual Sync Buttons */}
               {isConnected && (
                 <div className="grid grid-cols-2 gap-3 pt-4">
-                  <Button 
+                  <Button
                     onClick={() => triggerSync('products')}
                     disabled={isSyncing || !config.syncSettings.products}
                     variant="outline"
@@ -511,8 +510,8 @@ export default function WooCommerceIntegrationPage() {
                     <Package className="w-4 h-4 mr-2" />
                     Sync Products
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => triggerSync('orders')}
                     disabled={isSyncing || !config.syncSettings.orders}
                     variant="outline"
@@ -520,8 +519,8 @@ export default function WooCommerceIntegrationPage() {
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     Sync Orders
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => triggerSync('customers')}
                     disabled={isSyncing || !config.syncSettings.customers}
                     variant="outline"
@@ -529,8 +528,8 @@ export default function WooCommerceIntegrationPage() {
                     <UsersIcon className="w-4 h-4 mr-2" />
                     Sync Customers
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => triggerSync('all')}
                     disabled={isSyncing}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -545,7 +544,7 @@ export default function WooCommerceIntegrationPage() {
         </TabsContent>
 
         {/* Sync History Tab */}
-        <TabsContent className="space-y-4">
+        <TabsContent value="history" className="space-y-4">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -591,16 +590,16 @@ export default function WooCommerceIntegrationPage() {
           <CardTitle className="text-white">Quick Links</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a 
-            href={config.siteUrl ? `${config.siteUrl}/wp-admin/admin.php?page=wc-settings&tab=advanced&section=keys` : '#'} 
+          <a
+            href={config.siteUrl ? `${config.siteUrl}/wp-admin/admin.php?page=wc-settings&tab=advanced&section=keys` : '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"
           >
             → Generate API Keys in WooCommerce
           </a>
-          <a 
-            href="https://woocommerce.github.io/woocommerce-rest-api-docs/" 
+          <a
+            href="https://woocommerce.github.io/woocommerce-rest-api-docs/"
             target="_blank"
             rel="noopener noreferrer"
             className="block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-blue-400 hover:text-blue-300 transition-colors"

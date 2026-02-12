@@ -1,29 +1,4 @@
-import '@shopify/shopify-api/adapters/node';
-import { shopifyApi, ApiVersion } from '@shopify/shopify-api';
 import { logger } from '../logger';
-
-const shopifyConfig = {
-  apiKey: process.env.SHOPIFY_API_KEY || '',
-  apiSecretKey: process.env.SHOPIFY_API_SECRET || '',
-  scopes: ['read_products', 'write_products', 'read_orders', 'write_orders', 'read_inventory', 'write_inventory'],
-  hostName: process.env.SHOPIFY_HOST_NAME || 'localhost',
-  isEmbeddedApp: false,
-  apiVersion: ApiVersion.October23,
-};
-
-let shopify: any = null;
-
-if (shopifyConfig.apiKey && shopifyConfig.apiSecretKey) {
-  try {
-    shopify = shopifyApi(shopifyConfig);
-  } catch (error) {
-    logger.warn({
-      message: 'Shopify API initialization failed',
-      error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'ShopifyIntegration', operation: 'initialize' }
-    });
-  }
-}
 
 export interface ShopifyProduct {
   id: string;

@@ -35,7 +35,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const modelRef = useRef<THREE.Object3D | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [arCapabilities, setARCapabilities] = useState<ARCapabilities>({
@@ -67,7 +67,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
       cameraRef.current = camera;
 
       // Renderer
-      const renderer = new THREE.WebGLRenderer({ 
+      const renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
         preserveDrawingBuffer: true,
@@ -124,7 +124,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
       // Handle resize
       const handleResize = () => {
         if (!mountRef.current || !camera || !renderer) return;
-        
+
         camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
@@ -148,10 +148,10 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     if (!sceneRef.current) return;
 
     setIsLoading(true);
-    
+
     try {
       const loader = new GLTFLoader();
-      
+
       const gltf = await new Promise<unknown>((resolve, reject) => {
         loader.load(
           url,
@@ -159,9 +159,9 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
           (progress: { loaded: number; total: number }) => {
             logger.debug({
               message: 'Loading 3D model progress',
-              context: { 
+              context: {
                 productId,
-                progress: (progress.loaded / progress.total) * 100 
+                progress: (progress.loaded / progress.total) * 100
               }
             });
           },
@@ -182,18 +182,18 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
           child.receiveShadow = true;
         }
       });
-      
+
       // Center and scale model
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       const scale = 2 / maxDim;
-      
+
       model.scale.multiplyScalar(scale);
       model.position.sub(center.multiplyScalar(scale));
       model.position.y = -1;
-      
+
       sceneRef.current.add(model);
       modelRef.current = model;
       setModelLoaded(true);
@@ -215,196 +215,15 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     }
   }, [productId]);
 
-  useEffect(() => {
-    checkARCapabilities();
-    initializeScene();
-    
-    return () => {
-      cleanup();
-    };
-  }, [initializeScene]);
-
-  useEffect(() => {
-    if (modelUrl && sceneRef.current) {
-      loadModel(modelUrl);
-    } else if (images.length > 0) {
-      createImagePlane(images[0]);
-    }
-  }, [modelUrl, images, loadModel, createImagePlane]);
-
   const checkARCapabilities = async () => {
     const capabilities: ARCapabilities = {
-      webXR: 'xr' in navigator && 'requestSession' in (navigator as unknown).xr,
+      webXR: 'xr' in navigator && 'requestSession' in (navigator as any).xr,
       webGL: !!window.WebGLRenderingContext,
       deviceMotion: 'DeviceMotionEvent' in window,
       camera: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
     };
 
     setARCapabilities(capabilities);
-  };
-
-  const initializeScene = () => {
-    if (!mountRef.current) return;
-
-    try {
-      // Scene
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xf0f0f0);
-      sceneRef.current = scene;
-
-      // Camera
-      const camera = new THREE.PerspectiveCamera(
-        75,
-        mountRef.current.clientWidth / mountRef.current.clientHeight,
-        0.1,
-        1000
-      );
-      camera.position.set(0, 0, 5);
-      cameraRef.current = camera;
-
-      // Renderer
-      const renderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        alpha: true,
-        preserveDrawingBuffer: true,
-      });
-      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      rendererRef.current = renderer;
-
-      mountRef.current.appendChild(renderer.domElement);
-
-      // Controls
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.enableZoom = true;
-      controls.enableRotate = true;
-      controls.enablePan = true;
-      controlsRef.current = controls;
-
-      // Lighting
-      const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-      scene.add(ambientLight);
-
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(10, 10, 5);
-      directionalLight.castShadow = true;
-      directionalLight.shadow.mapSize.width = 2048;
-      directionalLight.shadow.mapSize.height = 2048;
-      scene.add(directionalLight);
-
-      const pointLight = new THREE.PointLight(0xffffff, 0.5);
-      pointLight.position.set(-10, -10, -5);
-      scene.add(pointLight);
-
-      // Ground plane (for shadows)
-      const groundGeometry = new THREE.PlaneGeometry(20, 20);
-      const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
-      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-      ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -2;
-      ground.receiveShadow = true;
-      scene.add(ground);
-
-      // Animation loop
-      const animate = () => {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-      };
-      animate();
-
-      // Handle resize
-      const handleResize = () => {
-        if (!mountRef.current || !camera || !renderer) return;
-        
-        camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-      };
-
-      window.addEventListener('resize', handleResize);
-      setIsLoading(false);
-
-    } catch (err) {
-      logger.error({
-        message: 'Error initializing 3D scene',
-        error: err instanceof Error ? err : new Error(String(err)),
-        context: { productId }
-      });
-      setError('Failed to initialize 3D viewer');
-      setIsLoading(false);
-    }
-  };
-
-  const loadModel = async (url: string) => {
-    if (!sceneRef.current) return;
-
-    setIsLoading(true);
-    
-    try {
-      const loader = new GLTFLoader();
-      
-      const gltf = await new Promise<unknown>((resolve, reject) => {
-        loader.load(
-          url,
-          resolve,
-                (progress: { loaded: number; total: number }) => {
-        logger.debug({
-          message: 'Loading 3D model progress',
-          context: { 
-            productId,
-            progress: (progress.loaded / progress.total) * 100 
-          }
-        });
-      },
-          reject
-        );
-      });
-
-      // Remove existing model
-      if (modelRef.current) {
-        sceneRef.current.remove(modelRef.current);
-      }
-
-      const model = gltf.scene;
-      
-      // Center and scale the model
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      
-      const maxDimension = Math.max(size.x, size.y, size.z);
-      const scale = 3 / maxDimension;
-      
-      model.scale.setScalar(scale);
-      model.position.sub(center.multiplyScalar(scale));
-      
-      // Enable shadows
-      model.traverse((child: THREE.Object3D) => {
-        if ((child as THREE.Mesh).isMesh) {
-          (child as THREE.Mesh).castShadow = true;
-          (child as THREE.Mesh).receiveShadow = true;
-        }
-      });
-
-      sceneRef.current.add(model);
-      modelRef.current = model;
-      setModelLoaded(true);
-      setIsLoading(false);
-
-    } catch (err) {
-      logger.error({
-        message: 'Error loading 3D model',
-        error: err instanceof Error ? err : new Error(String(err)),
-        context: { productId, modelUrl }
-      });
-      setError('Failed to load 3D model');
-      setIsLoading(false);
-    }
   };
 
   const createImagePlane = useCallback((imageUrl: string) => {
@@ -420,12 +239,12 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
         }
 
         const geometry = new THREE.PlaneGeometry(4, 4);
-        const material = new THREE.MeshBasicMaterial({ 
+        const material = new THREE.MeshBasicMaterial({
           map: texture,
           transparent: true,
         });
         const plane = new THREE.Mesh(geometry, material);
-        
+
         sceneRef.current!.add(plane);
         modelRef.current = plane;
         setModelLoaded(true);
@@ -444,9 +263,26 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     );
   }, [productId]);
 
+  useEffect(() => {
+    checkARCapabilities();
+    initializeScene();
+
+    return () => {
+      cleanup();
+    };
+  }, [initializeScene]);
+
+  useEffect(() => {
+    if (modelUrl && sceneRef.current) {
+      loadModel(modelUrl);
+    } else if (images.length > 0 && images[0]) {
+      createImagePlane(images[0]);
+    }
+  }, [modelUrl, images, loadModel, createImagePlane]);
+
   const resetView = () => {
     if (!cameraRef.current || !controlsRef.current) return;
-    
+
     cameraRef.current.position.set(0, 0, 5);
     controlsRef.current.reset();
   };
@@ -470,10 +306,10 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
     try {
       if (!isARMode) {
         // Enter AR mode
-        const session = await (navigator as unknown).xr.requestSession('immersive-ar', {
+        const session = await (navigator as any).xr.requestSession('immersive-ar', {
           requiredFeatures: ['local', 'hit-test'],
         });
-        
+
         if (rendererRef.current) {
           await rendererRef.current.xr.setSession(session);
           setIsARMode(true);
@@ -511,7 +347,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
       mountRef.current.removeChild(rendererRef.current.domElement);
       rendererRef.current.dispose();
     }
-    
+
     if (controlsRef.current) {
       controlsRef.current.dispose();
     }
@@ -586,7 +422,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
               >
                 <RotateCcw className="w-5 h-5 text-gray-700" />
               </button>
-              
+
               <button
                 onClick={zoomIn}
                 className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
@@ -594,7 +430,7 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
               >
                 <ZoomIn className="w-5 h-5 text-gray-700" />
               </button>
-              
+
               <button
                 onClick={zoomOut}
                 className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
@@ -614,11 +450,10 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
               {arCapabilities.webXR && (
                 <button
                   onClick={toggleARMode}
-                  className={`p-2 rounded-full shadow-lg transition-colors ${
-                    isARMode 
-                      ? 'bg-green-500 text-white hover:bg-green-600' 
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`p-2 rounded-full shadow-lg transition-colors ${isARMode
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
                   title={isARMode ? 'Exit AR' : 'Enter AR'}
                 >
                   <Move3D className="w-5 h-5" />
@@ -637,14 +472,14 @@ export const ARProductViewer: React.FC<ARProductViewerProps> = ({
                 <p className="text-green-600">✓ AR Ready - Click AR button to view in your space</p>
               )}
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-xs text-gray-500">
                 WebGL: {arCapabilities.webGL ? '✓' : '✗'} |
                 WebXR: {arCapabilities.webXR ? '✓' : '✗'} |
                 Camera: {arCapabilities.camera ? '✓' : '✗'}
               </div>
-              
+
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

@@ -265,7 +265,7 @@ export default function WishlistManager({ customerId, onAddToCart }: WishlistMan
                     {wishlist.items.map((item) => (
                       <div key={item.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                         <div className="aspect-square mb-3">
-                          {item.product.media.length > 0 ? (
+                          {item.product.media[0] ? (
                             <Image
                               src={item.product.media[0].url}
                               alt={item.product.media[0].altText || item.product.name}

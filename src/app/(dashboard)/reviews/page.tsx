@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +47,7 @@ export default function ReviewsPage() {
     try {
       setLoading(true);
       const response = await fetch(`/api/reviews?status=${filter}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         setReviews(data.reviews || []);
@@ -140,9 +140,8 @@ export default function ReviewsPage() {
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-4 h-4 ${
-              star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'
-            }`}
+            className={`w-4 h-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'
+              }`}
           />
         ))}
       </div>
@@ -154,7 +153,7 @@ export default function ReviewsPage() {
     pending: reviews.filter(r => r.status === 'PENDING').length,
     approved: reviews.filter(r => r.status === 'APPROVED').length,
     rejected: reviews.filter(r => r.status === 'REJECTED').length,
-    avgRating: reviews.length > 0 
+    avgRating: reviews.length > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : '0.0',
   };
@@ -284,11 +283,11 @@ export default function ReviewsPage() {
                         by {review.customerName} • {new Date(review.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <Badge 
+                    <Badge
                       variant={
                         review.status === 'APPROVED' ? 'default' :
-                        review.status === 'REJECTED' ? 'destructive' :
-                        'secondary'
+                          review.status === 'REJECTED' ? 'destructive' :
+                            'secondary'
                       }
                     >
                       {review.status}

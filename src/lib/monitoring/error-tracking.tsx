@@ -115,7 +115,7 @@ class ErrorTracker {
   // Add error to collection
   private addError(error: ErrorEvent): void {
     this.errors.push(error);
-    
+
     // Keep only the most recent errors
     if (this.errors.length > this.maxErrors) {
       this.errors = this.errors.slice(-this.maxErrors);
@@ -125,20 +125,20 @@ class ErrorTracker {
     if (error.severity === 'critical') {
       logger.error({
         message: 'Critical error tracked',
-        error: error.error instanceof Error ? error.error : new Error(String(error.error)),
-        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message, source: error.source }
+        error: new Error(error.message),
+        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message }
       });
     } else if (error.severity === 'high') {
       logger.error({
         message: 'High severity error tracked',
-        error: error.error instanceof Error ? error.error : new Error(String(error.error)),
-        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message, source: error.source }
+        error: new Error(error.message),
+        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message }
       });
     } else {
       logger.warn({
         message: 'Error tracked',
-        error: error.error instanceof Error ? error.error : new Error(String(error.error)),
-        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message, source: error.source }
+        error: new Error(error.message),
+        context: { service: 'ErrorTracking', operation: 'trackError', severity: error.severity, message: error.message }
       });
     }
 
@@ -157,8 +157,8 @@ class ErrorTracker {
   private determineSeverity(error: Error, statusCode?: number): 'low' | 'medium' | 'high' | 'critical' {
     // Critical errors
     if (error.message.includes('Database connection failed') ||
-        error.message.includes('Out of memory') ||
-        error.message.includes('Fatal error')) {
+      error.message.includes('Out of memory') ||
+      error.message.includes('Fatal error')) {
       return 'critical';
     }
 
@@ -168,8 +168,8 @@ class ErrorTracker {
     }
 
     if (error.message.includes('Authentication failed') ||
-        error.message.includes('Unauthorized') ||
-        error.message.includes('Forbidden')) {
+      error.message.includes('Unauthorized') ||
+      error.message.includes('Forbidden')) {
       return 'high';
     }
 
@@ -248,7 +248,7 @@ class ErrorTracker {
   // Clear old errors
   clearOldErrors(olderThanHours: number = 24): void {
     const cutoffTime = new Date(Date.now() - (olderThanHours * 60 * 60 * 1000));
-    this.errors = this.errors.filter(error => 
+    this.errors = this.errors.filter(error =>
       new Date(error.timestamp) > cutoffTime
     );
   }

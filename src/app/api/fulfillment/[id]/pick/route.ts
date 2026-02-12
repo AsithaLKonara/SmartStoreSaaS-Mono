@@ -17,21 +17,21 @@ import { v4 as uuidv4 } from 'uuid';
 export const dynamic = 'force-dynamic';
 
 /**
- * POST /api/fulfillment/[id]/pick
+ * PUT /api/fulfillment/[id]/pick
  * Pick fulfillment items
  */
-export async function POST(
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const fulfillmentId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_INVENTORY')(
     async (req: AuthenticatedRequest, user) => {
       try {
-        const fulfillment = await prisma.delivery.findUnique({
+        const fulfillment = await prisma.fulfillment.findUnique({
           where: { id: fulfillmentId }
         });
 
@@ -43,15 +43,15 @@ export async function POST(
           throw new AuthorizationError('Cannot pick fulfillment from other organizations');
         }
 
-      await prisma.delivery.update({
-        where: { id: fulfillmentId },
-        data: {
-          status: 'PICKED'
-        }
-      });
+        await prisma.fulfillment.update({
+          where: { id: fulfillmentId },
+          data: {
+            status: 'PICKING'
+          }
+        });
 
         logger.info({
-          message: 'Fulfillment items picked',
+          message: 'Fulfillment items picking started',
           context: {
             userId: user.id,
             fulfillmentId,
@@ -61,7 +61,7 @@ export async function POST(
         });
 
         return NextResponse.json(successResponse({
-          message: 'Items picked successfully',
+          message: 'Picking started successfully',
           fulfillmentId
         }));
       } catch (error: any) {
@@ -76,11 +76,11 @@ export async function POST(
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

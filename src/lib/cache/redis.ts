@@ -248,8 +248,8 @@ export function withCache<T extends any[], R>(
       }
 
       // Generate cache key
-      const key = typeof options.key === 'function' 
-        ? options.key(...args) 
+      const key = typeof options.key === 'function'
+        ? options.key(...args)
         : options.key;
 
       // Try to get from cache
@@ -261,7 +261,7 @@ export function withCache<T extends any[], R>(
       // Execute method and cache result
       const result = await method.apply(this, args);
       await cache.set(key, result, options.ttl);
-      
+
       return result;
     };
   };
@@ -317,9 +317,19 @@ export const invalidateCache = {
 const redisCache = new RedisCache();
 export default redisCache;
 
+export const cacheGet = <T>(key: string) => redisCache.get<T>(key);
+export const cacheSet = <T>(key: string, value: T, ttl?: number) => redisCache.set<T>(key, value, ttl);
+export const cacheDelete = (key: string) => redisCache.del(key);
+export const cacheDeletePattern = async (pattern: string) => {
+  const keys = await redisCache.getKeys(pattern);
+  if (keys.length > 0) {
+    await Promise.all(keys.map(key => redisCache.del(key)));
+  }
+  return true;
+};
 
 
 
 
-    const cache = new RedisCache();
-    await cache.del(cacheKeys.user(userId));
+
+

@@ -29,7 +29,7 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
       const includeChildren = searchParams.get('includeChildren') === 'true';
       const parentId = searchParams.get('parentId');
 
-      const where: any = { isActive: true };
+      const where: any = { isActive: true, organizationId: user.organizationId };
 
       if (parentId) {
         where.parentId = parentId;
@@ -81,7 +81,7 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -145,11 +145,11 @@ export const POST = requirePermission('MANAGE_PRODUCTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

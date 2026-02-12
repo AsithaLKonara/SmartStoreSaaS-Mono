@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   ShoppingCart,
   User,
   Package,
@@ -114,14 +114,14 @@ export default function NewOrderPage() {
 
   const addProductToOrder = (product: Product) => {
     const existingItem = orderItems.find(item => item.productId === product.id);
-    
+
     if (existingItem) {
       if (existingItem.quantity >= product.stock) {
         toast.error('Cannot add more items. Insufficient stock.');
         return;
       }
-      setOrderItems(prev => prev.map(item => 
-        item.productId === product.id 
+      setOrderItems(prev => prev.map(item =>
+        item.productId === product.id
           ? { ...item, quantity: item.quantity + 1, total: (item.quantity + 1) * item.price }
           : item
       ));
@@ -145,15 +145,15 @@ export default function NewOrderPage() {
       setOrderItems(prev => prev.filter(item => item.productId !== productId));
       return;
     }
-    
+
     const product = products.find(p => p.id === productId);
     if (product && quantity > product.stock) {
       toast.error('Cannot add more items. Insufficient stock.');
       return;
     }
 
-    setOrderItems(prev => prev.map(item => 
-      item.productId === productId 
+    setOrderItems(prev => prev.map(item =>
+      item.productId === productId
         ? { ...item, quantity, total: quantity * item.price }
         : item
     ));
@@ -172,7 +172,7 @@ export default function NewOrderPage() {
       toast.error('Please select a customer');
       return;
     }
-    
+
     if (orderItems.length === 0) {
       toast.error('Please add at least one product');
       return;
@@ -210,7 +210,7 @@ export default function NewOrderPage() {
       logger.error({
         message: 'Error creating order',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { customerId: orderData.customerId }
+        context: { customerId: selectedCustomer?.id }
       });
       toast.error('Failed to create order');
     } finally {
@@ -256,7 +256,7 @@ export default function NewOrderPage() {
               <User className="w-5 h-5 mr-2" />
               Customer
             </h2>
-            
+
             <div className="space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -269,18 +269,17 @@ export default function NewOrderPage() {
               </div>
 
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {Array.isArray(customers) && customers.filter(customer => 
+                {Array.isArray(customers) && customers.filter(customer =>
                   customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   customer.phone?.includes(searchTerm)
                 ).map((customer) => (
                   <div
                     key={customer.id}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedCustomer?.id === customer.id 
-                        ? 'border-blue-500 bg-blue-50' 
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedCustomer?.id === customer.id
+                        ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                     onClick={() => setSelectedCustomer(customer)}
                   >
                     <div className="font-medium">{customer.name}</div>
@@ -371,7 +370,7 @@ export default function NewOrderPage() {
                   <div className="font-medium">{item.product.name}</div>
                   <div className="text-sm text-gray-600">SKU: {item.product.sku}</div>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Button
@@ -390,12 +389,12 @@ export default function NewOrderPage() {
                       +
                     </Button>
                   </div>
-                  
+
                   <div className="text-right">
                     <div className="font-semibold">{formatCurrency(item.total)}</div>
                     <div className="text-sm text-gray-500">{formatCurrency(item.price)} each</div>
                   </div>
-                  
+
                   <Button
                     size="sm"
                     variant="outline"
@@ -422,7 +421,7 @@ export default function NewOrderPage() {
       {/* Order Details */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold mb-4">Order Details</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

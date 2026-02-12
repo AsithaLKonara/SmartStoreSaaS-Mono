@@ -8,6 +8,20 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { logger } from '@/lib/logger';
 
+interface Field {
+  name: string;
+  type: string;
+  label?: string;
+  placeholder?: string;
+  options?: Array<{ value: string; label: string }>;
+}
+
+interface Operation {
+  value: string;
+  label: string;
+  fields: Field[];
+}
+
 interface BulkOperationsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,15 +43,15 @@ export function BulkOperationsModal({
 
   if (!isOpen) return null;
 
-  const operations = {
+  const operations: Record<string, Operation[]> = {
     products: [
-      { value: 'update_status', label: 'Update Status', fields: [{ name: 'isActive', type: 'select', options: [{ value: 'true', label: 'Active' }, { value: 'false', label: 'Inactive' }] }] },
+      { value: 'update_status', label: 'Update Status', fields: [{ name: 'isActive', type: 'select', label: 'Status', options: [{ value: 'true', label: 'Active' }, { value: 'false', label: 'Inactive' }] }] },
       { value: 'update_price', label: 'Update Prices', fields: [{ name: 'priceChange', type: 'number', label: 'Price Change (%)', placeholder: '10 for +10%, -10 for -10%' }] },
       { value: 'change_category', label: 'Change Category', fields: [{ name: 'categoryId', type: 'text', label: 'Category ID' }] },
       { value: 'delete', label: 'Delete Selected', fields: [] },
     ],
     orders: [
-      { value: 'update_status', label: 'Update Status', fields: [{ name: 'status', type: 'select', options: [{ value: 'CONFIRMED', label: 'Confirmed' }, { value: 'CANCELLED', label: 'Cancelled' }] }] },
+      { value: 'update_status', label: 'Update Status', fields: [{ name: 'status', type: 'select', label: 'Status', options: [{ value: 'CONFIRMED', label: 'Confirmed' }, { value: 'CANCELLED', label: 'Cancelled' }] }] },
       { value: 'export', label: 'Export Selected', fields: [] },
       { value: 'delete', label: 'Delete Selected', fields: [] },
     ],
@@ -80,7 +94,7 @@ export function BulkOperationsModal({
 
       if (!response.ok) throw new Error('Bulk operation failed');
 
-      const data = await response.json();
+      await response.json();
       toast.success(`Successfully processed ${selectedIds.length} ${entityType}`);
       onComplete();
       onClose();
@@ -88,7 +102,7 @@ export function BulkOperationsModal({
       logger.error({
         message: 'Bulk operation error',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { entityType, operation: operationType, selectedIds: selectedIds.length }
+        context: { entityType, operation: operation, selectedIds: selectedIds.length }
       });
       toast.error('Bulk operation failed');
     } finally {
@@ -208,4 +222,3 @@ export function BulkOperationsModal({
     </div>
   );
 }
-

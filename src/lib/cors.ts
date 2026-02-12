@@ -44,7 +44,7 @@ export function getCorsHeaders(origin?: string): Record<string, string> {
   const isAllowed = ALLOWED_ORIGINS.includes(requestOrigin);
 
   return {
-    'Access-Control-Allow-Origin': isAllowed ? requestOrigin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin': (isAllowed ? requestOrigin : ALLOWED_ORIGINS[0]) || '*',
     'Access-Control-Allow-Methods': ALLOWED_METHODS.join(', '),
     'Access-Control-Allow-Headers': ALLOWED_HEADERS.join(', '),
     'Access-Control-Allow-Credentials': 'true',

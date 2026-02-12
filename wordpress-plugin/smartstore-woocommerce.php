@@ -1,4 +1,4 @@
-<?php
+gt<?php
 /**
  * Plugin Name: SmartStore WooCommerce Integration
  * Plugin URI: https://smartstore.ai
@@ -277,12 +277,12 @@ class SmartStoreWooCommerce {
     }
 
     private function handle_inventory_webhook($action, $data) {
-        if ($action === 'update' && isset($data['productId'], $data['quantity'])) {
+        if ($action === 'update' && isset($data['productId'], $data['newQuantity'])) {
             $product_id = wc_get_product_id_by_sku($data['productId']);
             if ($product_id) {
                 $product = wc_get_product($product_id);
                 if ($product) {
-                    $product->set_stock_quantity($data['quantity']);
+                    $product->set_stock_quantity($data['newQuantity']);
                     $product->save();
                 }
             }
@@ -478,8 +478,8 @@ class SmartStoreWooCommerce {
             $product->set_price($data['price']);
         }
         
-        if (isset($data['stockQuantity'])) {
-            $product->set_stock_quantity($data['stockQuantity']);
+        if (isset($data['stock'])) {
+            $product->set_stock_quantity($data['stock']);
         }
         
         if (isset($data['isActive'])) {
@@ -513,8 +513,8 @@ class SmartStoreWooCommerce {
             $order->update_status($data['status']);
         }
         
-        if (isset($data['totalAmount'])) {
-            $order->set_total($data['totalAmount']);
+        if (isset($data['total'])) {
+            $order->set_total($data['total']);
         }
         
         $order->save();

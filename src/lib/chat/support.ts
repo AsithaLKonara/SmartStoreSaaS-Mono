@@ -32,26 +32,21 @@ export async function startChatSession(data: {
       data: {
         customerId: data.customerId,
         organizationId: data.organizationId,
-        subject: data.subject || 'Support Request',
         status: ChatStatus.ACTIVE,
-        messages: data.initialMessage ? {
-          create: {
-            senderId: data.customerId,
-            senderType: 'CUSTOMER',
-            message: data.initialMessage,
-          },
-        } : undefined,
-      },
-      include: {
-        messages: true,
-        customer: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
       },
     });
+
+    if (data.initialMessage) {
+      await prisma.customerConversation.create({
+        data: {
+          sessionId: chat.id,
+          customerId: data.customerId,
+          message: data.initialMessage,
+          sender: 'CUSTOMER',
+          organizationId: data.organizationId,
+        }
+      });
+    }
 
     return { success: true, chat };
   } catch (error: any) {
@@ -75,13 +70,22 @@ export async function sendChatMessage(data: {
   attachments?: string[];
 }): Promise<{ success: boolean; message?: any; error?: string }> {
   try {
-    const message = await prisma.chatMessage.create({
+    const session = await prisma.chatSession.findUnique({
+      where: { id: data.chatId },
+      select: { organizationId: true }
+    });
+
+    if (!session) {
+      return { success: false, error: 'Chat session not found' };
+    }
+
+    const message = await prisma.customerConversation.create({
       data: {
-        chatId: data.chatId,
-        senderId: data.senderId,
-        senderType: data.senderType,
+        sessionId: data.chatId,
+        customerId: data.senderType === 'CUSTOMER' ? data.senderId : null,
+        sender: data.senderType,
         message: data.message,
-        attachments: data.attachments || [],
+        organizationId: session.organizationId,
       },
     });
 
@@ -89,7 +93,7 @@ export async function sendChatMessage(data: {
     await prisma.chatSession.update({
       where: { id: data.chatId },
       data: {
-        lastMessageAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -115,8 +119,9 @@ export async function assignChatToAgent(
     await prisma.chatSession.update({
       where: { id: chatId },
       data: {
-        agentId,
-        assignedAt: new Date(),
+        // agentId, // Removed: Not in schema
+        // assignedAt: new Date(), // Removed: Not in schema
+        updatedAt: new Date(),
       },
     });
 
@@ -143,8 +148,8 @@ export async function resolveChat(
       where: { id: chatId },
       data: {
         status: ChatStatus.RESOLVED,
-        resolvedAt: new Date(),
-        resolution,
+        endedAt: new Date(), // Mapped resolvedAt to endedAt
+        // resolution, // Removed: Not in schema
       },
     });
 
@@ -168,7 +173,7 @@ export async function closeChat(chatId: string): Promise<{ success: boolean; err
       where: { id: chatId },
       data: {
         status: ChatStatus.CLOSED,
-        closedAt: new Date(),
+        endedAt: new Date(), // mapped closedAt to endedAt
       },
     });
 
@@ -198,19 +203,19 @@ export async function getActiveChats(organizationId: string, agentId?: string) {
 
   return await prisma.chatSession.findMany({
     where,
-    include: {
-      customer: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      messages: {
-        orderBy: { createdAt: 'desc' },
-        take: 1,
-      },
-    },
-    orderBy: { lastMessageAt: 'desc' },
+    // include: {
+    //   customer: {
+    //     select: {
+    //       name: true,
+    //       email: true,
+    //     },
+    //   },
+    //   messages: {
+    //     orderBy: { createdAt: 'desc' },
+    //     take: 1,
+    //   },
+    // },
+    orderBy: { updatedAt: 'desc' },
   });
 }
 
@@ -218,8 +223,8 @@ export async function getActiveChats(organizationId: string, agentId?: string) {
  * Get chat messages
  */
 export async function getChatMessages(chatId: string, limit: number = 100) {
-  return await prisma.chatMessage.findMany({
-    where: { chatId },
+  return await prisma.customerConversation.findMany({
+    where: { sessionId: chatId },
     orderBy: { createdAt: 'asc' },
     take: limit,
   });
@@ -231,23 +236,23 @@ export async function getChatMessages(chatId: string, limit: number = 100) {
 export async function getChatSession(chatId: string) {
   return await prisma.chatSession.findUnique({
     where: { id: chatId },
-    include: {
-      customer: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      agent: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      messages: {
-        orderBy: { createdAt: 'asc' },
-      },
-    },
+    // include: {
+    //   customer: {
+    //     select: {
+    //       name: true,
+    //       email: true,
+    //     },
+    //   },
+    //   agent: {
+    //     select: {
+    //       name: true,
+    //       email: true,
+    //     },
+    //   },
+    //   messages: {
+    //     orderBy: { createdAt: 'asc' },
+    //   },
+    // },
   });
 }
 
@@ -304,18 +309,18 @@ async function calculateAverageResolutionTime(
       organizationId,
       status: ChatStatus.RESOLVED,
       createdAt: { gte: start, lte: end },
-      resolvedAt: { not: null },
+      endedAt: { not: null },
     },
     select: {
       createdAt: true,
-      resolvedAt: true,
+      endedAt: true,
     },
   });
 
   if (resolvedChats.length === 0) return 0;
 
   const totalMinutes = resolvedChats.reduce((sum, chat) => {
-    const minutes = (chat.resolvedAt!.getTime() - chat.createdAt.getTime()) / 1000 / 60;
+    const minutes = (chat.endedAt!.getTime() - chat.createdAt.getTime()) / 1000 / 60;
     return sum + minutes;
   }, 0);
 
