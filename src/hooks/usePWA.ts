@@ -33,7 +33,7 @@ export function usePWA() {
   useEffect(() => {
     const checkInstallation = () => {
       const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
-                         (window.navigator as unknown).standalone === true;
+        (window.navigator as any).standalone === true;
       setPwaStatus(prev => ({ ...prev, isInstalled }));
     };
 
@@ -117,15 +117,15 @@ export function usePWA() {
 
     try {
       // Trigger install prompt
-      const promptEvent = (window as unknown).deferredPrompt;
+      const promptEvent = (window as any).deferredPrompt;
       if (promptEvent) {
         promptEvent.prompt();
         const { outcome } = await promptEvent.userChoice;
-        
+
         if (outcome === 'accepted') {
           toast.success('SmartStore AI installed successfully!');
           setPwaStatus(prev => ({ ...prev, canInstall: false }));
-          (window as unknown).deferredPrompt = null;
+          (window as any).deferredPrompt = null;
           return true;
         }
       }
@@ -151,7 +151,7 @@ export function usePWA() {
     try {
       const permission = await Notification.requestPermission();
       setNotificationPermission(prev => ({ ...prev, permission }));
-      
+
       if (permission === 'granted') {
         toast.success('Notifications enabled!');
         return true;
@@ -257,7 +257,7 @@ export function usePWA() {
       const registration = await navigator.serviceWorker.ready;
       // Background sync is experimental and may not be available
       if ('sync' in registration) {
-        await (registration as unknown).sync.register('background-sync');
+        await (registration as any).sync.register('background-sync');
         toast.success('Background sync registered');
         return true;
       } else {

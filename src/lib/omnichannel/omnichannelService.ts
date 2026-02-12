@@ -55,7 +55,7 @@ export class OmnichannelService {
     });
 
     // Transform Prisma results to match interface
-    const transformedConversations: CustomerConversation[] = conversations.map((c: unknown) => ({
+    const transformedConversations: CustomerConversation[] = conversations.map((c: any) => ({
       id: c.id,
       customerId: c.customerId,
       channel: c.channel,
@@ -70,12 +70,12 @@ export class OmnichannelService {
       assignedAgentId: c.assignedAgentId
     }));
 
-    const unreadCount = transformedConversations.filter((c: unknown) => 
-      c.messages.some((m: unknown) => !m.isIncoming && m.status === 'sent')
+    const unreadCount = transformedConversations.filter((c: any) =>
+      c.messages.some((m: any) => !m.isIncoming && m.status === 'sent')
     ).length;
 
-    const pendingCount = transformedConversations.filter((c: unknown) => c.status === 'pending').length;
-    const urgentCount = transformedConversations.filter((c: unknown) => c.priority === 'urgent').length;
+    const pendingCount = transformedConversations.filter((c: any) => c.status === 'pending').length;
+    const urgentCount = transformedConversations.filter((c: any) => c.priority === 'urgent').length;
 
     return {
       conversations: transformedConversations,
@@ -102,7 +102,7 @@ export class OmnichannelService {
     // Transform Prisma result to match interface
     return {
       id: conversation.id,
-      customerId: conversation.customerId,
+      customerId: conversation.customerId ?? '', // Fix null safety
       channel: conversation.channel,
       messages: conversation.messages || [],
       status: conversation.status,
@@ -142,13 +142,21 @@ export class OmnichannelService {
     // Update conversation
     await prisma.customerConversation.update({
       where: { id: conversationId },
-      data: { 
+      data: {
         status: 'active',
-        updatedAt: new Date()
+        // updatedAt is automatically updated by @updatedAt
       }
     });
 
-    return savedMessage;
+    return {
+      id: savedMessage.id,
+      channel: savedMessage.channel,
+      message: savedMessage.message,
+      timestamp: savedMessage.timestamp,
+      isIncoming: savedMessage.isIncoming,
+      status: savedMessage.status,
+      metadata: savedMessage.metadata
+    };
   }
 
   async assignAgent(conversationId: string, agentId: string): Promise<void> {
@@ -173,7 +181,7 @@ export class OmnichannelService {
     if (!conversation) return;
 
     const updatedTags = Array.from(new Set([...conversation.tags, ...tags]));
-    
+
     await prisma.customerConversation.update({
       where: { id: conversationId },
       data: { tags: updatedTags }
@@ -181,11 +189,11 @@ export class OmnichannelService {
   }
 
   async getChannelIntegrations(organizationId: string): Promise<ChannelIntegration[]> {
-    const integrations = await prisma.channelIntegration.findMany({
+    const integrations = await prisma.channel_integrations.findMany({
       where: { organizationId }
     });
 
-    return integrations.map((integration: unknown) => ({
+    return integrations.map((integration: any) => ({
       channel: integration.channel,
       isActive: integration.isActive,
       config: integration.config,
@@ -193,32 +201,45 @@ export class OmnichannelService {
     }));
   }
 
-  async updateChannelIntegration(organizationId: string, channel: string, config: unknown): Promise<void> {
-    await prisma.channelIntegration.upsert({
-      where: { 
-        organizationId_channel: { organizationId, channel }
-      },
-      update: { 
-        config,
-        lastSync: new Date()
-      },
-      create: {
-        organizationId,
-        name: `${channel} Integration`,
-        channel,
-        provider: 'CUSTOM',
-        type: 'CUSTOM',
-        config,
-        isActive: true,
-        lastSync: new Date()
-      }
+  async updateChannelIntegration(organizationId: string, channel: string, config: any): Promise<void> {
+    // Find existing integration by organizationId and channel
+    const existing = await prisma.channel_integrations.findFirst({
+      where: { organizationId, channel }
     });
+
+    if (existing) {
+      // Update existing
+      await prisma.channel_integrations.update({
+        where: { id: existing.id },
+        data: {
+          config,
+          lastSync: new Date(),
+          updatedAt: new Date()
+        }
+      });
+    } else {
+      // Create new
+      await prisma.channel_integrations.create({
+        data: {
+          id: `ch_int_${Date.now()}`,
+          organizationId,
+          name: `${channel} Integration`,
+          channel,
+          provider: 'CUSTOM',
+          type: 'CUSTOM',
+          config,
+          isActive: true,
+          lastSync: new Date(),
+          updatedAt: new Date()
+        }
+      });
+    }
   }
 
   async syncChannelMessages(organizationId: string, channel: string): Promise<void> {
     // Sync messages from external channel
-    const integration = await prisma.channelIntegration.findUnique({
-      where: { organizationId_channel: { organizationId, channel } }
+    const integration = await prisma.channel_integrations.findFirst({ // Fix: Use findFirst instead of findUnique
+      where: { organizationId, channel }
     });
 
     if (!integration || !integration.isActive) {
@@ -234,14 +255,14 @@ export class OmnichannelService {
     }
 
     // Update last sync time
-    await prisma.channelIntegration.update({
+    await prisma.channel_integrations.update({
       where: { id: integration.id },
       data: { lastSync: new Date() }
     });
   }
 
   async getCustomerHistory(customerId: string): Promise<CustomerConversation[]> {
-    return await prisma.customerConversation.findMany({
+    const conversations = await prisma.customerConversation.findMany({
       where: { customerId },
       include: {
         messages: {
@@ -251,6 +272,22 @@ export class OmnichannelService {
       },
       orderBy: { updatedAt: 'desc' }
     });
+
+    // Transform Prisma results to match interface
+    return conversations.map((c: any) => ({
+      id: c.id,
+      customerId: c.customerId || '',
+      channel: c.channel,
+      messages: c.messages || [],
+      status: c.status,
+      assignedAgent: c.assignedAgent?.id || null,
+      priority: c.priority,
+      tags: c.tags || [],
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      organizationId: c.organizationId,
+      assignedAgentId: c.assignedAgentId
+    }));
   }
 
   async createConversation(customerId: string, channel: string, initialMessage: string): Promise<CustomerConversation> {
@@ -274,7 +311,7 @@ export class OmnichannelService {
     // Transform to match interface
     return {
       id: conversation.id,
-      customerId: conversation.customerId,
+      customerId: conversation.customerId || '',
       channel: conversation.channel,
       messages: conversation.messages || [],
       status: conversation.status,
@@ -288,7 +325,7 @@ export class OmnichannelService {
     };
   }
 
-  private async sendToChannel(channel: string, customerId: string, message: string): Promise<unknown> {
+  private async sendToChannel(channel: string, customerId: string, message: string): Promise<any> {
     // Implementation for sending messages to different channels
     switch (channel) {
       case 'whatsapp':
@@ -306,7 +343,7 @@ export class OmnichannelService {
     }
   }
 
-  private async fetchChannelMessages(channel: string, config: unknown): Promise<unknown[]> {
+  private async fetchChannelMessages(channel: string, config: any): Promise<unknown[]> {
     // Implementation for fetching messages from different channels
     switch (channel) {
       case 'whatsapp':
@@ -320,31 +357,39 @@ export class OmnichannelService {
     }
   }
 
-  private async processIncomingMessage(organizationId: string, channel: string, message: unknown): Promise<void> {
+  private async processIncomingMessage(organizationId: string, channel: string, message: any): Promise<void> {
     // Find or create conversation
     let conversation: unknown = await prisma.customerConversation.findFirst({
       where: {
-        customerId: message.customerId,
+        customerId: (message.customerId) || undefined, // Fix null safety - use undefined instead of null
         channel,
         status: { in: ['active', 'pending'] }
+      },
+      include: {
+        messages: true,
+        customer: true // include customer to satisfy CustomerConversation type if needed
       }
     });
 
-    if (!conversation) {
-      conversation = await this.createConversation(message.customerId, channel, message.text);
+    let customerConversation = conversation as any;
+
+    if (!customerConversation) {
+      // Create a conversation but cast the result to any or specific internal type so we can continue
+      const newConversation = await this.createConversation(message.customerId, channel, message.text);
+      customerConversation = newConversation as any; // Cast for now to proceed
     }
 
     // Ensure conversation exists
-    if (!conversation) {
+    if (!customerConversation) {
       throw new Error('Failed to create or find conversation');
     }
 
     // Save incoming message
     await prisma.channelMessage.create({
       data: {
-        conversationId: conversation.id,
+        conversationId: customerConversation.id,
         conversation: {
-          connect: { id: conversation.id }
+          connect: { id: customerConversation.id }
         },
         channel,
         message: message.text,
@@ -357,51 +402,51 @@ export class OmnichannelService {
 
     // Update conversation
     await prisma.customerConversation.update({
-      where: { id: conversation.id },
-      data: { 
+      where: { id: customerConversation.id },
+      data: {
         status: 'active',
-        updatedAt: new Date()
+        // updatedAt is automatically updated by @updatedAt
       }
     });
   }
 
   // Channel-specific implementations
-  private async sendWhatsAppMessage(customerId: string, message: string): Promise<unknown> {
+  private async sendWhatsAppMessage(customerId: string, message: string): Promise<any> {
     // WhatsApp Business API implementation
     return { status: 'sent', messageId: `wa_${Date.now()}` };
   }
 
-  private async sendFacebookMessage(customerId: string, message: string): Promise<unknown> {
+  private async sendFacebookMessage(customerId: string, message: string): Promise<any> {
     // Facebook Messenger API implementation
     return { status: 'sent', messageId: `fb_${Date.now()}` };
   }
 
-  private async sendInstagramMessage(customerId: string, message: string): Promise<unknown> {
+  private async sendInstagramMessage(customerId: string, message: string): Promise<any> {
     // Instagram DM API implementation
     return { status: 'sent', messageId: `ig_${Date.now()}` };
   }
 
-  private async sendEmailMessage(customerId: string, message: string): Promise<unknown> {
+  private async sendEmailMessage(customerId: string, message: string): Promise<any> {
     // Email service implementation
     return { status: 'sent', messageId: `email_${Date.now()}` };
   }
 
-  private async sendSMSMessage(customerId: string, message: string): Promise<unknown> {
+  private async sendSMSMessage(customerId: string, message: string): Promise<any> {
     // SMS service implementation
     return { status: 'sent', messageId: `sms_${Date.now()}` };
   }
 
-  private async fetchWhatsAppMessages(config: unknown): Promise<unknown[]> {
+  private async fetchWhatsAppMessages(config: any): Promise<unknown[]> {
     // WhatsApp Business API message fetching
     return [];
   }
 
-  private async fetchFacebookMessages(config: unknown): Promise<unknown[]> {
+  private async fetchFacebookMessages(config: any): Promise<unknown[]> {
     // Facebook Messenger API message fetching
     return [];
   }
 
-  private async fetchInstagramMessages(config: unknown): Promise<unknown[]> {
+  private async fetchInstagramMessages(config: any): Promise<unknown[]> {
     // Instagram DM API message fetching
     return [];
   }

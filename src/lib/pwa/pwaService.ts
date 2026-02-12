@@ -71,12 +71,12 @@ export class PWAService {
         this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
         });
-        
+
         logger.info({
           message: 'Service Worker registered successfully',
           context: { service: 'PWAService', operation: 'initializePWA' }
         });
-        
+
         // Listen for updates
         this.swRegistration.addEventListener('updatefound', () => {
           const newWorker = this.swRegistration!.installing;
@@ -91,7 +91,7 @@ export class PWAService {
       }
 
       // Handle install prompt
-      window.addEventListener('beforeinstallprompt', (e) => {
+      window.addEventListener('beforeinstallprompt', (e: any) => {
         e.preventDefault();
         this.deferredPrompt = e;
         this.showInstallBanner();
@@ -170,7 +170,7 @@ export class PWAService {
    */
   canInstall(): InstallPrompt {
     const platform = this.detectPlatform();
-    
+
     if (this.deferredPrompt) {
       return {
         canInstall: true,
@@ -204,9 +204,9 @@ export class PWAService {
     }
 
     try {
-      this.deferredPrompt.prompt();
-      const { outcome } = await this.deferredPrompt.userChoice;
-      
+      (this.deferredPrompt as any).prompt();
+      const { outcome } = await (this.deferredPrompt as any).userChoice;
+
       if (outcome === 'accepted') {
         logger.info({
           message: 'User accepted the install prompt',
@@ -258,7 +258,7 @@ export class PWAService {
 
         // Send subscription to server
         await this.sendSubscriptionToServer(subscription);
-        
+
         logger.info({
           message: 'Push notifications initialized',
           context: { service: 'PWAService', operation: 'initializePushNotifications' }
@@ -305,7 +305,7 @@ export class PWAService {
 
       // Send notification via web push
       const payload = JSON.stringify(notification);
-      
+
       // This would use a web push library like 'web-push'
       // For now, we'll simulate the notification
       logger.debug({
@@ -319,11 +319,17 @@ export class PWAService {
           type: 'push',
           title: notification.title,
           message: notification.body,
-          recipient: userId,
-          organizationId: 'default-org', // You'll need to get this from context
-          metadata: {
-            ...notification.data,
-          sent: true,
+          // recipient removed - not in Prisma schema
+          userId, // Use userId instead of recipient
+          // organizationId removed - not in Notification schema
+          data: notification.data ? {
+            ...(notification.data as Record<string, any>),
+            organizationId: 'default-org', // Store in data instead
+            sent: true,
+            sentAt: new Date().toISOString()
+          } : {
+            organizationId: 'default-org', // Store in data instead
+            sent: true,
             sentAt: new Date().toISOString()
           }
         }
@@ -355,7 +361,7 @@ export class PWAService {
     try {
       // Initialize IndexedDB for offline data
       const request = indexedDB.open('SmartStoreOffline', 1);
-      
+
       request.onerror = () => {
         logger.error({
           message: 'Error opening IndexedDB',
@@ -370,22 +376,22 @@ export class PWAService {
         });
       };
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = (event: any) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create object stores
         if (!db.objectStoreNames.contains('products')) {
           db.createObjectStore('products', { keyPath: 'id' });
         }
-        
+
         if (!db.objectStoreNames.contains('cart')) {
           db.createObjectStore('cart', { keyPath: 'id' });
         }
-        
+
         if (!db.objectStoreNames.contains('orders')) {
           db.createObjectStore('orders', { keyPath: 'id' });
         }
-        
+
         if (!db.objectStoreNames.contains('syncQueue')) {
           const syncStore = db.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
           syncStore.createIndex('timestamp', 'timestamp');
@@ -404,17 +410,17 @@ export class PWAService {
   /**
    * Store data for offline access
    */
-  async storeOfflineData(type: string, data: unknown): Promise<void> {
+  async storeOfflineData(type: string, data: any): Promise<void> {
     try {
       const request = indexedDB.open('SmartStoreOffline', 1);
-      
+
       request.onsuccess = () => {
         const db = request.result;
         const transaction = db.transaction([type], 'readwrite');
         const store = transaction.objectStore(type);
-        
+
         store.put(data);
-        
+
         transaction.oncomplete = () => {
           logger.debug({
             message: 'Stored data offline',
@@ -434,16 +440,16 @@ export class PWAService {
   /**
    * Get offline data
    */
-  async getOfflineData(type: string, id?: string): Promise<unknown> {
+  async getOfflineData(type: string, id?: string): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
         const request = indexedDB.open('SmartStoreOffline', 1);
-        
+
         request.onsuccess = () => {
           const db = request.result;
           const transaction = db.transaction([type], 'readonly');
           const store = transaction.objectStore(type);
-          
+
           if (id) {
             const getRequest = store.get(id);
             getRequest.onsuccess = () => resolve(getRequest.result);
@@ -454,7 +460,7 @@ export class PWAService {
             getAllRequest.onerror = () => reject(getAllRequest.error);
           }
         };
-        
+
         request.onerror = () => reject(request.error);
       } catch (error) {
         reject(error);
@@ -465,22 +471,22 @@ export class PWAService {
   /**
    * Add to sync queue for offline actions
    */
-  async addToSyncQueue(action: string, data: unknown): Promise<void> {
+  async addToSyncQueue(action: string, data: any): Promise<void> {
     try {
       const request = indexedDB.open('SmartStoreOffline', 1);
-      
+
       request.onsuccess = () => {
         const db = request.result;
         const transaction = db.transaction(['syncQueue'], 'readwrite');
         const store = transaction.objectStore('syncQueue');
-        
+
         store.add({
           action,
           data,
           timestamp: new Date(),
           syncStatus: 'pending',
         });
-        
+
         logger.debug({
           message: 'Added to sync queue',
           context: { service: 'PWAService', operation: 'addToSyncQueue', action }
@@ -509,14 +515,14 @@ export class PWAService {
 
     try {
       const pendingActions = await this.getOfflineData('syncQueue');
-      
-      for (const action of pendingActions.filter((a: unknown) => a.syncStatus === 'pending')) {
+
+      for (const action of pendingActions.filter((a: any) => a.syncStatus === 'pending')) {
         try {
           await this.executeSyncAction(action);
-          
+
           // Mark as synced
           await this.updateSyncStatus(action.id, 'synced');
-          
+
           logger.debug({
             message: 'Synced action',
             context: { service: 'PWAService', operation: 'syncOfflineData', action: action.action }
@@ -568,7 +574,7 @@ export class PWAService {
    */
   private detectPlatform(): 'ios' | 'android' | 'desktop' | 'unknown' {
     const userAgent = navigator.userAgent.toLowerCase();
-    
+
     if (/iphone|ipad|ipod/.test(userAgent)) {
       return 'ios';
     } else if (/android/.test(userAgent)) {
@@ -576,7 +582,7 @@ export class PWAService {
     } else if (/windows|mac|linux/.test(userAgent)) {
       return 'desktop';
     }
-    
+
     return 'unknown';
   }
 
@@ -652,7 +658,7 @@ export class PWAService {
     });
   }
 
-  private async executeSyncAction(action: unknown): Promise<void> {
+  private async executeSyncAction(action: any): Promise<void> {
     // Execute the sync action based on type
     switch (action.action) {
       case 'create_order':
@@ -671,12 +677,12 @@ export class PWAService {
 
   private async updateSyncStatus(actionId: string, status: string): Promise<void> {
     const request = indexedDB.open('SmartStoreOffline', 1);
-    
+
     request.onsuccess = () => {
       const db = request.result;
       const transaction = db.transaction(['syncQueue'], 'readwrite');
       const store = transaction.objectStore('syncQueue');
-      
+
       const getRequest = store.get(actionId);
       getRequest.onsuccess = () => {
         const action = getRequest.result;

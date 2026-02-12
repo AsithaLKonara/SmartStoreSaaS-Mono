@@ -14,14 +14,14 @@ export interface VoiceCommand {
   id: string;
   command: string;
   action: string;
-  userId: string | null; // Make nullable to match Prisma model
-  intent: string | null; // Make nullable to match Prisma model
-  entities: Record<string, unknown> | null; // Make nullable to match Prisma model
-  confidence: number | null; // Make nullable to match Prisma model
-  response: string | null; // Make nullable to match Prisma model
-  timestamp: Date;
-  processed: boolean | null; // Make nullable to match Prisma model
-  organizationId: string | null; // Make nullable to match Prisma model
+  customerId: string | null; // Changed from userId to match Prisma model
+  intent: string | null;
+  entities: Record<string, unknown> | null;
+  confidence: number | null;
+  response: string | null;
+  createdAt: Date; // Changed from timestamp to match Prisma model
+  processed: boolean | null;
+  organizationId: string | null;
 }
 
 export interface VoiceIntent {
@@ -71,8 +71,8 @@ export class VoiceCommerceService {
    */
   private initializeSpeechRecognition(): void {
     try {
-      const SpeechRecognition = window.SpeechRecognition || (window as unknown).webkitSpeechRecognition;
-      
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
       if (!SpeechRecognition) {
         logger.warn({
           message: 'Speech recognition not supported',
@@ -81,12 +81,12 @@ export class VoiceCommerceService {
         return;
       }
 
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-      this.recognition.lang = 'en-US';
+      (this.recognition as any) = new SpeechRecognition();
+      (this.recognition as any).continuous = true;
+      (this.recognition as any).interimResults = true;
+      (this.recognition as any).lang = 'en-US';
 
-      this.recognition.onstart = () => {
+      (this.recognition as any).onstart = () => {
         logger.info({
           message: 'Voice recognition started',
           context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
@@ -94,7 +94,7 @@ export class VoiceCommerceService {
         this.isListening = true;
       };
 
-      this.recognition.onend = () => {
+      (this.recognition as any).onend = () => {
         logger.info({
           message: 'Voice recognition ended',
           context: { service: 'VoiceCommerceService', operation: 'initializeSpeechRecognition' }
@@ -102,7 +102,7 @@ export class VoiceCommerceService {
         this.isListening = false;
       };
 
-      this.recognition.onerror = (event: unknown) => {
+      (this.recognition as any).onerror = (event: any) => {
         logger.error({
           message: 'Speech recognition error',
           error: (event as { error: string }).error ? new Error((event as { error: string }).error) : new Error('Unknown error'),
@@ -111,7 +111,7 @@ export class VoiceCommerceService {
         this.isListening = false;
       };
 
-      this.recognition.onresult = (event: unknown) => {
+      (this.recognition as any).onresult = (event: any) => {
         this.handleSpeechResult(event);
       };
 
@@ -285,7 +285,7 @@ export class VoiceCommerceService {
       }
 
       try {
-        this.recognition.start();
+        (this.recognition as any).start();
         resolve();
       } catch (error) {
         reject(error);
@@ -298,7 +298,7 @@ export class VoiceCommerceService {
    */
   stopListening(): void {
     if (this.recognition && this.isListening) {
-      this.recognition.stop();
+      (this.recognition as any).stop();
     }
   }
 
@@ -307,27 +307,27 @@ export class VoiceCommerceService {
    */
   async processVoiceCommand(
     transcript: string,
-    userId: string,
+    customerId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
     try {
       // Clean and normalize transcript
       const cleanTranscript = transcript.toLowerCase().trim();
-      
+
       // Extract intent and entities
       const { intent, entities, confidence } = await this.extractIntent(cleanTranscript);
-      
+
       // Store command
       const command: VoiceCommand = {
         id: '',
-        userId,
+        customerId,
         command: transcript,
         action: 'voice_command',
         intent: intent,
         entities: entities,
         confidence: confidence,
         response: '',
-        timestamp: new Date(),
+        createdAt: new Date(),
         processed: false,
         organizationId: organizationId,
       };
@@ -336,8 +336,8 @@ export class VoiceCommerceService {
       await this.updateCommandStatus(storedCommand.id, true);
 
       // Process command based on intent
-      const response = await this.handleIntent(intent, entities, userId, organizationId);
-      
+      const response = await this.handleIntent(intent, entities, customerId, organizationId);
+
       // Update command as processed
       await this.updateCommandStatus(storedCommand.id, true, response.text);
 
@@ -358,7 +358,7 @@ export class VoiceCommerceService {
       logger.error({
         message: 'Error processing voice command',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'VoiceCommerceService', operation: 'processVoiceCommand', command: command.text }
+        context: { service: 'VoiceCommerceService', operation: 'processVoiceCommand', command: transcript } // Fix: Use transcript instead of command
       });
       return {
         text: 'Sorry, I couldn\'t understand that command. Please try again.',
@@ -378,7 +378,7 @@ export class VoiceCommerceService {
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
-      
+
       if (options) {
         Object.assign(utterance, options);
       } else {
@@ -405,7 +405,7 @@ export class VoiceCommerceService {
   /**
    * Handle speech recognition results
    */
-  private handleSpeechResult(event: unknown): void {
+  private handleSpeechResult(event: any): void {
     let finalTranscript = '';
     let interimTranscript = '';
 
@@ -460,10 +460,10 @@ export class VoiceCommerceService {
     for (const intentConfig of this.intents) {
       for (const pattern of intentConfig.patterns) {
         const confidence = this.matchPattern(transcript, pattern);
-        
+
         if (confidence > bestMatch.confidence) {
           const entities = this.extractEntities(transcript, pattern, intentConfig.entities);
-          
+
           bestMatch = {
             intent: intentConfig.name,
             entities,
@@ -484,19 +484,19 @@ export class VoiceCommerceService {
     const regexPattern = pattern
       .replace(/\*/g, '(.*?)')
       .replace(/\s+/g, '\\s+');
-    
+
     const regex = new RegExp(`^${regexPattern}$`, 'i');
     const match = transcript.match(regex);
-    
+
     if (match) {
       // Calculate confidence based on pattern specificity
       const wildcards = (pattern.match(/\*/g) || []).length;
       const baseConfidence = 0.8;
       const wildcardPenalty = wildcards * 0.1;
-      
+
       return Math.max(baseConfidence - wildcardPenalty, 0.3);
     }
-    
+
     return 0;
   }
 
@@ -509,23 +509,23 @@ export class VoiceCommerceService {
     entityTypes: string[]
   ): Record<string, unknown> {
     const entities: Record<string, unknown> = {};
-    
+
     const regexPattern = pattern.replace(/\*/g, '(.*?)');
     const regex = new RegExp(`^${regexPattern}$`, 'i');
     const match = transcript.match(regex);
-    
+
     if (match && match.length > 1) {
       // Map captured groups to entity types
       for (let i = 1; i < match.length && i - 1 < entityTypes.length; i++) {
         const entityType = entityTypes[i - 1];
-        const entityValue = match[i].trim();
-        
-        if (entityValue) {
+        const entityValue = match[i]?.trim();
+
+        if (entityValue && entityType) {
           entities[entityType] = this.parseEntityValue(entityType, entityValue);
         }
       }
     }
-    
+
     return entities;
   }
 
@@ -538,16 +538,17 @@ export class VoiceCommerceService {
         // Extract numbers from text
         const numberMatch = value.match(/\d+/);
         return numberMatch ? parseInt(numberMatch[0]) : 1;
-      
+
       case 'price_range':
         // Extract price range
         const priceMatch = value.match(/under\s+\$?(\d+)|below\s+\$?(\d+)|less\s+than\s+\$?(\d+)/i);
         if (priceMatch) {
-          const amount = parseInt(priceMatch[1] || priceMatch[2] || priceMatch[3]);
+          const matchStr = priceMatch[1] || priceMatch[2] || priceMatch[3];
+          const amount = parseInt(matchStr || '0');
           return { max: amount };
         }
         return { max: 1000 }; // Default
-      
+
       default:
         return value;
     }
@@ -559,31 +560,31 @@ export class VoiceCommerceService {
   private async handleIntent(
     intent: string,
     entities: Record<string, unknown>,
-    userId: string,
+    customerId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
     switch (intent) {
       case 'search_products':
         return await this.handleProductSearch(entities, organizationId);
-      
+
       case 'add_to_cart':
-        return await this.handleAddToCart(entities, userId, organizationId);
-      
+        return await this.handleAddToCart(entities, customerId, organizationId);
+
       case 'check_order_status':
-        return await this.handleOrderStatus(entities, userId);
-      
+        return await this.handleOrderStatus(entities, customerId);
+
       case 'view_cart':
-        return await this.handleViewCart(userId);
-      
+        return await this.handleViewCart(customerId);
+
       case 'checkout':
-        return await this.handleCheckout(userId);
-      
+        return await this.handleCheckout(customerId);
+
       case 'get_recommendations':
-        return await this.handleRecommendations(entities, userId, organizationId);
-      
+        return await this.handleRecommendations(entities, customerId, organizationId);
+
       case 'help':
         return this.handleHelp();
-      
+
       default:
         return {
           text: 'I didn\'t understand that command. Try saying "help" to see what I can do.',
@@ -596,8 +597,8 @@ export class VoiceCommerceService {
    * Intent handlers
    */
   private async handleProductSearch(entities: Record<string, unknown>, organizationId: string): Promise<VoiceResponse> {
-    const searchTerm = entities.product_name || entities.category;
-    
+    const searchTerm = (entities.product_name || entities.category) as string | undefined;
+
     if (!searchTerm) {
       return {
         text: 'What would you like to search for?',
@@ -621,13 +622,13 @@ export class VoiceCommerceService {
 
       if (products.length === 0) {
         return {
-          text: `I couldn't find unknown products matching "${searchTerm}". Try a different search term.`,
+          text: `I couldn't find any products matching "${searchTerm}". Try a different search term.`,
           suggestions: ['search for electronics', 'find clothing', 'show all products'],
         };
       }
 
-      const productNames = products.map((p: unknown) => p.name).join(', ');
-      
+      const productNames = products.map((p: any) => p.name).join(', ');
+
       return {
         text: `I found ${products.length} products for "${searchTerm}": ${productNames}. Would you like to add unknown to your cart?`,
         actions: [
@@ -636,13 +637,13 @@ export class VoiceCommerceService {
             data: { products },
           },
         ],
-        suggestions: products.slice(0, 3).map((p: unknown) => `add ${p.name} to cart`),
+        suggestions: products.slice(0, 3).map((p: any) => `add ${p.name} to cart`),
       };
     } catch (error) {
       logger.error({
         message: 'Error searching products',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'VoiceCommerceService', operation: 'searchProducts', query, organizationId }
+        context: { service: 'VoiceCommerceService', operation: 'searchProducts', query: searchTerm, organizationId }
       });
       return {
         text: 'Sorry, I had trouble searching for products. Please try again.',
@@ -652,7 +653,7 @@ export class VoiceCommerceService {
 
   private async handleAddToCart(
     entities: Record<string, unknown>,
-    userId: string,
+    customerId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
     const productName = entities.product_name;
@@ -670,7 +671,7 @@ export class VoiceCommerceService {
       const product = await prisma.product.findFirst({
         where: {
           organizationId,
-          name: { contains: productName, mode: 'insensitive' },
+          name: { contains: productName as string, mode: 'insensitive' }, // Fix: Cast to string
         },
       });
 
@@ -682,8 +683,10 @@ export class VoiceCommerceService {
       }
 
       // Add to cart (simplified - you'd implement actual cart logic)
+      const qty = Number(quantity);
+      const price = (product.price as any) ? Number(product.price) : 0;
       return {
-        text: `Added ${quantity} ${product.name} to your cart. The total is $${(product.price * quantity).toFixed(2)}.`,
+        text: `Added ${qty} ${product.name} to your cart. The total is $${(price * qty).toFixed(2)}.`,
         actions: [
           {
             type: 'add_to_cart',
@@ -696,7 +699,7 @@ export class VoiceCommerceService {
       logger.error({
         message: 'Error adding to cart',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'VoiceCommerceService', operation: 'addToCart', productId, quantity, customerId }
+        context: { service: 'VoiceCommerceService', operation: 'addToCart', productId: entities.product_name, quantity, customerId }
       });
       return {
         text: 'Sorry, I had trouble adding that to your cart. Please try again.',
@@ -704,13 +707,13 @@ export class VoiceCommerceService {
     }
   }
 
-  private async handleOrderStatus(entities: Record<string, unknown>, userId: string): Promise<VoiceResponse> {
-    const orderId = entities.order_id;
+  private async handleOrderStatus(entities: Record<string, unknown>, customerId: string): Promise<VoiceResponse> {
+    const orderId = entities.order_id as string | undefined;
 
     try {
       const orders = await prisma.order.findMany({
         where: {
-          customerId: userId,
+          customerId: customerId,
           ...(orderId ? { id: orderId } : {}),
         },
         orderBy: { createdAt: 'desc' },
@@ -719,7 +722,7 @@ export class VoiceCommerceService {
 
       if (orders.length === 0) {
         return {
-          text: orderId 
+          text: orderId
             ? `I couldn't find order ${orderId}. Please check the order number.`
             : 'You don\'t have unknown recent orders.',
         };
@@ -727,8 +730,12 @@ export class VoiceCommerceService {
 
       if (orderId) {
         const order = orders[0];
+        if (!order) {
+          return { text: 'Order not found.' };
+        }
+        const orderTotal = (order as any).total ? Number((order as any).total) : 0;
         return {
-          text: `Order ${order.id} is ${order.status.toLowerCase()}. The total was $${order.totalAmount}.`,
+          text: `Order ${order.id} is ${(order.status as string).toLowerCase()}. The total was $${orderTotal}.`,
           actions: [
             {
               type: 'show_order',
@@ -737,10 +744,10 @@ export class VoiceCommerceService {
           ],
         };
       } else {
-        const statusText = orders.map((order: unknown) => 
+        const statusText = orders.map((order: any) =>
           `Order ${order.id} is ${order.status.toLowerCase()}`
         ).join(', ');
-        
+
         return {
           text: `Here are your recent orders: ${statusText}.`,
           actions: [
@@ -763,7 +770,7 @@ export class VoiceCommerceService {
     }
   }
 
-  private async handleViewCart(userId: string): Promise<VoiceResponse> {
+  private async handleViewCart(customerId: string): Promise<VoiceResponse> {
     // Simplified cart view - you'd implement actual cart logic
     return {
       text: 'Your cart contains 3 items with a total of $299.99. Would you like to checkout?',
@@ -777,7 +784,7 @@ export class VoiceCommerceService {
     };
   }
 
-  private async handleCheckout(userId: string): Promise<VoiceResponse> {
+  private async handleCheckout(customerId: string): Promise<VoiceResponse> {
     return {
       text: 'I\'ll help you checkout. Please review your order and confirm your shipping address.',
       actions: [
@@ -792,11 +799,11 @@ export class VoiceCommerceService {
 
   private async handleRecommendations(
     entities: Record<string, unknown>,
-    userId: string,
+    customerId: string,
     organizationId: string
   ): Promise<VoiceResponse> {
-    const category = entities.category;
-    const priceRange = entities.price_range;
+    const category = entities.category as string | undefined;
+    const priceRange = entities.price_range as { max?: number } | undefined;
 
     try {
       const products = await prisma.product.findMany({
@@ -818,8 +825,8 @@ export class VoiceCommerceService {
         };
       }
 
-      const recommendations = products.map((p: unknown) => `${p.name} for $${p.price}`).join(', ');
-      
+      const recommendations = products.map((p: any) => `${p.name} for $${p.price}`).join(', ');
+
       return {
         text: `I recommend: ${recommendations}. Would you like to add unknown to your cart?`,
         actions: [
@@ -828,7 +835,7 @@ export class VoiceCommerceService {
             data: { products },
           },
         ],
-        suggestions: products.map((p: unknown) => `add ${p.name} to cart`),
+        suggestions: products.map((p: any) => `add ${p.name} to cart`),
       };
     } catch (error) {
       logger.error({
@@ -863,31 +870,31 @@ export class VoiceCommerceService {
   private async storeVoiceCommand(commandData: Omit<VoiceCommand, 'id' | 'response'>): Promise<VoiceCommand> {
     const voiceCommand = await prisma.voiceCommand.create({
       data: {
-        userId: commandData.userId,
+        customerId: commandData.customerId,
         command: commandData.command,
         intent: commandData.intent,
-        entities: commandData.entities,
+        entities: commandData.entities as any || undefined, // Use undefined for null/empty
         confidence: commandData.confidence,
-        timestamp: commandData.timestamp,
-        processed: commandData.processed || undefined, // Convert null to undefined for Prisma
+        // Remove timestamp as it's not in the model, use createdAt
+        processed: commandData.processed || undefined,
         response: '',
         action: commandData.action,
-        organization: { connect: { id: commandData.organizationId || 'system' } } // Provide default for null case
+        organizationId: commandData.organizationId || 'system'
       }
     });
 
     return {
       id: voiceCommand.id,
-      userId: voiceCommand.userId, // Can be null
+      customerId: voiceCommand.customerId,
       command: voiceCommand.command,
-      intent: voiceCommand.intent, // Can be null
-      entities: voiceCommand.entities as Record<string, unknown> | null, // Can be null
-      confidence: voiceCommand.confidence, // Can be null
-      response: voiceCommand.response, // Can be null
-      timestamp: voiceCommand.timestamp,
-      processed: voiceCommand.processed, // Can be null
-      organizationId: voiceCommand.organizationId, // Can be null
-      action: voiceCommand.action || '', // Can be null, provide default
+      intent: voiceCommand.intent,
+      entities: voiceCommand.entities as Record<string, unknown> | null,
+      confidence: voiceCommand.confidence,
+      response: voiceCommand.response,
+      createdAt: voiceCommand.createdAt, // Changed from timestamp
+      processed: voiceCommand.processed,
+      organizationId: voiceCommand.organizationId,
+      action: voiceCommand.action || '',
     };
   }
 
@@ -904,25 +911,25 @@ export class VoiceCommerceService {
   /**
    * Get voice command history
    */
-  async getCommandHistory(userId: string, limit: number = 50): Promise<VoiceCommand[]> {
+  async getCommandHistory(customerId: string, limit: number = 50): Promise<VoiceCommand[]> {
     const commands = await prisma.voiceCommand.findMany({
-      where: { userId },
-      orderBy: { timestamp: 'desc' },
+      where: { customerId },
+      orderBy: { createdAt: 'desc' }, // Changed from timestamp
       take: limit,
     });
 
-    return commands.map((cmd: unknown) => ({
+    return commands.map((cmd: any) => ({
       id: cmd.id,
-      userId: cmd.userId, // Can be null
+      customerId: cmd.customerId,
       command: cmd.command,
-      intent: cmd.intent, // Can be null
-      entities: cmd.entities as Record<string, unknown> | null, // Can be null
-      confidence: cmd.confidence, // Can be null
-      response: cmd.response, // Can be null
-      timestamp: cmd.timestamp,
-      processed: cmd.processed, // Can be null
-      organizationId: cmd.organizationId, // Can be null
-      action: cmd.action || '', // Can be null, provide default
+      intent: cmd.intent,
+      entities: cmd.entities as Record<string, unknown> | null,
+      confidence: cmd.confidence,
+      response: cmd.response,
+      createdAt: cmd.createdAt, // Changed from timestamp
+      processed: cmd.processed,
+      organizationId: cmd.organizationId,
+      action: cmd.action || '',
     }));
   }
 

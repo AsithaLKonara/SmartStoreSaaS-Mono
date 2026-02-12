@@ -133,8 +133,8 @@ export class AdvancedPWAService {
       }
 
       const serviceWorkerRegistration = await navigator.serviceWorker.ready;
-      
-      const notificationOptions: unknown = {
+
+      const notificationOptions: any = {
         body: notification.body,
         icon: notification.icon || '/icons/icon-192x192.png',
         badge: notification.badge || '/badge-72x72.png',
@@ -198,11 +198,11 @@ export class AdvancedPWAService {
       const transaction = this.db!.transaction(['offlineData'], 'readwrite');
       const store = transaction.objectStore('offlineData');
       let request: IDBRequest;
-      
+
       if (type) {
         const index = store.index('type');
         request = index.openCursor(IDBKeyRange.only(type));
-        
+
         request.onsuccess = () => {
           const cursor = request.result;
           if (cursor) {
@@ -216,7 +216,7 @@ export class AdvancedPWAService {
         request = store.clear();
         request.onsuccess = () => resolve();
       }
-      
+
       request.onerror = () => reject(request.error);
     });
   }
@@ -233,15 +233,15 @@ export class AdvancedPWAService {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      await (registration as unknown).sync.register(task.id);
-      
+      await (registration as any).sync.register(task.id); // Fix unknown type
+
       // Store task data
       await this.storeBackgroundSyncTask(task);
     } catch (error) {
       logger.error({
         message: 'Error registering background sync',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'AdvancedPWAService', operation: 'registerBackgroundSync', tag: task.tag }
+        context: { service: 'AdvancedPWAService', operation: 'registerBackgroundSync', tag: task.id } // Fix: task.tag doesn't exist, use task.id
       });
       // Fallback to IndexedDB
       await this.storeBackgroundSyncTask(task);
@@ -286,7 +286,7 @@ export class AdvancedPWAService {
       });
 
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${data.size || 200}x${data.size || 200}&data=${encodeURIComponent(qrData)}&format=${data.format || 'PNG'}`;
-      
+
       return qrCodeUrl;
     } catch (error) {
       logger.error({
@@ -308,7 +308,7 @@ export class AdvancedPWAService {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      
+
       // This is a simplified implementation
       // In production, you would use a barcode scanning library like QuaggaJS or ZXing
       return new Promise((resolve) => {
@@ -367,14 +367,14 @@ export class AdvancedPWAService {
         throw new Error('Speech recognition not supported');
       }
 
-      const recognition = new (window as unknown).webkitSpeechRecognition();
+      const recognition = new (window as any).webkitSpeechRecognition(); // Fix unknown type
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: unknown) => {
+      recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
-          .map((result: unknown) => result[0])
+          .map((result: any) => result[0])
           .map(result => result.transcript)
           .join('');
 
@@ -393,7 +393,7 @@ export class AdvancedPWAService {
 
   private processVoiceCommand(transcript: string): void {
     const command = transcript.toLowerCase();
-    
+
     if (command.includes('new order')) {
       // Navigate to new order page
       window.location.href = '/orders/new';
@@ -418,14 +418,14 @@ export class AdvancedPWAService {
     let startTime = 0;
 
     document.addEventListener('touchstart', (e) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      startX = e.touches[0]?.clientX ?? 0; // Fix undefined
+      startY = e.touches[0]?.clientY ?? 0; // Fix undefined
       startTime = Date.now();
     });
 
     document.addEventListener('touchend', (e) => {
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
+      const endX = e.changedTouches[0]?.clientX ?? 0; // Fix undefined
+      const endY = e.changedTouches[0]?.clientY ?? 0; // Fix undefined
       const endTime = Date.now();
       const duration = endTime - startTime;
       const distanceX = endX - startX;
@@ -558,8 +558,8 @@ export class AdvancedPWAService {
       });
 
       // Handle notification actions if supported
-      if ('actions' in options && Array.isArray((options as unknown).actions)) {
-        (options as unknown).actions.forEach((action: unknown) => {
+      if ('actions' in options && Array.isArray((options as any).actions)) { // Fix unknown type
+        (options as any).actions.forEach((action: any) => { // Fix unknown type
           // Handle action clicks
           notification.addEventListener('click', () => {
             logger.debug({
@@ -574,18 +574,19 @@ export class AdvancedPWAService {
     } else if (Notification.permission !== 'denied') {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
+        const anyWindow = window as any; // Fix unknown type
         await this.showNotification(title, options);
       }
     }
   }
 
   async handleBackgroundSync(tag: string): Promise<void> {
-    if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as unknown)) {
+    if ('serviceWorker' in navigator && 'sync' in (navigator.serviceWorker as any)) { // Fix: Cast to any
       const registration = await navigator.serviceWorker.ready;
-      
+
       // Use type assertion for sync property
       if ('sync' in registration) {
-        await (registration as unknown).sync.register(tag);
+        await (registration as any).sync.register(tag); // Fix unknown type
       } else {
         logger.warn({
           message: 'Background sync not supported',
