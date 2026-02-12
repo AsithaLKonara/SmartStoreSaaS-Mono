@@ -17,7 +17,7 @@ import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
-import { databaseOptimizer } from '@/lib/database/performance-optimizer';
+import { OrderService } from '@/lib/services/order.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,26 +32,21 @@ export const GET = requirePermission('VIEW_ORDERS')(
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '20');
       const status = searchParams.get('status') || '';
-      const skip = (page - 1) * limit;
-
-      // Get organization scoping
       const orgId = getOrganizationScope(user);
 
-      // Build where clause
-      const where: any = {};
-
-      // Add organization scoping (CRITICAL: prevents cross-tenant data leaks)
-      if (orgId) {
-        where.organizationId = orgId;
+      if (!orgId) {
+        return NextResponse.json({
+          success: false,
+          message: 'Organization ID required'
+        }, { status: 400 });
       }
 
-      // Use optimized query with caching
       let customerId: string | undefined = undefined;
 
       // Add customer scoping for CUSTOMER role
       if (user.role === 'CUSTOMER') {
         const customer = await prisma.customer.findFirst({
-          where: { email: user.email }
+          where: { email: user.email, organizationId: orgId }
         });
 
         if (customer) {
@@ -63,20 +58,18 @@ export const GET = requirePermission('VIEW_ORDERS')(
         }
       }
 
-      const { data, executionTime, fromCache } = await databaseOptimizer.getOptimizedOrders(
-        orgId!,
+      const result = await OrderService.getOrders({
+        organizationId: orgId,
         page,
         limit,
         status,
         customerId
-      );
-
-      const { orders, total } = data;
+      });
 
       logger.info({
-        message: 'Orders fetched',
+        message: 'Orders fetched via Service',
         context: {
-          count: orders.length,
+          count: result.orders.length,
           page,
           limit,
           organizationId: orgId,
@@ -85,22 +78,19 @@ export const GET = requirePermission('VIEW_ORDERS')(
         correlation: req.correlationId
       });
 
-      return NextResponse.json(
-        successResponse(orders, {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit)
-        })
-      );
+      return NextResponse.json(successResponse(result.orders, {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages
+      }));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch orders',
         error: error instanceof Error ? error : new Error(String(error)),
         context: {
           path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
+          userId: user.id
         },
         correlation: req.correlationId
       });
@@ -133,7 +123,6 @@ export const POST = requirePermission('CREATE_ORDERS')(
         }, { status: 400 });
       }
 
-      // Get organizationId from user
       const organizationId = getOrganizationScope(user);
       if (!organizationId) {
         return NextResponse.json({
@@ -142,62 +131,27 @@ export const POST = requirePermission('CREATE_ORDERS')(
         }, { status: 400 });
       }
 
-      // Verify customer belongs to same organization
-      const customer = await prisma.customer.findUnique({
-        where: { id: customerId }
-      });
-
-      if (!customer) {
-        return NextResponse.json({
-          success: false,
-          message: 'Customer not found'
-        }, { status: 404 });
-      }
-
-      // SUPER_ADMIN can create orders for any customer, others must match organization
-      if (customer.organizationId !== organizationId && user.role !== 'SUPER_ADMIN') {
-        return NextResponse.json({
-          success: false,
-          message: 'Cannot create orders for customers in other organizations'
-        }, { status: 403 });
-      }
-
-      // Generate order number
-      const orderNumber = `ORD-${Date.now()}`;
-
-      // Create order
-      const order = await prisma.order.create({
-        data: {
-          orderNumber,
-          customerId,
-          organizationId,
-          subtotal,
-          tax: tax || 0,
-          shipping: shipping || 0,
-          discount: discount || 0,
-          total,
-          notes,
-          status: 'PENDING'
-        },
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        }
+      // Business logic delegated to service
+      const order = await OrderService.createOrder({
+        customerId,
+        organizationId,
+        items,
+        subtotal,
+        tax,
+        shipping,
+        discount,
+        total,
+        notes,
+        createdById: user.id
       });
 
       logger.info({
-        message: 'Order created',
+        message: 'Order created via Service',
         context: {
-          orderId: order.id,
-          orderNumber: order.orderNumber,
+          orderId: order?.id,
+          orderNumber: order?.orderNumber,
           customerId,
           organizationId,
-          total,
           userId: user.id
         },
         correlation: req.correlationId
@@ -213,8 +167,7 @@ export const POST = requirePermission('CREATE_ORDERS')(
         error: error instanceof Error ? error : new Error(String(error)),
         context: {
           path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
+          userId: user.id
         },
         correlation: req.correlationId
       });

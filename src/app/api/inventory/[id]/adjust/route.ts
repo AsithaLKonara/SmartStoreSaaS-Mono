@@ -14,6 +14,7 @@ import { logger } from '@/lib/logger';
 import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 import { v4 as uuidv4 } from 'uuid';
+import { InventoryService } from '@/lib/services/inventory.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,20 +29,20 @@ export async function POST(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const inventoryId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_INVENTORY')(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();
         const { adjustment, reason } = body;
 
-      if (adjustment === undefined || !reason) {
-        throw new ValidationError('Adjustment amount and reason are required');
-      }
+        if (adjustment === undefined || !reason) {
+          throw new ValidationError('Adjustment amount and reason are required');
+        }
 
-      const inventory = await prisma.product.findUnique({
-        where: { id: inventoryId }
-      });
+        const inventory = await prisma.product.findUnique({
+          where: { id: inventoryId }
+        });
 
         if (!inventory) {
           throw new NotFoundError('Product not found');
@@ -51,26 +52,17 @@ export async function POST(
           throw new AuthorizationError('Cannot adjust inventory from other organizations');
         }
 
-      const updated = await prisma.product.update({
-        where: { id: inventoryId },
-        data: {
-          stock: { increment: adjustment }
-        }
-      });
-
-      // Log the adjustment
-      await prisma.inventoryMovement.create({
-        data: {
-          productId: inventory.id,
-          quantity: adjustment,
-          type: adjustment > 0 ? 'IN' : 'OUT',
+        // Business logic delegated to service
+        const updated = await InventoryService.adjustStock({
+          productId: inventoryId,
+          organizationId: inventory.organizationId,
+          adjustment,
           reason,
-          reference: `User: ${user.id}`
-        }
-      });
+          userId: user.id
+        });
 
         logger.info({
-          message: 'Inventory adjusted',
+          message: 'Inventory adjusted via Service',
           context: {
             userId: user.id,
             inventoryId,
@@ -89,16 +81,15 @@ export async function POST(
           context: {
             path: req.nextUrl.pathname,
             userId: user.id,
-            organizationId: user.organizationId,
             inventoryId
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
