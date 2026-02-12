@@ -31,21 +31,20 @@ export const GET = requirePermission('VIEW_INVENTORY')(
 
       // Get organization scoping
       const orgId = getOrganizationScope(user);
-      
+
       // Build where clause
       const where: any = {};
-      
+
       // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
       if (orgId) {
         where.organizationId = orgId;
       }
-      
+
       // Add search filters
       if (search) {
         where.OR = [
           { name: { contains: search, mode: 'insensitive' } },
-          { sku: { contains: search, mode: 'insensitive' } },
-          { barcode: { contains: search, mode: 'insensitive' } }
+          { sku: { contains: search, mode: 'insensitive' } }
         ];
       }
 
@@ -97,7 +96,7 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -116,7 +115,7 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();
-      const { name, description, price, cost, sku, barcode, categoryId, stockQuantity, minStockLevel, maxStockLevel } = body;
+      const { name, description, price, cost, sku, categoryId, stockQuantity, minStockLevel, maxStockLevel } = body;
 
       // Validation
       if (!name || !price || !sku) {
@@ -153,7 +152,6 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
           price: parseFloat(price),
           cost: cost ? parseFloat(cost) : 0,
           sku,
-          barcode: barcode || null,
           stock: stockQuantity ? parseInt(stockQuantity) : 0,
           minStock: minStockLevel ? parseInt(minStockLevel) : 0,
           categoryId: categoryId || null,
@@ -191,12 +189,12 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       // Re-throw ValidationError to be handled by middleware
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

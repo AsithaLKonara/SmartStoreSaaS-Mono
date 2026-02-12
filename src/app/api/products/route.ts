@@ -18,6 +18,7 @@ import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { ValidationError } from '@/lib/middleware/withErrorHandler';
+import { databaseOptimizer } from '@/lib/database/performance-optimizer';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,15 +38,15 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
 
       // Get organization scoping
       const orgId = getOrganizationScope(user);
-      
+
       // Build where clause
       const where: any = {};
-      
+
       // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
       if (orgId) {
         where.organizationId = orgId;
       }
-      
+
       // Add optional filters
       if (search) {
         where.OR = [
@@ -54,35 +55,21 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
           { description: { contains: search, mode: 'insensitive' } }
         ];
       }
-      
+
       if (category) {
         where.categoryId = category;
       }
 
-      const [products, total] = await Promise.all([
-        prisma.product.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            sku: true,
-            price: true,
-            cost: true,
-            stock: true,
-            minStock: true,
-            categoryId: true,
-            organizationId: true,
-            isActive: true,
-            createdAt: true,
-            updatedAt: true
-          }
-        }),
-        prisma.product.count({ where })
-      ]);
+      // Use optimized query with caching
+      const { data, executionTime, fromCache } = await databaseOptimizer.getOptimizedProducts(
+        orgId!,
+        page,
+        limit,
+        search,
+        category
+      );
+
+      const { products, total } = data;
 
       logger.info({
         message: 'Products fetched',
@@ -116,7 +103,7 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -206,12 +193,12 @@ export const POST = requirePermission('MANAGE_PRODUCTS')(
         },
         correlation: req.correlationId
       });
-      
+
       // Re-throw ValidationError to be handled by middleware
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

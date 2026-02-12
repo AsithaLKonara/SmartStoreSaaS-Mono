@@ -110,7 +110,7 @@ export interface InventoryReport {
 }
 
 export class InventoryService {
-  constructor() {}
+  constructor() { }
 
   async getProductInventory(productId: string, organizationId: string): Promise<InventoryItem[]> {
     try {
@@ -136,18 +136,18 @@ export class InventoryService {
       const inventoryItems: InventoryItem[] = [];
 
       // Main product inventory
-      if (product.stockQuantity !== undefined) {
+      if (product.stock !== undefined) {
         inventoryItems.push({
           id: product.id,
           productId: product.id,
           warehouseId: warehouses[0]?.id || 'default',
           sku: product.sku || '',
-          quantity: product.stockQuantity,
+          quantity: product.stock,
           reservedQuantity: 0, // Will be calculated from metadata
-          availableQuantity: product.stockQuantity,
+          availableQuantity: product.stock,
           reorderLevel: product.lowStockThreshold || 0,
           maxStockLevel: product.reorderPoint || 0,
-          costPrice: product.costPrice || 0,
+          costPrice: Number(product.cost || 0),
           lastStockUpdate: product.updatedAt,
           status: product.isActive ? 'ACTIVE' : 'INACTIVE'
         });
@@ -155,18 +155,18 @@ export class InventoryService {
 
       // Variant inventory
       for (const variant of product.variants) {
-        if (variant.stockQuantity !== undefined) {
+        if (variant.stock !== undefined) {
           inventoryItems.push({
             id: variant.id,
             productId: product.id,
             warehouseId: warehouses[0]?.id || 'default',
             sku: variant.sku || '',
-            quantity: variant.stockQuantity,
+            quantity: variant.stock,
             reservedQuantity: 0,
-            availableQuantity: variant.stockQuantity,
+            availableQuantity: variant.stock,
             reorderLevel: 0,
             maxStockLevel: 0,
-            costPrice: variant.costPrice || 0,
+            costPrice: Number(variant.cost || 0),
             lastStockUpdate: variant.updatedAt,
             status: 'ACTIVE'
           });
@@ -178,7 +178,7 @@ export class InventoryService {
       logger.error({
         message: 'Error getting product inventory',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'getProductInventory', productId, warehouseId }
+        context: { service: 'InventoryService', operation: 'getProductInventory', productId }
       });
       throw error;
     }
@@ -212,7 +212,7 @@ export class InventoryService {
         throw new Error('Product not found');
       }
 
-      const currentStock = product.stockQuantity || 0;
+      const currentStock = product.stock || 0;
 
       // Calculate new quantity based on movement type
       let newQuantity = currentStock;
@@ -239,42 +239,42 @@ export class InventoryService {
       const updatedProduct = await prisma.product.update({
         where: { id: productId },
         data: {
-          stockQuantity: newQuantity,
+          stock: newQuantity,
           updatedAt: new Date()
         }
       });
 
       // Create activity records for stock movements
       if (quantity > 0) {
-        await prisma.productActivity.create({
+        await prisma.product_activities.create({
           data: {
             productId,
             type: 'STOCK_ADDED',
             quantity,
             description: `Stock added: ${quantity} units`,
-            metadata: {
+            metadata: JSON.stringify({
               reason: 'manual_adjustment',
               previousQuantity: currentStock,
-              newQuantity: currentStock + quantity,
+              newQuantity: currentStock + (typeof quantity === 'number' ? quantity : Number(quantity)),
               adjustedBy: userId,
               timestamp: new Date()
-            }
+            })
           }
         });
       } else if (quantity < 0) {
-        await prisma.productActivity.create({
+        await prisma.product_activities.create({
           data: {
             productId,
             type: 'STOCK_REDUCED',
             quantity: Math.abs(quantity),
             description: `Stock reduced: ${Math.abs(quantity)} units`,
-            metadata: {
+            metadata: JSON.stringify({
               reason: 'manual_adjustment',
               previousQuantity: currentStock,
-              newQuantity: currentStock + quantity,
+              newQuantity: currentStock + (typeof quantity === 'number' ? quantity : Number(quantity)),
               adjustedBy: userId,
               timestamp: new Date()
-            }
+            })
           }
         });
       }
@@ -358,7 +358,7 @@ export class InventoryService {
           throw new Error(`Product ${item.productId} not found`);
         }
 
-        if ((product.stockQuantity || 0) < item.quantity) {
+        if ((product.stock || 0) < item.quantity) {
           throw new Error(`Insufficient stock for product ${item.productId}`);
         }
 
@@ -366,21 +366,21 @@ export class InventoryService {
         await prisma.product.update({
           where: { id: item.productId },
           data: {
-            stockQuantity: product.stockQuantity - item.quantity
+            stock: Number(product.stock) - item.quantity
           }
         });
 
         // Create activity record for reservation
-        await prisma.productActivity.create({
+        await prisma.product_activities.create({
           data: {
             type: 'STOCK_REDUCED',
             quantity: item.quantity,
             description: `Inventory reserved for order ${orderId}`,
-            metadata: {
+            metadata: JSON.stringify({
               warehouseId: item.warehouseId,
               orderId,
               reservedQuantity: item.quantity
-            },
+            }),
             productId: item.productId
           }
         });
@@ -391,13 +391,13 @@ export class InventoryService {
       logger.error({
         message: 'Error reserving inventory',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'reserveInventory', orderId, productId, warehouseId, quantity }
+        context: { service: 'InventoryService', operation: 'reserveInventory', orderId }
       });
       throw error;
     }
   }
 
-    async releaseReservation(
+  async releaseReservation(
     orderId: string,
     organizationId: string,
     fulfill: boolean = false
@@ -409,7 +409,7 @@ export class InventoryService {
         message: 'Note: releaseReservation method needs to be implemented with proper reservation tracking',
         context: { service: 'InventoryService', operation: 'releaseReservation', orderId, organizationId, fulfill }
       });
-      
+
       // For now, return true as a placeholder
       return true;
     } catch (error) {
@@ -496,7 +496,7 @@ export class InventoryService {
         message: 'Stock alert',
         context: { service: 'InventoryService', operation: 'createOrUpdateAlert', productId, warehouseId, type, currentQuantity, severity, threshold }
       });
-      
+
       // Store stock alert in database
       const alert: StockAlert = {
         id: `alert_${Date.now()}`,
@@ -592,27 +592,28 @@ export class InventoryService {
     alert: unknown,
     organizationId: string
   ): Promise<void> {
+    const alertAny = alert as any;
     try {
       const product = await prisma.product.findFirst({
-        where: { id: alert.productId }
+        where: { id: alertAny.productId }
       });
 
       if (!product) return;
 
-      const alertMessage = this.getAlertMessage(alert, product.name, 'Warehouse');
-      
+      const alertMessage = this.getAlertMessage(alertAny, product.name, 'Warehouse');
+
       // Send email notification (placeholder - would need proper email service setup)
       try {
         await emailService.sendEmail({
           to: 'admin@example.com', // Would get from organization settings
-          subject: `Stock Alert: ${alert.type}`,
+          subject: `Stock Alert: ${alertAny.type}`,
           templateId: 'stock_alert',
           templateData: {
             productName: product.name,
-            alertType: alert.type,
-            currentQuantity: alert.currentQuantity,
-            threshold: alert.threshold,
-            severity: alert.severity,
+            alertType: alertAny.type,
+            currentQuantity: alertAny.currentQuantity,
+            threshold: alertAny.threshold,
+            severity: alertAny.severity,
             message: alertMessage
           }
         });
@@ -620,7 +621,7 @@ export class InventoryService {
         logger.error({
           message: 'Failed to send email notification',
           error: error instanceof Error ? error : new Error(String(error)),
-          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id, alertType: alert.type }
+          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alertAny.id, alertType: alertAny.type }
         });
       }
 
@@ -631,63 +632,65 @@ export class InventoryService {
           message: alertMessage
         });
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
         logger.error({
           message: 'Failed to send SMS notification',
           error: error instanceof Error ? error : new Error(String(error)),
-          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id, alertType: alert.type }
+          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alertAny.id, alertType: alertAny.type }
         });
       }
 
       // Send WhatsApp notification (placeholder)
       try {
-        await whatsAppService.sendTemplateMessage(
+        await whatsAppService.sendMessage(
+          'default', // organizationId placeholder
           '+1234567890', // Would get from organization settings
-          'stock_alert_whatsapp',
-          'en',
-          'default' // organizationId placeholder
+          alertMessage,
+          'text'
         );
       } catch (error) {
         logger.error({
           message: 'Failed to send WhatsApp notification',
           error: error instanceof Error ? error : new Error(String(error)),
-          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id, alertType: alert.type }
+          context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alertAny.id, alertType: alertAny.type }
         });
       }
 
       // Update alert notification count - store in ProductActivity since Product doesn't have metadata
-      await prisma.productActivity.create({
+      await prisma.product_activities.create({
         data: {
           productId: product.id,
           type: 'STATUS_CHANGED',
           description: 'Low stock alert notification sent',
-          metadata: {
-            alertId: alert.id,
-            notificationsSent: (alert.notificationsSent || 0) + 1,
+          metadata: JSON.stringify({
+            alertId: (alert as any).id,
+            notificationsSent: ((alert as any).notificationsSent || 0) + 1,
             lastNotificationAt: new Date(),
-            threshold: alert.threshold,
-            currentStock: product.stockQuantity
-          }
+            threshold: (alert as any).threshold,
+            currentStock: product.stock
+          })
         }
       });
     } catch (error) {
       logger.error({
         message: 'Error sending stock alert notifications',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alert.id }
+        context: { service: 'InventoryService', operation: 'sendStockAlertNotifications', alertId: alertAny.id }
       });
     }
   }
 
   private getAlertMessage(alert: unknown, productName: string, warehouseName: string): string {
+    const alertAny = alert as any;
     const messages = {
-      'LOW_STOCK': `${productName} is running low on stock. Current quantity: ${alert.currentQuantity}, Threshold: ${alert.threshold}`,
-      'OUT_OF_STOCK': `${productName} is out of stock! Current quantity: ${alert.currentQuantity}`,
-      'OVERSTOCK': `${productName} has excess inventory. Current quantity: ${alert.currentQuantity}`,
+      'LOW_STOCK': `${productName} is running low on stock. Current quantity: ${alertAny.currentQuantity}, Threshold: ${alertAny.threshold}`,
+      'OUT_OF_STOCK': `${productName} is out of stock! Current quantity: ${alertAny.currentQuantity}`,
+      'OVERSTOCK': `${productName} has excess inventory. Current quantity: ${alertAny.currentQuantity}`,
       'EXPIRING_SOON': `${productName} will expire soon. Check expiration dates.`,
       'EXPIRED': `${productName} has expired items. Remove from inventory.`
     };
 
-    return messages[alert.type as keyof typeof messages] || `Stock alert for ${productName}`;
+    return messages[alertAny.type as keyof typeof messages] || `Stock alert for ${productName}`;
   }
 
   async getInventoryForecast(
@@ -707,7 +710,7 @@ export class InventoryService {
       if (!product) return null;
 
       // Get recent stock movements from product activities
-      const recentActivities = await prisma.productActivity.findMany({
+      const recentActivities = await prisma.product_activities.findMany({
         where: {
           productId,
           type: { in: ['STOCK_ADDED', 'STOCK_REDUCED'] },
@@ -733,7 +736,7 @@ export class InventoryService {
       }
 
       const dailyUsage = daysWithActivity > 0 ? totalOutgoing / daysWithActivity : 0;
-      const currentStock = product.stockQuantity || 0;
+      const currentStock = product.stock || 0;
       const daysUntilStockout = dailyUsage > 0 ? Math.floor(currentStock / dailyUsage) : daysToForecast;
       const recommendedReorderQuantity = Math.max(0, (dailyUsage * 7) - currentStock);
       const recommendedReorderDate = new Date(Date.now() + (daysUntilStockout - 7) * 24 * 60 * 60 * 1000);
@@ -765,8 +768,8 @@ export class InventoryService {
         where: { organizationId },
         select: {
           id: true,
-          stockQuantity: true,
-          costPrice: true,
+          stock: true,
+          cost: true,
           category: {
             select: { name: true }
           }
@@ -780,8 +783,8 @@ export class InventoryService {
       const byWarehouse: Record<string, { value: number; quantity: number; averagePrice: number }> = {};
 
       for (const product of products) {
-        const quantity = product.stockQuantity || 0;
-        const costPrice = product.costPrice || 0;
+        const quantity = product.stock || 0;
+        const costPrice = Number(product.cost || 0);
         const value = quantity * costPrice;
 
         totalValue += value;
@@ -807,15 +810,17 @@ export class InventoryService {
 
       // Calculate averages
       for (const category in byCategory) {
-        byCategory[category].averagePrice = byCategory[category].quantity > 0 
-          ? byCategory[category].value / byCategory[category].quantity 
-          : 0;
+        const cat = byCategory[category];
+        if (cat) {
+          cat.averagePrice = cat.quantity > 0 ? cat.value / cat.quantity : 0;
+        }
       }
 
       for (const warehouse in byWarehouse) {
-        byWarehouse[warehouse].averagePrice = byWarehouse[warehouse].quantity > 0 
-          ? byWarehouse[warehouse].value / byWarehouse[warehouse].quantity 
-          : 0;
+        const wh = byWarehouse[warehouse];
+        if (wh) {
+          wh.averagePrice = wh.quantity > 0 ? wh.value / wh.quantity : 0;
+        }
       }
 
       const averageCostPrice = totalQuantity > 0 ? totalCost / totalQuantity : 0;
@@ -831,7 +836,7 @@ export class InventoryService {
       logger.error({
         message: 'Error getting stock valuation',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'getStockValuation', organizationId, warehouseId }
+        context: { service: 'InventoryService', operation: 'getStockValuation', organizationId }
       });
       throw error;
     }
@@ -844,8 +849,8 @@ export class InventoryService {
         select: {
           id: true,
           name: true,
-          stockQuantity: true,
-          costPrice: true,
+          stock: true,
+          cost: true,
           lowStockThreshold: true,
           reorderPoint: true
         }
@@ -867,8 +872,8 @@ export class InventoryService {
       }> = [];
 
       for (const product of products) {
-        const quantity = product.stockQuantity || 0;
-        const costPrice = product.costPrice || 0;
+        const quantity = product.stock || 0;
+        const costPrice = Number(product.cost || 0);
         const value = quantity * costPrice;
 
         totalValue += value;
@@ -913,17 +918,17 @@ export class InventoryService {
       const alerts: StockAlert[] = [];
       for (const product of products) {
         // Get alerts from ProductActivity records
-        const alertActivities = await prisma.productActivity.findMany({
+        const alertActivities = await prisma.product_activities.findMany({
           where: {
             productId: product.id,
             type: 'STATUS_CHANGED',
             description: { contains: 'Low stock alert' }
           }
         });
-        
+
         for (const activity of alertActivities) {
           if (activity.metadata && typeof activity.metadata === 'object') {
-            const alertData = activity.metadata as unknown;
+            const alertData = activity.metadata as any;
             if (alertData.alertId && alertData.isActive) {
               alerts.push({
                 id: alertData.alertId,
@@ -931,7 +936,7 @@ export class InventoryService {
                 warehouseId: alertData.warehouseId || '',
                 type: 'LOW_STOCK',
                 threshold: alertData.threshold || 0,
-                currentQuantity: product.stockQuantity,
+                currentQuantity: product.stock,
                 severity: 'MEDIUM',
                 isActive: alertData.isActive || false,
                 notificationsSent: alertData.notificationsSent || 0,
@@ -960,7 +965,7 @@ export class InventoryService {
       logger.error({
         message: 'Error generating inventory report',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'generateInventoryReport', organizationId, warehouseId }
+        context: { service: 'InventoryService', operation: 'generateInventoryReport', organizationId }
       });
       throw error;
     }
@@ -973,26 +978,26 @@ export class InventoryService {
         select: {
           id: true,
           name: true,
-          stockQuantity: true,
-          costPrice: true
+          stock: true,
+          cost: true
         },
         orderBy: {
-          stockQuantity: 'desc'
+          stock: 'desc'
         },
         take: 10
       });
 
-      return products.map((product: unknown) => ({
+      return products.map((product: any) => ({
         productId: product.id,
         name: product.name,
-        quantity: product.stockQuantity || 0,
-        value: (product.stockQuantity || 0) * (product.costPrice || 0)
+        quantity: product.stock || 0,
+        value: (product.stock || 0) * (product.cost || 0)
       }));
     } catch (error) {
       logger.error({
         message: 'Error getting top products by value',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'getTopProductsByValue', organizationId, limit }
+        context: { service: 'InventoryService', operation: 'getTopProductsByValue', organizationId }
       });
       return [];
     }
@@ -1007,26 +1012,26 @@ export class InventoryService {
         select: {
           id: true,
           name: true,
-          stockQuantity: true,
-          costPrice: true
+          stock: true,
+          cost: true
         }
       });
 
       return products
-        .filter((product: unknown) => (product.stockQuantity || 0) > 0)
-        .map((product: unknown) => ({
+        .filter((product: any) => (product.stock || 0) > 0)
+        .map((product: any) => ({
           productId: product.id,
           name: product.name,
-          quantity: product.stockQuantity || 0,
+          quantity: product.stock || 0,
           daysSinceLastMovement: 30, // Placeholder
-          value: (product.stockQuantity || 0) * (product.costPrice || 0)
+          value: (product.stock || 0) * (product.cost || 0)
         }))
         .slice(0, 10);
     } catch (error) {
       logger.error({
         message: 'Error getting slow moving products',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'getSlowMovingProducts', organizationId, daysThreshold }
+        context: { service: 'InventoryService', operation: 'getSlowMovingProducts', organizationId }
       });
       return [];
     }
@@ -1057,7 +1062,7 @@ export class InventoryService {
           throw new Error(`Product ${item.productId} not found`);
         }
 
-        const currentStock = product.stockQuantity || 0;
+        const currentStock = product.stock || 0;
         const difference = item.countedQuantity - currentStock;
 
         if (difference !== 0) {
@@ -1084,7 +1089,7 @@ export class InventoryService {
       logger.error({
         message: 'Error performing cycle count',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'InventoryService', operation: 'performCycleCount', warehouseId, organizationId, itemsCount: items.length }
+        context: { service: 'InventoryService', operation: 'performCycleCount', organizationId, itemsCount: items.length }
       });
       throw error;
     }
@@ -1097,7 +1102,7 @@ export class InventoryService {
     limit: number = 50
   ): Promise<StockMovement[]> {
     try {
-      const activities = await prisma.productActivity.findMany({
+      const activities = await prisma.product_activities.findMany({
         where: {
           productId,
           type: { in: ['STOCK_ADDED', 'STOCK_REDUCED', 'STATUS_CHANGED', 'STATUS_CHANGED', 'STATUS_CHANGED', 'STATUS_CHANGED', 'STATUS_CHANGED'] }
@@ -1106,8 +1111,8 @@ export class InventoryService {
         take: limit
       });
 
-      return activities.map((activity: unknown) => {
-        const metadata = activity.metadata as unknown;
+      return activities.map((activity: any) => {
+        const metadata = activity.metadata as any;
         return {
           id: activity.id,
           productId: activity.productId,
@@ -1135,7 +1140,7 @@ export class InventoryService {
     }
   }
 
-  private mapActivityTypeToMovementType(activityType: unknown): StockMovement['type'] {
+  private mapActivityTypeToMovementType(activityType: any): StockMovement['type'] {
     const mapping: Record<string, StockMovement['type']> = {
       'STOCK_ADDED': 'IN',
       'STOCK_REDUCED': 'OUT',
