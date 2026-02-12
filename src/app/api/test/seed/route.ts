@@ -14,18 +14,23 @@ import usersFixture from '../../../../../tests/e2e/fixtures/users.json';
 import productsFixture from '../../../../../tests/e2e/fixtures/products.json';
 
 // Guard: Only allow in test environment
-if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
-  throw new Error('Test endpoints are disabled in production');
-}
+// Environment check moved inside handler
 
 export async function POST(request: NextRequest) {
+  // Guard: Only allow in test environment
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
+    return NextResponse.json(
+      { success: false, error: 'Test endpoints are disabled in production' },
+      { status: 403 }
+    );
+  }
   const correlationId = request.headers.get('x-request-id') || uuidv4();
-  
+
   try {
     const { seed } = await request.json();
-    
+
     const testOrg = await ensureTestOrganization();
-    
+
     switch (seed) {
       case 'basic':
         await seedBasic(testOrg.id);
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
       default:
         await seedBasic(testOrg.id);
     }
-    
+
     return NextResponse.json({
       success: true,
       message: `Database seeded with ${seed} data`,
@@ -64,10 +69,10 @@ export async function POST(request: NextRequest) {
       },
       correlation: correlationId
     });
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: error.message,
         correlation: correlationId
       },
@@ -81,9 +86,9 @@ async function ensureTestOrganization() {
   const existing = await prisma.organization.findFirst({
     where: { domain: 'test' },
   });
-  
+
   if (existing) return existing;
-  
+
   return await prisma.organization.create({
     data: {
       name: 'Test Organization',
@@ -98,9 +103,9 @@ async function ensureTestOrganization() {
 async function seedBasic(orgId: string) {
   // Create test users
   const hashedPassword = await bcrypt.hash('Password123!', 10);
-  
+
   const users = Object.entries(usersFixture);
-  
+
   for (const [key, userData] of users) {
     await prisma.user.upsert({
       where: { email: userData.email },
@@ -123,7 +128,7 @@ async function seedProducts(orgId: string) {
   // Create test products
   for (const productData of productsFixture.products) {
     const { variants, ...productInfo } = productData as any;
-    
+
     await prisma.product.create({
       data: {
         ...productInfo,
@@ -160,12 +165,12 @@ async function seedCustomers(orgId: string) {
     ],
     skipDuplicates: true,
   });
-  
+
   // Create loyalty records
   const customers = await prisma.customer.findMany({
     where: { organizationId: orgId },
   });
-  
+
   for (const customer of customers) {
     const existingLoyalty = await prisma.customerLoyalty.findFirst({
       where: { customerId: customer.id }
@@ -199,24 +204,24 @@ async function seedOrders(orgId: string) {
     where: { organizationId: orgId },
     take: 1,
   });
-  
+
   const customers = await prisma.customer.findMany({
     where: { organizationId: orgId },
     take: 1,
   });
-  
+
   if (products.length === 0 || customers.length === 0) {
     await seedProducts(orgId);
     await seedCustomers(orgId);
   }
-  
+
   const product = products[0] || await prisma.product.findFirst({ where: { organizationId: orgId } });
   const customer = customers[0] || await prisma.customer.findFirst({ where: { organizationId: orgId } });
-  
+
   if (!product || !customer) {
     throw new Error('Failed to seed orders: no products or customers');
   }
-  
+
   // Create test orders
   await prisma.order.create({
     data: {

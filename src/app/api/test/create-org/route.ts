@@ -9,23 +9,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Guard: Only allow in test environment
-if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
-  throw new Error('Test endpoints are disabled in production');
-}
+// Environment check moved inside handler
 
 export async function POST(request: NextRequest) {
+  // Guard: Only allow in test environment
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
+    return NextResponse.json(
+      { success: false, error: 'Test endpoints are disabled in production' },
+      { status: 403 }
+    );
+  }
   try {
     const data = await request.json();
-    
+
     const { name, domain, plan, description } = data;
-    
+
     if (!name) {
       return NextResponse.json(
         { success: false, error: 'Organization name is required' },
         { status: 400 }
       );
     }
-    
+
     const org = await prisma.organization.create({
       data: {
         name,
@@ -35,7 +40,7 @@ export async function POST(request: NextRequest) {
         plan: plan || 'PRO',
       },
     });
-    
+
     return NextResponse.json({
       success: true,
       organization: org,

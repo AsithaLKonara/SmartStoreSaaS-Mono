@@ -9,14 +9,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Guard: Only allow in test environment
-if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
-  throw new Error('Test endpoints are disabled in production');
-}
+// Environment check moved inside handler to prevent build-time errors
 
 export async function POST(request: NextRequest) {
+  // Guard: Only allow in test environment
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_ENDPOINTS) {
+    return NextResponse.json(
+      { success: false, error: 'Test endpoints are disabled in production' },
+      { status: 403 }
+    );
+  }
+
   try {
     const data = await request.json();
-    
+
     const {
       organizationId,
       customerId,
@@ -28,14 +34,14 @@ export async function POST(request: NextRequest) {
       total,
       status,
     } = data;
-    
+
     if (!organizationId || !customerId || !items || items.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
-    
+
     const order = await prisma.order.create({
       data: {
         orderNumber: `TEST-${Date.now()}`,
@@ -62,7 +68,7 @@ export async function POST(request: NextRequest) {
         customer: true,
       },
     });
-    
+
     return NextResponse.json({
       success: true,
       order,
