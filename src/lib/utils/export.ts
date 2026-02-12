@@ -84,13 +84,14 @@ export function parseCSV(csvContent: string): any[] {
   const lines = csvContent.split('\n');
   if (lines.length === 0) return [];
 
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const headers = lines[0]!.split(',').map(h => h.trim().replace(/^"|"$/g, '')); // Fix: Add null assertion
   const data: any[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
+    const line = lines[i];
+    if (!line || !line.trim()) continue;
 
-    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
     const row: any = {};
 
     headers.forEach((header, index) => {

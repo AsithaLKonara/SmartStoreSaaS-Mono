@@ -92,9 +92,8 @@ function getCorrelationId(req: NextApiRequest): string {
     req.headers['x-correlation-id'];
 
   if (headerCorrelation) {
-    return Array.isArray(headerCorrelation)
-      ? headerCorrelation[0]
-      : headerCorrelation;
+    const id = Array.isArray(headerCorrelation) ? headerCorrelation[0] : headerCorrelation;
+    if (id) return id;
   }
 
   // Generate new correlation ID

@@ -32,13 +32,13 @@ export type AppApiHandler = (
 
 function getCorrelationId(req: NextRequest): string {
   // Check for existing correlation ID in headers
-  const existingId = req.headers.get('x-request-id') || 
-                    req.headers.get('x-correlation-id');
-  
+  const existingId = req.headers.get('x-request-id') ||
+    req.headers.get('x-correlation-id');
+
   if (existingId) {
     return existingId;
   }
-  
+
   // Generate new correlation ID
   return uuidv4();
 }
@@ -64,7 +64,7 @@ export function successResponse(data: any, meta?: any): NextResponse {
     data,
     ...(meta && { meta })
   };
-  
+
   return NextResponse.json(response);
 }
 
@@ -82,7 +82,7 @@ export function errorResponse(
     correlation: correlation || uuidv4(),
     ...(details && { details })
   };
-  
+
   return NextResponse.json(response, { status });
 }
 
@@ -92,21 +92,21 @@ export function withErrorHandlerApp(handler: AppApiHandler) {
     const userId = getUserId(req);
     const organizationId = getOrganizationId(req);
     const role = getRole(req);
-    
+
     const context: ErrorContext = {
       correlation,
       userId,
       organizationId,
       role
     };
-    
+
     try {
       // Add correlation ID to response headers
       const response = await handler(req, context);
-      
+
       // Add correlation ID to response headers
       response.headers.set('X-Request-Id', correlation);
-      
+
       return response;
     } catch (error: any) {
       // Log the error with structured format
@@ -124,9 +124,8 @@ export function withErrorHandlerApp(handler: AppApiHandler) {
           ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip')
         },
         correlation,
-        timestamp: new Date().toISOString()
       });
-      
+
       // Return standardized error response
       return errorResponse(
         'An unexpected error occurred. Please try again later.',

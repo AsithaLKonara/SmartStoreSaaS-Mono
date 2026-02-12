@@ -38,15 +38,15 @@ export function formatCurrency(amount: number, currency: string = 'LKR'): string
 // Phone number formatting utilities
 export function formatPhoneNumber(phone: string): string {
   if (!phone) return '';
-  
+
   // Remove all non-digit characters
   const cleaned = phone.replace(/\D/g, '');
-  
+
   // Format as (XXX) XXX-XXXX for US numbers
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
   }
-  
+
   // Return original if not a standard format
   return phone;
 }
@@ -64,11 +64,11 @@ export function formatPercentage(value: number, decimals: number = 1): string {
 // File size formatting utilities
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 // Relative time formatting utilities
@@ -105,5 +105,15 @@ export function generateSKU(prefix: string = 'SKU'): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
   return `${prefix}-${timestamp}-${random}`.toUpperCase();
+}
+
+// String generation utilities
+export function generateRandomString(length: number): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 

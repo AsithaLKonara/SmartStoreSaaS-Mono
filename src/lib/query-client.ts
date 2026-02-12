@@ -10,21 +10,21 @@ const queryConfig: DefaultOptions = {
   queries: {
     // Stale time: How long data is considered fresh (5 minutes)
     staleTime: 5 * 60 * 1000,
-    
+
     // Cache time: How long unused data stays in cache (10 minutes)
     gcTime: 10 * 60 * 1000, // Previously cacheTime in v4
-    
+
     // Retry failed requests
     retry: 1,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    
+
     // Refetch settings
     refetchOnWindowFocus: false, // Don't refetch on window focus to reduce API calls
     refetchOnReconnect: true,
     refetchOnMount: false,
-    
+
     // Enable suspense for better loading states
-    suspense: false,
+    // suspense: false, // Deprecated in v5
   },
   mutations: {
     // Retry mutations once on failure
@@ -67,35 +67,35 @@ export const queryKeys = {
   // Auth
   auth: ['auth'] as const,
   currentUser: () => [...queryKeys.auth, 'current'] as const,
-  
+
   // Products
   products: ['products'] as const,
   productsList: (filters?: any) => [...queryKeys.products, 'list', filters] as const,
   productDetail: (id: string) => [...queryKeys.products, 'detail', id] as const,
-  
+
   // Orders
   orders: ['orders'] as const,
   ordersList: (filters?: any) => [...queryKeys.orders, 'list', filters] as const,
   orderDetail: (id: string) => [...queryKeys.orders, 'detail', id] as const,
-  
+
   // Customers
   customers: ['customers'] as const,
   customersList: (filters?: any) => [...queryKeys.customers, 'list', filters] as const,
   customerDetail: (id: string) => [...queryKeys.customers, 'detail', id] as const,
-  
+
   // Analytics
   analytics: ['analytics'] as const,
   analyticsDashboard: () => [...queryKeys.analytics, 'dashboard'] as const,
   analyticsRevenue: (period: string) => [...queryKeys.analytics, 'revenue', period] as const,
-  
+
   // Categories
   categories: ['categories'] as const,
   categoriesList: () => [...queryKeys.categories, 'list'] as const,
-  
+
   // Inventory
   inventory: ['inventory'] as const,
   inventoryList: (filters?: any) => [...queryKeys.inventory, 'list', filters] as const,
-  
+
   // Settings
   settings: ['settings'] as const,
   settingsOrg: () => [...queryKeys.settings, 'organization'] as const,

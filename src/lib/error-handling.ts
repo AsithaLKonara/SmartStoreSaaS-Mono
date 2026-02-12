@@ -89,7 +89,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   FORBIDDEN: (path?: string, requestId?: string) =>
     createErrorResponse(
       'Forbidden',
@@ -100,7 +100,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   // Validation errors
   VALIDATION_ERROR: (details: any, path?: string, requestId?: string) =>
     createErrorResponse(
@@ -112,7 +112,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   // Not found errors
   NOT_FOUND: (resource: string, path?: string, requestId?: string) =>
     createErrorResponse(
@@ -124,7 +124,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   // Rate limiting errors
   RATE_LIMIT_EXCEEDED: (retryAfter: number, path?: string, requestId?: string) =>
     createErrorResponse(
@@ -136,7 +136,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   // Server errors
   INTERNAL_ERROR: (path?: string, requestId?: string) =>
     createErrorResponse(
@@ -148,7 +148,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   SERVICE_UNAVAILABLE: (service: string, path?: string, requestId?: string) =>
     createErrorResponse(
       'Service Unavailable',
@@ -159,7 +159,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   // Bad request errors
   BAD_REQUEST: (message: string, details?: any, path?: string, requestId?: string) =>
     createErrorResponse(
@@ -171,7 +171,7 @@ export const CommonErrors = {
       path,
       requestId
     ),
-  
+
   // Conflict errors
   CONFLICT: (message: string, details?: any, path?: string, requestId?: string) =>
     createErrorResponse(
@@ -199,17 +199,18 @@ export function withValidation<T extends z.ZodType>(
       return handler(validatedData, request);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const flattened = error.flatten();
         return CommonErrors.VALIDATION_ERROR(
           {
             issues: error.issues,
-            formErrors: error.formErrors,
-            fieldErrors: error.fieldErrors,
+            formErrors: flattened.formErrors,
+            fieldErrors: flattened.fieldErrors,
           },
           request.url,
           generateRequestId()
         );
       }
-      
+
       if (error instanceof SyntaxError) {
         return CommonErrors.BAD_REQUEST(
           'Invalid JSON payload',
@@ -218,7 +219,7 @@ export function withValidation<T extends z.ZodType>(
           generateRequestId()
         );
       }
-      
+
       logger.error({
         message: 'Validation error',
         error: error instanceof Error ? error : new Error(String(error)),
@@ -263,7 +264,7 @@ export function withErrorHandling<T extends any[], R>(
         error: error instanceof Error ? error : new Error(String(error)),
         context: { service: 'ErrorHandling', operation: 'withErrorHandler' }
       });
-      
+
       // Handle specific error types
       if (error instanceof Error) {
         if (error.message.includes('validation')) {
@@ -273,7 +274,7 @@ export function withErrorHandling<T extends any[], R>(
             generateRequestId()
           );
         }
-        
+
         if (error.message.includes('not found')) {
           return CommonErrors.NOT_FOUND(
             'Resource',
@@ -281,7 +282,7 @@ export function withErrorHandling<T extends any[], R>(
             generateRequestId()
           );
         }
-        
+
         if (error.message.includes('unauthorized')) {
           return CommonErrors.UNAUTHORIZED(
             args[0]?.url || 'unknown',
@@ -289,7 +290,7 @@ export function withErrorHandling<T extends any[], R>(
           );
         }
       }
-      
+
       // Default to internal error
       return CommonErrors.INTERNAL_ERROR(
         args[0]?.url || 'unknown',
@@ -311,7 +312,7 @@ export function asyncErrorBoundary<T extends any[], R>(
     } catch (error) {
       const path = getRequestPath(args[0] as Request);
       const requestId = generateRequestId();
-      
+
       // Log error with context
       logger.error({
         message: 'Route handler error',
@@ -326,7 +327,7 @@ export function asyncErrorBoundary<T extends any[], R>(
           timestamp: new Date().toISOString(),
         },
       });
-      
+
       // Return appropriate error response
       if (error instanceof z.ZodError) {
         return CommonErrors.VALIDATION_ERROR(
@@ -335,7 +336,7 @@ export function asyncErrorBoundary<T extends any[], R>(
           requestId
         );
       }
-      
+
       if (error instanceof SyntaxError) {
         return CommonErrors.BAD_REQUEST(
           'Invalid JSON payload',
@@ -344,10 +345,10 @@ export function asyncErrorBoundary<T extends any[], R>(
           requestId
         );
       }
-      
+
       // Check for specific error types
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ENOTFOUND')) {
         return CommonErrors.SERVICE_UNAVAILABLE(
           'Database',
@@ -355,7 +356,7 @@ export function asyncErrorBoundary<T extends any[], R>(
           requestId
         );
       }
-      
+
       if (errorMessage.includes('timeout')) {
         return CommonErrors.SERVICE_UNAVAILABLE(
           'Service',
@@ -363,7 +364,7 @@ export function asyncErrorBoundary<T extends any[], R>(
           requestId
         );
       }
-      
+
       // Default internal error
       return CommonErrors.INTERNAL_ERROR(path, requestId);
     }
@@ -395,7 +396,7 @@ export function requireHeaders(requiredHeaders: string[]) {
     const missingHeaders = requiredHeaders.filter(
       header => !request.headers.get(header)
     );
-    
+
     if (missingHeaders.length > 0) {
       return CommonErrors.BAD_REQUEST(
         'Missing required headers',
@@ -404,7 +405,7 @@ export function requireHeaders(requiredHeaders: string[]) {
         generateRequestId()
       );
     }
-    
+
     return null;
   };
 }

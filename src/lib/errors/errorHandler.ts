@@ -30,32 +30,32 @@ export const ErrorCodes = {
   FORBIDDEN: 'FORBIDDEN',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-  
+
   // Validation
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
-  
+
   // Database
   DATABASE_ERROR: 'DATABASE_ERROR',
   NOT_FOUND: 'NOT_FOUND',
   DUPLICATE_ENTRY: 'DUPLICATE_ENTRY',
-  
+
   // Business Logic
   INSUFFICIENT_STOCK: 'INSUFFICIENT_STOCK',
   PAYMENT_FAILED: 'PAYMENT_FAILED',
   ORDER_PROCESSING_FAILED: 'ORDER_PROCESSING_FAILED',
-  
+
   // External Services
   EXTERNAL_API_ERROR: 'EXTERNAL_API_ERROR',
   PAYMENT_GATEWAY_ERROR: 'PAYMENT_GATEWAY_ERROR',
   EMAIL_SEND_FAILED: 'EMAIL_SEND_FAILED',
   SMS_SEND_FAILED: 'SMS_SEND_FAILED',
-  
+
   // Network
   NETWORK_ERROR: 'NETWORK_ERROR',
   TIMEOUT: 'TIMEOUT',
-  
+
   // Unknown
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const;
@@ -113,7 +113,6 @@ export const logError = (
       statusCode: error instanceof AppError ? error.statusCode : undefined,
     },
     correlation: correlationId,
-    timestamp: new Date().toISOString(),
   });
 };
 
@@ -126,13 +125,13 @@ export const handleErrorWithToast = (
   customMessage?: string
 ): AppError => {
   const appError = handleAPIError(error, customMessage);
-  
+
   // Log error for debugging
   logError(appError, context);
-  
+
   // Show user-friendly toast
   toast.error(getUserFriendlyMessage(appError));
-  
+
   return appError;
 };
 
@@ -179,7 +178,7 @@ export const getUserFriendlyMessage = (error: AppError | Error): string => {
  */
 export const createErrorFromResponse = async (response: Response): Promise<AppError> => {
   let errorData: any;
-  
+
   try {
     errorData = await response.json();
   } catch {
@@ -227,7 +226,7 @@ export async function retryWithBackoff<T>(
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       // Don't retry on client errors (4xx)
       if (error instanceof AppError && error.statusCode >= 400 && error.statusCode < 500) {
         throw error;
@@ -238,7 +237,7 @@ export async function retryWithBackoff<T>(
         logger.warn({
           message: `Retrying after error (attempt ${i + 1}/${maxRetries})`,
           error: lastError.message,
-          delay,
+          context: { delay },
         });
         await new Promise(resolve => setTimeout(resolve, delay));
       }

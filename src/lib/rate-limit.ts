@@ -51,7 +51,7 @@ function getClientId(request: Request): string {
       // Fall back to IP if token parsing fails
     }
   }
-  
+
   // Fall back to IP address
   const forwarded = request.headers.get('x-forwarded-for');
   const ip = forwarded?.split(',')[0]?.trim() || '127.0.0.1';
@@ -74,12 +74,12 @@ export async function checkRateLimit(
   const clientId = getClientId(request);
   const config = RATE_LIMITS[type];
   const key = `rate_limit:${type}:${clientId}`;
-  
+
   try {
     // Get current count and window info
     const current = await redis.get(key);
     const now = Math.floor(Date.now() / 1000);
-    
+
     if (!current) {
       // First request in this window
       await redis.setex(key, config.window, 1);
@@ -91,9 +91,9 @@ export async function checkRateLimit(
         retryAfter: 0,
       };
     }
-    
+
     const count = current as number;
-    
+
     if (count >= config.max) {
       // Rate limit exceeded
       const ttl = await redis.ttl(key);
@@ -105,10 +105,10 @@ export async function checkRateLimit(
         retryAfter: ttl,
       };
     }
-    
+
     // Increment counter
     await redis.incr(key);
-    
+
     return {
       success: true,
       limit: config.max,
@@ -116,19 +116,19 @@ export async function checkRateLimit(
       reset: now + config.window,
       retryAfter: 0,
     };
-    
+
   } catch (error) {
     logger.error({
       message: 'Rate limiting error',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'RateLimit', operation: 'checkRateLimit', identifier }
+      context: { service: 'RateLimit', operation: 'checkRateLimit', clientId }
     });
     // On Redis error, allow request (fail open for availability)
     return {
       success: true,
       limit: config.max,
       remaining: config.max,
-      reset: now + config.window,
+      reset: Math.floor(Date.now() / 1000) + config.window,
       retryAfter: 0,
     };
   }
@@ -142,7 +142,7 @@ export async function applyRateLimit(
   type: RateLimitType = 'public'
 ): Promise<NextResponse | null> {
   const result = await checkRateLimit(request, type);
-  
+
   if (!result.success) {
     return NextResponse.json(
       {
@@ -162,7 +162,7 @@ export async function applyRateLimit(
       }
     );
   }
-  
+
   return null; // Continue with request
 }
 
@@ -171,14 +171,14 @@ export async function applyRateLimit(
  */
 export function withRateLimit(type: RateLimitType = 'public') {
   return function <T extends any[], R>(
-    handler: (...args: T) => Promise<R>
+    handler: (req: Request, ...args: T) => Promise<R>
   ) {
     return async function (request: Request, ...args: T): Promise<R | NextResponse> {
       const rateLimitResult = await applyRateLimit(request, type);
       if (rateLimitResult) {
         return rateLimitResult;
       }
-      
+
       return handler(request, ...args);
     };
   };
@@ -199,12 +199,12 @@ export async function getRateLimitInfo(
   const clientId = getClientId(request);
   const config = RATE_LIMITS[type];
   const key = `rate_limit:${type}:${clientId}`;
-  
+
   try {
     const current = await redis.get(key);
     const ttl = await redis.ttl(key);
     const count = (current as number) || 0;
-    
+
     return {
       limit: config.max,
       remaining: Math.max(0, config.max - count),
@@ -215,7 +215,7 @@ export async function getRateLimitInfo(
     logger.error({
       message: 'Error getting rate limit info',
       error: error instanceof Error ? error : new Error(String(error)),
-      context: { service: 'RateLimit', operation: 'getRateLimitInfo', identifier }
+      context: { service: 'RateLimit', operation: 'getRateLimitInfo', clientId }
     });
     return {
       limit: config.max,

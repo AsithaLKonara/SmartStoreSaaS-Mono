@@ -92,13 +92,13 @@ export class ErrorTrackingService {
       await this.updateErrorMetrics(errorEvent);
 
       return errorEvent;
-    } catch (error) {
+    } catch (err) {
       logger.error({
         message: 'Error tracking error',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ErrorTracking', operation: 'trackError', errorType: errorData.type }
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { service: 'ErrorTracking', operation: 'trackError', errorType: error.type }
       });
-      throw error;
+      throw err;
     }
   }
 
@@ -114,34 +114,25 @@ export class ErrorTrackingService {
   ): Promise<ErrorAnalytics> {
     try {
       const whereClause = organizationId ? { organizationId } : {};
-      
-      const errors = await prisma.errorEvent.findMany({
+
+      const errors = await (prisma.errorEvent as any).findMany({
         where: {
           ...whereClause,
-          timestamp: {
+          createdAt: {
             gte: timeRange.start,
             lte: timeRange.end,
-          },
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
           },
         },
       });
 
       const totalErrors = errors.length;
-      
-      const errorsByType = errors.reduce((acc, error) => {
+
+      const errorsByType = errors.reduce((acc: Record<string, number>, error: any) => {
         acc[error.type] = (acc[error.type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      const errorsBySeverity = errors.reduce((acc, error) => {
+      const errorsBySeverity = errors.reduce((acc: Record<string, number>, error: any) => {
         acc[error.severity] = (acc[error.severity] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -150,21 +141,20 @@ export class ErrorTrackingService {
       const topErrors = await this.getTopErrors(organizationId, timeRange);
 
       const recentErrors = errors
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+        .sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime())
         .slice(0, 20)
-        .map(error => ({
+        .map((error: any) => ({
           id: error.id,
-          type: error.type,
-          severity: error.severity,
+          type: error.type as any,
+          severity: error.severity as any,
           message: error.message,
-          context: error.context ? JSON.parse(error.context) : {},
-          metadata: error.metadata ? JSON.parse(error.metadata) : {},
-          timestamp: error.timestamp,
+          context: error.metadata ? (typeof error.metadata === 'string' ? JSON.parse(error.metadata) : error.metadata) : {},
+          metadata: error.metadata ? (typeof error.metadata === 'string' ? JSON.parse(error.metadata) : error.metadata) : {},
+          timestamp: error.createdAt,
           resolved: error.resolved,
           resolvedAt: error.resolvedAt,
           resolvedBy: error.resolvedBy,
-          tags: error.tags ? error.tags.split(',') : [],
-          user: error.user,
+          tags: Array.isArray(error.tags) ? error.tags : [],
         }));
 
       const errorTrends = await this.getErrorTrends(organizationId, timeRange);
@@ -205,7 +195,7 @@ export class ErrorTrackingService {
               email: true,
             },
           },
-        },
+        } as any,
       });
 
       if (!error) return null;
@@ -213,16 +203,16 @@ export class ErrorTrackingService {
       return {
         id: error.id,
         type: error.type as ErrorEvent['type'],
-        severity: error.severity as ErrorEvent['severity'],
+        severity: (error as any).severity as ErrorEvent['severity'],
         message: error.message,
-        stackTrace: error.stackTrace || undefined,
-        context: error.context ? JSON.parse(error.context) : {},
-        metadata: error.metadata ? JSON.parse(error.metadata) : undefined,
-        timestamp: error.timestamp,
-        resolved: error.resolved,
-        resolvedAt: error.resolvedAt || undefined,
-        resolvedBy: error.resolvedBy || undefined,
-        tags: error.tags ? error.tags.split(',') : [],
+        stackTrace: error.stack || undefined,
+        context: error.metadata ? (typeof error.metadata === 'string' ? JSON.parse(error.metadata) : error.metadata) : {},
+        metadata: error.metadata ? (typeof error.metadata === 'string' ? JSON.parse(error.metadata) : error.metadata) : undefined,
+        timestamp: error.createdAt,
+        resolved: (error as any).resolved,
+        resolvedAt: (error as any).resolvedAt || undefined,
+        resolvedBy: (error as any).resolvedBy || undefined,
+        tags: Array.isArray((error as any).tags) ? (error as any).tags : [],
       };
     } catch (error) {
       logger.error({
@@ -246,13 +236,13 @@ export class ErrorTrackingService {
           resolvedAt: new Date(),
           resolvedBy,
           metadata: resolution ? JSON.stringify({ resolution }) : undefined,
-        },
+        } as any,
       });
     } catch (error) {
       logger.error({
         message: 'Error resolving error',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ErrorTracking', operation: 'resolveError', errorId, userId }
+        context: { service: 'ErrorTracking', operation: 'resolveError', errorId, resolvedBy }
       });
       throw error;
     }
@@ -268,23 +258,23 @@ export class ErrorTrackingService {
           type: error.type,
           severity: error.severity,
           message: error.message,
-          stackTrace: error.stackTrace,
-          context: JSON.stringify(error.context),
-          metadata: error.metadata ? JSON.stringify(error.metadata) : null,
-          timestamp: error.timestamp,
+          stack: error.stackTrace,
+          url: error.context.endpoint,
+          userAgent: error.context.userAgent,
+          metadata: ((error.metadata || error.context) ?? undefined) as any,
           resolved: error.resolved,
           resolvedAt: error.resolvedAt,
           resolvedBy: error.resolvedBy,
-          tags: error.tags.join(','),
+          tags: error.tags as any,
           userId: error.context.userId,
           organizationId: error.context.organizationId,
         },
       });
-    } catch (error) {
+    } catch (err) {
       logger.error({
         message: 'Error storing error event',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { service: 'ErrorTracking', operation: 'storeErrorEvent', errorId: errorEvent.id }
+        error: err instanceof Error ? err : new Error(String(err)),
+        context: { service: 'ErrorTracking', operation: 'storeErrorEvent', errorId: error.id }
       });
     }
   }
@@ -319,11 +309,11 @@ export class ErrorTrackingService {
 
   private async analyzeErrorPatterns(error: ErrorEvent): Promise<void> {
     const pattern = this.extractErrorPattern(error.message);
-    
+
     const recentPatternCount = await prisma.errorEvent.count({
       where: {
         message: { contains: pattern },
-        timestamp: {
+        createdAt: {
           gte: new Date(Date.now() - 60 * 60 * 1000),
         },
       },
@@ -348,7 +338,7 @@ export class ErrorTrackingService {
   private async checkErrorSpikes(error: ErrorEvent): Promise<void> {
     const recentErrorCount = await prisma.errorEvent.count({
       where: {
-        timestamp: {
+        createdAt: {
           gte: new Date(Date.now() - 5 * 60 * 1000),
         },
         organizationId: error.context.organizationId,
@@ -418,11 +408,11 @@ export class ErrorTrackingService {
   private async getTopErrors(organizationId?: string, timeRange?: { start: Date; end: Date }): Promise<ErrorAggregation[]> {
     try {
       const whereClause = organizationId ? { organizationId } : {};
-      
+
       const errors = await prisma.errorEvent.findMany({
         where: {
           ...whereClause,
-          timestamp: timeRange ? {
+          createdAt: timeRange ? {
             gte: timeRange.start,
             lte: timeRange.end,
           } : undefined,
@@ -430,35 +420,35 @@ export class ErrorTrackingService {
       });
 
       const typeMap = new Map<string, ErrorAggregation>();
-      
-      errors.forEach(error => {
+
+      errors.forEach((error: any) => {
         const existing = typeMap.get(error.type) || {
           type: error.type,
           count: 0,
           severity: error.severity,
-          lastOccurrence: error.timestamp,
+          lastOccurrence: error.createdAt,
           trend: 'stable' as const,
           affectedUsers: new Set<string>(),
           affectedOrganizations: new Set<string>(),
-        };
-        
+        } as any;
+
         existing.count++;
         existing.severity = this.getHigherSeverity(existing.severity, error.severity);
-        if (error.timestamp > existing.lastOccurrence) {
-          existing.lastOccurrence = error.timestamp;
+        if (error.createdAt > existing.lastOccurrence) {
+          existing.lastOccurrence = error.createdAt;
         }
-        
+
         if (error.userId) {
           existing.affectedUsers.add(error.userId);
         }
         if (error.organizationId) {
           existing.affectedOrganizations.add(error.organizationId);
         }
-        
+
         typeMap.set(error.type, existing);
       });
 
-      return Array.from(typeMap.values()).map(agg => ({
+      return Array.from(typeMap.values()).map((agg: any) => ({
         ...agg,
         affectedUsers: agg.affectedUsers.size,
         affectedOrganizations: agg.affectedOrganizations.size,
@@ -491,8 +481,8 @@ export class ErrorTrackingService {
 
   private getHigherSeverity(severity1: string, severity2: string): string {
     const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
-    return severityLevels[severity1 as keyof typeof severityLevels] > 
-           severityLevels[severity2 as keyof typeof severityLevels] ? severity1 : severity2;
+    return severityLevels[severity1 as keyof typeof severityLevels] >
+      severityLevels[severity2 as keyof typeof severityLevels] ? severity1 : severity2;
   }
 
   private generateErrorId(): string {

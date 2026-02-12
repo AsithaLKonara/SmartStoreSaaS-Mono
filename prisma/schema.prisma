@@ -34,6 +34,16 @@ model User {
   procurementInvoices   ProcurementInvoice[]
   rfqs                  RFQ[]
 
+  apiKeys               ApiKey[]
+  auditLogs             AuditLog[]
+  mfaMethods            UserMFA[]
+  searchHistory         SearchHistory[]
+  errorEvents           ErrorEvent[]
+  assignedConversations CustomerConversation[]
+  products              Product[]
+  orders                Order[]
+  browsingHistory       BrowsingHistory[]
+  experiments           PersonalizationExperiment[]
   @@map("users")
 }
 
@@ -94,10 +104,17 @@ model Organization {
   affiliates              Affiliate[]
   referrals               Referral[]
   posTerminals            posTerminal[]
+  errorEvents             ErrorEvent[]
   posTransactions         posTransaction[]
   procurementInvoices     ProcurementInvoice[]
   rfqs                    RFQ[]
 
+  apiKeys                 ApiKey[]
+  auditLogs               AuditLog[]
+  categories              Category[]
+  bulkOperations          BulkOperation[]
+  workflows               Workflow[]
+  personalizationExperiments PersonalizationExperiment[]
   @@map("organizations")
 }
 
@@ -119,6 +136,12 @@ model Customer {
   returns                    Return[]
   referralsGiven             Referral[]                   @relation("Referrer")
   referralsReceived          Referral[]                   @relation("Referred")
+  reviews                    Review[]
+  reviewHelpful              ReviewHelpful[]
+  totalSpent                 Decimal                      @default(0) // Added for membership/subscription tracking
+  subscriptions              Subscription[]
+  conversations              CustomerConversation[]
+  paymentIntents             PaymentIntent[]
 
   @@map("customers")
 }
@@ -139,21 +162,48 @@ model Product {
   parentProductId    String?
   organizationId     String
   categoryId         String?
+  wooCommerceId      String?
+  syncedAt           DateTime?
+  lowStockThreshold  Int                  @default(0)
+  reorderPoint       Int                  @default(0)
   isActive           Boolean              @default(true)
+  rating             Float                @default(0)
+  reviewCount        Int                  @default(0)
+  slug               String?              @unique
+  createdById        String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   inventoryMovements InventoryMovement[]
   orderItems         OrderItem[]
   product_activities product_activities[]
   variants           ProductVariant[]
+  fulfillmentItems   FulfillmentItem[]
   category           Category?            @relation(fields: [categoryId], references: [id])
   organization       Organization         @relation(fields: [organizationId], references: [id])
+  createdBy          User?                @relation(fields: [createdById], references: [id])
   social_products    social_products[]
   wishlist_items     wishlist_items[]
   purchaseOrderItems PurchaseOrderItem[]
+  supplierProducts   SupplierProduct[]
+  browsingHistory    BrowsingHistory[]
   returnItems        ReturnItem[]
+  reviews            Review[]
 
+  embeddingData ProductEmbedding? @relation("ProductEmbeddingRelation")
   @@map("products")
+}
+
+model ProductEmbedding {
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  product     Product  @relation("ProductEmbeddingRelation", fields: [productId], references: [id])
+  modelVersion String   @default("v1")
+  embedding   Json
+  imageUrl    String?
+  organizationId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([productId, modelVersion])
 }
 
 model Category {
@@ -168,7 +218,10 @@ model Category {
   other_categories Category[] @relation("categoriesTocategories")
   products         Product[]
 
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
   @@map("categories")
+  @@index([organizationId])
 }
 
 model Order {
@@ -192,8 +245,15 @@ model Order {
   customer             Customer              @relation(fields: [customerId], references: [id])
   payments             Payment[]
   returns              Return[]
+  fulfillments         Fulfillment[]
   giftCardTransactions GiftCardTransaction[]
   affiliateCommissions AffiliateCommission[]
+
+  stripePaymentIntentId String?               @unique
+  paypalOrderId         String?               @unique
+  paypalPaymentId       String?
+  createdById           String?
+  createdBy             User?                 @relation(fields: [createdById], references: [id])
 
   @@map("orders")
 }
@@ -379,6 +439,7 @@ model WooCommerceIntegration {
   storeUrl       String
   consumerKey    String
   consumerSecret String
+  apiVersion     String?      @default("wc/v3")
   isActive       Boolean      @default(true)
   lastSync       DateTime?
   syncSettings   String?
@@ -447,6 +508,8 @@ model channel_integrations {
   webhookUrl       String?
   isActive         Boolean            @default(true)
   metadata         String?
+  config           Json?              // Added missing field
+  lastSync         DateTime?          // Added missing field
   organizationId   String
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
@@ -690,9 +753,10 @@ model performance_metrics {
 }
 
 model product_activities {
-  id          String   @id
+  id          String   @id @default(cuid())
   productId   String
   type        String
+  quantity    Int      @default(0)
   description String
   metadata    String?
   createdAt   DateTime @default(now())
@@ -790,53 +854,81 @@ model social_commerce {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime
   organizations   Organization      @relation(fields: [organizationId], references: [id])
-  social_posts    social_posts[]
-  social_products social_products[]
+  socialPosts     social_posts[]
+  socialProducts  social_products[]
 }
 
 model social_posts {
-  id               String           @id
+  id               String           @id @default(cuid())
   organizationId   String
-  socialCommerceId String?
+  platformId       String?          // Renamed from socialCommerceId
   content          String
-  mediaUrls        String?
+  mediaUrls        String[]         @default([]) // Changed to String[]
   hashtags         String?
-  platform         String
+  platformName     String           @map("platform")
   status           String           @default("DRAFT")
+  type             String           @default("post") // Added missing field
+  productIds       String[]         @default([]) // Added missing field
+  metadata         Json?            // Added missing field
   scheduledAt      DateTime?
   publishedAt      DateTime?
   externalId       String?
-  engagement       String?
+  engagement       Json?            // Changed to Json for structured engagement data
   isActive         Boolean          @default(true)
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime
-  social_commerce  social_commerce? @relation(fields: [socialCommerceId], references: [id])
+  updatedAt        DateTime         @updatedAt
+  platform         social_commerce? @relation(fields: [platformId], references: [id])
 }
 
 model social_products {
-  id                String          @id
-  socialCommerceId  String
+  id                String          @id @default(cuid())
+  platformId        String          // Renamed from socialCommerceId
   productId         String
   platformProductId String
+  status            String          @default("active") // Added missing field
+  metadata          Json?           // Added missing field
+  lastSync          DateTime        @default(now())   // Added missing field
   isActive          Boolean         @default(true)
   createdAt         DateTime        @default(now())
   products          Product         @relation(fields: [productId], references: [id])
-  social_commerce   social_commerce @relation(fields: [socialCommerceId], references: [id])
+  platform          social_commerce @relation(fields: [platformId], references: [id])
+
+  @@unique([productId, platformId]) // Added unique constraint for upsert
 }
 
 model support_tickets {
-  id             String       @id
+  id             String            @id
   title          String
   description    String
-  priority       String       @default("medium")
-  status         String       @default("open")
+  priority       String            @default("medium")
+  status         String            @default("open")
   phone          String?
   email          String?
   organizationId String
   assignedTo     String?
-  createdAt      DateTime     @default(now())
+  resolution     String?
+  satisfaction   Int?
+  closedAt       DateTime?
+  escalationReason String?
+  escalatedAt      DateTime?
+  createdAt      DateTime          @default(now())
   updatedAt      DateTime
-  organizations  Organization @relation(fields: [organizationId], references: [id])
+  organizations  Organization      @relation(fields: [organizationId], references: [id])
+  replies        support_replies[]
+}
+
+model support_replies {
+  id         String          @id
+  ticketId   String
+  message    String
+  author     String? // Re-aligned with logic (authorId in some places, author in others)
+  authorId   String?
+  authorName String
+  isInternal Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+  ticket     support_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
 }
 
 model tax_rates {
@@ -941,20 +1033,32 @@ model wishlists {
 
 model Subscription {
   id                   String             @id @default(cuid())
-  organizationId       String             @unique
+  organizationId       String?            @unique // Made optional if customerId is present
+  customerId           String?            // Added for customer-level subscriptions
   plan                 PlanType           @default(FREE)
+  planId               String?
   status               SubscriptionStatus @default(TRIAL)
   stripeCustomerId     String?
   stripeSubscriptionId String?
+  metadata             Json?              // Added for flexible storage (like plan definition)
   currentPeriodStart   DateTime           @default(now())
   currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean            @default(false)
+  startDate            DateTime           @default(now())
   trialEndsAt          DateTime?
+  trialEndDate         DateTime?          // For compatibility with manager.ts
+  nextBillingDate      DateTime?
+  endsAt               DateTime?
+  cancelledAt          DateTime?
+  pausedAt             DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
-  organization         Organization       @relation(fields: [organizationId], references: [id])
+  organization         Organization?      @relation(fields: [organizationId], references: [id])
+  customer             Customer?          @relation(fields: [customerId], references: [id])
+  subscriptionPlan     SubscriptionPlan?  @relation(fields: [planId], references: [id])
 
   @@map("subscriptions")
+  @@index([customerId])
 }
 
 enum PlanType {
@@ -994,13 +1098,36 @@ model Supplier {
   totalOrders    Int            @default(0)
   totalSpent     Decimal        @default(0)
   notes          String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  contactPerson          String?
+  leadTime               Int?
+  minimumOrderValue      Decimal?
+  isActive               Boolean        @default(true)
+  totalRatings           Int            @default(0)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 
   purchaseOrders PurchaseOrder[]
+  supplierProducts SupplierProduct[]
 
   @@unique([organizationId, code])
   @@map("suppliers")
+}
+
+model SupplierProduct {
+  id                   String   @id @default(cuid())
+  supplierId           String
+  productId            String
+  supplierSku          String?
+  cost                 Decimal
+  leadTime             Int
+  minimumOrderQuantity Int?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  supplier             Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([supplierId, productId])
+  @@map("supplier_products")
 }
 
 model PurchaseOrder {
@@ -1024,6 +1151,12 @@ model PurchaseOrder {
   createdBy      User                @relation(fields: [createdById], references: [id])
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+  approvedAt     DateTime?
+  approvedBy     String?
+  orderedAt      DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+  cancelReason   String?
 
   items PurchaseOrderItem[]
   procurementInvoices ProcurementInvoice[]
@@ -1306,4 +1439,768 @@ enum ReferralStatus {
   REWARDED
   EXPIRED
   CANCELLED
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  key            String       @unique
+  name           String
+  permissions    String[]
+  isActive       Boolean      @default(true)
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organizationId String
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@map("api_keys")
+  @@index([organizationId])
+  @@index([key])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  action         String
+  resource       String
+  resourceId     String?
+  details        Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+  @@index([organizationId])
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+model UserMFA {
+  id             String       @id @default(cuid())
+  userId         String
+  method         String
+  secret         String?
+  backupCodes    String[]
+  isEnabled      Boolean      @default(false)
+  lastUsedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id])
+
+  phone          String?
+  email          String?
+  @@map("user_mfa")
+  @@index([userId])
+  @@unique([userId, method])
+}
+
+// NOTE: Organization ID removed from UserMFA as it is tied to User who belongs to Org
+
+// Applying unique constraint for UserMFA to allow upsert by userId + method
+
+// Adding phone and email to UserMFA
+
+model Workflow {
+  id             String         @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  type           String?        // Added missing field
+  version        Int            @default(1) // Added missing field
+  trigger        String
+  conditions     Json?
+  actions        Json
+  nodes          Json?          // Added missing field
+  connections    Json?          // Added missing field
+  triggers       Json?          // Added missing field
+  config         Json?          // Added missing field
+  isActive       Boolean        @default(true)
+  lastRunAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  executions     WorkflowExecution[]
+
+  @@map("workflows")
+  @@index([organizationId])
+  @@index([trigger])
+  @@index([isActive])
+}
+
+model WorkflowExecution {
+  id             String    @id @default(cuid())
+  workflowId     String
+  status         String
+  currentNodeId  String?   // Added missing field
+  data           Json?     // Added missing field
+  input          Json?     // Added missing field
+  output         Json?     // Added missing field
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  error          String?
+  logs           Json?     // Still present for backward compatibility or direct storage
+  workflow       Workflow  @relation(fields: [workflowId], references: [id])
+  executionLogs  WorkflowLog[] @relation("ExecutionLogs") // Added relation
+
+  @@map("workflow_executions")
+  @@index([workflowId])
+  @@index([status])
+}
+
+// Adding organizationId to Category
+
+model BulkOperation {
+  id               String       @id @default(cuid())
+  organizationId   String
+  type             String
+  entity           String
+  status           String       @default("pending") // pending, processing, completed, failed
+  totalRecords     Int          @default(0)
+  processedRecords Int          @default(0)
+  successRecords   Int          @default(0)
+  failedRecords    Int          @default(0)
+  errors           String[]
+  fileUrl          String?
+  metadata         Json?
+  createdAt        DateTime     @default(now())
+  completedAt      DateTime?
+  organization     Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("bulk_operations")
+  @@index([organizationId])
+  @@index([status])
+}
+
+model Review {
+  id               String          @id @default(cuid())
+  productId        String
+  customerId       String
+  rating           Int
+  title            String?
+  comment          String?
+  images           String[]
+  verifiedPurchase Boolean         @default(false)
+  status           String          @default("PENDING") // PENDING, APPROVED, REJECTED
+  helpfulCount     Int             @default(0)
+  rejectionReason  String?
+  response         String?
+  responderId      String?
+  respondedAt      DateTime?
+  approvedAt       DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  product          Product         @relation(fields: [productId], references: [id])
+  customer         Customer        @relation(fields: [customerId], references: [id])
+  helpfulAction    ReviewHelpful[]
+
+  @@map("reviews")
+  @@index([productId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model ReviewHelpful {
+  id         String   @id @default(cuid())
+  reviewId   String
+  customerId String
+  createdAt  DateTime @default(now())
+  review     Review   @relation(fields: [reviewId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  @@map("review_helpful")
+  @@unique([reviewId, customerId])
+}
+
+model SecurityAudit {
+  id             String   @id @default(cuid())
+  userId         String
+  action         String?
+  type           String?  // For alerts: LOGIN_ATTEMPT, PERMISSION_VIOLATION, etc.
+  severity       String?  // LOW, MEDIUM, HIGH, CRITICAL
+  status         String?  @default("active") // active, acknowledged, resolved
+  title          String?
+  description    String?
+  source         String?
+  message        String?
+  ipAddress      String
+  userAgent      String
+  organizationId String
+  metadata       Json?
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("security_audit")
+  @@index([userId])
+  @@index([organizationId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model StockAlert {
+  id             String   @id @default(cuid())
+  productId      String
+  warehouseId    String?
+  alertType      String   // LOW_STOCK, OUT_OF_STOCK, OVERSTOCK
+  severity       String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  threshold      Int?
+  currentQuantity Int
+  message        String?
+  isResolved     Boolean  @default(false)
+  resolvedAt     DateTime?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("stock_alerts")
+  @@index([productId])
+  @@index([organizationId])
+  @@index([isResolved])
+}
+
+model EmailCampaign {
+  id             String    @id @default(cuid())
+  name           String
+  subject        String
+  content        String
+  status         String    @default("DRAFT") // DRAFT, SCHEDULED, SENDING, SENT, FAILED
+  organizationId String
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  recipientCount Int       @default(0)
+  openCount      Int       @default(0)
+  clickCount     Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("email_campaigns")
+  @@index([organizationId])
+  @@index([status])
+}
+
+model EmailSubscription {
+  id             String    @id @default(cuid())
+  email          String
+  status         String    @default("ACTIVE") // ACTIVE, UNSUBSCRIBED
+  organizationId String
+  subscribedAt   DateTime  @default(now())
+  unsubscribedAt DateTime?
+
+  @@map("email_subscriptions")
+  @@unique([email, organizationId])
+  @@index([organizationId])
+}
+
+model PaymentIntent {
+  id              String         @id @default(cuid())
+  orderId         String?
+  customerId      String
+  amount          Decimal
+  currency        String         @default("LKR")
+  status          String         @default("PENDING") // PENDING, PROCESSING, SUCCEEDED, FAILED, CANCELLED
+  paymentMethodId String?
+  stripeId        String?
+  metadata        Json?
+  organizationId  String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  customer        Customer       @relation(fields: [customerId], references: [id])
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  refunds         Refund[]
+
+  @@map("payment_intents")
+  @@index([orderId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([customerId])
+}
+
+model PaymentMethod {
+  id             String   @id @default(cuid())
+  customerId     String
+  type           String   // CARD, BANK_ACCOUNT, WALLET
+  last4          String?
+  brand          String?
+  expiryMonth    Int?
+  expiryYear     Int?
+  isDefault      Boolean  @default(false)
+  stripeId       String?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime        @updatedAt
+  paymentIntents PaymentIntent[]
+
+  @@map("payment_methods")
+  @@index([customerId])
+  @@index([organizationId])
+}
+
+model Fulfillment {
+  id             String    @id @default(cuid())
+  orderId        String
+  status         String    @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  trackingNumber String?
+  carrier        String?
+  weight         Float?
+  dimensions     Json?     // {length, width, height}
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  organizationId String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  items          FulfillmentItem[]
+  order          Order     @relation(fields: [orderId], references: [id])
+
+  @@map("fulfillments")
+  @@index([orderId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model FulfillmentItem {
+  id            String      @id @default(cuid())
+  fulfillmentId String
+  productId     String
+  quantity      Int
+  status        String      @default("PENDING") // PENDING, PICKED, PACKED
+  fulfillment   Fulfillment @relation(fields: [fulfillmentId], references: [id])
+  product       Product     @relation(fields: [productId], references: [id])
+
+  @@map("fulfillment_items")
+  @@index([fulfillmentId])
+  @@index([productId])
+}
+
+model Shipment {
+  id             String    @id @default(cuid())
+  orderId        String
+  trackingNumber String
+  carrier        String
+  status         String    @default("PENDING")
+  shippedAt      DateTime?
+  estimatedDelivery DateTime?
+  actualDelivery DateTime?
+  organizationId String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("shipments")
+  @@index([orderId])
+  @@index([organizationId])
+}
+
+model ChatSession {
+  id             String   @id @default(cuid())
+  customerId     String?
+  status         String   @default("ACTIVE") // ACTIVE, CLOSED
+  organizationId String
+  startedAt      DateTime @default(now())
+  endedAt        DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("chat_sessions")
+  @@index([customerId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model CustomerConversation {
+  id             String   @id @default(cuid())
+  sessionId      String?
+  customerId     String?
+  channel        String   @default("web") // Added missing field
+  message        String?  // Made optional as messages are now in ChannelMessage
+  sender         String?  // Made optional
+  status         String   @default("active") // Added missing field
+  priority       String   @default("medium") // Added missing field
+  tags           String[] @default([]) // Added missing field
+  assignedAgentId String?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt // Added missing field
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  assignedAgent  User?    @relation(fields: [assignedAgentId], references: [id])
+  messages       ChannelMessage[]
+
+  @@map("customer_conversations")
+  @@index([sessionId])
+  @@index([customerId])
+  @@index([organizationId])
+}
+
+model ChannelMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  channel        String
+  message        String
+  content        String?
+  isIncoming     Boolean
+  status         String
+  metadata       Json?
+  timestamp      DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  conversation   CustomerConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+model VoiceCommand {
+  id             String   @id @default(cuid())
+  customerId     String?
+  command        String
+  transcript     String?
+  intent         String?
+  response       String?
+  entities       Json?            // Added missing field
+  confidence     Float?           @default(1.0) // Added missing field
+  processed      Boolean          @default(false) // Added missing field
+  action         String?          // Added missing field
+  organizationId String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt // Added for tracking updates
+
+  @@map("voice_commands")
+  @@index([customerId])
+  @@index([organizationId])
+}
+
+model SyncConflict {
+  id             String   @id @default(cuid())
+  entityType     String
+  entityId       String
+  conflictType   String
+  localData      Json
+  remoteData     Json
+  resolution     String?  // KEEP_LOCAL, KEEP_REMOTE, MERGE, MANUAL
+  resolvedAt     DateTime?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  @@map("sync_conflicts")
+  @@index([entityType, entityId])
+  @@index([organizationId])
+}
+
+model ErrorEvent {
+  id             String   @id @default(cuid())
+  type           String
+  message        String
+  severity       String   @default("error") // info, warn, error, fatal
+  stack          String?
+  userId         String?
+  url            String?
+  userAgent      String?
+  metadata       Json?
+  tags           Json?    // Array of strings or key-value pairs
+  resolved       Boolean  @default(false)
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  organizationId String?
+  createdAt      DateTime @default(now())
+
+  user           User?    @relation(fields: [userId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("error_events")
+  @@index([type])
+  @@index([organizationId])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model ProductionAlert {
+  id             String   @id @default(cuid())
+  type           String
+  severity       String
+  title          String
+  description    String
+  status         String   @default("active")
+  service        String
+  metric         String
+  threshold      Float
+  currentValue   Float
+  tags           String?  // Comma separated
+  metadata       Json?
+  organizationId String?
+  timestamp      DateTime @default(now())
+  resolvedAt     DateTime?
+  resolvedBy     String?
+
+  @@map("production_alerts")
+  @@index([type])
+  @@index([severity])
+  @@index([status])
+  @@index([timestamp])
+}
+
+model MonitoringMetric {
+  id             String   @id @default(cuid())
+  type           String
+  name           String
+  value          Float
+  unit           String
+  tags           Json?
+  timestamp      DateTime @default(now())
+  organizationId String?
+  metadata       Json?
+
+  @@map("monitoring_metrics")
+  @@index([name])
+  @@index([timestamp])
+}
+
+model HealthCheck {
+  id           String   @id
+  name         String
+  status       String
+  responseTime Float
+  lastCheck    DateTime @default(now())
+  error        String?
+  details      Json?
+
+  @@map("health_checks")
+  @@index([status])
+}
+
+model SearchHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  query        String
+  results      Int      @default(0)
+  resultClicks Int      @default(0)
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("search_history")
+  @@index([userId])
+  @@index([query])
+}
+
+model LoyaltyAccount {
+  id             String   @id @default(cuid())
+  customerId     String   @unique
+  points         Int      @default(0)
+  tier           String   @default("BRONZE")
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("loyalty_accounts")
+  @@index([customerId])
+  @@index([organizationId])
+}
+
+model SocialPlatform {
+  id             String   @id @default(cuid())
+  name           String
+  type           String   // FACEBOOK, INSTAGRAM, TWITTER, etc.
+  accessToken    String?
+  refreshToken   String?
+  isActive       Boolean  @default(true)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("social_platforms")
+  @@index([organizationId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([isRead])
+}
+
+model EmailTemplate {
+  id             String   @id @default(cuid())
+  name           String
+  subject        String
+  body           String
+  variables      Json?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("email_templates")
+  @@index([organizationId])
+}
+
+model WorkflowTemplate {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  category       String?  // Added missing field
+  trigger        String
+  definition     Json?    // Added missing field
+  actions        Json
+  tags           Json?    // Added missing field
+  usageCount     Int      @default(0) // Added missing field
+  isPublic       Boolean  @default(false) // Added missing field
+  config         Json?    // Added missing field
+  isActive       Boolean  @default(true)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("workflow_templates")
+  @@index([organizationId])
+}
+
+model WorkflowLog {
+  id             String   @id @default(cuid())
+  workflowId     String?  // Made optional as executionId might be preferred
+  executionId    String?  // Added missing field
+  level          String?  // Added missing field
+  nodeId         String?  // Added missing field
+  nodeName       String?  // Added missing field
+  action         String?  // Added missing field
+  status         String
+  message        String?  // Added missing field
+  data           Json?    // Added missing field
+  input          Json?
+  output         Json?
+  error          String?
+  duration       Int?     // Added missing field
+  organizationId String?
+  timestamp      DateTime  @default(now()) // Added/Ensured
+  createdAt      DateTime @default(now())
+  
+  execution      WorkflowExecution? @relation("ExecutionLogs", fields: [executionId], references: [id])
+
+  @@map("workflow_logs")
+  @@index([workflowId])
+  @@index([executionId])
+  @@index([organizationId])
+}
+
+model SubscriptionPlan {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  price          Decimal
+  interval       String   // MONTHLY, YEARLY
+  features       Json?
+  isActive       Boolean  @default(true)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  subscriptions  Subscription[]
+
+  @@map("subscription_plans")
+  @@index([organizationId])
+}
+
+model Refund {
+  id              String         @id @default(cuid())
+  orderId         String?
+  paymentIntentId String?
+  amount          Decimal
+  reason          String?
+  status          String         @default("PENDING")
+  processedAt     DateTime?
+  organizationId  String
+  createdAt       DateTime       @default(now())
+  metadata        Json?
+  paymentIntent   PaymentIntent? @relation(fields: [paymentIntentId], references: [id])
+
+  @@map("refunds")
+  @@index([orderId])
+  @@index([organizationId])
+  @@index([paymentIntentId])
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  orderId        String?
+  customerId     String
+  invoiceNumber  String   @unique
+  amount         Decimal
+  tax            Decimal  @default(0)
+  total          Decimal
+  status         String   @default("DRAFT")
+  dueDate        DateTime?
+  paidAt         DateTime?
+  organizationId String
+  stripeInvoiceId String?
+  subscriptionId String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("invoices")
+  @@index([customerId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model BrowsingHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  timestamp DateTime @default(now())
+  duration  Int      @default(0)
+  actions   Json?    // Array of actions like ['view', 'scroll', 'click']
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("browsing_history")
+  @@index([userId])
+  @@index([productId])
+}
+
+model PersonalizationExperiment {
+  id              String         @id @default(cuid())
+  name            String
+  description     String?
+  type            String         // recommendation, layout, pricing, content
+  status          String         @default("DRAFT") // DRAFT, RUNNING, PAUSED, COMPLETED
+  startDate       DateTime       @default(now())
+  endDate         DateTime?
+  winnerVariantId String?
+  organizationId  String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  variants        ABTestVariant[]
+  users           User[]         // Implicit many-to-many
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+
+  @@map("personalization_experiments")
+  @@index([organizationId])
+}
+
+model ABTestVariant {
+  id                String                    @id @default(cuid())
+  experimentId      String
+  name              String
+  description       String?
+  config            Json?
+  trafficAllocation Float                     @default(0)
+  isActive          Boolean                   @default(true)
+  impressions       Int                       @default(0)
+  clicks            Int                       @default(0)
+  conversions       Int                       @default(0)
+  revenue           Decimal                   @default(0)
+  experiment        PersonalizationExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@map("ab_test_variants")
 }
