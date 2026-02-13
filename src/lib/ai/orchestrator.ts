@@ -11,6 +11,7 @@ import { PricingService } from '@/lib/services/pricing.service';
 import { DynamicPricingService } from '@/lib/services/dynamic-pricing.service';
 import { CRMAutopilotService } from '@/lib/services/crm-autopilot.service';
 import { FinancialService } from '@/lib/services/financial.service';
+import { AggregatedAnalyticsService } from '@/lib/services/aggregated-analytics.service';
 
 export class AIOrchestrator {
     /**
@@ -72,6 +73,13 @@ export class AIOrchestrator {
      */
     static async runFinancialAudit(organizationId: string): Promise<any> {
         return FinancialService.generateWeeklyDigest(organizationId);
+    }
+
+    /**
+     * Get global benchmarking insights
+     */
+    static async getBenchmark(organizationId: string) {
+        return AggregatedAnalyticsService.getBenchmark(organizationId);
     }
 
     /**
