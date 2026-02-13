@@ -53,6 +53,47 @@ export class AIOrchestrator {
         }
     }
 
+    /**
+     * Handle natural language queries from the admin
+     */
+    static async handleChatQuery(organizationId: string, userId: string, query: string): Promise<any> {
+        const correlationId = crypto.randomUUID();
+
+        try {
+            logger.info({
+                message: 'AI Orchestrator: Handling Chat Query',
+                context: { query, organizationId, userId },
+                correlation: correlationId
+            });
+
+            // 1. Gather state for query context
+            const context = await this.gatherContext(organizationId);
+
+            // 2. Wrap query with context for the Brain
+            const chatPrompt = {
+                type: 'CHAT_QUERY',
+                query,
+                context
+            };
+
+            // 3. Consult the Brain
+            const response = await AIBrainService.decideNextAction(chatPrompt as any);
+
+            return {
+                answer: response.reason,
+                suggestedAction: response.action !== 'NONE' ? response : null,
+                correlationId
+            };
+        } catch (error) {
+            logger.error({
+                message: 'AI Orchestrator: Chat query failed',
+                error: error instanceof Error ? error : new Error(String(error)),
+                correlation: correlationId
+            });
+            throw error;
+        }
+    }
+
     private static async gatherContext(organizationId: string): Promise<AIContext> {
         const [inventory, analytics, velocity] = await Promise.all([
             InventoryService.getInventory({ organizationId, limit: 100 }),
