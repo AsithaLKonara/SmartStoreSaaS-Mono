@@ -8,6 +8,8 @@ import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
 import { SupplierService } from '@/lib/services/supplier.service';
 import { PricingService } from '@/lib/services/pricing.service';
 
+import { DynamicPricingService } from '@/lib/services/dynamic-pricing.service';
+
 export class AIOrchestrator {
     /**
      * Run a full autonomous cycle for an organization
@@ -51,6 +53,27 @@ export class AIOrchestrator {
             });
             throw error;
         }
+    }
+
+    /**
+     * Specifically run pricing optimization task
+     */
+    static async runPricingOptimization(organizationId: string, userId: string): Promise<any> {
+        const recommendations = await DynamicPricingService.getPriceRecommendations(organizationId);
+
+        const results = [];
+        for (const rec of recommendations) {
+            if (rec.confidence > 0.8) {
+                const result = await this.executeAIAction(organizationId, userId, {
+                    action: 'UPDATE_PRODUCT_PRICE',
+                    data: { productId: rec.productId, newPrice: rec.recommendedPrice },
+                    reason: rec.reason
+                });
+                results.push(result);
+            }
+        }
+
+        return { processed: recommendations.length, applied: results.length };
     }
 
     /**
