@@ -10,6 +10,7 @@ import { PricingService } from '@/lib/services/pricing.service';
 
 import { DynamicPricingService } from '@/lib/services/dynamic-pricing.service';
 import { CRMAutopilotService } from '@/lib/services/crm-autopilot.service';
+import { FinancialService } from '@/lib/services/financial.service';
 
 export class AIOrchestrator {
     /**
@@ -64,6 +65,13 @@ export class AIOrchestrator {
      */
     static async runCustomerRetention(organizationId: string): Promise<any> {
         return CRMAutopilotService.runRetentionCampaigns(organizationId);
+    }
+
+    /**
+     * Run weekly financial audit
+     */
+    static async runFinancialAudit(organizationId: string): Promise<any> {
+        return FinancialService.generateWeeklyDigest(organizationId);
     }
 
     /**
