@@ -18,7 +18,7 @@ import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
-import { databaseOptimizer } from '@/lib/database/performance-optimizer';
+import { CRMService } from '@/lib/services/crm.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,42 +33,26 @@ export const GET = requirePermission('VIEW_CUSTOMERS')(
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '20');
       const search = searchParams.get('search') || '';
-      const skip = (page - 1) * limit;
-
-      // Get organization scoping
       const orgId = getOrganizationScope(user);
 
-      // Build where clause
-      const where: any = {};
-
-      // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
-      if (orgId) {
-        where.organizationId = orgId;
+      if (!orgId) {
+        return NextResponse.json({
+          success: false,
+          message: 'Organization ID required'
+        }, { status: 400 });
       }
 
-      // Add search filter
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-          { phone: { contains: search, mode: 'insensitive' } }
-        ];
-      }
-
-      // Use optimized query with caching
-      const { data, executionTime, fromCache } = await databaseOptimizer.getOptimizedCustomers(
-        orgId!,
+      const result = await CRMService.getCustomers({
+        organizationId: orgId,
         page,
         limit,
         search
-      );
-
-      const { customers, total } = data;
+      });
 
       logger.info({
-        message: 'Customers fetched',
+        message: 'Customers fetched via Service',
         context: {
-          count: customers.length,
+          count: result.customers.length,
           page,
           limit,
           organizationId: orgId
@@ -77,13 +61,11 @@ export const GET = requirePermission('VIEW_CUSTOMERS')(
       });
 
       return NextResponse.json(
-        successResponse(customers, {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1
+        successResponse(result.customers, {
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+          totalPages: result.totalPages
         })
       );
     } catch (error: any) {
@@ -92,8 +74,7 @@ export const GET = requirePermission('VIEW_CUSTOMERS')(
         error: error instanceof Error ? error : new Error(String(error)),
         context: {
           path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
+          userId: user.id
         },
         correlation: req.correlationId
       });
@@ -127,7 +108,6 @@ export const POST = requirePermission('MANAGE_CUSTOMERS')(
         }, { status: 400 });
       }
 
-      // Get organizationId from user
       const organizationId = getOrganizationScope(user);
       if (!organizationId) {
         return NextResponse.json({
@@ -138,37 +118,29 @@ export const POST = requirePermission('MANAGE_CUSTOMERS')(
 
       // Check for duplicate email within organization
       const existing = await prisma.customer.findFirst({
-        where: {
-          email,
-          organizationId
-        }
+        where: { email, organizationId }
       });
 
       if (existing) {
         return NextResponse.json({
           success: false,
-          message: 'Customer with this email already exists',
-          field: 'email',
-          value: email
+          message: 'Customer with this email already exists'
         }, { status: 400 });
       }
 
-      // Create customer
-      const customer = await prisma.customer.create({
-        data: {
-          name,
-          email,
-          phone,
-          address,
-          organizationId
-        }
+      // Business logic delegated to service
+      const customer = await CRMService.createCustomer({
+        name,
+        email,
+        phone,
+        address,
+        organizationId
       });
 
       logger.info({
-        message: 'Customer created',
+        message: 'Customer created via Service',
         context: {
           customerId: customer.id,
-          email: customer.email,
           organizationId: customer.organizationId,
           userId: user.id
         },
@@ -185,8 +157,7 @@ export const POST = requirePermission('MANAGE_CUSTOMERS')(
         error: error instanceof Error ? error : new Error(String(error)),
         context: {
           path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
+          userId: user.id
         },
         correlation: req.correlationId
       });

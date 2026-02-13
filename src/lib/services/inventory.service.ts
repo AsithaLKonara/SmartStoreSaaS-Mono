@@ -67,6 +67,7 @@ export class InventoryService {
         organizationId: string;
         description?: string;
         createdById?: string;
+        origin?: 'human' | 'ai';
     }) {
         const {
             name,
@@ -79,6 +80,7 @@ export class InventoryService {
             organizationId,
             description = '',
             createdById,
+            origin = 'human',
         } = data;
 
         return prisma.product.create({
@@ -94,6 +96,7 @@ export class InventoryService {
                 description,
                 createdById,
                 isActive: true,
+                createdByOrigin: origin,
             },
             include: {
                 category: true,

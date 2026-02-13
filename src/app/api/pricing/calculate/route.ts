@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { PricingService } from '@/lib/services/pricing.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,28 +31,31 @@ export const POST = requireAuth(
         });
       }
 
-      // TODO: Calculate actual pricing with discounts/taxes
-      const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-      const tax = subtotal * 0.1;
-      const total = subtotal + tax;
+      const result = await PricingService.calculateOrderPricing({
+        items,
+        customerId,
+        couponCode,
+        organizationId: user.organizationId!
+      });
 
       logger.info({
-        message: 'Pricing calculated',
+        message: 'Pricing calculated via Service',
         context: {
           userId: user.id,
           organizationId: user.organizationId,
           itemCount: items.length,
-          customerId
+          total: result.total
         },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        subtotal,
-        tax,
-        discount: 0,
-        total,
-        message: 'Pricing calculated - using mock rates'
+        subtotal: result.subtotal,
+        tax: result.tax,
+        discount: result.discount,
+        total: result.total,
+        currency: result.currency,
+        message: 'Pricing calculated'
       }));
     } catch (error: any) {
       logger.error({
@@ -64,11 +68,11 @@ export const POST = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

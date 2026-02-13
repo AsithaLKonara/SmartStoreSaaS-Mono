@@ -141,7 +141,7 @@ export class OrderService {
                     notes,
                     status: 'PENDING',
                     createdById,
-                    // Note: Add origin tracking once schema is updated
+                    createdByOrigin: origin,
                 },
             });
 
@@ -172,11 +172,22 @@ export class OrderService {
     /**
      * Update order status
      */
-    static async updateStatus(orderId: string, organizationId: string, status: string, notes?: string) {
+    static async updateStatus(params: {
+        orderId: string;
+        organizationId: string;
+        status: string;
+        notes?: string;
+        origin?: 'human' | 'ai';
+    }) {
+        const { orderId, organizationId, status, notes, origin = 'human' } = params;
+
         return prisma.$transaction(async (tx) => {
             const order = await tx.order.update({
                 where: { id: orderId, organizationId },
-                data: { status },
+                data: {
+                    status,
+                    updatedByOrigin: origin,
+                },
             });
 
             await tx.orderStatusHistory.create({

@@ -27,7 +27,7 @@ model User {
   updatedAt             DateTime        @updatedAt
   reports               Report[]
   organization          Organization?   @relation(fields: [organizationId], references: [id])
-  purchaseOrdersCreated PurchaseOrder[]
+  purchaseOrdersCreated PurchaseOrder[] @relation("PurchaseOrderCreator")
   returnsApproved       Return[]
   giftCardsIssued       GiftCard[]
   posTransactions       posTransaction[]
@@ -40,8 +40,8 @@ model User {
   searchHistory         SearchHistory[]
   errorEvents           ErrorEvent[]
   assignedConversations CustomerConversation[]
-  products              Product[]
-  orders                Order[]
+  products              Product[]       @relation("ProductCreator")
+  orders                Order[]         @relation("OrderCreator")
   browsingHistory       BrowsingHistory[]
   experiments           PersonalizationExperiment[]
   @@map("users")
@@ -52,6 +52,11 @@ enum UserRole {
   TENANT_ADMIN
   STAFF
   CUSTOMER
+}
+
+enum ActionOrigin {
+  human
+  ai
 }
 
 model Organization {
@@ -142,7 +147,10 @@ model Customer {
   subscriptions              Subscription[]
   conversations              CustomerConversation[]
   paymentIntents             PaymentIntent[]
-
+ 
+  createdByOrigin            ActionOrigin                 @default(human)
+  updatedByOrigin            ActionOrigin                 @default(human)
+ 
   @@map("customers")
 }
 
@@ -180,7 +188,7 @@ model Product {
   fulfillmentItems   FulfillmentItem[]
   category           Category?            @relation(fields: [categoryId], references: [id])
   organization       Organization         @relation(fields: [organizationId], references: [id])
-  createdBy          User?                @relation(fields: [createdById], references: [id])
+  createdBy          User?                @relation("ProductCreator", fields: [createdById], references: [id])
   social_products    social_products[]
   wishlist_items     wishlist_items[]
   purchaseOrderItems PurchaseOrderItem[]
@@ -188,6 +196,9 @@ model Product {
   browsingHistory    BrowsingHistory[]
   returnItems        ReturnItem[]
   reviews            Review[]
+
+  createdByOrigin    ActionOrigin         @default(human)
+  updatedByOrigin    ActionOrigin         @default(human)
 
   embeddingData ProductEmbedding? @relation("ProductEmbeddingRelation")
   @@map("products")
@@ -253,8 +264,11 @@ model Order {
   paypalOrderId         String?               @unique
   paypalPaymentId       String?
   createdById           String?
-  createdBy             User?                 @relation(fields: [createdById], references: [id])
-
+  creator               User?                 @relation("OrderCreator", fields: [createdById], references: [id])
+ 
+  createdByOrigin       ActionOrigin          @default(human)
+  updatedByOrigin       ActionOrigin          @default(human)
+ 
   @@map("orders")
 }
 
@@ -1148,9 +1162,12 @@ model PurchaseOrder {
   currency       String              @default("LKR")
   notes          String?
   createdById    String
-  createdBy      User                @relation(fields: [createdById], references: [id])
+  creator        User                @relation("PurchaseOrderCreator", fields: [createdById], references: [id])
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+
+  createdByOrigin ActionOrigin       @default(human)
+  updatedByOrigin ActionOrigin       @default(human)
   approvedAt     DateTime?
   approvedBy     String?
   orderedAt      DateTime?
