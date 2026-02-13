@@ -9,6 +9,7 @@ import { SupplierService } from '@/lib/services/supplier.service';
 import { PricingService } from '@/lib/services/pricing.service';
 
 import { DynamicPricingService } from '@/lib/services/dynamic-pricing.service';
+import { CRMAutopilotService } from '@/lib/services/crm-autopilot.service';
 
 export class AIOrchestrator {
     /**
@@ -39,6 +40,9 @@ export class AIOrchestrator {
                 executionResult = await this.executeAIAction(organizationId, userId, decision);
             }
 
+            // 5. Run Secondary Background Tasks (Optional)
+            await this.runCustomerRetention(organizationId);
+
             return {
                 decision,
                 executionResult,
@@ -53,6 +57,13 @@ export class AIOrchestrator {
             });
             throw error;
         }
+    }
+
+    /**
+     * Run customer retention autopilot
+     */
+    static async runCustomerRetention(organizationId: string): Promise<any> {
+        return CRMAutopilotService.runRetentionCampaigns(organizationId);
     }
 
     /**
