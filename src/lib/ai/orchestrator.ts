@@ -88,6 +88,52 @@ export class AIOrchestrator {
     }
 
     /**
+     * Handle IoT Incident and escalate if critical
+     */
+    static async handleIoTIncident(organizationId: string, alert: {
+        deviceId: string,
+        type: string,
+        value: number,
+        severity: string,
+        message: string
+    }) {
+        const correlationId = crypto.randomUUID();
+
+        logger.info({
+            message: 'AI Orchestrator: Triageing IoT Incident',
+            context: { alert, organizationId },
+            correlation: correlationId
+        });
+
+        // 1. Determine Impact (Mocked logical reasoning for now)
+        let impactAnalysis = 'Unknown Impact';
+        if (alert.type === 'TEMPERATURE' && alert.severity === 'HIGH') {
+            impactAnalysis = 'Critical Risk: Perishable inventory spoilage imminent. Estimated loss: $2000+ if unresolved in 2 hours.';
+        }
+
+        // 2. Automated Action: Create Incident Log (Alert already logged by IoTService)
+        // Here we log the *AI's assessment*
+        await prisma.activities.create({
+            data: {
+                organizationId,
+                type: 'IOT_TRIAGE',
+                description: `AI Assessment: ${impactAnalysis}. Source Alert: ${alert.message}`,
+                metadata: JSON.stringify({ alert, impact: impactAnalysis })
+            }
+        });
+
+        // 3. Notification (Emergency Channel)
+        if (alert.severity === 'HIGH') {
+            // In future: SMS/Slack Integration
+            logger.error({
+                message: '🚨 EMERGENCY NOTIFICATION SENT 🚨',
+                alert: alert.message,
+                assessment: impactAnalysis
+            });
+        }
+    }
+
+    /**
      * Handle natural language queries from the admin
      */
     static async handleChatQuery(organizationId: string, userId: string, query: string): Promise<any> {

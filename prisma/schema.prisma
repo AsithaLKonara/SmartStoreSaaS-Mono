@@ -2221,3 +2221,18 @@ model ABTestVariant {
 
   @@map("ab_test_variants")
 }
+
+model Activity {
+  id             String       @id @default(cuid())
+  organizationId String
+  type           String
+  description    String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("activities")
+  @@index([organizationId])
+  @@index([type])
+  @@index([createdAt])
+}
