@@ -4,6 +4,9 @@ import { OrderService } from '@/lib/services/order.service';
 import { AIBrainService, AIContext, AIResponse } from '@/lib/services/ai-brain.service';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
+import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
+import { SupplierService } from '@/lib/services/supplier.service';
+import { PricingService } from '@/lib/services/pricing.service';
 
 export class AIOrchestrator {
     /**
@@ -51,15 +54,22 @@ export class AIOrchestrator {
     }
 
     private static async gatherContext(organizationId: string): Promise<AIContext> {
-        const [inventory, analytics] = await Promise.all([
+        const [inventory, analytics, velocity] = await Promise.all([
             InventoryService.getInventory({ organizationId, limit: 100 }),
-            AnalyticsService.getStoreAnalytics(organizationId)
+            AnalyticsService.getStoreAnalytics(organizationId),
+            SalesVelocityService.getOrganizationVelocity(organizationId, 30)
         ]);
 
+        // Map velocity to products
+        const productsWithVelocity = inventory.products.map(p => ({
+            ...p,
+            salesVelocity: velocity.find(v => v.productId === p.id)?.velocity || 0
+        }));
+
         return {
-            inventory: inventory.products,
+            inventory: productsWithVelocity,
             analytics,
-            salesVelocity: 'Normal' // Expand this in later phases
+            salesVelocity: 'Detailed velocity mapped to products'
         };
     }
 
@@ -91,15 +101,44 @@ export class AIOrchestrator {
     }
 
     private static async executeAIAction(organizationId: string, userId: string, decision: AIResponse) {
-        // In the orchestrator, we call the services directly (bypassing HTTP but maintaining logic)
-        // This is the "Gateway" logic implemented as a function call.
+        const { action, data } = decision;
 
         logger.info({
             message: 'AI Orchestrator: Executing Action',
-            context: { action: decision.action, data: decision.data }
+            context: { action, data }
         });
 
-        // Real-world check: In production, we might want a manual approval step here
-        // for high-value actions.
+        try {
+            switch (action) {
+                case 'CREATE_PURCHASE_ORDER':
+                    return await SupplierService.createPurchaseOrder({
+                        supplierId: data.supplierId,
+                        items: [{
+                            productId: data.productId,
+                            quantity: data.quantity,
+                            unitCost: data.unitCost || 0
+                        }],
+                        organizationId,
+                        createdById: userId,
+                        origin: 'ai'
+                    });
+
+                case 'UPDATE_PRODUCT_PRICE':
+                    return await PricingService.updateProductPrice({
+                        productId: data.productId,
+                        organizationId,
+                        newPrice: data.newPrice,
+                        reason: decision.reason,
+                        updatedBy: 'ai'
+                    });
+
+                default:
+                    logger.warn({ message: 'AI Orchestrator: Action not implemented for auto-execution', action });
+                    return null;
+            }
+        } catch (error) {
+            logger.error({ message: 'AI Orchestrator: Action execution failed', action, error });
+            throw error;
+        }
     }
 }

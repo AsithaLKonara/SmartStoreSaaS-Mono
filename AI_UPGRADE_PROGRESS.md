@@ -1,9 +1,9 @@
 # 📊 AI-Native Upgrade Progress
 
 ## 🧭 Current Status
-- **Phase**: Phase 4 — Autonomous Inventory Management
-- **Global Completion**: 33%
-- **Current Objective**: Enable AI to autonomously manage stock levels and restocking.
+- **Phase**: Phase 5 — AI-Native Storefront & Chat
+- **Global Completion**: 41%
+- **Current Objective**: Transform the storefront into a conversational AI endpoint.
 
 ---
 
@@ -32,5 +32,10 @@
 - [x] Create manual execution trigger (`/api/ai/orchestrator/run`)
 - [x] Persist AI decisions to audit trail (`activities`)
 
+## ✅ Phase 4 Checklist
+- [x] Implement `SalesVelocityService` for real-time tracking
+- [x] Map velocity to AI context for reorder decisions
+- [x] Enable autonomous PO creation for low-stock items
+
 ## 🔜 Upcoming
-- **Phase 4**: Autonomous Inventory Management
+- **Phase 5**: AI-Native Storefront & Chat
