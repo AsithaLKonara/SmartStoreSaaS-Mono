@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { FinancialService } from '@/lib/services/financial.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,8 +32,11 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
       }
 
       const { searchParams } = new URL(req.url);
-      const startDate = searchParams.get('startDate');
-      const endDate = searchParams.get('endDate');
+      const startDateStr = searchParams.get('startDate');
+      const endDateStr = searchParams.get('endDate');
+
+      const startDate = startDateStr ? new Date(startDateStr) : undefined;
+      const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
       logger.info({
         message: 'Profit & Loss report requested',
@@ -45,14 +49,10 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
         correlation: req.correlationId
       });
 
-      // TODO: Generate actual P&L report
-      return NextResponse.json(successResponse({
-        reportType: 'profit_loss',
-        revenue: { total: 0 },
-        expenses: { total: 0 },
-        netIncome: 0,
-        message: 'Profit & Loss - implementation pending'
-      }));
+      // Generate actual P&L report
+      const report = await FinancialService.getProfitLoss(organizationId, startDate, endDate);
+
+      return NextResponse.json(successResponse(report));
     } catch (error: any) {
       logger.error({
         message: 'P&L report generation failed',
@@ -64,11 +64,11 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

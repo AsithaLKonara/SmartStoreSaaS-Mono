@@ -56,11 +56,11 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -100,7 +100,18 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
           suppliers,
           deadline: deadline ? new Date(deadline) : undefined,
           status: 'DRAFT',
-          createdBy: user.id
+          createdBy: user.id,
+          rfqItems: {
+            create: items.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              specifications: item.specifications || '',
+              targetPrice: item.targetPrice
+            }))
+          }
+        },
+        include: {
+          rfqItems: true
         }
       });
 
@@ -126,11 +137,11 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

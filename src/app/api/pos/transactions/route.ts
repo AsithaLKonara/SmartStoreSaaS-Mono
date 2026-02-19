@@ -56,11 +56,11 @@ export const GET = requirePermission('VIEW_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -100,7 +100,19 @@ export const POST = requirePermission('MANAGE_ORDERS')(
           total,
           paymentMethod: paymentMethod || 'CASH',
           cashierId: user.id,
-          status: 'COMPLETED'
+          status: 'COMPLETED',
+          transactionItems: {
+            create: items.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.price,
+              totalPrice: item.quantity * item.price,
+              metadata: item.metadata || {}
+            }))
+          }
+        },
+        include: {
+          transactionItems: true
         }
       });
 
@@ -127,11 +139,11 @@ export const POST = requirePermission('MANAGE_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

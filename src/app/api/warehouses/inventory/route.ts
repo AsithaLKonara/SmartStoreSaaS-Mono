@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,9 +27,8 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         throw new ValidationError('User must belong to an organization');
       }
 
-      // TODO: Fetch actual warehouse inventory
       logger.info({
-        message: 'Warehouse inventory fetched',
+        message: 'Warehouse inventory requested',
         context: {
           userId: user.id,
           organizationId
@@ -36,11 +36,33 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         correlation: req.correlationId
       });
 
+      // Fetch actual warehouse inventory using Prisma
+      // Grouping movements might be complex, so we fetch warehouses with their movements
+      const warehouses = await prisma.warehouse.findMany({
+        where: { organizationId },
+        include: {
+          inventory: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  sku: true
+                }
+              }
+            },
+            take: 100, // Limit for performance
+            orderBy: { createdAt: 'desc' }
+          }
+        }
+      });
+
       return NextResponse.json(successResponse({
-        inventory: [],
-        message: 'Warehouse inventory - implementation pending'
+        warehouses,
+        count: warehouses.length
       }));
     } catch (error: any) {
+
       logger.error({
         message: 'Failed to fetch warehouse inventory',
         error: error instanceof Error ? error : new Error(String(error)),
@@ -51,11 +73,11 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

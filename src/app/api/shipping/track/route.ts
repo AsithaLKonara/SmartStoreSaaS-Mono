@@ -12,6 +12,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,40 +27,56 @@ export const GET = requireAuth(
         throw new ValidationError('Tracking number or order ID is required');
       }
 
-      if (orderId) {
-        const order = await prisma.order.findUnique({
-          where: { id: orderId }
+      let delivery;
+
+      if (trackingNumber) {
+        delivery = await prisma.delivery.findFirst({
+          where: { trackingNumber },
+          include: { courier: true, order: true }
         });
+      } else if (orderId) {
+        delivery = await prisma.delivery.findFirst({
+          where: { orderId },
+          include: { courier: true, order: true }
+        });
+      }
 
-        if (!order) {
-          throw new ValidationError('Order not found');
+      if (!delivery) {
+        // If no delivery record found in DB yet, try to search if tracking number provided (fallback)
+        if (trackingNumber) {
+          try {
+            // Try with default courier
+            const trackingInfo = await sriLankaCourierService.trackShipment(trackingNumber, 'courier-1');
+            return NextResponse.json(successResponse(trackingInfo));
+          } catch (e) {
+            // If service fails, throw original error
+            throw new ValidationError('Delivery not found');
+          }
         }
+        throw new ValidationError('Delivery not found');
+      }
 
-        // Verify ownership
+      // Verify ownership
+      if (delivery.order) {
+        const order = delivery.order;
+
         if (user.role === 'CUSTOMER') {
           const customer = await prisma.customer.findFirst({
             where: { email: user.email }
           });
+          // If customer record not found, or order doesn't belong to customer
           if (!customer || order.customerId !== customer.id) {
-            throw new ValidationError('Cannot track other customers orders');
+            throw new ValidationError('Cannot track other customers shipments');
           }
         } else if (order.organizationId !== user.organizationId && user.role !== 'SUPER_ADMIN') {
-          throw new ValidationError('Cannot track orders from other organizations');
+          // If user is staff/admin but from different organization
+          throw new ValidationError('Cannot track shipments from other organizations');
         }
       }
 
-      logger.info({
-        message: 'Tracking requested',
-        context: { userId: user.id, trackingNumber, orderId }
-      });
+      const trackingInfo = await sriLankaCourierService.trackShipment(delivery.trackingNumber, delivery.courierId);
 
-      // TODO: Fetch actual tracking info
-      return NextResponse.json(successResponse({
-        trackingNumber,
-        status: 'in_transit',
-        events: [],
-        message: 'Tracking - implementation pending'
-      }));
+      return NextResponse.json(successResponse(trackingInfo));
     } catch (error: any) {
       logger.error({
         message: 'Tracking fetch failed',

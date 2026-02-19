@@ -28,7 +28,7 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
         throw new ValidationError('User must belong to an organization');
       }
 
-      const templates = await prisma.sms_templates.findMany({
+      const templates = await prisma.smsTemplate.findMany({
         where: { organizationId },
         orderBy: { name: 'asc' }
       });
@@ -55,11 +55,11 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -91,7 +91,7 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
         });
       }
 
-      const template = await prisma.sms_templates.create({
+      const template = await prisma.smsTemplate.create({
         data: {
           id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId,
@@ -125,11 +125,11 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
@@ -29,13 +30,39 @@ export const GET = requireRole('SUPER_ADMIN')(
         correlation: req.correlationId
       });
 
-      // TODO: Generate actual security audit
+      const [failedLogins, suspicious] = await Promise.all([
+        prisma.auditLog.count({
+          where: { action: 'LOGIN_FAILURE' }
+        }),
+        prisma.auditLog.findMany({
+          where: {
+            OR: [
+              { action: 'PERMISSION_DENIED' },
+              { action: 'UNAUTHORIZED_ACCESS' }
+            ]
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          include: {
+            user: { select: { name: true, email: true } }
+          }
+        })
+      ]);
+
       return NextResponse.json(successResponse({
-        failedLoginAttempts: 0,
-        suspiciousActivities: [],
+        failedLoginAttempts: failedLogins,
+        suspiciousActivities: suspicious.map(s => ({
+          userId: s.userId,
+          user: s.user?.name,
+          action: s.action,
+          resource: s.resource,
+          timestamp: s.createdAt
+        })),
         vulnerabilities: [],
-        recommendations: [],
-        message: 'Security audit - implementation pending'
+        recommendations: [
+          failedLogins > 50 ? "High number of login failures. Consider enabling 2FA for all staff." : "Stable login activity.",
+          suspicious.length > 0 ? "Review current permission denials for potential privilege escalation attempts." : "No suspicious activity detected."
+        ]
       }));
     } catch (error: any) {
       logger.error({
@@ -47,7 +74,7 @@ export const GET = requireRole('SUPER_ADMIN')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

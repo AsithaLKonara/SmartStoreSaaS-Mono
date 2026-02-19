@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fetch ticket to validate access
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId }
         });
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Update ticket assignment
-        const updatedTicket = await prisma.support_tickets.update({
+        const updatedTicket = await prisma.supportTicket.update({
           where: { id: ticketId },
           data: {
             assignedTo: agentId,

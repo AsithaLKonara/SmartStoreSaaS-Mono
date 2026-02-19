@@ -14,11 +14,14 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { stripeService } from '@/lib/payments/stripeService';
+import { payHereService } from '@/lib/payments/payhereService';
+import { paypalService } from '@/lib/payments/paypalService';
 
 export const dynamic = 'force-dynamic';
 
 interface CheckoutRequest {
-  paymentMethod: 'stripe' | 'payhere' | 'cash';
+  paymentMethod: 'stripe' | 'payhere' | 'paypal' | 'cash';
   shippingAddress: {
     street: string;
     city: string;
@@ -74,7 +77,7 @@ export const POST = requireAuth(
 
       // Convert cart to order
       const orderNumber = `ORD-${Date.now()}`;
-      
+
       const order = await prisma.order.update({
         where: { id: cart.id },
         data: {
@@ -84,8 +87,44 @@ export const POST = requireAuth(
         }
       });
 
-      // TODO: Initiate payment based on paymentMethod
-      // For now, just return the order
+      // Initiate payment based on paymentMethod
+      let paymentData = {};
+
+      if (body.paymentMethod === 'stripe') {
+        const paymentIntent = await stripeService.createPaymentIntent(
+          Number(order.total),
+          'usd', // Default to USD for Stripe or fetch from organization settings
+          undefined, // Customer ID if available
+          { orderId: order.id, organizationId: order.organizationId }
+        );
+        paymentData = { clientSecret: paymentIntent.clientSecret };
+      }
+      else if (body.paymentMethod === 'payhere') {
+        const params = await payHereService.createPaymentRequest({
+          orderId: order.id,
+          amount: Number(order.total),
+          currency: 'LKR', // PayHere usually requires LKR
+          firstName: 'Customer', // Extract from user profile if available
+          lastName: '',
+          email: user.email || 'customer@example.com',
+          phone: '+94000000000',
+          address: body.shippingAddress.street,
+          city: body.shippingAddress.city,
+          country: body.shippingAddress.country
+        }, order.organizationId);
+        paymentData = { paymentParams: params };
+      }
+      else if (body.paymentMethod === 'paypal') {
+        const paypalOrder = await paypalService.createOrder(
+          Number(order.total),
+          'USD',
+          order.id,
+          `${process.env.NEXTAUTH_URL}/checkout/success?orderId=${order.id}`,
+          `${process.env.NEXTAUTH_URL}/checkout/cancel?orderId=${order.id}`
+        );
+        const approvalLink = paypalOrder.links.find(link => link.rel === 'approve')?.href;
+        paymentData = { approvalUrl: approvalLink };
+      }
 
       // Update product stock
       for (const item of cart.orderItems) {
@@ -113,7 +152,8 @@ export const POST = requireAuth(
       return NextResponse.json(successResponse({
         order,
         message: 'Order created successfully',
-        nextStep: 'payment'
+        paymentData,
+        nextStep: body.paymentMethod === 'cash' ? 'confirmation' : 'payment'
       }), { status: 201 });
     } catch (error: any) {
       logger.error({

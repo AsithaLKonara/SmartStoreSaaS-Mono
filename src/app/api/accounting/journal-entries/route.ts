@@ -36,7 +36,7 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
       // Get organization scoping
       const orgId = getOrganizationScope(user);
 
-      const entries = await prisma.journal_entries.findMany({
+      const entries = await prisma.journalEntry.findMany({
         where: orgId ? { organizationId: orgId } : {},
         orderBy: { entryDate: 'desc' },
         take: 100
@@ -64,7 +64,7 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -107,7 +107,7 @@ export const POST = requirePermission('MANAGE_ACCOUNTING')(
         throw new ValidationError('User must belong to an organization');
       }
 
-      const entry = await prisma.journal_entries.create({
+      const entry = await prisma.journalEntry.create({
         data: {
           id: `je_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId,
@@ -142,11 +142,11 @@ export const POST = requirePermission('MANAGE_ACCOUNTING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

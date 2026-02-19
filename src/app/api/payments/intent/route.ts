@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { stripeService } from '@/lib/payments/stripeService';
+import { AuditService } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +29,7 @@ export const POST = requirePermission('CREATE_ORDERS')(
       }
 
       const body = await req.json();
-      const { amount, currency = 'USD', orderId, customerId } = body;
+      const { amount, currency = 'usd', orderId, customerId, metadata = {} } = body;
 
       // Validate required fields
       if (!amount || amount <= 0) {
@@ -38,43 +40,45 @@ export const POST = requirePermission('CREATE_ORDERS')(
         throw new ValidationError('Order ID is required');
       }
 
-      // TODO: Implement actual payment intent creation
-      // This would typically involve:
-      // 1. Validating order and customer
-      // 2. Creating payment intent with payment provider (Stripe, etc.)
-      // 3. Storing payment intent in database
-      // 4. Returning client secret for frontend
-
-      const paymentIntent = {
-        id: `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        clientSecret: `pi_${Date.now()}_secret_${Math.random().toString(36).substr(2, 9)}`,
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: currency.toLowerCase(),
-        status: 'requires_payment_method',
-        orderId,
-        customerId: customerId || user.id,
-        organizationId,
-        createdAt: new Date().toISOString()
-      };
-
       logger.info({
-        message: 'Payment intent created',
-        context: {
-          userId: user.id,
-          amount,
-          currency,
-          orderId,
-          customerId,
-          organizationId
-        },
-        correlation: req.correlationId
+        message: 'Payment intent requested (generic)',
+        context: { userId: user.id, orderId, amount, currency }
       });
 
-      return NextResponse.json(successResponse(paymentIntent));
+      // Create actual Stripe intent
+      const paymentIntent = await stripeService.createPaymentIntent(
+        amount,
+        currency,
+        undefined, // Stripe Customer ID
+        {
+          orderId,
+          userId: user.id,
+          organizationId,
+          ...metadata
+        }
+      );
+
+      // Audit log the creation
+      await AuditService.log({
+        userId: user.id,
+        organizationId,
+        action: 'CREATE_PAYMENT_INTENT',
+        resource: 'PAYMENT',
+        resourceId: paymentIntent.id,
+        details: { orderId, amount, currency, provider: 'stripe' }
+      });
+
+      return NextResponse.json(successResponse({
+        id: paymentIntent.id,
+        clientSecret: paymentIntent.clientSecret,
+        amount: paymentIntent.amount,
+        status: paymentIntent.status,
+        provider: 'stripe'
+      }));
     } catch (error: any) {
       logger.error({
         message: 'Failed to create payment intent',
-        error: error instanceof Error ? error : new Error(String(error)),
+        error: error instanceof Error ? error.message : String(error),
         context: {
           path: req.nextUrl.pathname,
           userId: user.id,
@@ -82,11 +86,11 @@ export const POST = requirePermission('CREATE_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

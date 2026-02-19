@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const accountId = resolvedParams.id;
-  
+
   const handler = requirePermission('VIEW_ACCOUNTING')(
     async (req: AuthenticatedRequest, user) => {
       try {
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }, { status: 403 });
         }
 
-        const account = await prisma.chart_of_accounts.findUnique({
+        const account = await prisma.chartOfAccount.findUnique({
           where: { id: accountId }
         });
 
@@ -80,11 +80,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           },
           correlation: req.correlationId
         });
-        
+
         if (error instanceof NotFoundError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
   );
-  
+
   const req = request as AuthenticatedRequest;
   req.correlationId = correlationId;
   return handler(req, {} as any);
@@ -108,13 +108,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const accountId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_ACCOUNTING')(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();
 
-        const account = await prisma.chart_of_accounts.findUnique({
+        const account = await prisma.chartOfAccount.findUnique({
           where: { id: accountId }
         });
 
@@ -132,7 +132,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           }, { status: 403 });
         }
 
-        const updated = await prisma.chart_of_accounts.update({
+        const updated = await prisma.chartOfAccount.update({
           where: { id: accountId },
           data: body
         });
@@ -159,11 +159,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           },
           correlation: req.correlationId
         });
-        
+
         if (error instanceof NotFoundError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -173,7 +173,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
   );
-  
+
   const req = request as AuthenticatedRequest;
   req.correlationId = correlationId;
   return handler(req, {} as any);
@@ -187,11 +187,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const accountId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_ACCOUNTING')(
     async (req: AuthenticatedRequest, user) => {
       try {
-        const account = await prisma.chart_of_accounts.findUnique({
+        const account = await prisma.chartOfAccount.findUnique({
           where: { id: accountId }
         });
 
@@ -209,7 +209,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           }, { status: 403 });
         }
 
-        await prisma.chart_of_accounts.delete({
+        await prisma.chartOfAccount.delete({
           where: { id: accountId }
         });
 
@@ -238,11 +238,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           },
           correlation: req.correlationId
         });
-        
+
         if (error instanceof NotFoundError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -252,7 +252,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     }
   );
-  
+
   const req = request as AuthenticatedRequest;
   req.correlationId = correlationId;
   return handler(req, {} as any);

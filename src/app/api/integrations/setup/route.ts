@@ -21,7 +21,7 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     try {
       const orgId = getOrganizationScope(user);
 
-      const integrations = await prisma.channel_integrations.findMany({
+      const integrations = await prisma.channelIntegration.findMany({
         where: orgId ? { organizationId: orgId } : {},
         select: {
           id: true,
@@ -69,7 +69,7 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
       }
 
       // TODO: Encrypt credentials before storing
-      const integration = await prisma.channel_integrations.create({
+      const integration = await prisma.channelIntegration.create({
         data: {
           id: `integration_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId,
@@ -78,8 +78,8 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
           provider,
           channel: channel || provider,
           status: 'INACTIVE',
-          credentials: JSON.stringify(credentials),
-          settings: JSON.stringify(settings || {}),
+          credentials,
+          settings: settings || {},
           isActive: false,
           updatedAt: new Date()
         }

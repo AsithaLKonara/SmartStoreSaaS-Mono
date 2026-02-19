@@ -36,7 +36,7 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
       // Get organization scoping
       const orgId = getOrganizationScope(user);
 
-      const accounts = await prisma.chart_of_accounts.findMany({
+      const accounts = await prisma.chartOfAccount.findMany({
         where: orgId ? { organizationId: orgId } : {},
         orderBy: { code: 'asc' }
       });
@@ -63,7 +63,7 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -96,7 +96,7 @@ export const POST = requirePermission('MANAGE_ACCOUNTING')(
         throw new ValidationError('User must belong to an organization');
       }
 
-      const account = await prisma.chart_of_accounts.create({
+      const account = await prisma.chartOfAccount.create({
         data: {
           id: `acc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId,
@@ -131,11 +131,11 @@ export const POST = requirePermission('MANAGE_ACCOUNTING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

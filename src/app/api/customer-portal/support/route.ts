@@ -32,7 +32,7 @@ export const GET = requireAuth(
         return NextResponse.json(successResponse([]));
       }
 
-      const tickets = await prisma.support_tickets.findMany({
+      const tickets = await prisma.supportTicket.findMany({
         where: { email: customer.email },
         orderBy: { createdAt: 'desc' },
         take: 50
@@ -61,7 +61,7 @@ export const GET = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -98,7 +98,7 @@ export const POST = requireAuth(
         throw new NotFoundError('Customer profile not found');
       }
 
-      const ticket = await prisma.support_tickets.create({
+      const ticket = await prisma.supportTicket.create({
         data: {
           id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: subject,
@@ -133,11 +133,11 @@ export const POST = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

@@ -5,6 +5,8 @@ import { successResponse, ValidationError } from '@/lib/middleware/withErrorHand
 
 export const dynamic = 'force-dynamic';
 
+import { AuditService } from '@/lib/services/audit.service';
+
 /**
  * GET /api/compliance/audit-logs
  * Get compliance audit logs (VIEW_AUDIT_LOGS permission)
@@ -18,73 +20,51 @@ export const GET = requirePermission('VIEW_AUDIT_LOGS')(
       }
 
       const { searchParams } = new URL(req.url);
-      const userId = searchParams.get('userId');
-      const entity = searchParams.get('entity');
-      const action = searchParams.get('action');
+      const userId = searchParams.get('userId') || undefined;
+      const resource = searchParams.get('entity') || undefined;
+      const action = searchParams.get('action') || undefined;
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '50');
 
-      const where: any = {
-        organizationId
-      };
-
-      if (userId) where.userId = userId;
-      if (entity) where.entity = entity;
-      if (action) where.action = action;
-
-      // TODO: Implement audit log model when available
-      // const logs = await db.comprehensiveAuditLog.findMany({
-      //   where,
-      //   orderBy: { timestamp: 'desc' },
-      //   skip: (page - 1) * limit,
-      //   take: limit,
-      // });
-      // const total = await db.comprehensiveAuditLog.count({ where });
-      const logs: any[] = [];
-      const total = 0;
+      const result = await AuditService.getLogs({
+        organizationId,
+        page,
+        limit,
+        userId,
+        action,
+        resource
+      });
 
       logger.info({
         message: 'Compliance audit logs fetched',
         context: {
           userId: user.id,
           organizationId,
-          filters: { userId, entity, action },
-          count: logs.length,
-          total
-        },
-        correlation: req.correlationId
+          filters: { userId, resource, action },
+          count: result.logs.length,
+          total: result.total
+        }
       });
 
       return NextResponse.json(successResponse({
-        logs,
+        logs: result.logs,
         pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit)
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          pages: result.totalPages
         }
       }));
     } catch (error: any) {
       logger.error({
         message: 'Error fetching audit logs',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: {
-          path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
-        },
-        correlation: req.correlationId
+        context: { userId: user.id }
       });
-      
-      if (error instanceof ValidationError) {
-        throw error;
-      }
-      
+
       return NextResponse.json({
         success: false,
-        code: 'ERR_INTERNAL',
         message: 'Failed to fetch logs',
-        correlation: req.correlationId || 'unknown'
       }, { status: 500 });
     }
   }
@@ -92,33 +72,34 @@ export const GET = requirePermission('VIEW_AUDIT_LOGS')(
 
 /**
  * POST /api/compliance/audit-logs
- * Create audit log (automated - may not need auth, or use requireAuth)
+ * Create audit log
  */
 export const POST = requirePermission('VIEW_AUDIT_LOGS')(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
       const body = await req.json();
-      const { userId, action, entity, entityId, beforeState, afterState, ipAddress, userAgent } = body;
+      const {
+        userId,
+        action,
+        entity,
+        entityId,
+        beforeState,
+        afterState,
+        ipAddress,
+        userAgent
+      } = body;
 
-      // TODO: Implement audit log model when available
-      // const log = await db.comprehensiveAuditLog.create({
-      //   data: {
-      //     organizationId,
-      //     userId: userId || user.id,
-      //     action,
-      //     entity,
-      //     entityId,
-      //     beforeState,
-      //     afterState,
-      //     ipAddress,
-      //     userAgent,
-      //   },
-      // });
-      const log = {
-        id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        message: 'Audit log creation - implementation pending'
-      };
+      const log = await AuditService.log({
+        userId: userId || user.id,
+        organizationId,
+        action,
+        resource: entity,
+        resourceId: entityId,
+        details: { beforeState, afterState },
+        ipAddress,
+        userAgent
+      });
 
       logger.info({
         message: 'Audit log created',
@@ -127,8 +108,7 @@ export const POST = requirePermission('VIEW_AUDIT_LOGS')(
           organizationId,
           action,
           entity
-        },
-        correlation: req.correlationId
+        }
       });
 
       return NextResponse.json(successResponse(log));
@@ -136,19 +116,12 @@ export const POST = requirePermission('VIEW_AUDIT_LOGS')(
       logger.error({
         message: 'Failed to create log',
         error: error instanceof Error ? error : new Error(String(error)),
-        context: {
-          path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
-        },
-        correlation: req.correlationId
+        context: { userId: user.id }
       });
-      
+
       return NextResponse.json({
         success: false,
-        code: 'ERR_INTERNAL',
         message: 'Failed to create log',
-        correlation: req.correlationId || 'unknown'
       }, { status: 500 });
     }
   }

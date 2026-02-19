@@ -13,6 +13,7 @@ import { successResponse, NotFoundError, AuthorizationError } from '@/lib/middle
 import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
+import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,36 +36,81 @@ export async function POST(
         try { body = await req.json(); } catch (e) { }
         const { carrier, service } = body;
 
-        const fulfillment = await prisma.fulfillment.findUnique({
-          where: { id: fulfillmentId }
+        // Fetch fulfillment with order details to get shipping address
+        const fulfillmentWithOrder = await prisma.fulfillment.findUnique({
+          where: { id: fulfillmentId },
+          include: {
+            order: {
+              include: {
+                customer: true
+              }
+            }
+          }
         });
 
-        if (!fulfillment) {
+        if (!fulfillmentWithOrder) {
           throw new NotFoundError('Fulfillment not found');
         }
+
+        const fulfillment = fulfillmentWithOrder;
 
         if (!validateOrganizationAccess(user, fulfillment.organizationId)) {
           throw new AuthorizationError('Cannot generate labels for fulfillments from other organizations');
         }
+
+        // Use provided carrier or default
+        const selectedCarrier = carrier || 'courier-1'; // Default to first available if not specified
+
+        // Construct shipment request
+        const shipmentRequest = {
+          pickupAddress: {
+            name: 'Warehouse', // Should come from warehouse details
+            phone: '+94112345678',
+            address: '123 Warehouse St',
+            city: 'Colombo',
+            postalCode: '00100'
+          },
+          deliveryAddress: {
+            name: fulfillment.order.customer?.name || 'Customer',
+            phone: fulfillment.order.customer?.phone || '',
+            address: 'Customer Address', // Should come from order shipping address JSON
+            city: 'City',
+            postalCode: '00000'
+          },
+          package: {
+            weight: 1, // Should come from fulfillment items weight
+            length: 10,
+            width: 10,
+            height: 10,
+            description: `Order #${fulfillment.order.orderNumber}`,
+            value: Number(fulfillment.order.total)
+          },
+          serviceType: service || 'standard',
+          paymentMethod: 'prepaid' as const,
+          orderId: fulfillment.orderId
+        };
+
+        // Generate label using courier service
+        const shipmentResponse = await sriLankaCourierService.createShipment(shipmentRequest, selectedCarrier);
 
         logger.info({
           message: 'Shipping label generated',
           context: {
             userId: user.id,
             fulfillmentId,
-            carrier,
-            service,
+            carrier: selectedCarrier,
+            trackingNumber: shipmentResponse.trackingNumber,
             organizationId: fulfillment.organizationId
           },
           correlation: correlationId
         });
 
-        // TODO: Generate actual shipping label
         return NextResponse.json(successResponse({
-          labelUrl: `/labels/fulfillment_${fulfillmentId}.pdf`,
-          trackingNumber: `TRACK-${Date.now()}`,
-          carrier,
-          service
+          labelUrl: shipmentResponse.labelUrl,
+          trackingNumber: shipmentResponse.trackingNumber,
+          carrier: selectedCarrier,
+          service: service || 'standard',
+          estimatedDelivery: shipmentResponse.estimatedDelivery
         }));
       } catch (error: any) {
         logger.error({

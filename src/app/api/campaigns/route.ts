@@ -36,7 +36,7 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
       if (type) where.type = type;
       if (status) where.status = status;
 
-      const campaigns = await prisma.sms_campaigns.findMany({
+      const campaigns = await prisma.smsCampaign.findMany({
         where,
         orderBy: { createdAt: 'desc' }
       });
@@ -63,11 +63,11 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -111,7 +111,7 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
         updatedAt: new Date()
       };
 
-      const campaign = await prisma.sms_campaigns.create({
+      const campaign = await prisma.smsCampaign.create({
         data: {
           id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId,
@@ -145,11 +145,11 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

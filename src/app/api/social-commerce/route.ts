@@ -21,7 +21,7 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     try {
       const orgId = getOrganizationScope(user);
 
-      const socialAccounts = await prisma.social_commerce.findMany({
+      const socialAccounts = await prisma.socialCommerce.findMany({
         where: orgId ? { organizationId: orgId } : {},
         select: {
           id: true,

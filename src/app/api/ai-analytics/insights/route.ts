@@ -7,12 +7,13 @@
  * Organization Scoping: Required
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
+import { InventoryService } from '@/lib/services/inventory.service';
+import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
-
-export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/ai-analytics/insights
@@ -27,24 +28,38 @@ export const POST = requirePermission('VIEW_AI_INSIGHTS')(
       }
 
       const body = await req.json();
-      const { dataType, timeRange } = body;
+      const { dataType = 'all' } = body;
+
+      // 1. Fetch Context
+      const [inventory, velocity] = await Promise.all([
+        InventoryService.getInventory({ organizationId, limit: 10 }),
+        SalesVelocityService.getOrganizationVelocity(organizationId)
+      ]);
+
+      const context: AIContext = {
+        inventory: inventory.items,
+        salesVelocity: velocity,
+        analytics: {
+          totalProducts: inventory.total,
+          activeVelocity: velocity.avgUnitsPerDay
+        }
+      };
+
+      // 2. Generate Insights
+      const insights = await AIBrainService.generateDashboardInsights(context);
 
       logger.info({
-        message: 'AI insights requested',
+        message: 'AI insights generated',
         context: {
           userId: user.id,
-          organizationId,
-          dataType,
-          timeRange
-        },
-        correlation: req.correlationId
+          organizationId
+        }
       });
 
-      // TODO: Generate AI insights
       return NextResponse.json(successResponse({
-        insights: [],
-        confidence: 0.85,
-        message: 'AI insights - implementation pending'
+        ...insights,
+        confidence: 0.9,
+        dataType
       }));
     } catch (error: any) {
       logger.error({
@@ -57,11 +72,11 @@ export const POST = requirePermission('VIEW_AI_INSIGHTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

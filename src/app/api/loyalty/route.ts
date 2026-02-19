@@ -135,7 +135,7 @@ export const POST = requirePermission('MANAGE_LOYALTY')(
       }
 
       // Create loyalty transaction
-      const loyaltyTransaction = await prisma.loyalty_transactions.create({
+      const loyaltyTransaction = await prisma.loyaltyTransaction.create({
         data: {
           id: `loyalty_txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           customerId,

@@ -19,7 +19,11 @@ export const POST = requirePermission('MANAGE_AI')(
 
         try {
             const report = await AIOrchestrator.runFinancialAudit(organizationId);
-            return NextResponse.json(successResponse(report));
+            const parsedReport = report ? {
+                ...report,
+                ...JSON.parse(report.data || '{}')
+            } : null;
+            return NextResponse.json(successResponse(parsedReport));
         } catch (error: any) {
             return NextResponse.json({ success: false, message: error.message }, { status: 500 });
         }
@@ -39,7 +43,11 @@ export const GET = requirePermission('VIEW_ANALYTICS')(
 
         try {
             const report = await FinancialService.getLatestReport(organizationId);
-            return NextResponse.json(successResponse(report));
+            const parsedReport = report ? {
+                ...report,
+                ...JSON.parse(report.data || '{}')
+            } : null;
+            return NextResponse.json(successResponse(parsedReport));
         } catch (error: any) {
             return NextResponse.json({ success: false, message: error.message }, { status: 500 });
         }

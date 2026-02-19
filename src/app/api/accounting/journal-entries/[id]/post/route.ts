@@ -27,12 +27,12 @@ export async function POST(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const journalEntryId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_ACCOUNTING')(
     async (req: AuthenticatedRequest, user) => {
       try {
 
-        const journalEntry = await prisma.journal_entries.findUnique({
+        const journalEntry = await prisma.journalEntry.findUnique({
           where: { id: journalEntryId }
         });
 
@@ -49,7 +49,7 @@ export async function POST(
           throw new ValidationError('Journal entry already posted');
         }
 
-        await prisma.journal_entries.update({
+        await prisma.journalEntry.update({
           where: { id: journalEntryId },
           data: {
             status: 'POSTED',
@@ -83,11 +83,11 @@ export async function POST(
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof NotFoundError || error instanceof ValidationError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { FinancialService } from '@/lib/services/financial.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,9 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
       }
 
       const orgId = getOrganizationScope(user);
+      if (!orgId) {
+        throw new ValidationError('User must belong to an organization');
+      }
 
       logger.info({
         message: 'Balance sheet requested',
@@ -36,15 +40,12 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
         correlation: req.correlationId
       });
 
-      // TODO: Generate actual balance sheet
-      return NextResponse.json(successResponse({
-        reportType: 'balance_sheet',
-        assets: { total: 0, current: 0, fixed: 0 },
-        liabilities: { total: 0, current: 0, longTerm: 0 },
-        equity: { total: 0 },
-        message: 'Balance sheet - implementation pending'
-      }));
+      // Generate actual balance sheet
+      const report = await FinancialService.getBalanceSheet(orgId);
+
+      return NextResponse.json(successResponse(report));
     } catch (error: any) {
+
       logger.error({
         message: 'Balance sheet generation failed',
         error: error instanceof Error ? error : new Error(String(error)),
@@ -55,11 +56,11 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

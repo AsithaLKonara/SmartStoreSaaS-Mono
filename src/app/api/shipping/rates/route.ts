@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,46 +31,88 @@ export const GET = requirePermission('VIEW_ORDERS')(
         });
       }
 
-      // Get shipping configuration from organization settings
-      const shippingConfig = await prisma.organization.findUnique({
-        where: { id: organizationId },
-        select: {
-          settings: true
-        }
-      });
-
-      // Calculate shipping rates based on weight and distance
-      // Using basic calculation - can be enhanced with actual shipping provider APIs
-      const baseRate = 5.99;
-      const weightRate = weight ? weight * 2.5 : 0;
-      const standardCost = baseRate + weightRate;
-
-      const shippingRates = [
-        {
-          id: 'rate_standard',
-          provider: 'Standard Shipping',
-          service: 'Ground',
-          estimatedDays: '3-5',
-          cost: Math.round(standardCost * 100) / 100,
-          currency: 'USD'
+      // Calculate shipping rates using Sri Lanka Courier Service
+      const shipmentRequest = {
+        pickupAddress: {
+          name: 'Warehouse',
+          phone: '',
+          address: origin,
+          city: origin.split(',')[0], // Simple extraction
+          postalCode: ''
         },
-        {
-          id: 'rate_express',
-          provider: 'Express Shipping',
-          service: '2-Day',
-          estimatedDays: '2',
-          cost: Math.round(standardCost * 2 * 100) / 100,
-          currency: 'USD'
+        deliveryAddress: {
+          name: 'Customer',
+          phone: '',
+          address: destination,
+          city: destination.split(',')[0], // Simple extraction
+          postalCode: ''
         },
-        {
-          id: 'rate_overnight',
-          provider: 'Overnight Shipping',
-          service: 'Next Day',
-          estimatedDays: '1',
-          cost: Math.round(standardCost * 3.5 * 100) / 100,
-          currency: 'USD'
-        }
-      ];
+        package: {
+          weight: weight,
+          length: 10, // Defaults
+          width: 10,
+          height: 10,
+          description: 'Standard Package',
+          value: 1000 // Default value
+        },
+        serviceType: 'standard',
+        paymentMethod: 'prepaid' as const,
+        orderId: 'quote' // Placeholder for rate calculation
+      };
+
+      let shippingRates = [];
+
+      try {
+        const couriers = sriLankaCourierService.getAvailableCouriers();
+
+        // Parallelize cost calculation
+        const ratePromises = couriers.map(async (code) => {
+          try {
+            const cost = await sriLankaCourierService.calculateCost(shipmentRequest, code);
+            // Get service details for display name
+            const services = await sriLankaCourierService.getAvailableServices();
+            const serviceInfo = services.find(s => s.code === code);
+
+            return {
+              id: `rate_${code}`,
+              provider: serviceInfo ? serviceInfo.name : code,
+              service: 'Standard Delivery',
+              estimatedDays: '2-3',
+              cost: cost,
+              currency: 'LKR'
+            };
+          } catch (e) {
+            return null; // Skip if calculation fails for this courier
+          }
+        });
+
+        const results = await Promise.all(ratePromises);
+        shippingRates = results.filter(rate => rate !== null) as any[];
+
+      } catch (serviceError) {
+        logger.warn({
+          message: 'Courier service rate calculation failed, falling back to defaults',
+          error: serviceError
+        });
+      }
+
+      // Fallback if no rates found
+      if (shippingRates.length === 0) {
+        const baseRate = 350; // LKR
+        const weightRate = weight ? weight * 50 : 0;
+        const standardCost = baseRate + weightRate;
+
+        shippingRates = [
+          {
+            id: 'rate_standard_fallback',
+            provider: 'Standard Shipping',
+            service: 'Ground',
+            estimatedDays: '3-5',
+            cost: Math.round(standardCost),
+            currency: 'LKR'
+          }
+        ];
+      }
 
       logger.info({
         message: 'Shipping rates calculated',
@@ -101,11 +144,11 @@ export const GET = requirePermission('VIEW_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -171,11 +214,11 @@ export const POST = requirePermission('MANAGE_SETTINGS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

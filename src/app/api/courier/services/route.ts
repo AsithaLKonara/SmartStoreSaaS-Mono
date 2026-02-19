@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,12 +36,15 @@ export const GET = requirePermission('VIEW_SETTINGS')(
         correlation: req.correlationId
       });
 
-      // TODO: Fetch available courier services
+      // Fetch actual available courier services
+      const services = await sriLankaCourierService.getAvailableServices();
+
       return NextResponse.json(successResponse({
-        services: [],
-        message: 'Courier services - implementation pending'
+        services,
+        count: services.length
       }));
     } catch (error: any) {
+
       logger.error({
         message: 'Failed to fetch courier services',
         error: error instanceof Error ? error : new Error(String(error)),
@@ -51,11 +55,11 @@ export const GET = requirePermission('VIEW_SETTINGS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

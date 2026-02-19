@@ -16,126 +16,124 @@ import { requireAuth, getOrganizationScope, AuthenticatedRequest } from '@/lib/m
 
 export const dynamic = 'force-dynamic';
 
+import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
+import { InventoryService } from '@/lib/services/inventory.service';
+import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
+
 /**
  * GET /api/chat
- * Get chat messages (authenticated users, role-based filtering)
+ * Get chat messages
  */
 export const GET = requireAuth(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
-      const where: any = {};
-      
-      // Role-based filtering
-      if (user.role === 'CUSTOMER') {
-        // Customers see only their chats
-        const customer = await prisma.customer.findFirst({
-          where: { email: user.email }
+      const { searchParams } = new URL(req.url);
+      const conversationId = searchParams.get('id');
+
+      if (conversationId) {
+        const conversation = await prisma.conversation.findFirst({
+          where: {
+            id: conversationId,
+            OR: [
+              { organizationId },
+              { customerId: user.id } // Simple check, might need better customer ID mapping
+            ]
+          },
+          include: { messages: { orderBy: { createdAt: 'asc' } } }
         });
-        if (customer) {
-          where.customerId = customer.id;
-        }
-      } else if (organizationId) {
-        // Staff/Admin see chats for their organization
-        where.organizationId = organizationId;
+        return NextResponse.json(successResponse(conversation));
       }
 
-      // TODO: Implement chat model when available
-      // const chats = await prisma.chat.findMany({
-      //   where,
-      //   orderBy: { updatedAt: 'desc' },
-      //   take: 50
-      // });
-      const chats: any[] = [];
-
-      logger.info({
-        message: 'Chats fetched',
-        context: {
-          userId: user.id,
-          organizationId,
-          role: user.role,
-          count: chats.length
-        },
-        correlation: req.correlationId
+      const conversations = await prisma.conversation.findMany({
+        where: user.role === 'CUSTOMER'
+          ? { customerId: user.id }
+          : { organizationId },
+        orderBy: { updatedAt: 'desc' },
+        include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } }
       });
 
-      return NextResponse.json(successResponse(chats));
+      return NextResponse.json(successResponse(conversations));
     } catch (error: any) {
-      logger.error({
-        message: 'Failed to fetch chats',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: {
-          path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
-        },
-        correlation: req.correlationId
-      });
-      
-      return NextResponse.json({
-        success: false,
-        code: 'ERR_INTERNAL',
-        message: 'Failed to fetch chats',
-        correlation: req.correlationId || 'unknown'
-      }, { status: 500 });
+      logger.error({ message: 'Failed to fetch chats', error });
+      return NextResponse.json({ success: false, message: 'Failed to fetch chats' }, { status: 500 });
     }
   }
 );
 
 /**
  * POST /api/chat
- * Send chat message (authenticated users)
+ * Send chat message
  */
 export const POST = requireAuth(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();
-      const { message, conversationId } = body;
+      const { message, conversationId, toAI = false } = body;
 
-      if (!message) {
-        throw new ValidationError('Message is required', {
-          fields: { message: !message }
+      if (!message) throw new ValidationError('Message is required');
+
+      let convoId = conversationId;
+      const organizationId = getOrganizationScope(user) || 'default-org';
+
+      // 1. Create or verify conversation
+      if (!convoId) {
+        const newConvo = await prisma.conversation.create({
+          data: {
+            organizationId,
+            customerId: user.role === 'CUSTOMER' ? user.id : undefined,
+            type: toAI ? 'AI_SUPPORT' : 'SUPPORT'
+          }
+        });
+        convoId = newConvo.id;
+      }
+
+      // 2. Save user message
+      const userMsg = await prisma.conversationMessage.create({
+        data: {
+          conversationId: convoId,
+          senderId: user.id,
+          senderRole: user.role === 'CUSTOMER' ? 'CUSTOMER' : 'HUMAN',
+          content: message
+        }
+      });
+
+      // 3. AI Response if requested
+      let aiResponse;
+      if (toAI) {
+        // Fetch context for AI
+        const [inventory, velocity] = await Promise.all([
+          InventoryService.getInventory({ organizationId, limit: 5 }),
+          SalesVelocityService.getOrganizationVelocity(organizationId)
+        ]);
+
+        const context: AIContext = {
+          inventory: inventory.items,
+          salesVelocity: velocity,
+          analytics: { todayDate: new Date().toISOString() }
+        };
+
+        const aiDecision = await AIBrainService.decideNextAction(context);
+
+        aiResponse = await prisma.conversationMessage.create({
+          data: {
+            conversationId: convoId,
+            senderRole: 'AI',
+            content: `[AI Decision: ${aiDecision.action}] ${aiDecision.reason}`,
+            metadata: aiDecision.data as any
+          }
         });
       }
 
-      logger.info({
-        message: 'Chat message sent',
-        context: {
-          userId: user.id,
-          organizationId: user.organizationId,
-          conversationId
-        },
-        correlation: req.correlationId
-      });
-
-      // TODO: Save actual message
       return NextResponse.json(successResponse({
-        messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        message,
-        sentAt: new Date().toISOString()
+        userMessage: userMsg,
+        aiMessage: aiResponse,
+        conversationId: convoId
       }), { status: 201 });
+
     } catch (error: any) {
-      logger.error({
-        message: 'Failed to send chat message',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: {
-          path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
-        },
-        correlation: req.correlationId
-      });
-      
-      if (error instanceof ValidationError) {
-        throw error;
-      }
-      
-      return NextResponse.json({
-        success: false,
-        code: 'ERR_INTERNAL',
-        message: 'Failed to send chat message',
-        correlation: req.correlationId || 'unknown'
-      }, { status: 500 });
+      logger.error({ message: 'Failed to send chat message', error });
+      return NextResponse.json({ success: false, message: 'Failed to send chat message' }, { status: 500 });
     }
   }
 );

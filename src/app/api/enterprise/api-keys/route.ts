@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { requireRole, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { prisma } from '@/lib/prisma';
+import { AuditService } from '@/lib/audit';
+import * as crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,24 +29,17 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         correlation: req.correlationId
       });
 
-      // TODO: Implement API keys fetching
-      // This would typically involve querying API keys from database
-      const apiKeys = [
-        {
-          id: 'key_1',
-          name: 'Production API Key',
-          key: 'sk_prod_****',
-          permissions: ['read', 'write'],
-          lastUsed: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        }
-      ];
+      // Fetch actual API keys from database
+      const apiKeys = await prisma.apiKey.findMany({
+        where: { organizationId },
+        orderBy: { createdAt: 'desc' }
+      });
 
       return NextResponse.json(successResponse(apiKeys));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch API keys',
-        error: error instanceof Error ? error : new Error(String(error)),
+        error: error instanceof Error ? error.message : String(error),
         context: {
           path: req.nextUrl.pathname,
           userId: user.id,
@@ -51,11 +47,11 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -79,28 +75,52 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
       }
 
       const body = await req.json();
+      const { name, permissions, expiresAt } = body;
+
+      if (!name) {
+        throw new ValidationError('Name is required for API key');
+      }
 
       logger.info({
-        message: 'API key created',
+        message: 'API key creation requested',
         context: {
           userId: user.id,
-          organizationId
+          organizationId,
+          name
         },
         correlation: req.correlationId
       });
 
-      // TODO: Implement API key creation
-      // This would typically involve creating API key in database
-      const newApiKey = {
-        id: `key_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        name: body.name,
-        key: `sk_${Math.random().toString(36).substring(2, 15)}`,
-        permissions: body.permissions || ['read'],
-        createdAt: new Date().toISOString()
-      };
+      // Generate a secure API key
+      const keyPrefix = 'sk_';
+      const keyBuffer = crypto.randomBytes(24);
+      const fullKey = `${keyPrefix}${keyBuffer.toString('hex')}`;
+
+      // Create API key in database
+      const newApiKey = await prisma.apiKey.create({
+        data: {
+          name,
+          key: fullKey,
+          organizationId,
+          // role: body.role || 'READ_ONLY', // Default to read only if field exists
+          isActive: true,
+          expiresAt: expiresAt ? new Date(expiresAt) : null,
+        }
+      });
+
+      // Audit log the creation
+      await AuditService.log({
+        userId: user.id,
+        organizationId,
+        action: 'CREATE_API_KEY',
+        resource: 'API_KEY',
+        resourceId: newApiKey.id,
+        details: { name }
+      });
 
       return NextResponse.json(successResponse(newApiKey), { status: 201 });
     } catch (error: any) {
+
       logger.error({
         message: 'Failed to create API key',
         error: error instanceof Error ? error : new Error(String(error)),
@@ -111,11 +131,11 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

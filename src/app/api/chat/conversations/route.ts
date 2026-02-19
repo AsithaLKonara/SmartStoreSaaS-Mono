@@ -38,8 +38,11 @@ export const GET = requireAuth(
         where.organizationId = organizationId;
       }
 
-      const conversations = await prisma.ai_conversations.findMany({
-        where,
+      const conversations = await prisma.conversation.findMany({
+        where: {
+          ...where,
+          type: 'AI'
+        },
         orderBy: { updatedAt: 'desc' },
         take: 50
       });
@@ -67,7 +70,7 @@ export const GET = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -122,11 +125,11 @@ export const POST = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

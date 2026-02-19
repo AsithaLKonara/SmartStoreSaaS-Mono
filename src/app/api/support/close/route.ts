@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
-  
+
   const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
     async (req: AuthenticatedRequest, user) => {
       try {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fetch ticket to validate access
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId }
         });
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Update ticket status
-        const updatedTicket = await prisma.support_tickets.update({
+        const updatedTicket = await prisma.supportTicket.update({
           where: { id: ticketId },
           data: {
             status: 'closed',
@@ -89,11 +89,11 @@ export async function POST(request: NextRequest) {
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

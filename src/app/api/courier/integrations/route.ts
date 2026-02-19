@@ -12,6 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -36,15 +38,17 @@ export const GET = requirePermission('VIEW_INTEGRATIONS')(
         correlation: req.correlationId
       });
 
-      // TODO: Fetch actual courier integrations
+      // Fetch actual courier integrations
+      const integrations = await sriLankaCourierService.getAvailableServices();
+
       return NextResponse.json(successResponse({
-        integrations: [],
-        message: 'Courier integrations - implementation pending'
+        integrations,
+        count: integrations.length
       }));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch courier integrations',
-        error: error instanceof Error ? error : new Error(String(error)),
+        error: error instanceof Error ? error.message : String(error),
         context: {
           path: req.nextUrl.pathname,
           userId: user.id,
@@ -52,11 +56,11 @@ export const GET = requirePermission('VIEW_INTEGRATIONS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -80,16 +84,14 @@ export const POST = requirePermission('MANAGE_INTEGRATIONS')(
       }
 
       const body = await req.json();
-      const { courierName, apiKey, config } = body;
+      const { courierName, courierCode, apiKey, baseUrl, config } = body;
 
-      if (!courierName || !apiKey) {
-        throw new ValidationError('Courier name and API key are required', {
-          fields: { courierName: !courierName, apiKey: !apiKey }
-        });
+      if (!courierName || !courierCode) {
+        throw new ValidationError('Courier name and code are required');
       }
 
       logger.info({
-        message: 'Courier integration created',
+        message: 'Courier integration requested',
         context: {
           userId: user.id,
           organizationId,
@@ -98,13 +100,23 @@ export const POST = requirePermission('MANAGE_INTEGRATIONS')(
         correlation: req.correlationId
       });
 
-      // TODO: Create actual courier integration
+      // Create actual courier integration using service
+      await sriLankaCourierService.addCourier({
+        name: courierName,
+        code: courierCode,
+        apiKey: apiKey || 'mock-key',
+        baseUrl: baseUrl || 'https://api.courier.lk',
+        isActive: true,
+        organizationId
+      });
+
       return NextResponse.json(successResponse({
-        integrationId: `int_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        courierCode,
         courierName,
         message: 'Integration created successfully'
       }), { status: 201 });
     } catch (error: any) {
+
       logger.error({
         message: 'Failed to create courier integration',
         error: error instanceof Error ? error : new Error(String(error)),
@@ -115,11 +127,11 @@ export const POST = requirePermission('MANAGE_INTEGRATIONS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

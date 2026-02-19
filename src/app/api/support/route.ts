@@ -32,27 +32,27 @@ export const GET = requirePermission('VIEW_SUPPORT')(
 
       // Get organization scoping
       const orgId = getOrganizationScope(user);
-      
+
       // Build where clause
       const where: any = {};
-      
+
       // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
       if (orgId) {
         where.organizationId = orgId;
       }
-      
+
       if (status) where.status = status;
       if (priority) where.priority = priority;
-      
+
       // Query database
       const [tickets, total] = await Promise.all([
-        prisma.support_tickets.findMany({
+        prisma.supportTicket.findMany({
           where,
           orderBy: { createdAt: 'desc' },
           skip: (page - 1) * limit,
           take: limit
         }),
-        prisma.support_tickets.count({ where })
+        prisma.supportTicket.count({ where })
       ]);
 
       logger.info({
@@ -92,7 +92,7 @@ export const GET = requirePermission('VIEW_SUPPORT')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -127,7 +127,7 @@ export const POST = requirePermission('CREATE_SUPPORT_TICKET')(
       }
 
       // Create ticket in database
-      const ticket = await prisma.support_tickets.create({
+      const ticket = await prisma.supportTicket.create({
         data: {
           id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: subject,
@@ -168,11 +168,11 @@ export const POST = requirePermission('CREATE_SUPPORT_TICKET')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

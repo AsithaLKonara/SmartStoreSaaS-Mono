@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 import { logger } from '@/lib/logger';
+import { payHereService } from '@/lib/payments/payhereService';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,11 +29,15 @@ export const POST = withErrorHandlerApp(
         }
       });
 
-      // TODO: Process PayHere payment notification
+      // Process notification (validates signature and updates DB)
+      const result = await payHereService.processNotification(body);
+
       return NextResponse.json(successResponse({
         received: true,
+        status: result.status,
         orderId: order_id
       }));
+
     } catch (error: any) {
       logger.error({
         message: 'PayHere notification processing failed',

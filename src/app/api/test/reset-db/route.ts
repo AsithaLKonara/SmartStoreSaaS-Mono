@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
     await prisma.category.deleteMany({});
 
     // Delete customer-related data
-    await prisma.loyalty_transactions.deleteMany({});
+    await prisma.loyaltyTransaction.deleteMany({});
     await prisma.customerLoyalty.deleteMany({});
-    await prisma.wishlist_items.deleteMany({});
-    await prisma.wishlists.deleteMany({});
+    await prisma.wishlistItem.deleteMany({});
+    await prisma.wishlist.deleteMany({});
     await prisma.customer.deleteMany({});
 
     // Delete warehouse data
-    await prisma.warehouse_inventory.deleteMany({});
+    await prisma.warehouseInventory.deleteMany({});
     await prisma.warehouse.deleteMany({});
 
     // Delete procurement data
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     await prisma.referral.deleteMany({});
 
     // Delete integration data
-    await prisma.whatsapp_messages.deleteMany({});
+    await prisma.whatsAppMessage.deleteMany({});
     await prisma.whatsAppIntegration.deleteMany({});
     await prisma.wooCommerceIntegration.deleteMany({});
 

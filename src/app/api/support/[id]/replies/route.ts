@@ -28,7 +28,7 @@ export async function GET(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const ticketId = resolvedParams.id;
-  
+
   const handler = requirePermission('VIEW_SUPPORT_TICKETS')(
     async (req: AuthenticatedRequest, user) => {
       try {
@@ -42,7 +42,7 @@ export async function GET(
         }
 
         // Fetch ticket to validate access
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId }
         });
 
@@ -62,13 +62,13 @@ export async function GET(
 
         // Fetch replies from database
         const [replies, total] = await Promise.all([
-          prisma.support_replies.findMany({
+          prisma.supportReply.findMany({
             where: { ticketId },
             orderBy: { createdAt: 'asc' },
             skip: (page - 1) * limit,
             take: limit
           }),
-          prisma.support_replies.count({ where: { ticketId } })
+          prisma.supportReply.count({ where: { ticketId } })
         ]);
 
         logger.info({
@@ -104,11 +104,11 @@ export async function GET(
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -133,7 +133,7 @@ export async function POST(
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const ticketId = resolvedParams.id;
-  
+
   // CUSTOMER can create replies for their own tickets, others need MANAGE_SUPPORT_TICKETS
   const handler = requirePermission('CREATE_SUPPORT_TICKET')(
     async (req: AuthenticatedRequest, user) => {
@@ -152,7 +152,7 @@ export async function POST(
         }
 
         // Fetch ticket to validate access
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId }
         });
 
@@ -171,7 +171,7 @@ export async function POST(
         }
 
         // Create reply in database
-        const reply = await prisma.support_replies.create({
+        const reply = await prisma.supportReply.create({
           data: {
             id: `reply_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             ticketId,
@@ -184,7 +184,7 @@ export async function POST(
         });
 
         // Update ticket last activity
-        await prisma.support_tickets.update({
+        await prisma.supportTicket.update({
           where: { id: ticketId },
           data: { updatedAt: new Date() }
         });
@@ -214,11 +214,11 @@ export async function POST(
           },
           correlation: correlationId
         });
-        
+
         if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',

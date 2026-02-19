@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,43 +27,60 @@ export const GET = requireRole('SUPER_ADMIN')(
 
       // SUPER_ADMIN can query specific organization or all
       if (!organizationId) {
-        throw new ValidationError('Organization ID is required', {
-          fields: { organizationId: !organizationId }
-        });
+        throw new ValidationError('Organization ID is required');
       }
 
-      const filters: any = {
-        organizationId,
-        limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50,
-        offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0
-      };
+      const where: any = { organizationId };
 
       if (searchParams.get('userId')) {
-        filters.userId = searchParams.get('userId');
+        where.userId = searchParams.get('userId');
       }
       if (searchParams.get('action')) {
-        filters.action = searchParams.get('action');
+        where.action = searchParams.get('action');
       }
       if (searchParams.get('resource')) {
-        filters.resource = searchParams.get('resource');
+        where.resource = searchParams.get('resource');
       }
-      if (searchParams.get('startDate')) {
-        filters.startDate = new Date(searchParams.get('startDate')!);
-      }
-      if (searchParams.get('endDate')) {
-        filters.endDate = new Date(searchParams.get('endDate')!);
+      if (searchParams.get('startDate') || searchParams.get('endDate')) {
+        where.createdAt = {};
+        if (searchParams.get('startDate')) {
+          where.createdAt.gte = new Date(searchParams.get('startDate')!);
+        }
+        if (searchParams.get('endDate')) {
+          where.createdAt.lte = new Date(searchParams.get('endDate')!);
+        }
       }
 
-      // TODO: Implement audit logs query when audit_log table is available
-      const logs: any[] = [];
-      const total = 0;
+      const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50;
+      const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0;
+
+      // Query audit logs
+      const [logs, total] = await Promise.all([
+        prisma.auditLog.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        }),
+        prisma.auditLog.count({ where })
+      ]);
 
       logger.info({
         message: 'Audit logs fetched',
         context: {
           userId: user.id,
           organizationId,
-          count: logs.length
+          count: logs.length,
+          total
         },
         correlation: req.correlationId
       });
@@ -70,8 +88,8 @@ export const GET = requireRole('SUPER_ADMIN')(
       return NextResponse.json(
         successResponse(logs, {
           total,
-          limit: filters.limit,
-          offset: filters.offset
+          limit,
+          offset
         })
       );
     } catch (error: any) {
@@ -84,11 +102,11 @@ export const GET = requireRole('SUPER_ADMIN')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

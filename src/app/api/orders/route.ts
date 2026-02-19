@@ -131,9 +131,37 @@ export const POST = requirePermission('CREATE_ORDERS')(
         }, { status: 400 });
       }
 
+      // Security Check: If user is a CUSTOMER, they can only create orders for themselves
+      let effectiveCustomerId = customerId;
+      if (user.role === 'CUSTOMER') {
+        const customer = await prisma.customer.findFirst({
+          where: { email: user.email, organizationId }
+        });
+
+        if (!customer) {
+          return NextResponse.json({
+            success: false,
+            message: 'Customer record not found for your account'
+          }, { status: 403 });
+        }
+
+        if (customerId && customerId !== customer.id) {
+          logger.warn({
+            message: 'Unauthorized order attempt',
+            context: { userId: user.id, requestedCustomerId: customerId, actualCustomerId: customer.id }
+          });
+          return NextResponse.json({
+            success: false,
+            message: 'You can only create orders for your own account'
+          }, { status: 403 });
+        }
+
+        effectiveCustomerId = customer.id;
+      }
+
       // Business logic delegated to service
       const order = await OrderService.createOrder({
-        customerId,
+        customerId: effectiveCustomerId,
         organizationId,
         items,
         subtotal,
@@ -144,6 +172,7 @@ export const POST = requirePermission('CREATE_ORDERS')(
         notes,
         createdById: user.id
       });
+
 
       logger.info({
         message: 'Order created via Service',

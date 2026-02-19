@@ -40,18 +40,18 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
 
       // Query SMS campaigns from database
       const [campaigns, total] = await Promise.all([
-        prisma.sms_campaigns.findMany({
+        prisma.smsCampaign.findMany({
           where,
           orderBy: { createdAt: 'desc' },
           skip: (page - 1) * limit,
           take: limit,
           include: {
-            sms_templates: {
+            template: {
               select: { name: true, content: true }
             }
           }
         }),
-        prisma.sms_campaigns.count({ where })
+        prisma.smsCampaign.count({ where })
       ]);
 
       logger.info({
@@ -90,11 +90,11 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -177,11 +177,11 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

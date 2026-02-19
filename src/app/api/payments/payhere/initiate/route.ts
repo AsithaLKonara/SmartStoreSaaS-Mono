@@ -11,6 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { logger } from '@/lib/logger';
+import { payHereService } from '@/lib/payments/payhereService';
+import { AuditService } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,27 +40,29 @@ export const POST = requirePermission('CREATE_ORDERS')(
         throw new ValidationError('Order ID is required');
       }
 
-      // TODO: Implement actual PayHere payment initiation
-      // This would typically involve:
-      // 1. Validating order and customer data
-      // 2. Creating payment request with PayHere API
-      // 3. Storing payment record in database
-      // 4. Returning payment URL for redirection
-
-      const paymentRequest = {
-        id: `payhere_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Use PayHereService to create request params
+      const paymentParams = await payHereService.createPaymentRequest({
         orderId,
-        amount: Math.round(amount * 100), // Convert to cents
+        amount,
         currency: currency.toUpperCase(),
-        customerId: customerId || user.id,
-        customerName: customerName || 'Customer',
-        customerEmail: customerEmail || 'customer@example.com',
-        customerPhone: customerPhone || '+94123456789',
-        status: 'pending',
+        firstName: customerName?.split(' ')[0] || 'Customer',
+        lastName: customerName?.split(' ').slice(1).join(' ') || '',
+        email: customerEmail || 'customer@example.com',
+        phone: customerPhone || '+94000000000',
+        address: 'N/A', // Address might be needed to be passed from frontend
+        city: 'Colombo',
+        country: 'Sri Lanka'
+      }, organizationId);
+
+      // Audit log
+      await AuditService.log({
+        userId: user.id,
         organizationId,
-        paymentUrl: `https://sandbox.payhere.lk/pay/checkout?merchant_id=TEST_MERCHANT_ID&order_id=${orderId}&amount=${amount}&currency=${currency}`,
-        createdAt: new Date().toISOString()
-      };
+        action: 'INITIATE_PAYMENT',
+        resource: 'PAYMENT_REQUEST',
+        resourceId: orderId,
+        details: { provider: 'payhere', amount, currency }
+      });
 
       logger.info({
         message: 'PayHere payment initiated',
@@ -73,7 +77,10 @@ export const POST = requirePermission('CREATE_ORDERS')(
         correlation: req.correlationId
       });
 
-      return NextResponse.json(successResponse(paymentRequest));
+      return NextResponse.json(successResponse(paymentParams));
+
+
+
     } catch (error: any) {
       logger.error({
         message: 'Failed to initiate PayHere payment',
@@ -85,11 +92,11 @@ export const POST = requirePermission('CREATE_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

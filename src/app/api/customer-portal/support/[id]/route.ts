@@ -34,9 +34,8 @@ export const GET = requireAuth(
         throw new NotFoundError('Customer not found');
       }
 
-      const ticket = await prisma.support_tickets.findUnique({
+      const ticket = await prisma.supportTicket.findUnique({
         where: { id: ticketId }
-        // TODO: Add replies include when available
         // include: { replies: true }
       });
 
@@ -73,11 +72,11 @@ export const GET = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof NotFoundError || error instanceof AuthorizationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -114,7 +113,7 @@ export const PATCH = requireAuth(
         throw new NotFoundError('Customer not found');
       }
 
-      const ticket = await prisma.support_tickets.findUnique({
+      const ticket = await prisma.supportTicket.findUnique({
         where: { id: ticketId }
       });
 
@@ -127,9 +126,8 @@ export const PATCH = requireAuth(
         throw new AuthorizationError('Cannot modify tickets from other customers');
       }
 
-      // TODO: Add reply to ticket using support_ticket_replies table when available
-      // For now, just update the ticket's updatedAt
-      await prisma.support_tickets.update({
+      // Update the ticket's updatedAt
+      await prisma.supportTicket.update({
         where: { id: ticketId },
         data: { updatedAt: new Date() }
       });
@@ -161,11 +159,11 @@ export const PATCH = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError || error instanceof NotFoundError || error instanceof AuthorizationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

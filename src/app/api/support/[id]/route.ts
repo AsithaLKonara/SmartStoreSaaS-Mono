@@ -26,12 +26,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const ticketId = resolvedParams.id;
-  
+
   const handler = requirePermission('VIEW_SUPPORT')(
     async (req: AuthenticatedRequest, user) => {
       try {
         // Query ticket from database
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId },
           include: {
             replies: true
@@ -85,11 +85,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           },
           correlation: req.correlationId
         });
-        
+
         if (error instanceof NotFoundError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
   );
-  
+
   const req = request as AuthenticatedRequest;
   req.correlationId = correlationId;
   return handler(req, {} as any);
@@ -113,7 +113,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const ticketId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_SUPPORT')(
     async (req: AuthenticatedRequest, user) => {
       try {
@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const { status, priority, assignedTo, message } = body;
 
         // Get ticket first
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId }
         });
 
@@ -146,14 +146,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         if (assignedTo) updateData.assignedTo = assignedTo;
         updateData.updatedAt = new Date();
 
-        const updatedTicket = await prisma.support_tickets.update({
+        const updatedTicket = await prisma.supportTicket.update({
           where: { id: ticketId },
           data: updateData
         });
 
         // Add reply if message provided
         if (message) {
-          await prisma.support_replies.create({
+          await prisma.supportReply.create({
             data: {
               id: `reply_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               ticketId,
@@ -192,11 +192,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           },
           correlation: req.correlationId
         });
-        
+
         if (error instanceof NotFoundError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -206,7 +206,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
   );
-  
+
   const req = request as AuthenticatedRequest;
   req.correlationId = correlationId;
   return handler(req, {} as any);
@@ -220,12 +220,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
   const resolvedParams = params instanceof Promise ? await params : params;
   const ticketId = resolvedParams.id;
-  
+
   const handler = requirePermission('MANAGE_SUPPORT')(
     async (req: AuthenticatedRequest, user) => {
       try {
         // Get ticket first
-        const ticket = await prisma.support_tickets.findUnique({
+        const ticket = await prisma.supportTicket.findUnique({
           where: { id: ticketId }
         });
 
@@ -244,12 +244,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }
 
         // Delete replies first (cascade)
-        await prisma.support_replies.deleteMany({
+        await prisma.supportReply.deleteMany({
           where: { ticketId }
         });
 
         // Delete ticket
-        await prisma.support_tickets.delete({
+        await prisma.supportTicket.delete({
           where: { id: ticketId }
         });
 
@@ -279,11 +279,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           },
           correlation: req.correlationId
         });
-        
+
         if (error instanceof NotFoundError) {
           throw error;
         }
-        
+
         return NextResponse.json({
           success: false,
           code: 'ERR_INTERNAL',
@@ -293,7 +293,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
     }
   );
-  
+
   const req = request as AuthenticatedRequest;
   req.correlationId = correlationId;
   return handler(req, {} as any);

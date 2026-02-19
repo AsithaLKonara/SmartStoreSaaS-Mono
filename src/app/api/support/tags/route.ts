@@ -41,7 +41,7 @@ export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
       // Get actual counts from support tickets (using title/description contains)
       const tagsWithCounts = await Promise.all(
         standardTags.map(async (tag) => {
-          const count = await prisma.support_tickets.count({
+          const count = await prisma.supportTicket.count({
             where: {
               organizationId,
               OR: [
@@ -111,15 +111,15 @@ export const POST = requirePermission('MANAGE_SUPPORT_TICKETS')(
         throw new ValidationError('User must belong to an organization');
       }
 
-      // Create tag record (using activities for now, can create dedicated tags table)
-      await prisma.activities.create({
+      // Create tag record (using activity for now, can create dedicated tags table)
+      await prisma.activityLog.create({
         data: {
           id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           userId: user.id,
           organizationId,
           type: 'TAG_CREATED',
           description: `Support tag '${name}' created`,
-          metadata: JSON.stringify({ tagName: name, color: color || '#6B7280' })
+          metadata: { tagName: name, color: color || '#6B7280' }
         }
       });
 
