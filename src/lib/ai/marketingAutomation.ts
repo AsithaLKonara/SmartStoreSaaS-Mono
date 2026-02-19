@@ -380,8 +380,8 @@ export class MarketingAutomationEngine {
     priority: string;
   }): Promise<void> {
     try {
-      // Create campaign record (use sms_campaigns table)
-      const marketingCampaign = await prisma.sms_campaigns.create({
+      // Create campaign record (use SmsCampaign table)
+      const marketingCampaign = await prisma.smsCampaign.create({
         data: {
           id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           organizationId: campaign.organizationId,

@@ -360,34 +360,30 @@ export class AIChatService {
   // Chat Conversation Management
   async getChatConversation(conversationId: string, organizationId: string): Promise<ChatConversationData | null> {
     try {
-      const conversation = await prisma.ai_conversations.findFirst({
-        where: { id: conversationId, organizationId }
+      const conversation = await prisma.conversation.findFirst({
+        where: { id: conversationId, organizationId },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'asc' }
+          }
+        }
       });
 
       if (!conversation) return null;
 
-      // messages are stored as a JSON string in the ai_conversations model
-      let parsedMessages: any[] = [];
-      try {
-        parsedMessages = conversation.messages ? JSON.parse(conversation.messages) : [];
-        if (!Array.isArray(parsedMessages)) parsedMessages = [];
-      } catch (e) {
-        parsedMessages = [];
-      }
-
       return {
         id: conversation.id,
-        title: undefined,
-        status: 'open',
-        priority: 'normal',
-        customerId: undefined as any,
-        messages: parsedMessages.map((msg: any) => ({
-          id: msg.id || `${conversation.id}_msg_${Math.random().toString(36).slice(2,8)}`,
-          content: msg.content || String(msg || ''),
-          role: msg.direction === 'INBOUND' || msg.role === 'user' ? 'user' : 'assistant',
-          timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
+        title: (conversation.metadata as any)?.title,
+        status: conversation.status,
+        priority: (conversation.metadata as any)?.priority || 'normal',
+        customerId: conversation.customerId as any,
+        messages: conversation.messages.map((msg) => ({
+          id: msg.id,
+          content: msg.content,
+          role: msg.senderRole.toLowerCase() as any,
+          timestamp: msg.createdAt
         })),
-        assignedTo: undefined,
+        assignedTo: conversation.userId || undefined,
         createdAt: conversation.createdAt,
         updatedAt: conversation.updatedAt
       };
@@ -407,11 +403,11 @@ export class AIChatService {
     priority?: string
   ): Promise<void> {
     try {
-      // ai_conversations model does not have `status`/`priority` fields in the schema
-      // Only update the `updatedAt` timestamp to reflect activity
-      await prisma.ai_conversations.update({
+      await prisma.conversation.update({
         where: { id: conversationId },
         data: {
+          status: status,
+          metadata: priority ? { priority } : undefined,
           updatedAt: new Date()
         }
       });

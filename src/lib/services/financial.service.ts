@@ -123,4 +123,131 @@ export class FinancialService {
             orderBy: { createdAt: 'desc' }
         });
     }
+
+    /**
+     * Generate actual Profit & Loss data
+     */
+    static async getProfitLoss(organizationId: string, startDate?: Date, endDate?: Date) {
+        const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1); // Start of month
+        const end = endDate || new Date();
+
+        // 1. Calculate Revenue (Direct Sales)
+        const sales = await prisma.order.findMany({
+            where: {
+                organizationId,
+                createdAt: { gte: start, lte: end },
+                status: { notIn: ['CANCELLED', 'RETURNED'] }
+            },
+            include: {
+                items: {
+                    include: { product: true }
+                }
+            }
+        });
+
+        let totalRevenue = 0;
+        let totalCogs = 0;
+
+        for (const order of sales) {
+            totalRevenue += Number(order.total);
+            for (const item of order.items) {
+                totalCogs += Number(item.product.cost || 0) * item.quantity;
+            }
+        }
+
+        // 2. Fetch Other Expenses from Journal Entries
+        // Assuming accountType 'EXPENSE' indicates non-COGS expenses
+        const expenseLines = await prisma.journalEntryLine.findMany({
+            where: {
+                journalEntry: {
+                    organizationId,
+                    entryDate: { gte: start, lte: end },
+                    status: 'POSTED'
+                },
+                account: {
+                    accountType: 'EXPENSE'
+                }
+            }
+        });
+
+        const otherExpenses = expenseLines.reduce((sum, line) => sum + (line.debit - line.credit), 0);
+
+        // 3. Gross Profit
+        const grossProfit = totalRevenue - totalCogs;
+
+        // 4. Net Income
+        const netIncome = grossProfit - otherExpenses;
+
+        return {
+            reportType: 'profit_loss',
+            period: { start, end },
+            revenue: {
+                total: totalRevenue,
+                sales: totalRevenue,
+                other: 0 // Placeholder for other revenue types like interest
+            },
+            cogs: totalCogs,
+            grossProfit,
+            expenses: {
+                total: otherExpenses,
+                breakdown: [] // Could be expanded by grouping by accountName
+            },
+            netIncome,
+            margin: totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0
+        };
+    }
+
+    /**
+     * Generate actual Balance Sheet data
+     */
+    static async getBalanceSheet(organizationId: string) {
+        // Fetch all active accounts with their current balances
+        const accounts = await prisma.chartOfAccount.findMany({
+            where: {
+                organizationId,
+                isActive: true
+            }
+        });
+
+        const assets = { total: 0, breakdown: [] as any[] };
+        const liabilities = { total: 0, breakdown: [] as any[] };
+        const equity = { total: 0, breakdown: [] as any[] };
+
+        for (const account of accounts) {
+            const balance = Number(account.balance || 0);
+
+            // Simple classification based on accountType
+            // Standard accounting: Assets (Debit positive), Liabilities/Equity (Credit positive)
+            if (['ASSET', 'BANK', 'RECEIVABLE', 'INVENTORY'].includes(account.accountType)) {
+                assets.total += balance;
+                assets.breakdown.push({ name: account.name, code: account.code, balance });
+            } else if (['LIABILITY', 'PAYABLE', 'CREDIT_CARD'].includes(account.accountType)) {
+                liabilities.total += balance;
+                liabilities.breakdown.push({ name: account.name, code: account.code, balance });
+            } else if (['EQUITY'].includes(account.accountType)) {
+                equity.total += balance;
+                equity.breakdown.push({ name: account.name, code: account.code, balance });
+            }
+        }
+
+        return {
+            reportType: 'balance_sheet',
+            date: new Date(),
+            assets: {
+                total: assets.total,
+                breakdown: assets.breakdown
+            },
+            liabilities: {
+                total: liabilities.total,
+                breakdown: liabilities.breakdown
+            },
+            equity: {
+                total: equity.total,
+                breakdown: equity.breakdown
+            },
+            isBalanced: Math.abs(assets.total - (liabilities.total + equity.total)) < 0.01
+        };
+    }
 }
+
+

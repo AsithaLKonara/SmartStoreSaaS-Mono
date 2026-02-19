@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatAddress } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
 interface SalesForecast {
@@ -341,7 +341,8 @@ export class AIAnalyticsService {
 
       // Simple route optimization - group by area
       const routes = orders.reduce((acc, order) => {
-        const area = (order.customer.address as string)?.split(',')[1]?.trim() || 'Unknown';
+        const addressStr = formatAddress(order.customer.address);
+        const area = addressStr.split(',')[1]?.trim() || 'Unknown';
         if (!acc[area]) {
           acc[area] = [];
         }

@@ -129,12 +129,12 @@ export class AIOrchestrator {
 
         // 2. Automated Action: Create Incident Log (Alert already logged by IoTService)
         // Here we log the *AI's assessment*
-        await prisma.activities.create({
+        await prisma.activityLog.create({
             data: {
                 organizationId,
                 type: 'IOT_TRIAGE',
                 description: `AI Assessment: ${impactAnalysis}. Source Alert: ${alert.message}`,
-                metadata: JSON.stringify({ alert, impact: impactAnalysis })
+                metadata: { alert, impact: impactAnalysis }
             }
         });
 
@@ -224,12 +224,12 @@ export class AIOrchestrator {
         });
 
         try {
-            await prisma.activities.create({
+            await prisma.activityLog.create({
                 data: {
                     organizationId,
                     type: 'AI_DECISION',
                     description: `AI recommended ${decision.action}: ${decision.reason}`,
-                    metadata: JSON.stringify({ decision, contextSummary: context.analytics })
+                    metadata: { decision, contextSummary: context.analytics }
                 }
             });
         } catch (err) {
