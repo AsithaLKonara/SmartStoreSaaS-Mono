@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { 
-  Users, 
-  Search, 
-  Filter, 
+import {
+  Users,
+  Search,
+  Filter,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -25,7 +25,7 @@ interface User {
   name: string;
   email: string;
   role: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING';
   organization: string;
   lastLogin: string;
   createdAt: string;
@@ -50,7 +50,7 @@ export function UserManagement() {
           name: 'John Doe',
           email: 'john@example.com',
           role: 'ADMIN',
-          status: 'active',
+          status: 'ACTIVE',
           organization: 'Tech Solutions Ltd',
           lastLogin: '2024-01-15',
           createdAt: '2024-01-01',
@@ -60,7 +60,7 @@ export function UserManagement() {
           name: 'Jane Smith',
           email: 'jane@example.com',
           role: 'STAFF',
-          status: 'active',
+          status: 'ACTIVE',
           organization: 'Tech Solutions Ltd',
           lastLogin: '2024-01-14',
           createdAt: '2024-01-02',
@@ -70,7 +70,7 @@ export function UserManagement() {
           name: 'Mike Johnson',
           email: 'mike@example.com',
           role: 'ADMIN',
-          status: 'pending',
+          status: 'PENDING',
           organization: 'Fashion Forward',
           lastLogin: 'Never',
           createdAt: '2024-01-10',
@@ -89,11 +89,11 @@ export function UserManagement() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
+      case 'ACTIVE':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
-      case 'inactive':
+      case 'INACTIVE':
         return <Badge className="bg-gray-100 text-gray-800"><XCircle className="w-3 h-3 mr-1" />Inactive</Badge>;
-      case 'pending':
+      case 'PENDING':
         return <Badge className="bg-yellow-100 text-yellow-800"><Calendar className="w-3 h-3 mr-1" />Pending</Badge>;
       default:
         return <Badge>{status}</Badge>;
@@ -102,8 +102,8 @@ export function UserManagement() {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.organization.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.organization.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || user.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -164,7 +164,7 @@ export function UserManagement() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.filter(u => u.status === 'pending').length}</div>
+            <div className="text-2xl font-bold">{users.filter(u => u.status === 'PENDING').length}</div>
             <p className="text-xs text-muted-foreground">
               Awaiting approval
             </p>
@@ -207,9 +207,9 @@ export function UserManagement() {
             className="px-3 py-2 border border-gray-300 rounded-md text-sm"
           >
             <option value="ALL">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="pending">Pending</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="PENDING">Pending</option>
           </select>
         </div>
       </div>

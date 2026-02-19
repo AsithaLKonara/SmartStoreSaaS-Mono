@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { navigationConfig, filterNavigationByRole, NavigationItem } from '@/app/(dashboard)/navigation-config';
+import { AdvancedSearch } from '@/components/search/AdvancedSearch';
 
 interface ModernSidebarProps {
   userRole: string;
@@ -69,7 +70,7 @@ export function ModernSidebar({ userRole, onClose }: ModernSidebarProps) {
               <ChevronRight className="w-4 h-4" />
             )}
           </button>
-          
+
           {isExpanded && (
             <div className="mt-1 space-y-1">
               {item.children!.map(child => renderNavItem(child, depth + 1))}
@@ -85,8 +86,8 @@ export function ModernSidebar({ userRole, onClose }: ModernSidebarProps) {
         href={item.href!}
         onClick={onClose}
         className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 mb-1
-          ${active 
-            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50' 
+          ${active
+            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
             : 'text-gray-300 hover:bg-gray-700 hover:text-white'
           }
           ${depth > 0 ? 'pl-8' : ''}
@@ -133,13 +134,11 @@ export function ModernSidebar({ userRole, onClose }: ModernSidebarProps) {
 
       {/* Search */}
       <div className="p-4 border-t border-gray-700">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search... (Ctrl+K)"
-            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          />
-        </div>
+        <AdvancedSearch
+          showFilters={false}
+          placeholder="Search... (Ctrl+K)"
+          className="w-full"
+        />
       </div>
     </div>
   );

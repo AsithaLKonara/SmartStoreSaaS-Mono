@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 import { EventEmitter } from 'events';
 import { logger } from '@/lib/logger';
-
-const prisma = new PrismaClient();
 
 export interface CourierConfig {
   name: string;

@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { formatAddress } from '../utils';
 import * as XLSX from 'xlsx-js-style';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
@@ -378,18 +379,24 @@ export class BulkOperationsService {
       let fileUrl: string;
       let fileData: unknown;
 
+      // Transform customers to exportable format
+      const exportData = customers.map((customer: any) => ({
+        ...customer,
+        address: formatAddress(customer.address)
+      }));
+
       if (format === 'csv') {
-        fileData = stringify(customers, { header: true });
+        fileData = stringify(exportData, { header: true });
         fileUrl = `data:text/csv;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       } else if (format === 'xlsx') {
-        const worksheet = XLSX.utils.json_to_sheet(customers);
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
         const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
         fileData = buffer;
         fileUrl = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${buffer.toString('base64')}`;
       } else {
-        fileData = JSON.stringify(customers, null, 2);
+        fileData = JSON.stringify(exportData, null, 2);
         fileUrl = `data:application/json;charset=utf-8,${encodeURIComponent(fileData as string)}`;
       }
 
