@@ -4,6 +4,7 @@ import { emailService } from '@/lib/email/emailService';
 import { smsService } from '@/lib/sms/smsService';
 import { iotLogger } from '@/lib/utils/logger';
 import { logger } from '@/lib/logger';
+import { IoTStatus } from '@prisma/client';
 
 export interface IoTDevice {
   id: string;
@@ -16,7 +17,7 @@ export interface IoTDevice {
   ipAddress?: string;
   firmwareVersion: string;
   batteryLevel?: number;
-  status: 'online' | 'offline' | 'maintenance' | 'error';
+  status: IoTStatus | string;
   lastSeen: Date;
   configuration: Record<string, unknown>;
   metadata: Record<string, unknown>;
@@ -161,7 +162,7 @@ export class IoTService {
    */
   async registerDevice(deviceData: Omit<IoTDevice, 'id' | 'lastSeen' | 'installedAt'>): Promise<IoTDevice> {
     try {
-      const device = await prisma.iot_devices.create({
+      const device = await prisma.iotDevice.create({
         data: {
           id: `dev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           name: deviceData.name,
@@ -173,9 +174,9 @@ export class IoTService {
           ipAddress: deviceData.ipAddress,
           firmwareVersion: deviceData.firmwareVersion,
           batteryLevel: deviceData.batteryLevel,
-          status: deviceData.status,
-          configuration: JSON.stringify(deviceData.configuration),
-          metadata: JSON.stringify(deviceData.metadata),
+          status: deviceData.status.toUpperCase() as any,
+          configuration: deviceData.configuration,
+          metadata: deviceData.metadata,
           isActive: deviceData.isActive,
           organizationId: deviceData.organizationId,
           installedAt: new Date(),
@@ -205,10 +206,10 @@ export class IoTService {
       this.deviceConnections.set(deviceId, ws);
 
       // Update device status to online
-      await prisma.iot_devices.update({
+      await prisma.iotDevice.update({
         where: { id: deviceId },
         data: {
-          status: 'online',
+          status: 'ONLINE',
           lastSeen: new Date(),
           updatedAt: new Date()
         }
@@ -246,7 +247,7 @@ export class IoTService {
   ): Promise<SensorReading> {
     try {
       // Create sensor reading record
-      const sensorReading = await prisma.sensor_readings.create({
+      const sensorReading = await prisma.sensorReading.create({
         data: {
           id: `read_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           deviceId,
@@ -254,7 +255,7 @@ export class IoTService {
           value: reading.value,
           unit: reading.unit,
           location: reading.location,
-          metadata: JSON.stringify(reading.metadata || {}),
+          metadata: reading.metadata || {},
           timestamp: new Date()
         }
       });
@@ -328,18 +329,18 @@ export class IoTService {
       // Update customer interactions
       for (const customerDevice of beaconData.customerDevices) {
         if (customerDevice.userId) {
-          await prisma.activities.create({
+          await prisma.activityLog.create({
             data: {
               id: `act_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               type: 'BEACON_INTERACTION',
               description: `Customer detected at beacon ${beaconData.beaconId}`,
               userId: customerDevice.userId,
               organizationId: 'org_pending_lookup', // TODO: Resolve org properly in production
-              metadata: JSON.stringify({
+              metadata: {
                 beaconId: beaconData.beaconId,
                 rssi: beaconData.rssi,
                 proximity: beaconData.proximity
-              })
+              }
             }
           });
         }
@@ -383,7 +384,7 @@ export class IoTService {
   async getEnvironmentalConditions(location: string): Promise<EnvironmentalConditions> {
     try {
       // Aggregate real sensor data
-      const readings = await prisma.sensor_readings.findMany({
+      const readings = await prisma.sensorReading.findMany({
         where: { location },
         orderBy: { timestamp: 'desc' },
         take: 20
@@ -450,11 +451,11 @@ export class IoTService {
     try {
       const whereClause = deviceId ? { id: deviceId } : {};
 
-      const totalDevices = await prisma.iot_devices.count({ where: whereClause });
-      const onlineDevices = await prisma.iot_devices.count({ where: { ...whereClause, status: 'online' } });
-      const offlineDevices = await prisma.iot_devices.count({ where: { ...whereClause, status: 'offline' } });
+      const totalDevices = await prisma.iotDevice.count({ where: whereClause });
+      const onlineDevices = await prisma.iotDevice.count({ where: { ...whereClause, status: 'ONLINE' } });
+      const offlineDevices = await prisma.iotDevice.count({ where: { ...whereClause, status: 'OFFLINE' } });
 
-      const alerts = await prisma.iot_alerts.findMany({
+      const alerts = await prisma.iotAlert.findMany({
         where: {
           ...deviceId ? { deviceId } : {},
           createdAt: {
@@ -465,7 +466,7 @@ export class IoTService {
         take: 50
       });
 
-      const sensorReadingsCount = await prisma.sensor_readings.count({
+      const sensorReadingsCount = await prisma.sensorReading.count({
         where: {
           ...deviceId ? { deviceId } : {},
           timestamp: {
@@ -478,7 +479,7 @@ export class IoTService {
         totalDevices,
         onlineDevices,
         offlineDevices,
-        batteryAlerts: await prisma.iot_alerts.count({ where: { type: 'low_battery' } }),
+        batteryAlerts: await prisma.iotAlert.count({ where: { type: 'low_battery' } }),
         sensorReadings: sensorReadingsCount,
         alerts: alerts.map(this.mapAlertFromDB),
         deviceUptime: {}, // Would require complex interval calculation
@@ -496,14 +497,14 @@ export class IoTService {
    */
   async createAlert(alertData: Omit<IoTAlert, 'id' | 'isResolved' | 'createdAt'>): Promise<IoTAlert> {
     try {
-      const alert = await prisma.iot_alerts.create({
+      const alert = await prisma.iotAlert.create({
         data: {
           id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           deviceId: alertData.deviceId,
           type: alertData.type,
           severity: alertData.severity,
           message: alertData.message,
-          data: JSON.stringify(alertData.data),
+          data: alertData.data,
           isResolved: false,
           createdAt: new Date()
         }
@@ -529,7 +530,7 @@ export class IoTService {
    */
   async resolveAlert(alertId: string, resolvedBy: string): Promise<IoTAlert> {
     try {
-      const alert = await prisma.iot_alerts.update({
+      const alert = await prisma.iotAlert.update({
         where: { id: alertId },
         data: {
           isResolved: true,
@@ -612,10 +613,10 @@ export class IoTService {
       this.deviceConnections.delete(deviceId);
 
       // Update device status to offline
-      await prisma.iot_devices.update({
+      await prisma.iotDevice.update({
         where: { id: deviceId },
         data: {
-          status: 'offline',
+          status: 'OFFLINE',
           updatedAt: new Date()
         }
       });
@@ -666,7 +667,7 @@ export class IoTService {
 
   private async updateDeviceLastSeen(deviceId: string): Promise<void> {
     try {
-      await prisma.iot_devices.update({
+      await prisma.iotDevice.update({
         where: { id: deviceId },
         data: {
           lastSeen: new Date(),
@@ -722,16 +723,16 @@ export class IoTService {
     try {
       if (reading.productId) {
         // Log activity
-        await prisma.product_activities.create({
+        await prisma.productActivity.create({
           data: {
             productId: reading.productId,
             type: 'STATUS_CHANGED',
             description: 'RFID scan update',
-            metadata: JSON.stringify({
+            metadata: {
               lastRFIDScan: reading.timestamp,
               lastLocation: reading.location,
               signalStrength: reading.signalStrength,
-            })
+            }
           }
         });
 
@@ -769,17 +770,17 @@ export class IoTService {
       // Find devices that haven't been seen in 10 minutes
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
 
-      const offlineDevices = await prisma.iot_devices.findMany({
+      const offlineDevices = await prisma.iotDevice.findMany({
         where: {
           lastSeen: { lt: tenMinutesAgo },
-          status: 'online'
+          status: 'ONLINE'
         }
       });
 
       for (const device of offlineDevices) {
-        await prisma.iot_devices.update({
+        await prisma.iotDevice.update({
           where: { id: device.id },
-          data: { status: 'offline' }
+          data: { status: 'OFFLINE' }
         });
 
         await this.createAlert({
@@ -816,10 +817,10 @@ export class IoTService {
 
   private async checkBatteryLevels(): Promise<void> {
     try {
-      const lowBatteryDevices = await prisma.iot_devices.findMany({
+      const lowBatteryDevices = await prisma.iotDevice.findMany({
         where: {
           batteryLevel: { lte: 20 },
-          status: { not: 'maintenance' }
+          status: { not: 'MAINTENANCE' }
         }
       });
 
@@ -868,8 +869,8 @@ export class IoTService {
       batteryLevel: device.batteryLevel,
       status: device.status as any,
       lastSeen: device.lastSeen || new Date(),
-      configuration: typeof device.configuration === 'string' ? JSON.parse(device.configuration) : device.configuration,
-      metadata: typeof device.metadata === 'string' ? JSON.parse(device.metadata) : device.metadata,
+      configuration: device.configuration,
+      metadata: device.metadata,
       isActive: device.isActive,
       installedAt: device.installedAt,
       organizationId: device.organizationId
@@ -885,7 +886,7 @@ export class IoTService {
       unit: reading.unit,
       timestamp: reading.timestamp,
       location: reading.location,
-      metadata: typeof reading.metadata === 'string' ? JSON.parse(reading.metadata) : reading.metadata
+      metadata: reading.metadata
     };
   }
 
@@ -896,7 +897,7 @@ export class IoTService {
       type: alert.type as any,
       severity: alert.severity as any,
       message: alert.message,
-      data: typeof alert.data === 'string' ? JSON.parse(alert.data) : alert.data,
+      data: alert.data,
       isResolved: alert.isResolved,
       createdAt: alert.createdAt,
       resolvedAt: alert.resolvedAt,

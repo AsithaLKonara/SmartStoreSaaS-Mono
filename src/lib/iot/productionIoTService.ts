@@ -53,7 +53,7 @@ export class ProductionIoTService {
     warehouseId?: string;
     firmwareVersion?: string;
   }): Promise<IoTDevice> {
-    const device = await prisma.iot_devices.create({
+    const device = await prisma.iotDevice.create({
       data: {
         id: `device-${Date.now()}`,
         name: deviceData.name,
@@ -82,7 +82,7 @@ export class ProductionIoTService {
     unit: string;
     location: string;
   }): Promise<SensorReading> {
-    const reading = await prisma.sensor_readings.create({
+    const reading = await prisma.sensorReading.create({
       data: {
         id: `reading-${Date.now()}`,
         deviceId: readingData.deviceId,
@@ -104,7 +104,7 @@ export class ProductionIoTService {
    * Get device status
    */
   async getDeviceStatus(deviceId: string): Promise<IoTDevice | null> {
-    const device = await prisma.iot_devices.findUnique({
+    const device = await prisma.iotDevice.findUnique({
       where: { id: deviceId },
     });
 
@@ -119,7 +119,7 @@ export class ProductionIoTService {
     type?: string,
     limit: number = 100
   ): Promise<SensorReading[]> {
-    const readings = await prisma.sensor_readings.findMany({
+    const readings = await prisma.sensorReading.findMany({
       where: {
         deviceId,
         ...(type && { type }),
@@ -141,7 +141,7 @@ export class ProductionIoTService {
     message: string;
     data?: any;
   }): Promise<IoTAlert> {
-    const alert = await prisma.iot_alerts.create({
+    const alert = await prisma.iotAlert.create({
       data: {
         id: `alert-${Date.now()}`,
         deviceId: alertData.deviceId,
@@ -166,7 +166,7 @@ export class ProductionIoTService {
    * Resolve alert
    */
   async resolveAlert(alertId: string, resolvedBy: string): Promise<IoTAlert> {
-    const alert = await prisma.iot_alerts.update({
+    const alert = await prisma.iotAlert.update({
       where: { id: alertId },
       data: {
         isResolved: true,
@@ -182,10 +182,10 @@ export class ProductionIoTService {
    * Get active alerts
    */
   async getActiveAlerts(organizationId: string): Promise<IoTAlert[]> {
-    const alerts = await prisma.iot_alerts.findMany({
+    const alerts = await prisma.iotAlert.findMany({
       where: {
         isResolved: false,
-        iot_devices: {
+        iotDevice: {
           organizationId,
         },
       },
@@ -203,7 +203,7 @@ export class ProductionIoTService {
     deviceId: string,
     status: 'online' | 'offline' | 'maintenance' | 'error'
   ): Promise<void> {
-    await prisma.iot_devices.update({
+    await prisma.iotDevice.update({
       where: { id: deviceId },
       data: {
         status,
@@ -227,7 +227,7 @@ export class ProductionIoTService {
    * Get all devices for organization
    */
   async getDevices(organizationId: string): Promise<IoTDevice[]> {
-    const devices = await prisma.iot_devices.findMany({
+    const devices = await prisma.iotDevice.findMany({
       where: {
         organizationId,
         isActive: true,
@@ -271,7 +271,7 @@ export class ProductionIoTService {
   private async notifyCriticalAlert(alert: any): Promise<void> {
     try {
       // Get device details
-      const device = await prisma.iot_devices.findUnique({
+      const device = await prisma.iotDevice.findUnique({
         where: { id: alert.deviceId },
       });
 
@@ -327,7 +327,7 @@ export class ProductionIoTService {
     health: 'good' | 'fair' | 'poor';
     issues: string[];
   }> {
-    const device = await prisma.iot_devices.findUnique({
+    const device = await prisma.iotDevice.findUnique({
       where: { id: deviceId },
     });
 
@@ -346,9 +346,9 @@ export class ProductionIoTService {
 
     // Check last seen
     if (device.lastSeen) {
-      const hoursSinceLastSeen = 
+      const hoursSinceLastSeen =
         (Date.now() - device.lastSeen.getTime()) / (1000 * 60 * 60);
-      
+
       if (hoursSinceLastSeen > 24) {
         issues.push('Not seen in 24+ hours');
         health = 'poor';
@@ -359,7 +359,7 @@ export class ProductionIoTService {
     }
 
     // Check for recent errors
-    const recentAlerts = await prisma.iot_alerts.count({
+    const recentAlerts = await prisma.iotAlert.count({
       where: {
         deviceId,
         isResolved: false,

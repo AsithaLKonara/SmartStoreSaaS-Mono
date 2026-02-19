@@ -16,15 +16,15 @@ export class IoTService {
     }) {
         const { deviceId, organizationId, name, type, location, metadata } = data;
 
-        return prisma.iot_devices.upsert({
+        return prisma.iotDevice.upsert({
             where: { id: deviceId },
             update: {
                 name,
                 type,
                 location,
-                status: 'online',
+                status: 'ONLINE',
                 lastSeen: new Date(),
-                metadata: metadata ? JSON.stringify(metadata) : undefined,
+                metadata: metadata || undefined,
             },
             create: {
                 id: deviceId,
@@ -32,12 +32,11 @@ export class IoTService {
                 name,
                 type,
                 location,
-                status: 'online',
+                status: 'ONLINE',
                 lastSeen: new Date(),
-                metadata: metadata ? JSON.stringify(metadata) : undefined,
+                metadata: metadata || undefined,
                 macAddress: 'unknown', // Placeholder
                 firmwareVersion: '1.0.0', // Placeholder
-                updatedAt: new Date()
             }
         });
     }
@@ -55,7 +54,7 @@ export class IoTService {
         const { deviceId, type, value, unit, organizationId } = data;
 
         // 1. Persist Reading
-        await prisma.sensor_readings.create({
+        await prisma.sensorReading.create({
             data: {
                 id: `reading-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 deviceId,
@@ -68,8 +67,8 @@ export class IoTService {
         });
 
         // 2. Threshold Check (Basic Heuristic)
-        let alertSeverity = null;
-        let alertMessage = null;
+        let alertSeverity: 'HIGH' | 'MEDIUM' | 'LOW' | null = null;
+        let alertMessage: string | null = null;
 
         if (type === 'TEMPERATURE' && unit === 'C') {
             if (value > 10) { alertSeverity = 'HIGH'; alertMessage = `Temperature critical: ${value}°C`; }
@@ -95,9 +94,9 @@ export class IoTService {
         }
     }
 
-    private static async createIncident(deviceId: string, organizationId: string, type: string, severity: string, message: string) {
+    private static async createIncident(deviceId: string, organizationId: string, type: string, severity: 'HIGH' | 'MEDIUM' | 'LOW', message: string) {
         // Check if open alert exists to avoid spam
-        const existing = await prisma.iot_alerts.findFirst({
+        const existing = await prisma.iotAlert.findFirst({
             where: {
                 deviceId,
                 type,
@@ -106,7 +105,7 @@ export class IoTService {
         });
 
         if (!existing) {
-            await prisma.iot_alerts.create({
+            await prisma.iotAlert.create({
                 data: {
                     id: `alert-${Date.now()}`,
                     deviceId,
@@ -125,15 +124,25 @@ export class IoTService {
      * Get active alerts for an organization
      */
     static async getActiveAlerts(organizationId: string) {
-        return prisma.iot_alerts.findMany({
+        return prisma.iotAlert.findMany({
             where: {
-                iot_devices: { organizationId },
+                iotDevice: { organizationId },
                 isResolved: false
             },
             include: {
-                iot_devices: true
+                iotDevice: true
             },
             orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    /**
+     * Get all registered devices
+     */
+    static async getDevices(organizationId: string) {
+        return prisma.iotDevice.findMany({
+            where: { organizationId },
+            orderBy: { lastSeen: 'desc' }
         });
     }
 }
