@@ -117,3 +117,31 @@ export function generateRandomString(length: number): string {
   return result;
 }
 
+/**
+ * Formats a structured address object into a single string.
+ * Handles both JSON objects and potentially stringified JSON.
+ */
+export function formatAddress(address: any): string {
+  if (!address) return 'Not Provided';
+
+  let addrObj = address;
+  if (typeof address === 'string') {
+    try {
+      addrObj = JSON.parse(address);
+    } catch {
+      return address;
+    }
+  }
+
+  if (typeof addrObj !== 'object') return String(addrObj);
+
+  const parts = [];
+  if (addrObj.street) parts.push(addrObj.street);
+  if (addrObj.city) parts.push(addrObj.city);
+  if (addrObj.state) parts.push(addrObj.state);
+  if (addrObj.zipCode) parts.push(addrObj.zipCode);
+  if (addrObj.country) parts.push(addrObj.country);
+
+  return parts.length > 0 ? parts.join(', ') : 'Empty Address';
+}
+

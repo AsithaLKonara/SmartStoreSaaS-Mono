@@ -30,7 +30,7 @@ model User {
   purchaseOrdersCreated PurchaseOrder[] @relation("PurchaseOrderCreator")
   returnsApproved       Return[]
   giftCardsIssued       GiftCard[]
-  posTransactions       posTransaction[]
+  posTransactions       PosTransaction[]
   procurementInvoices   ProcurementInvoice[]
   rfqs                  RFQ[]
 
@@ -39,7 +39,7 @@ model User {
   mfaMethods            UserMFA[]
   searchHistory         SearchHistory[]
   errorEvents           ErrorEvent[]
-  assignedConversations CustomerConversation[]
+  assignedConversations Conversation[] @relation("AssignedAgent")
   products              Product[]       @relation("ProductCreator")
   orders                Order[]         @relation("OrderCreator")
   browsingHistory       BrowsingHistory[]
@@ -59,48 +59,187 @@ enum ActionOrigin {
   ai
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum DeliveryStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum IoTStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+}
+
+enum SupportStatus {
+  OPEN
+  IN_PROGRESS
+  PENDING
+  CLOSED
+  CANCELLED
+  ESCALATED
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_SHIPPED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  VOID
+  OVERDUE
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  PICKED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum ConversationType {
+  AI
+  SUPPORT
+  CHAT
+  WHATSAPP
+  TICKET
+}
+
+enum SmsStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  COMPLETED
+  FAILED
+}
+
+enum SmsLogStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  CLICKED
+}
+
+enum SocialPlatformType {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  PINTEREST
+  TWITTER
+}
+
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum SocialProductStatus {
+  ACTIVE
+  INACTIVE
+  SYNCING
+  ERROR
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
 model Organization {
   id                      String                   @id @default(cuid())
   name                    String
   domain                  String?                  @unique
   description             String?
   logo                    String?
-  status                  String                   @default("ACTIVE")
+  status                  OrganizationStatus       @default(ACTIVE)
   plan                    PlanType                 @default(FREE)
-  settings                String?
+  settings                Json?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   subscription            Subscription?
-  activities              activities[]
-  ai_analytics            ai_analytics[]
-  ai_conversations        ai_conversations[]
+  activityLogs            ActivityLog[]
+  aiAnalytics             AiAnalytics[]
   analytics               Analytics[]
-  channel_integrations    channel_integrations[]
-  chart_of_accounts       chart_of_accounts[]
+  channelIntegrations     ChannelIntegration[]
+  chartOfAccounts         ChartOfAccount[]
   couriers                Courier[]
-  customer_segments       customer_segments[]
+  customerSegments        CustomerSegment[]
   customers               Customer[]
   deliveries              Delivery[]
-  iot_devices             iot_devices[]
-  journal_entries         journal_entries[]
-  ledger                  ledger[]
+  iotDevices              IotDevice[]
+  journalEntries          JournalEntry[]
+  ledger                  Ledger[]
   orders                  Order[]
   payments                Payment[]
-  performance_metrics     performance_metrics[]
+  performanceMetrics      PerformanceMetric[]
   products                Product[]
   reports                 Report[]
-  sms_campaigns           sms_campaigns[]
-  sms_logs                sms_logs[]
-  sms_subscriptions       sms_subscriptions[]
-  sms_templates           sms_templates[]
-  social_commerce         social_commerce[]
-  support_tickets         support_tickets[]
-  tax_rates               tax_rates[]
-  tax_transactions        tax_transactions[]
+  conversations           Conversation[]
+  smsCampaigns            SmsCampaign[]
+  smsLogs                 SmsLog[]
+  smsSubscriptions        SmsSubscription[]
+  smsTemplates            SmsTemplate[]
+  socialCommerce          SocialCommerce[]
+  supportTickets          SupportTicket[]
+  taxRates                TaxRate[]
+  taxTransactions         TaxTransaction[]
   users                   User[]
   warehouses              Warehouse[]
   whatsappIntegrations    WhatsAppIntegration?
-  whatsapp_messages       whatsapp_messages[]
+  whatsappMessages        WhatsAppMessage[]
   woocommerceIntegrations WooCommerceIntegration[]
   suppliers               Supplier[]
   purchaseOrders          PurchaseOrder[]
@@ -108,11 +247,12 @@ model Organization {
   giftCards               GiftCard[]
   affiliates              Affiliate[]
   referrals               Referral[]
-  posTerminals            posTerminal[]
+  posTerminals            PosTerminal[]
   errorEvents             ErrorEvent[]
-  posTransactions         posTransaction[]
+  posTransactions         PosTransaction[]
   procurementInvoices     ProcurementInvoice[]
   rfqs                    RFQ[]
+  wishlists               Wishlist[]
 
   apiKeys                 ApiKey[]
   auditLogs               AuditLog[]
@@ -120,6 +260,7 @@ model Organization {
   bulkOperations          BulkOperation[]
   workflows               Workflow[]
   personalizationExperiments PersonalizationExperiment[]
+  webhookSubscriptions      WebhookSubscription[]
   @@map("organizations")
 }
 
@@ -128,16 +269,16 @@ model Customer {
   name                       String
   email                      String
   phone                      String?
-  address                    String?
+  address                    Json?
   organizationId             String
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
   loyalty                    CustomerLoyalty[]
-  customer_segment_customers customer_segment_customers[]
+  segmentCustomers           CustomerSegmentCustomer[]
   organization               Organization                 @relation(fields: [organizationId], references: [id])
   orders                     Order[]
-  whatsapp_messages          whatsapp_messages[]
-  wishlists                  wishlists[]
+  whatsappMessages           WhatsAppMessage[]
+  wishlists                  Wishlist[]
   returns                    Return[]
   referralsGiven             Referral[]                   @relation("Referrer")
   referralsReceived          Referral[]                   @relation("Referred")
@@ -145,7 +286,7 @@ model Customer {
   reviewHelpful              ReviewHelpful[]
   totalSpent                 Decimal                      @default(0) // Added for membership/subscription tracking
   subscriptions              Subscription[]
-  conversations              CustomerConversation[]
+  conversations              Conversation[]
   paymentIntents             PaymentIntent[]
  
   createdByOrigin            ActionOrigin                 @default(human)
@@ -183,14 +324,16 @@ model Product {
   updatedAt          DateTime             @updatedAt
   inventoryMovements InventoryMovement[]
   orderItems         OrderItem[]
-  product_activities product_activities[]
+  posItems           PosTransactionItem[]
+  rfqItems           RFQItem[]
+  activities         ProductActivity[]
   variants           ProductVariant[]
   fulfillmentItems   FulfillmentItem[]
   category           Category?            @relation(fields: [categoryId], references: [id])
   organization       Organization         @relation(fields: [organizationId], references: [id])
   createdBy          User?                @relation("ProductCreator", fields: [createdById], references: [id])
-  social_products    social_products[]
-  wishlist_items     wishlist_items[]
+  socialProducts     SocialProduct[]
+  wishlistItems      WishlistItem[]
   purchaseOrderItems PurchaseOrderItem[]
   supplierProducts   SupplierProduct[]
   browsingHistory    BrowsingHistory[]
@@ -240,7 +383,7 @@ model Order {
   orderNumber          String                @unique
   customerId           String
   organizationId       String
-  status               String                @default("PENDING")
+  status               OrderStatus           @default(PENDING)
   total                Decimal
   subtotal             Decimal
   tax                  Decimal               @default(0)
@@ -266,10 +409,10 @@ model Order {
   createdById           String?
   creator               User?                 @relation("OrderCreator", fields: [createdById], references: [id])
  
-  createdByOrigin       ActionOrigin          @default(human)
   updatedByOrigin       ActionOrigin          @default(human)
  
   @@map("orders")
+  @@index([organizationId, createdAt])
 }
 
 model OrderItem {
@@ -295,10 +438,10 @@ model Payment {
   amount         Decimal
   currency       String       @default("LKR")
   method         String
-  status         String       @default("PENDING")
+  status         PaymentStatus @default(PENDING)
   transactionId  String?
   gateway        String?
-  metadata       String?
+  metadata       Json?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -312,19 +455,19 @@ model Delivery {
   orderId                 String
   organizationId          String
   courierId               String?
-  status                  String                    @default("PENDING")
+  status                  DeliveryStatus            @default(PENDING)
   trackingNumber          String?
   estimatedDelivery       DateTime?
   actualDelivery          DateTime?
   customerId              String?
-  address                 String?
+  address                 Json?
   notes                   String?
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
   courier                 Courier?                  @relation(fields: [courierId], references: [id])
   organization            Organization              @relation(fields: [organizationId], references: [id])
   order                   Order                     @relation(fields: [orderId], references: [id])
-  delivery_status_history delivery_status_history[]
+  statusHistory           DeliveryStatusHistory[]
 
   @@map("deliveries")
 }
@@ -401,7 +544,7 @@ model CustomerLoyalty {
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   customer             Customer               @relation(fields: [customerId], references: [id])
-  loyalty_transactions loyalty_transactions[]
+  transactions         LoyaltyTransaction[]
 
   @@map("customer_loyalty")
 }
@@ -410,7 +553,7 @@ model Analytics {
   id             String       @id @default(cuid())
   type           String
   value          Int
-  metadata       String?
+  metadata       Json?
   organizationId String
   createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -422,7 +565,7 @@ model Report {
   id             String       @id @default(cuid())
   name           String
   type           String
-  data           String?
+  data           Json?
   schedule       String?
   organizationId String
   createdById    String?
@@ -436,12 +579,12 @@ model Report {
 model Warehouse {
   id                  String                @id @default(cuid())
   name                String
-  address             String?
+  address             Json?
   organizationId      String
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
-  iot_devices         iot_devices[]
-  warehouse_inventory warehouse_inventory[]
+  iotDevices          IotDevice[]
+  inventory           WarehouseInventory[]
   organization        Organization          @relation(fields: [organizationId], references: [id])
 
   @@map("warehouses")
@@ -456,7 +599,7 @@ model WooCommerceIntegration {
   apiVersion     String?      @default("wc/v3")
   isActive       Boolean      @default(true)
   lastSync       DateTime?
-  syncSettings   String?
+  syncSettings   Json?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -471,7 +614,7 @@ model WhatsAppIntegration {
   accessToken    String
   isActive       Boolean      @default(true)
   lastSync       DateTime?
-  syncSettings   String?
+  syncSettings   Json?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -479,144 +622,142 @@ model WhatsAppIntegration {
   @@map("whatsapp_integrations")
 }
 
-model activities {
-  id             String       @id
-  type           String
-  description    String
-  userId         String?
-  organizationId String
-  metadata       String?
-  createdAt      DateTime     @default(now())
-  organizations  Organization @relation(fields: [organizationId], references: [id])
-}
 
-model ai_analytics {
+model AiAnalytics {
   id             String       @id
   organizationId String
   query          String
-  insights       String
-  dataContext    String?
-  filters        String?
+  insights       Json
+  dataContext    Json?
+  filters        Json?
   createdAt      DateTime     @default(now())
-  organizations  Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("ai_analytics")
 }
 
-model ai_conversations {
-  id             String       @id
-  organizationId String
-  messages       String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime
-  organizations  Organization @relation(fields: [organizationId], references: [id])
-}
+// AiConversation unified into Conversation
 
-model channel_integrations {
+model ChannelIntegration {
   id               String             @id
   name             String
   type             String
   provider         String
   channel          String
   status           String             @default("INACTIVE")
-  credentials      String?
-  settings         String?
+  credentials      Json?
+  settings         Json?
   webhookUrl       String?
   isActive         Boolean            @default(true)
-  metadata         String?
+  metadata         Json?
   config           Json?              // Added missing field
   lastSync         DateTime?          // Added missing field
   organizationId   String
   createdAt        DateTime           @default(now())
   updatedAt        DateTime
-  organizations    Organization       @relation(fields: [organizationId], references: [id])
-  integration_logs integration_logs[]
+  organization     Organization       @relation(fields: [organizationId], references: [id])
+  integrationLogs IntegrationLog[]
+
+  @@map("channel_integrations")
 }
 
-model chart_of_accounts {
-  id                      String                @id
-  organizationId          String
-  code                    String
-  name                    String
-  description             String?
-  accountType             String
-  accountSubType          String
-  parentId                String?
-  isActive                Boolean               @default(true)
-  balance                 Float                 @default(0)
-  currency                String                @default("USD")
-  taxEnabled              Boolean               @default(false)
-  taxRateId               String?
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime
-  tax_rates               tax_rates?            @relation(fields: [taxRateId], references: [id])
-  chart_of_accounts       chart_of_accounts?    @relation("chart_of_accountsTochart_of_accounts", fields: [parentId], references: [id])
-  other_chart_of_accounts chart_of_accounts[]   @relation("chart_of_accountsTochart_of_accounts")
-  organizations           Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  journal_entry_lines     journal_entry_lines[]
-  ledger                  ledger[]
+model ChartOfAccount {
+  id                String              @id
+  organizationId    String
+  code              String
+  name              String
+  description       String?
+  accountType       String
+  accountSubType    String
+  parentId          String?
+  isActive          Boolean             @default(true)
+  balance           Float               @default(0)
+  currency          String              @default("USD")
+  taxEnabled        Boolean             @default(false)
+  taxRateId         String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  taxRate           TaxRate?            @relation(fields: [taxRateId], references: [id])
+  parent            ChartOfAccount?     @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children          ChartOfAccount[]    @relation("AccountHierarchy")
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  journalEntryLines JournalEntryLine[]
+  ledger            Ledger[]
 
   @@unique([organizationId, code])
   @@index([parentId])
   @@index([organizationId])
   @@index([accountType])
+  @@map("chart_of_accounts")
 }
 
-model customer_segment_customers {
-  id                String            @id
-  segmentId         String
-  customerId        String
-  createdAt         DateTime          @default(now())
-  customer_segments customer_segments @relation(fields: [segmentId], references: [id])
-  customers         Customer          @relation(fields: [customerId], references: [id])
+model CustomerSegmentCustomer {
+  id              String          @id
+  segmentId       String
+  customerId      String
+  createdAt       DateTime        @default(now())
+  customerSegment CustomerSegment @relation(fields: [segmentId], references: [id])
+  customer        Customer        @relation(fields: [customerId], references: [id])
+
+  @@map("customer_segment_customers")
 }
 
-model customer_segments {
-  id                         String                       @id
-  name                       String
-  description                String?
-  criteria                   String?
-  organizationId             String
-  isActive                   Boolean                      @default(true)
-  createdAt                  DateTime                     @default(now())
-  updatedAt                  DateTime
-  customer_segment_customers customer_segment_customers[]
-  organizations              Organization                 @relation(fields: [organizationId], references: [id])
-  sms_campaign_segments      sms_campaign_segments[]
+model CustomerSegment {
+  id                       String                    @id
+  name                     String
+  description              String?
+  criteria                 String?
+  organizationId           String
+  isActive                 Boolean                   @default(true)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime
+  customerSegmentCustomers CustomerSegmentCustomer[]
+  organization             Organization              @relation(fields: [organizationId], references: [id])
+  smsCampaignSegments      SmsCampaignSegment[]
+
+  @@map("customer_segments")
 }
 
-model delivery_status_history {
-  id         String   @id
+model DeliveryStatusHistory {
+  id        String   @id
   deliveryId String
-  status     String
-  notes      String?
-  createdAt  DateTime @default(now())
-  deliveries Delivery @relation(fields: [deliveryId], references: [id])
+  status    String
+  notes     String?
+  createdAt DateTime @default(now())
+  delivery  Delivery @relation(fields: [deliveryId], references: [id])
+
+  @@map("delivery_status_history")
 }
 
-model integration_logs {
-  id                   String               @id
+model IntegrationLog {
+  id                   String             @id
   integrationId        String
   level                String
   message              String
-  data                 String?
-  timestamp            DateTime             @default(now())
-  channel_integrations channel_integrations @relation(fields: [integrationId], references: [id])
+  data                 Json?
+  timestamp            DateTime           @default(now())
+  channelIntegration   ChannelIntegration @relation(fields: [integrationId], references: [id])
+
+  @@map("integration_logs")
 }
 
-model iot_alerts {
-  id          String      @id
+model IotAlert {
+  id          String    @id
   deviceId    String
   type        String
   severity    String
   message     String
-  data        String?
-  isResolved  Boolean     @default(false)
+  data        Json?
+  isResolved  Boolean   @default(false)
   resolvedAt  DateTime?
   resolvedBy  String?
-  createdAt   DateTime    @default(now())
-  iot_devices iot_devices @relation(fields: [deviceId], references: [id])
+  createdAt   DateTime  @default(now())
+  iotDevice   IotDevice @relation(fields: [deviceId], references: [id])
+
+  @@map("iot_alerts")
 }
 
-model iot_devices {
+model IotDevice {
   id              String            @id
   name            String
   type            String
@@ -627,22 +768,24 @@ model iot_devices {
   ipAddress       String?
   firmwareVersion String
   batteryLevel    Int?
-  status          String            @default("offline")
+  status          IoTStatus         @default(OFFLINE)
   lastSeen        DateTime?
-  configuration   String?
-  metadata        String?
+  configuration   Json?
+  metadata        Json?
   isActive        Boolean           @default(true)
   organizationId  String
   installedAt     DateTime          @default(now())
   createdAt       DateTime          @default(now())
   updatedAt       DateTime
-  iot_alerts      iot_alerts[]
+  iotAlerts       IotAlert[]
   warehouses      Warehouse?        @relation(fields: [warehouseId], references: [id])
-  organizations   Organization      @relation(fields: [organizationId], references: [id])
-  sensor_readings sensor_readings[]
+  organization    Organization      @relation(fields: [organizationId], references: [id])
+  sensorReadings  SensorReading[]
+
+  @@map("iot_devices")
 }
 
-model posTerminal {
+model PosTerminal {
   id             String           @id @default(cuid())
   name           String
   location       String?
@@ -652,16 +795,16 @@ model posTerminal {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   organization   Organization     @relation(fields: [organizationId], references: [id])
-  transactions   posTransaction[]
+  transactions   PosTransaction[]
 
   @@map("pos_terminals")
 }
 
-model posTransaction {
+model PosTransaction {
   id             String      @id @default(cuid())
   organizationId String
   terminalId     String
-  items          String      // JSON string of transaction items
+  itemsJson      Json?       @map("items") // Kept for transition
   total          Decimal
   paymentMethod  String      @default("CASH")
   cashierId      String
@@ -669,42 +812,58 @@ model posTransaction {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id])
-  terminal       posTerminal @relation(fields: [terminalId], references: [id])
+  terminal       PosTerminal @relation(fields: [terminalId], references: [id])
   cashier        User        @relation(fields: [cashierId], references: [id])
+  transactionItems PosTransactionItem[]
 
   @@map("pos_transactions")
 }
 
-model journal_entries {
-  id                    String                @id
-  organizationId        String
-  entryNumber           String
-  entryDate             DateTime
-  description           String
-  reference             String?
-  status                String                @default("DRAFT")
-  postedAt              DateTime?
-  postedBy              String?
-  reversedAt            DateTime?
-  reversedBy            String?
-  reversalOfId          String?
-  attachments           String?
-  notes                 String?
-  createdBy             String
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime
-  journal_entries       journal_entries?      @relation("journal_entriesTojournal_entries", fields: [reversalOfId], references: [id])
-  other_journal_entries journal_entries[]     @relation("journal_entriesTojournal_entries")
-  organizations         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  journal_entry_lines   journal_entry_lines[]
+model PosTransactionItem {
+  id               String         @id @default(cuid())
+  transactionId    String
+  productId        String
+  variantId        String?
+  quantity         Int
+  unitPrice        Decimal
+  totalPrice       Decimal
+  transaction      PosTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product          Product        @relation(fields: [productId], references: [id])
+
+  @@map("pos_transaction_items")
+}
+
+model JournalEntry {
+  id                  String               @id
+  organizationId      String
+  entryNumber         String
+  entryDate           DateTime
+  description         String
+  reference           String?
+  status              String               @default("DRAFT")
+  postedAt            DateTime?
+  postedBy            String?
+  reversedAt          DateTime?
+  reversedBy          String?
+  reversalOfId        String?
+  attachments         Json?
+  notes               String?
+  createdBy           String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime
+  reversalOf          JournalEntry?        @relation("JournalReversals", fields: [reversalOfId], references: [id])
+  reversals           JournalEntry[]       @relation("JournalReversals")
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lines               JournalEntryLine[]
 
   @@unique([organizationId, entryNumber])
   @@index([status])
   @@index([organizationId])
   @@index([entryDate])
+  @@map("journal_entries")
 }
 
-model journal_entry_lines {
+model JournalEntryLine {
   id                String            @id
   journalEntryId    String
   accountId         String
@@ -713,14 +872,15 @@ model journal_entry_lines {
   credit            Float             @default(0)
   lineNumber        Int
   createdAt         DateTime          @default(now())
-  journal_entries   journal_entries   @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
-  chart_of_accounts chart_of_accounts @relation(fields: [accountId], references: [id])
+  journalEntry      JournalEntry      @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account           ChartOfAccount    @relation(fields: [accountId], references: [id])
 
   @@index([journalEntryId])
   @@index([accountId])
+  @@map("journal_entry_lines")
 }
 
-model ledger {
+model Ledger {
   id                String            @id
   organizationId    String
   accountId         String
@@ -733,16 +893,17 @@ model ledger {
   credit            Float             @default(0)
   balance           Float
   createdAt         DateTime          @default(now())
-  organizations     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  chart_of_accounts chart_of_accounts @relation(fields: [accountId], references: [id])
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  account           ChartOfAccount    @relation(fields: [accountId], references: [id])
 
   @@index([transactionDate])
   @@index([referenceType, referenceId])
   @@index([organizationId])
   @@index([accountId])
+  @@map("ledger")
 }
 
-model loyalty_transactions {
+model LoyaltyTransaction {
   id               String          @id
   customerId       String
   loyaltyId        String
@@ -750,10 +911,12 @@ model loyalty_transactions {
   points           Int
   description      String?
   createdAt        DateTime        @default(now())
-  customer_loyalty CustomerLoyalty @relation(fields: [loyaltyId], references: [id])
+  loyalty          CustomerLoyalty @relation(fields: [loyaltyId], references: [id])
+
+  @@map("loyalty_transactions")
 }
 
-model performance_metrics {
+model PerformanceMetric {
   id             String       @id
   organizationId String
   endpoint       String
@@ -761,64 +924,74 @@ model performance_metrics {
   responseTime   Float
   statusCode     Int          @default(200)
   errorMessage   String?
-  metadata       String?
+  metadata       Json?
   createdAt      DateTime     @default(now())
-  organizations  Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("performance_metrics")
 }
 
-model product_activities {
+model ProductActivity {
   id          String   @id @default(cuid())
   productId   String
   type        String
   quantity    Int      @default(0)
   description String
-  metadata    String?
+  metadata    Json?
   createdAt   DateTime @default(now())
-  products    Product  @relation(fields: [productId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("product_activities")
 }
 
-model sensor_readings {
-  id          String      @id
+model SensorReading {
+  id          String   @id
   deviceId    String
   type        String
   value       Float
   unit        String
   location    String
-  metadata    String?
-  timestamp   DateTime    @default(now())
-  iot_devices iot_devices @relation(fields: [deviceId], references: [id])
+  metadata    Json?
+  timestamp   DateTime @default(now())
+  iotDevice   IotDevice @relation(fields: [deviceId], references: [id])
+
+  @@map("sensor_readings")
 }
 
-model sms_campaign_segments {
-  id                String            @id
+model SmsCampaignSegment {
+  id                String          @id
   campaignId        String
   customerSegmentId String
-  createdAt         DateTime          @default(now())
-  customer_segments customer_segments @relation(fields: [customerSegmentId], references: [id])
-  sms_campaigns     sms_campaigns     @relation(fields: [campaignId], references: [id])
+  createdAt         DateTime        @default(now())
+  customerSegment   CustomerSegment @relation(fields: [customerSegmentId], references: [id])
+  campaign          SmsCampaign     @relation(fields: [campaignId], references: [id])
+
+  @@map("sms_campaign_segments")
 }
 
-model sms_campaigns {
-  id                    String                  @id
+model SmsCampaign {
+  id                    String               @id
   name                  String
   templateId            String
-  status                String                  @default("draft")
+  status                SmsStatus            @default(DRAFT)
   scheduledAt           DateTime?
   startedAt             DateTime?
   completedAt           DateTime?
   organizationId        String
-  createdAt             DateTime                @default(now())
+  createdAt             DateTime             @default(now())
   updatedAt             DateTime
-  sms_campaign_segments sms_campaign_segments[]
-  sms_templates         sms_templates           @relation(fields: [templateId], references: [id])
-  organizations         Organization            @relation(fields: [organizationId], references: [id])
+  segments              SmsCampaignSegment[]
+  template              SmsTemplate          @relation(fields: [templateId], references: [id])
+  organization          Organization         @relation(fields: [organizationId], references: [id])
+
+  @@map("sms_campaigns")
 }
 
-model sms_logs {
+model SmsLog {
   id             String       @id
   phone          String
   message        String
-  status         String       @default("pending")
+  status         SmsLogStatus @default(PENDING)
   provider       String       @default("twilio")
   messageId      String?
   organizationId String
@@ -827,60 +1000,68 @@ model sms_logs {
   clicked        Boolean      @default(false)
   clickedAt      DateTime?
   createdAt      DateTime     @default(now())
-  organizations  Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("sms_logs")
 }
 
-model sms_subscriptions {
+model SmsSubscription {
   id             String       @id
   phone          String
   listId         String
-  customFields   String?
+  customFields   Json?
   isActive       Boolean      @default(true)
   organizationId String
   subscribedAt   DateTime     @default(now())
   unsubscribedAt DateTime?
-  organizations  Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("sms_subscriptions")
 }
 
-model sms_templates {
-  id             String          @id
+model SmsTemplate {
+  id             String        @id
   name           String
   content        String
-  variables      String?
+  variables      Json?
   organizationId String
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
   updatedAt      DateTime
-  sms_campaigns  sms_campaigns[]
-  organizations  Organization    @relation(fields: [organizationId], references: [id])
+  campaigns      SmsCampaign[]
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+
+  @@map("sms_templates")
 }
 
-model social_commerce {
-  id              String            @id
-  platform        String
+model SocialCommerce {
+  id              String             @id
+  platform        SocialPlatformType
   organizationId  String
   accessToken     String?
   refreshToken    String?
   expiresAt       DateTime?
-  isActive        Boolean           @default(true)
+  isActive        Boolean          @default(true)
   lastSync        DateTime?
-  settings        String?
-  createdAt       DateTime          @default(now())
+  settings        Json?
+  createdAt       DateTime         @default(now())
   updatedAt       DateTime
-  organizations   Organization      @relation(fields: [organizationId], references: [id])
-  socialPosts     social_posts[]
-  socialProducts  social_products[]
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  socialPosts     SocialPost[]
+  socialProducts  SocialProduct[]
+
+  @@map("social_commerce")
 }
 
-model social_posts {
+model SocialPost {
   id               String           @id @default(cuid())
   organizationId   String
   platformId       String?          // Renamed from socialCommerceId
   content          String
   mediaUrls        String[]         @default([]) // Changed to String[]
   hashtags         String?
-  platformName     String           @map("platform")
-  status           String           @default("DRAFT")
+  platformName     SocialPlatformType @map("platform")
+  status           SocialPostStatus @default(DRAFT)
   type             String           @default("post") // Added missing field
   productIds       String[]         @default([]) // Added missing field
   metadata         Json?            // Added missing field
@@ -891,31 +1072,34 @@ model social_posts {
   isActive         Boolean          @default(true)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
-  platform         social_commerce? @relation(fields: [platformId], references: [id])
+  socialCommerce  SocialCommerce? @relation(fields: [platformId], references: [id])
+
+  @@map("social_posts")
 }
 
-model social_products {
-  id                String          @id @default(cuid())
-  platformId        String          // Renamed from socialCommerceId
+model SocialProduct {
+  id                String              @id @default(cuid())
+  platformId        String              // Renamed from socialCommerceId
   productId         String
   platformProductId String
-  status            String          @default("active") // Added missing field
-  metadata          Json?           // Added missing field
-  lastSync          DateTime        @default(now())   // Added missing field
-  isActive          Boolean         @default(true)
-  createdAt         DateTime        @default(now())
-  products          Product         @relation(fields: [productId], references: [id])
-  platform          social_commerce @relation(fields: [platformId], references: [id])
+  status            SocialProductStatus @default(ACTIVE) // Added missing field
+  metadata          Json?               // Added missing field
+  lastSync          DateTime       @default(now())   // Added missing field
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  product           Product        @relation(fields: [productId], references: [id])
+  socialCommerce    SocialCommerce @relation(fields: [platformId], references: [id])
 
   @@unique([productId, platformId]) // Added unique constraint for upsert
+  @@map("social_products")
 }
 
-model support_tickets {
+model SupportTicket {
   id             String            @id
   title          String
   description    String
-  priority       String            @default("medium")
-  status         String            @default("open")
+  priority       SupportPriority   @default(MEDIUM)
+  status         SupportStatus     @default(OPEN)
   phone          String?
   email          String?
   organizationId String
@@ -927,11 +1111,13 @@ model support_tickets {
   escalatedAt      DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime
-  organizations  Organization      @relation(fields: [organizationId], references: [id])
-  replies        support_replies[]
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+  replies        SupportReply[]
+
+  @@map("support_tickets")
 }
 
-model support_replies {
+model SupportReply {
   id         String          @id
   ticketId   String
   message    String
@@ -940,12 +1126,13 @@ model support_replies {
   authorName String
   isInternal Boolean         @default(false)
   createdAt  DateTime        @default(now())
-  ticket     support_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket     SupportTicket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId])
+  @@map("support_replies")
 }
 
-model tax_rates {
+model TaxRate {
   id                String              @id
   organizationId    String
   name              String
@@ -960,16 +1147,17 @@ model tax_rates {
   description       String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime
-  chart_of_accounts chart_of_accounts[]
-  organizations     Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  tax_transactions  tax_transactions[]
+  accounts          ChartOfAccount[]
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  taxTransactions   TaxTransaction[]
 
   @@unique([organizationId, code])
   @@index([organizationId])
   @@index([isActive])
+  @@map("tax_rates")
 }
 
-model tax_transactions {
+model TaxTransaction {
   id              String       @id
   organizationId  String
   taxRateId       String
@@ -983,16 +1171,17 @@ model tax_transactions {
   referenceId     String?
   description     String?
   createdAt       DateTime     @default(now())
-  tax_rates       tax_rates    @relation(fields: [taxRateId], references: [id])
-  organizations   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  taxRate         TaxRate      @relation(fields: [taxRateId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([transactionDate])
   @@index([taxRateId])
   @@index([referenceType, referenceId])
   @@index([organizationId])
+  @@map("tax_transactions")
 }
 
-model warehouse_inventory {
+model WarehouseInventory {
   id               String    @id
   warehouseId      String
   productId        String
@@ -1001,10 +1190,12 @@ model warehouse_inventory {
   reservedQuantity Int       @default(0)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime
-  warehouses       Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouse        Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@map("warehouse_inventory")
 }
 
-model whatsapp_messages {
+model WhatsAppMessage {
   id             String       @id
   organizationId String
   customerId     String?
@@ -1020,29 +1211,37 @@ model whatsapp_messages {
   sentAt         DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime
-  customers      Customer?    @relation(fields: [customerId], references: [id])
-  organizations  Organization @relation(fields: [organizationId], references: [id])
+  customer       Customer?    @relation(fields: [customerId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("whatsapp_messages")
 }
 
-model wishlist_items {
-  id         String    @id
+model WishlistItem {
+  id         String   @id
   wishlistId String
   productId  String
-  quantity   Int       @default(1)
-  createdAt  DateTime  @default(now())
-  products   Product   @relation(fields: [productId], references: [id])
-  wishlists  wishlists @relation(fields: [wishlistId], references: [id])
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id])
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+
+  @@map("wishlist_items")
 }
 
-model wishlists {
-  id             String           @id
-  customerId     String
-  name           String           @default("My Wishlist")
-  isPublic       Boolean          @default(false)
-  createdAt      DateTime         @default(now())
+model Wishlist {
+  id             String         @id
+  customerId     String?
+  organizationId String
+  name           String         @default("My Wishlist")
+  isDefault      Boolean        @default(false)
+  createdAt      DateTime       @default(now())
   updatedAt      DateTime
-  wishlist_items wishlist_items[]
-  customers      Customer         @relation(fields: [customerId], references: [id])
+  items          WishlistItem[]
+  customer       Customer?      @relation(fields: [customerId], references: [id])
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+
+  @@map("wishlists")
 }
 
 model Subscription {
@@ -1221,16 +1420,29 @@ model RFQ {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   title          String
-  items          String       // JSON string of requested items
-  suppliers      String?      // JSON string of invited suppliers
+  itemsJson      Json?        @map("items") // Kept for transition
+  suppliersJson  Json?        @map("suppliers") // Kept for transition
   deadline       DateTime?
   status         String       @default("DRAFT")
   createdBy      String
   createdByUser  User         @relation(fields: [createdBy], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  rfqItems       RFQItem[]
 
   @@map("rfqs")
+}
+
+model RFQItem {
+  id        String   @id @default(cuid())
+  rfqId     String
+  productId String
+  quantity  Int
+  notes     String?
+  rfq       RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("rfq_items")
 }
 
 // ============================================================================
@@ -1764,7 +1976,7 @@ model PaymentMethod {
 model Fulfillment {
   id             String    @id @default(cuid())
   orderId        String
-  status         String    @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  status         FulfillmentStatus    @default(PENDING)
   trackingNumber String?
   carrier        String?
   weight         Float?
@@ -1815,61 +2027,36 @@ model Shipment {
   @@index([organizationId])
 }
 
-model ChatSession {
-  id             String   @id @default(cuid())
-  customerId     String?
-  status         String   @default("ACTIVE") // ACTIVE, CLOSED
-  organizationId String
-  startedAt      DateTime @default(now())
-  endedAt        DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+model Conversation {
+  id              String           @id @default(cuid())
+  type            ConversationType @default(SUPPORT)
+  organizationId  String
+  customerId      String?
+  userId          String?          // Assigned agent/user
+  guestId         String?          // For visitor chats
+  status          String           @default("OPEN")
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  customer        Customer?        @relation(fields: [customerId], references: [id])
+  assignedAgent   User?            @relation("AssignedAgent", fields: [userId], references: [id])
+  messages        ConversationMessage[]
 
-  @@map("chat_sessions")
-  @@index([customerId])
-  @@index([organizationId])
-  @@index([status])
+  @@map("conversations")
 }
 
-model CustomerConversation {
-  id             String   @id @default(cuid())
-  sessionId      String?
-  customerId     String?
-  channel        String   @default("web") // Added missing field
-  message        String?  // Made optional as messages are now in ChannelMessage
-  sender         String?  // Made optional
-  status         String   @default("active") // Added missing field
-  priority       String   @default("medium") // Added missing field
-  tags           String[] @default([]) // Added missing field
-  assignedAgentId String?
-  organizationId String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt // Added missing field
-  customer       Customer? @relation(fields: [customerId], references: [id])
-  assignedAgent  User?    @relation(fields: [assignedAgentId], references: [id])
-  messages       ChannelMessage[]
+model ConversationMessage {
+  id              String        @id @default(cuid())
+  conversationId  String
+  senderId        String?       // User ID or Customer ID or SYSTEM/AI
+  senderRole      String        // SYSTEM, AI, HUMAN
+  content         String
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  @@map("customer_conversations")
-  @@index([sessionId])
-  @@index([customerId])
-  @@index([organizationId])
-}
-
-model ChannelMessage {
-  id             String   @id @default(cuid())
-  conversationId String
-  channel        String
-  message        String
-  content        String?
-  isIncoming     Boolean
-  status         String
-  metadata       Json?
-  timestamp      DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  conversation   CustomerConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId])
+  @@map("conversation_messages")
 }
 
 model VoiceCommand {
@@ -1939,10 +2126,10 @@ model ErrorEvent {
 model ProductionAlert {
   id             String   @id @default(cuid())
   type           String
-  severity       String
+  severity       AlertSeverity @default(MEDIUM)
   title          String
   description    String
-  status         String   @default("active")
+  status         AlertStatus   @default(ACTIVE)
   service        String
   metric         String
   threshold      Float
@@ -2133,7 +2320,7 @@ model Refund {
   paymentIntentId String?
   amount          Decimal
   reason          String?
-  status          String         @default("PENDING")
+  status          RefundStatus   @default(PENDING)
   processedAt     DateTime?
   organizationId  String
   createdAt       DateTime       @default(now())
@@ -2154,7 +2341,7 @@ model Invoice {
   amount         Decimal
   tax            Decimal  @default(0)
   total          Decimal
-  status         String   @default("DRAFT")
+  status         InvoiceStatus @default(DRAFT)
   dueDate        DateTime?
   paidAt         DateTime?
   organizationId String
@@ -2222,17 +2409,31 @@ model ABTestVariant {
   @@map("ab_test_variants")
 }
 
-model Activity {
+model ActivityLog {
   id             String       @id @default(cuid())
   organizationId String
+  userId         String?
   type           String
   description    String
   metadata       Json?
   createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id])
 
-  @@map("activities")
-  @@index([organizationId])
-  @@index([type])
   @@index([createdAt])
+}
+
+model WebhookSubscription {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  url            String
+  events         String[]     // e.g. ["order.created", "inventory.low"]
+  secret         String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_subscriptions")
+  @@index([organizationId])
 }

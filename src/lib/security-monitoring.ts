@@ -7,12 +7,12 @@ export interface SecurityAlert {
   id: string;
   organizationId: string;
   type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   title: string;
   description: string;
   source: string;
   metadata: Record<string, any>;
-  status: 'active' | 'acknowledged' | 'resolved';
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED';
   createdAt: Date;
   updatedAt: Date;
   resolvedAt?: Date;
@@ -29,7 +29,7 @@ export interface SecurityMetrics {
     p95: number;
     p99: number;
   };
-  threatLevel: 'low' | 'medium' | 'high' | 'critical';
+  threatLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   lastIncident?: Date;
 }
 
@@ -43,14 +43,14 @@ class SecurityMonitoringService {
         data: {
           organizationId: data.organizationId,
           type: data.type,
-          severity: data.severity,
+          severity: data.severity.toUpperCase() as any,
           title: data.title,
           description: data.description,
           service: data.source, // Map source to service
           metric: 'security_event',
           threshold: 0,
           currentValue: 0,
-          status: data.status,
+          status: data.status.toUpperCase() as any,
           timestamp: new Date(), // Use current time as timestamp
           metadata: data.metadata as any,
           resolvedAt: data.resolvedAt,
@@ -59,7 +59,7 @@ class SecurityMonitoringService {
       });
 
       // Send notifications for critical alerts
-      if (data.severity === 'critical') {
+      if (data.severity.toUpperCase() === 'CRITICAL') {
         await this.sendCriticalAlertNotifications(alert);
       }
 
@@ -91,8 +91,8 @@ class SecurityMonitoringService {
       };
 
       if (filters.type) where.type = filters.type;
-      if (filters.severity) where.severity = filters.severity;
-      if (filters.status) where.status = filters.status;
+      if (filters.severity) where.severity = filters.severity.toUpperCase();
+      if (filters.status) where.status = filters.status.toUpperCase();
 
       const [alerts, total] = await Promise.all([
         prisma.productionAlert.findMany({
@@ -123,9 +123,9 @@ class SecurityMonitoringService {
    */
   async updateAlertStatus(alertId: string, status: string, resolvedBy?: string): Promise<SecurityAlert> {
     try {
-      const updateData: any = { status };
+      const updateData: any = { status: status.toUpperCase() };
 
-      if (status === 'resolved') {
+      if (status.toUpperCase() === 'RESOLVED') {
         updateData.resolvedAt = new Date();
         if (resolvedBy) updateData.resolvedBy = resolvedBy;
       }
@@ -210,13 +210,13 @@ class SecurityMonitoringService {
       }));
 
       // Determine threat level
-      const criticalAlerts = alertsBySeverity.find(s => s.severity === 'critical')?._count.severity || 0;
-      const highAlerts = alertsBySeverity.find(s => s.severity === 'high')?._count.severity || 0;
+      const criticalAlerts = alertsBySeverity.find(s => s.severity === 'CRITICAL')?._count.severity || 0;
+      const highAlerts = alertsBySeverity.find(s => s.severity === 'HIGH')?._count.severity || 0;
 
-      let threatLevel: 'low' | 'medium' | 'high' | 'critical' = 'low';
-      if (criticalAlerts > 0) threatLevel = 'critical';
-      else if (highAlerts > 5) threatLevel = 'high';
-      else if (highAlerts > 2 || totalAlerts > 20) threatLevel = 'medium';
+      let threatLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW';
+      if (criticalAlerts > 0) threatLevel = 'CRITICAL';
+      else if (highAlerts > 5) threatLevel = 'HIGH';
+      else if (highAlerts > 2 || totalAlerts > 20) threatLevel = 'MEDIUM';
 
       // Get last incident
       const lastIncident = await prisma.productionAlert.findFirst({

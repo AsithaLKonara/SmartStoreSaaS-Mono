@@ -149,14 +149,14 @@ export class SMSService {
    */
   async createTemplate(template: Omit<SMSTemplate, 'id'>): Promise<SMSTemplate> {
     try {
-      const createdTemplate = await prisma.sms_templates.create({
+      const createdTemplate = await prisma.smsTemplate.create({
         data: {
           id: `sms_tpl_${Date.now()}`,
           name: template.name,
           content: template.content,
-          variables: JSON.stringify(template.variables),
-          updatedAt: new Date(), // Add required updatedAt field
-          organizations: {
+          variables: template.variables,
+          updatedAt: new Date(),
+          organization: {
             connect: {
               id: process.env.DEFAULT_ORGANIZATION_ID || 'default'
             }
@@ -168,7 +168,7 @@ export class SMSService {
         id: createdTemplate.id,
         name: createdTemplate.name,
         content: createdTemplate.content,
-        variables: JSON.parse(createdTemplate.variables || '[]'), // Parse back to array
+        variables: createdTemplate.variables as string[],
       };
     } catch (error) {
       smsLogger.error('Error creating SMS template', {
@@ -287,9 +287,9 @@ export class SMSService {
    */
   async sendCampaign(campaignId: string): Promise<{ success: boolean; recipientCount: number }> {
     try {
-      const campaign = await prisma.sms_campaigns.findUnique({
+      const campaign = await prisma.smsCampaign.findUnique({
         where: { id: campaignId },
-        // Note: segments is not a direct relation on sms_campaigns
+        // Note: segments is now a direct relation 'segments'
       });
 
       if (!campaign) {
@@ -297,7 +297,7 @@ export class SMSService {
       }
 
       // Fetch template separately
-      const template = await prisma.sms_templates.findUnique({
+      const template = await prisma.smsTemplate.findUnique({
         where: { id: campaign.templateId }
       });
 
@@ -325,10 +325,10 @@ export class SMSService {
       ).length;
 
       // Update campaign status
-      await prisma.sms_campaigns.update({
+      await prisma.smsCampaign.update({
         where: { id: campaignId },
         data: {
-          status: 'completed',
+          status: 'COMPLETED',
           completedAt: new Date(),
         },
       });
@@ -351,15 +351,15 @@ export class SMSService {
   async handleIncomingMessage(from: string, body: string, messageId: string): Promise<void> {
     try {
       // Log incoming message
-      await prisma.sms_logs.create({
+      await prisma.smsLog.create({
         data: {
-          id: `sms_log_${Date.now()}`, // Add required id field
+          id: `sms_log_${Date.now()}`,
           phone: from,
           message: body,
-          status: 'delivered',
+          status: 'RECEIVED',
           provider: 'twilio',
           messageId,
-          organizations: {
+          organization: {
             connect: {
               id: process.env.DEFAULT_ORGANIZATION_ID || 'default'
             }
@@ -411,16 +411,16 @@ export class SMSService {
   private async triggerCustomerServiceWorkflow(phone: string, message: string): Promise<void> {
     try {
       // Create support ticket
-      await prisma.support_tickets.create({
+      await prisma.supportTicket.create({
         data: {
           id: `ticket_${Date.now()}`,
           title: `SMS Support Request from ${phone}`,
           description: message,
-          priority: 'medium',
-          status: 'open',
+          priority: 'MEDIUM',
+          status: 'OPEN',
           phone,
           updatedAt: new Date(), // Add required updatedAt field
-          organizations: {
+          organization: {
             connect: {
               id: process.env.DEFAULT_ORGANIZATION_ID || 'default'
             }
@@ -445,7 +445,7 @@ export class SMSService {
    */
   async getAnalytics(startDate: Date, endDate: Date): Promise<SMSAnalytics> {
     try {
-      const logs = await prisma.sms_logs.findMany({
+      const logs = await prisma.smsLog.findMany({
         where: {
           sentAt: {
             gte: startDate,
@@ -481,12 +481,12 @@ export class SMSService {
   async addToSMSList(phone: string, listId: string, organizationId: string, customFields?: Record<string, unknown>): Promise<void> {
     try {
       // Store SMS subscription in the database
-      await prisma.sms_subscriptions.create({
+      await prisma.smsSubscription.create({
         data: {
-          id: `sms_sub_${Date.now()}`, // Add required id field
+          id: `sms_sub_${Date.now()}`,
           phone,
           listId,
-          customFields: customFields ? JSON.stringify(customFields) : null,
+          customFields: customFields || null,
           organizationId,
           isActive: true,
           subscribedAt: new Date()
@@ -505,7 +505,7 @@ export class SMSService {
   async removeFromSMSList(phone: string, listId: string, organizationId: string): Promise<void> {
     try {
       // Update SMS subscription to inactive
-      await prisma.sms_subscriptions.updateMany({
+      await prisma.smsSubscription.updateMany({
         where: {
           phone,
           listId,
@@ -591,14 +591,14 @@ export class SMSService {
       });
 
       // Log test SMS
-      await prisma.sms_logs.create({
+      await prisma.smsLog.create({
         data: {
           id: `sms_log_test_${Date.now()}`, // Add required id field
           phone: process.env.TWILIO_PHONE_NUMBER!,
           message: 'Test SMS sent',
           status: 'SENT',
           provider: this.provider,
-          organizations: {
+          organization: {
             connect: {
               id: process.env.DEFAULT_ORGANIZATION_ID || 'default'
             }

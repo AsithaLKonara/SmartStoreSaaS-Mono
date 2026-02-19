@@ -1,3 +1,5 @@
+import { formatAddress } from '../utils';
+
 /**
  * PDF Generation Utilities
  * Uses jsPDF for client-side PDF generation
@@ -11,11 +13,11 @@ export interface InvoiceData {
     name: string;
     email: string;
     phone: string;
-    address: string;
+    address: any;
   };
   organization: {
     name: string;
-    address: string;
+    address: any;
     phone: string;
     email: string;
   };
@@ -62,7 +64,7 @@ Due Date: ${data.dueDate}
 
 From:
 ${data.organization.name}
-${data.organization.address}
+${formatAddress(data.organization.address)}
 ${data.organization.phone}
 ${data.organization.email}
 
@@ -70,7 +72,7 @@ To:
 ${data.customer.name}
 ${data.customer.email}
 ${data.customer.phone}
-${data.customer.address}
+${formatAddress(data.customer.address)}
 
 Items:
 ${data.items.map((item, i) => `

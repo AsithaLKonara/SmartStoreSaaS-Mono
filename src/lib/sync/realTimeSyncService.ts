@@ -406,9 +406,8 @@ export class RealTimeSyncService extends EventEmitter {
 
     switch (action) {
       case 'create':
-        // Use CustomerConversation or similar if available
-        if ('customerConversation' in prisma) {
-          await (prisma as any).customerConversation.create({
+        if ('conversation' in prisma) {
+          await (prisma as any).conversation.create({
             data: {
               ...data as any,
               organizationId
