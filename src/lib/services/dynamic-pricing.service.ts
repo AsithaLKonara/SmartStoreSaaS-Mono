@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { SalesVelocityService } from './sales-velocity.service';
-import { InventoryService } from './inventory.service';
-import { logger } from '@/lib/logger';
+import { AIBrainService, AIContext } from './ai-brain.service';
 
 export interface PricingRecommendation {
     productId: string;
+    productSku: string;
     currentPrice: number;
     recommendedPrice: number;
     reason: string;
@@ -13,7 +13,7 @@ export interface PricingRecommendation {
 
 export class DynamicPricingService {
     /**
-     * Analyze products and suggest price optimizations
+     * Analyze products and suggest price optimizations using AI Brain
      */
     static async getPriceRecommendations(organizationId: string): Promise<PricingRecommendation[]> {
         const products = await prisma.product.findMany({
@@ -29,43 +29,28 @@ export class DynamicPricingService {
                 organizationId
             });
 
-            const recommendation = this.analyzePrice(product, velocity);
-            if (recommendation) {
-                recommendations.push(recommendation);
+            const context: AIContext = {
+                inventory: [product],
+                salesVelocity: velocity,
+                analytics: {
+                    stockRatio: product.minStock > 0 ? product.stock / product.minStock : 10
+                }
+            };
+
+            const decision = await AIBrainService.decideNextAction(context);
+
+            if (decision.action === 'UPDATE_PRODUCT_PRICE') {
+                recommendations.push({
+                    productId: product.id,
+                    productSku: product.sku,
+                    currentPrice: Number(product.price),
+                    recommendedPrice: decision.data.newPrice,
+                    reason: decision.reason,
+                    confidence: 0.9 // Default confidence for AI suggestions
+                });
             }
         }
 
         return recommendations;
-    }
-
-    private static analyzePrice(product: any, velocity: any): PricingRecommendation | null {
-        const currentPrice = Number(product.price);
-        const stock = product.stock;
-        const minStock = product.minStock;
-        const unitsPerDay = velocity.unitsPerDay;
-
-        // Logic 1: High Demand + Low Stock = Price Increase
-        if (unitsPerDay > 5 && stock < minStock * 2) {
-            return {
-                productId: product.id,
-                currentPrice,
-                recommendedPrice: Number((currentPrice * 1.05).toFixed(2)),
-                reason: `High demand (${unitsPerDay} units/day) and low stock (${stock}) detected. Suggesting 5% increase to optimize margin.`,
-                confidence: 0.85
-            };
-        }
-
-        // Logic 2: Low Demand + High Stock = Price Decrease
-        if (unitsPerDay < 1 && stock > minStock * 5 && stock > 50) {
-            return {
-                productId: product.id,
-                currentPrice,
-                recommendedPrice: Number((currentPrice * 0.90).toFixed(2)),
-                reason: `Slow moving stock detected (${unitsPerDay} units/day with ${stock} in hand). Suggesting 10% discount to clear inventory.`,
-                confidence: 0.75
-            };
-        }
-
-        return null;
     }
 }

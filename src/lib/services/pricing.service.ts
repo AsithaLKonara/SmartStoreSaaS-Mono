@@ -88,12 +88,12 @@ export class PricingService {
             });
 
             // Log the price change activity
-            await tx.product_activities.create({
+            await tx.productActivity.create({
                 data: {
                     productId,
                     type: 'PRICE_UPDATE',
                     description: `Price updated to ${newPrice} (Source: ${updatedBy})${reason ? `: ${reason}` : ''}`,
-                    metadata: JSON.stringify({ oldPrice: product.price, newPrice, updatedBy })
+                    metadata: { oldPrice: (product.price as unknown as number), newPrice, updatedBy }
                 }
             });
 

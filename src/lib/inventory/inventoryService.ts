@@ -246,23 +246,23 @@ export class InventoryService {
 
       // Create activity records for stock movements
       if (quantity > 0) {
-        await prisma.product_activities.create({
+        await prisma.productActivity.create({
           data: {
             productId,
             type: 'STOCK_ADDED',
             quantity,
             description: `Stock added: ${quantity} units`,
-            metadata: JSON.stringify({
+            metadata: {
               reason: 'manual_adjustment',
               previousQuantity: currentStock,
               newQuantity: currentStock + (typeof quantity === 'number' ? quantity : Number(quantity)),
               adjustedBy: userId,
               timestamp: new Date()
-            })
+            }
           }
         });
       } else if (quantity < 0) {
-        await prisma.product_activities.create({
+        await prisma.productActivity.create({
           data: {
             productId,
             type: 'STOCK_REDUCED',
@@ -371,16 +371,16 @@ export class InventoryService {
         });
 
         // Create activity record for reservation
-        await prisma.product_activities.create({
+        await prisma.productActivity.create({
           data: {
             type: 'STOCK_REDUCED',
             quantity: item.quantity,
             description: `Inventory reserved for order ${orderId}`,
-            metadata: JSON.stringify({
+            metadata: {
               warehouseId: item.warehouseId,
               orderId,
               reservedQuantity: item.quantity
-            }),
+            },
             productId: item.productId
           }
         });
@@ -657,18 +657,18 @@ export class InventoryService {
       }
 
       // Update alert notification count - store in ProductActivity since Product doesn't have metadata
-      await prisma.product_activities.create({
+      await prisma.productActivity.create({
         data: {
           productId: product.id,
           type: 'STATUS_CHANGED',
           description: 'Low stock alert notification sent',
-          metadata: JSON.stringify({
+          metadata: {
             alertId: (alert as any).id,
             notificationsSent: ((alert as any).notificationsSent || 0) + 1,
             lastNotificationAt: new Date(),
             threshold: (alert as any).threshold,
             currentStock: product.stock
-          })
+          }
         }
       });
     } catch (error) {
@@ -710,7 +710,7 @@ export class InventoryService {
       if (!product) return null;
 
       // Get recent stock movements from product activities
-      const recentActivities = await prisma.product_activities.findMany({
+      const recentActivities = await prisma.productActivity.findMany({
         where: {
           productId,
           type: { in: ['STOCK_ADDED', 'STOCK_REDUCED'] },
@@ -918,7 +918,7 @@ export class InventoryService {
       const alerts: StockAlert[] = [];
       for (const product of products) {
         // Get alerts from ProductActivity records
-        const alertActivities = await prisma.product_activities.findMany({
+        const alertActivities = await prisma.productActivity.findMany({
           where: {
             productId: product.id,
             type: 'STATUS_CHANGED',
@@ -1102,7 +1102,7 @@ export class InventoryService {
     limit: number = 50
   ): Promise<StockMovement[]> {
     try {
-      const activities = await prisma.product_activities.findMany({
+      const activities = await prisma.productActivity.findMany({
         where: {
           productId,
           type: { in: ['STOCK_ADDED', 'STOCK_REDUCED', 'STATUS_CHANGED', 'STATUS_CHANGED', 'STATUS_CHANGED', 'STATUS_CHANGED', 'STATUS_CHANGED'] }
