@@ -3,7 +3,7 @@ import { logger } from '../logger';
 
 export interface SocialPlatform {
   id: string;
-  name: 'facebook' | 'instagram' | 'tiktok' | 'pinterest' | 'twitter';
+  name: 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'PINTEREST' | 'TWITTER';
   isActive: boolean;
   config: unknown;
   lastSync: Date;
@@ -15,7 +15,7 @@ export interface SocialProduct {
   productId: string;
   platformId: string;
   platformProductId: string;
-  status: 'active' | 'inactive' | 'syncing' | 'error';
+  status: 'ACTIVE' | 'INACTIVE' | 'SYNCING' | 'ERROR';
   metadata: unknown;
   lastSync: Date;
 }
@@ -29,7 +29,7 @@ export interface SocialPost {
   productIds: string[];
   scheduledAt?: Date;
   publishedAt?: Date;
-  status: 'DRAFT' | 'scheduled' | 'published' | 'failed';
+  status: 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED';
   engagement: {
     likes: number;
     comments: number;
@@ -59,7 +59,7 @@ export interface SocialAnalytics {
 
 export class SocialCommerceService {
   async getSocialPlatforms(organizationId: string): Promise<SocialPlatform[]> {
-    const platforms = await prisma.social_commerce.findMany({
+    const platforms = await prisma.socialCommerce.findMany({
       where: { organizationId },
       include: {
         _count: {
@@ -70,9 +70,9 @@ export class SocialCommerceService {
 
     return platforms.map(platform => ({
       id: platform.id,
-      name: platform.platform as 'facebook' | 'instagram' | 'tiktok' | 'pinterest' | 'twitter',
+      name: platform.platform as any,
       isActive: platform.isActive,
-      config: platform.settings ? JSON.parse(platform.settings) : {},
+      config: platform.settings || {},
       lastSync: platform.lastSync || new Date(),
       productCount: platform._count.socialProducts
     }));
@@ -80,7 +80,7 @@ export class SocialCommerceService {
 
   async connectPlatform(organizationId: string, platform: string, config: any): Promise<SocialPlatform> {
     // Check if exists first since we don't know the unique constraint name or if it exists
-    const existing = await prisma.social_commerce.findFirst({
+    const existing = await prisma.socialCommerce.findFirst({
       where: {
         organizationId,
         platform
@@ -89,21 +89,21 @@ export class SocialCommerceService {
 
     let socialPlatform;
     if (existing) {
-      socialPlatform = await prisma.social_commerce.update({
+      socialPlatform = await prisma.socialCommerce.update({
         where: { id: existing.id },
         data: {
-          settings: JSON.stringify(config),
+          settings: config,
           isActive: true,
           lastSync: new Date()
         }
       });
     } else {
-      socialPlatform = await prisma.social_commerce.create({
+      socialPlatform = await prisma.socialCommerce.create({
         data: {
           id: crypto.randomUUID(),
           organizationId,
           platform,
-          settings: JSON.stringify(config),
+          settings: config,
           isActive: true,
           lastSync: new Date(),
           updatedAt: new Date()
@@ -113,9 +113,9 @@ export class SocialCommerceService {
 
     return {
       id: socialPlatform.id,
-      name: socialPlatform.platform as 'facebook' | 'instagram' | 'tiktok' | 'pinterest' | 'twitter',
+      name: socialPlatform.platform as any,
       isActive: socialPlatform.isActive,
-      config: socialPlatform.settings ? JSON.parse(socialPlatform.settings) : {},
+      config: socialPlatform.settings || {},
       lastSync: socialPlatform.lastSync || new Date(),
       productCount: 0
     };
@@ -123,7 +123,7 @@ export class SocialCommerceService {
 
   async syncProductsToPlatform(platformId: string, productIds: string[]): Promise<SocialProduct[]> {
     try {
-      const platform = await prisma.social_commerce.findUnique({
+      const platform = await prisma.socialCommerce.findUnique({
         where: { id: platformId }
       });
 
@@ -141,12 +141,12 @@ export class SocialCommerceService {
         try {
           const platformProductId = await this.syncProductToPlatform(platform, product);
 
-          const socialProduct = await prisma.social_products.upsert({
+          const socialProduct = await prisma.socialProduct.upsert({
             where: {
               productId_platformId: { productId: product.id, platformId }
             },
             update: {
-              status: 'active',
+              status: 'ACTIVE',
               lastSync: new Date(),
               metadata: { lastSync: new Date() }
             },
@@ -154,7 +154,7 @@ export class SocialCommerceService {
               platformId,
               productId: product.id,
               platformProductId,
-              status: 'active',
+              status: 'ACTIVE',
               lastSync: new Date(),
               metadata: { lastSync: new Date() }
             }
@@ -165,7 +165,7 @@ export class SocialCommerceService {
             productId: socialProduct.productId,
             platformId: socialProduct.platformId,
             platformProductId: socialProduct.platformProductId,
-            status: socialProduct.status as 'active' | 'inactive' | 'syncing' | 'error',
+            status: socialProduct.status as any,
             metadata: socialProduct.metadata,
             lastSync: socialProduct.lastSync
           });
@@ -177,19 +177,19 @@ export class SocialCommerceService {
           });
 
           // Update social product with error status
-          await prisma.social_products.upsert({
+          await prisma.socialProduct.upsert({
             where: {
               productId_platformId: { productId: product.id, platformId }
             },
             update: {
-              status: 'error',
+              status: 'ERROR',
               metadata: { error: (error as Error).message }
             },
             create: {
               platformId,
               productId: product.id,
               platformProductId: 'error',
-              status: 'error',
+              status: 'ERROR',
               lastSync: new Date(),
               metadata: { error: (error as Error).message }
             }
@@ -211,7 +211,7 @@ export class SocialCommerceService {
     scheduledAt?: Date;
   }): Promise<SocialPost> {
     try {
-      const post = await prisma.social_posts.create({
+      const post = await prisma.socialPost.create({
         data: {
           platformId,
           organizationId: process.env.DEFAULT_ORGANIZATION_ID || 'default', // Add required field
@@ -235,7 +235,7 @@ export class SocialCommerceService {
         productIds: post.productIds,
         scheduledAt: post.scheduledAt || undefined,
         publishedAt: post.publishedAt || undefined,
-        status: post.status as 'DRAFT' | 'scheduled' | 'published' | 'failed',
+        status: post.status as any,
         engagement: (post.engagement as any) || { likes: 0, comments: 0, shares: 0, clicks: 0 }
       };
     } catch (error) {
@@ -245,7 +245,7 @@ export class SocialCommerceService {
 
   async publishPost(postId: string): Promise<SocialPost> {
     try {
-      const post = await prisma.social_posts.findUnique({
+      const post = await prisma.socialPost.findUnique({
         where: { id: postId }
       });
 
@@ -257,7 +257,7 @@ export class SocialCommerceService {
         throw new Error('Platform ID not found');
       }
 
-      const platform = await prisma.social_commerce.findUnique({
+      const platform = await prisma.socialCommerce.findUnique({
         where: { id: post.platformId }
       });
 
@@ -268,10 +268,10 @@ export class SocialCommerceService {
       try {
         const platformPostId = await this.publishToPlatform(platform, post);
 
-        const updatedPost = await prisma.social_posts.update({
+        const updatedPost = await prisma.socialPost.update({
           where: { id: postId },
           data: {
-            status: 'published',
+            status: 'PUBLISHED',
             publishedAt: new Date(),
             metadata: { platformPostId }
           }
@@ -287,15 +287,15 @@ export class SocialCommerceService {
           productIds: updatedPost.productIds,
           scheduledAt: updatedPost.scheduledAt || undefined,
           publishedAt: updatedPost.publishedAt || undefined,
-          status: updatedPost.status as 'DRAFT' | 'scheduled' | 'published' | 'failed',
+          status: updatedPost.status as any,
           engagement: (updatedPost.engagement as any) || { likes: 0, comments: 0, shares: 0, clicks: 0 }
         };
       } catch (error) {
         // Update post with error status
-        await prisma.social_posts.update({
+        await prisma.socialPost.update({
           where: { id: postId },
           data: {
-            status: 'failed',
+            status: 'FAILED',
             metadata: { error: (error as Error).message }
           }
         });
@@ -308,11 +308,11 @@ export class SocialCommerceService {
 
   async getSocialAnalytics(organizationId: string, startDate: Date, endDate: Date): Promise<SocialAnalytics> {
     try {
-      const platforms = await prisma.social_commerce.findMany({
+      const platforms = await prisma.socialCommerce.findMany({
         where: { organizationId }
       });
 
-      const posts = await prisma.social_posts.findMany({
+      const posts = await prisma.socialPost.findMany({
         where: {
           platform: { organizationId },
           createdAt: { gte: startDate, lte: endDate }
@@ -350,7 +350,7 @@ export class SocialCommerceService {
           return sum;
         }, 0);
 
-        const settings = platform.settings ? JSON.parse(platform.settings) : {};
+        const settings: any = platform.settings || {};
         const followers = settings.followers || 0;
         totalFollowers += followers;
 
@@ -407,7 +407,7 @@ export class SocialCommerceService {
 
   async updatePostEngagement(postId: string, engagement: any): Promise<void> {
     try {
-      await prisma.social_posts.update({
+      await prisma.socialPost.update({
         where: { id: postId },
         data: { engagement }
       });
@@ -419,7 +419,7 @@ export class SocialCommerceService {
   async getScheduledPosts(platformId?: string): Promise<SocialPost[]> {
     try {
       const whereClause: unknown = {
-        status: 'scheduled',
+        status: 'SCHEDULED',
         scheduledAt: { gte: new Date() }
       };
 
@@ -427,7 +427,7 @@ export class SocialCommerceService {
         (whereClause as any).platformId = platformId;
       }
 
-      const posts = await prisma.social_posts.findMany({
+      const posts = await prisma.socialPost.findMany({
         where: whereClause as any,
         include: { platform: true }
       });
@@ -442,7 +442,7 @@ export class SocialCommerceService {
         productIds: post.productIds,
         scheduledAt: post.scheduledAt || undefined,
         publishedAt: post.publishedAt || undefined,
-        status: post.status as 'DRAFT' | 'scheduled' | 'published' | 'failed',
+        status: post.status as any,
         engagement: (post.engagement as any) || { likes: 0, comments: 0, shares: 0, clicks: 0 }
       }));
     } catch (error) {
@@ -452,12 +452,12 @@ export class SocialCommerceService {
 
   async deleteSocialPost(postId: string): Promise<void> {
     try {
-      const post = await prisma.social_posts.findUnique({
+      const post = await prisma.socialPost.findUnique({
         where: { id: postId }
       });
 
-      if (post && post.status === 'published' && post.platformId && ((post.metadata as any)?.platformPostId)) {
-        const platform = await prisma.social_commerce.findUnique({
+      if (post && post.status === 'PUBLISHED' && post.platformId && ((post.metadata as any)?.platformPostId)) {
+        const platform = await prisma.socialCommerce.findUnique({
           where: { id: post.platformId }
         });
 
@@ -466,7 +466,7 @@ export class SocialCommerceService {
         }
       }
 
-      await prisma.social_posts.delete({
+      await prisma.socialPost.delete({
         where: { id: postId }
       });
     } catch (error) {
@@ -476,7 +476,7 @@ export class SocialCommerceService {
 
   async syncInventory(platformId: string): Promise<void> {
     try {
-      const platform = await prisma.social_commerce.findUnique({
+      const platform = await prisma.socialCommerce.findUnique({
         where: { id: platformId }
       });
 
@@ -484,15 +484,15 @@ export class SocialCommerceService {
         throw new Error('Platform not found');
       }
 
-      const socialProducts = await prisma.social_products.findMany({
-        where: { platformId, status: 'active' }
+      const socialProducts = await prisma.socialProduct.findMany({
+        where: { platformId, status: 'ACTIVE' }
       });
 
       for (const socialProduct of socialProducts) {
         try {
           await this.updateInventoryOnPlatform(platform, socialProduct);
 
-          await prisma.social_products.update({
+          await prisma.socialProduct.update({
             where: { id: socialProduct.id },
             data: { lastSync: new Date() }
           });
@@ -503,10 +503,10 @@ export class SocialCommerceService {
             context: { service: 'SocialCommerceService', operation: 'syncInventory', productId: socialProduct.productId, platformId }
           });
 
-          await prisma.social_products.update({
+          await prisma.socialProduct.update({
             where: { id: socialProduct.id },
             data: {
-              status: 'error',
+              status: 'ERROR',
               metadata: { error: (error as Error).message }
             }
           });
@@ -520,14 +520,19 @@ export class SocialCommerceService {
   private async syncProductToPlatform(platform: any, product: any): Promise<string> {
     switch (platform.platform) {
       case 'facebook':
+      case 'FACEBOOK':
         return this.syncToFacebook(platform, product);
       case 'instagram':
+      case 'INSTAGRAM':
         return this.syncToInstagram(platform, product);
       case 'tiktok':
+      case 'TIKTOK':
         return this.syncToTikTok(platform, product);
       case 'pinterest':
+      case 'PINTEREST':
         return this.syncToPinterest(platform, product);
       case 'twitter':
+      case 'TWITTER':
         return this.syncToTwitter(platform, product);
       default:
         throw new Error(`Unsupported platform: ${platform.name}`);
@@ -537,14 +542,19 @@ export class SocialCommerceService {
   private async publishToPlatform(platform: any, post: any): Promise<string> {
     switch (platform.platform) {
       case 'facebook':
+      case 'FACEBOOK':
         return this.publishToFacebook(platform, post);
       case 'instagram':
+      case 'INSTAGRAM':
         return this.publishToInstagram(platform, post);
       case 'tiktok':
+      case 'TIKTOK':
         return this.publishToTikTok(platform, post);
       case 'pinterest':
+      case 'PINTEREST':
         return this.publishToPinterest(platform, post);
       case 'twitter':
+      case 'TWITTER':
         return this.publishToTwitter(platform, post);
       default:
         throw new Error(`Unsupported platform: ${platform.name}`);

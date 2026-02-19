@@ -2,27 +2,26 @@ import { prisma } from '@/lib/prisma';
 
 export interface ChannelMessage {
   id: string;
-  channel: string;
-  message: string;
-  timestamp: Date;
-  isIncoming: boolean;
-  status: string;
-  metadata?: unknown;
+  senderId?: string | null;
+  senderRole: string; // SYSTEM, AI, ADMIN, CUSTOMER
+  content: string;
+  createdAt: Date;
+  status?: string;
+  metadata?: any;
 }
 
 export interface CustomerConversation {
   id: string;
-  customerId: string;
-  channel: string;
+  customerId?: string | null;
+  type: string;
   messages: ChannelMessage[];
   status: string;
-  assignedAgent?: string | null;
-  priority: string;
-  tags: string[];
+  assignedAgentId?: string | null;
+  priority?: string;
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
   organizationId: string;
-  assignedAgentId?: string | null;
 }
 
 export interface UnifiedInbox {
@@ -41,41 +40,45 @@ export interface ChannelIntegration {
 
 export class OmnichannelService {
   async getUnifiedInbox(organizationId: string): Promise<UnifiedInbox> {
-    const conversations = await prisma.customerConversation.findMany({
+    const conversations = await prisma.conversation.findMany({
       where: { organizationId },
       include: {
         customer: true,
         assignedAgent: true,
         messages: {
-          orderBy: { timestamp: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: 1
         }
       },
       orderBy: { updatedAt: 'desc' }
     });
 
-    // Transform Prisma results to match interface
     const transformedConversations: CustomerConversation[] = conversations.map((c: any) => ({
       id: c.id,
       customerId: c.customerId,
-      channel: c.channel,
-      messages: c.messages || [],
+      type: c.type,
+      messages: (c.messages || []).map((m: any) => ({
+        id: m.id,
+        senderRole: m.senderRole,
+        content: m.content,
+        createdAt: m.createdAt,
+        status: (m.metadata as any)?.status
+      })),
       status: c.status,
-      assignedAgent: c.assignedAgent?.id || null,
-      priority: c.priority,
-      tags: c.tags || [],
+      priority: (c.metadata as any)?.priority,
+      tags: (c.metadata as any)?.tags || [],
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
       organizationId: c.organizationId,
-      assignedAgentId: c.assignedAgentId
+      assignedAgentId: c.userId
     }));
 
     const unreadCount = transformedConversations.filter((c: any) =>
-      c.messages.some((m: any) => !m.isIncoming && m.status === 'sent')
+      c.messages.some((m: any) => m.senderRole === 'CUSTOMER' && m.status === 'sent')
     ).length;
 
-    const pendingCount = transformedConversations.filter((c: any) => c.status === 'pending').length;
-    const urgentCount = transformedConversations.filter((c: any) => c.priority === 'urgent').length;
+    const pendingCount = transformedConversations.filter((c: any) => c.status === 'PENDING').length;
+    const urgentCount = transformedConversations.filter((c: any) => c.priority === 'URGENT').length;
 
     return {
       conversations: transformedConversations,
@@ -86,11 +89,11 @@ export class OmnichannelService {
   }
 
   async getConversation(conversationId: string): Promise<CustomerConversation | null> {
-    const conversation = await prisma.customerConversation.findUnique({
+    const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
       include: {
         messages: {
-          orderBy: { timestamp: 'asc' }
+          orderBy: { createdAt: 'asc' }
         },
         customer: true,
         assignedAgent: true
@@ -99,97 +102,109 @@ export class OmnichannelService {
 
     if (!conversation) return null;
 
-    // Transform Prisma result to match interface
     return {
       id: conversation.id,
-      customerId: conversation.customerId ?? '', // Fix null safety
-      channel: conversation.channel,
-      messages: conversation.messages || [],
+      customerId: conversation.customerId,
+      type: conversation.type,
+      messages: (conversation.messages || []).map((m: any) => ({
+        id: m.id,
+        senderId: m.senderId,
+        senderRole: m.senderRole,
+        content: m.content,
+        createdAt: m.createdAt,
+        status: (m.metadata as any)?.status,
+        metadata: m.metadata
+      })),
       status: conversation.status,
-      assignedAgent: conversation.assignedAgent?.id || null,
-      priority: conversation.priority,
-      tags: conversation.tags || [],
+      priority: (conversation.metadata as any)?.priority,
+      tags: (conversation.metadata as any)?.tags || [],
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
       organizationId: conversation.organizationId,
-      assignedAgentId: conversation.assignedAgentId
+      assignedAgentId: conversation.userId
     };
   }
 
-  async sendMessage(conversationId: string, message: string, channel: string): Promise<ChannelMessage> {
+  async sendMessage(conversationId: string, message: string, _channel: string): Promise<ChannelMessage> {
     const conversation = await this.getConversation(conversationId);
     if (!conversation) {
       throw new Error('Conversation not found');
     }
 
-    // Send message through appropriate channel
-    const sentMessage = await this.sendToChannel(channel, conversation.customerId, message);
+    // Send message through appropriate channel (actual implementation depends on type)
+    const sentMessage = await this.sendToChannel(conversation.type.toLowerCase(), conversation.customerId!, message);
 
     // Save message to database
-    const savedMessage = await prisma.channelMessage.create({
+    const savedMessage = await prisma.conversationMessage.create({
       data: {
         conversationId,
-        channel,
-        message,
-        content: message, // Add content field
-        timestamp: new Date(),
-        isIncoming: false,
-        status: 'sent',
-        metadata: sentMessage
+        senderRole: 'ADMIN', // Or appropriate role
+        content: message,
+        createdAt: new Date(),
+        metadata: {
+          status: 'sent',
+          channelResponse: sentMessage
+        }
       }
     });
 
     // Update conversation
-    await prisma.customerConversation.update({
+    await prisma.conversation.update({
       where: { id: conversationId },
       data: {
-        status: 'active',
-        // updatedAt is automatically updated by @updatedAt
+        status: 'ACTIVE',
+        updatedAt: new Date()
       }
     });
 
     return {
       id: savedMessage.id,
-      channel: savedMessage.channel,
-      message: savedMessage.message,
-      timestamp: savedMessage.timestamp,
-      isIncoming: savedMessage.isIncoming,
-      status: savedMessage.status,
+      senderRole: savedMessage.senderRole,
+      content: savedMessage.content,
+      createdAt: savedMessage.createdAt,
+      status: 'sent',
       metadata: savedMessage.metadata
     };
   }
 
   async assignAgent(conversationId: string, agentId: string): Promise<void> {
-    await prisma.customerConversation.update({
+    await prisma.conversation.update({
       where: { id: conversationId },
-      data: { assignedAgentId: agentId }
+      data: { userId: agentId }
     });
   }
 
   async updateConversationStatus(conversationId: string, status: string): Promise<void> {
-    await prisma.customerConversation.update({
+    await prisma.conversation.update({
       where: { id: conversationId },
       data: { status }
     });
   }
 
   async addConversationTags(conversationId: string, tags: string[]): Promise<void> {
-    const conversation = await prisma.customerConversation.findUnique({
+    const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId }
     });
 
     if (!conversation) return;
 
-    const updatedTags = Array.from(new Set([...conversation.tags, ...tags]));
+    const currentMetadata = (conversation.metadata as any) || {};
+    const currentTags = currentMetadata.tags || [];
+    const updatedTags = Array.from(new Set([...currentTags, ...tags]));
 
-    await prisma.customerConversation.update({
+    await prisma.conversation.update({
       where: { id: conversationId },
-      data: { tags: updatedTags }
+      data: {
+        metadata: {
+          ...currentMetadata,
+          tags: updatedTags
+        }
+      }
     });
   }
 
   async getChannelIntegrations(organizationId: string): Promise<ChannelIntegration[]> {
-    const integrations = await prisma.channel_integrations.findMany({
+    const integrations = await prisma.channelIntegration.findMany({
       where: { organizationId }
     });
 
@@ -203,13 +218,13 @@ export class OmnichannelService {
 
   async updateChannelIntegration(organizationId: string, channel: string, config: any): Promise<void> {
     // Find existing integration by organizationId and channel
-    const existing = await prisma.channel_integrations.findFirst({
+    const existing = await prisma.channelIntegration.findFirst({
       where: { organizationId, channel }
     });
 
     if (existing) {
       // Update existing
-      await prisma.channel_integrations.update({
+      await prisma.channelIntegration.update({
         where: { id: existing.id },
         data: {
           config,
@@ -219,7 +234,7 @@ export class OmnichannelService {
       });
     } else {
       // Create new
-      await prisma.channel_integrations.create({
+      await prisma.channelIntegration.create({
         data: {
           id: `ch_int_${Date.now()}`,
           organizationId,
@@ -238,7 +253,7 @@ export class OmnichannelService {
 
   async syncChannelMessages(organizationId: string, channel: string): Promise<void> {
     // Sync messages from external channel
-    const integration = await prisma.channel_integrations.findFirst({ // Fix: Use findFirst instead of findUnique
+    const integration = await prisma.channelIntegration.findFirst({ // Fix: Use findFirst instead of findUnique
       where: { organizationId, channel }
     });
 
@@ -255,52 +270,56 @@ export class OmnichannelService {
     }
 
     // Update last sync time
-    await prisma.channel_integrations.update({
+    await prisma.channelIntegration.update({
       where: { id: integration.id },
       data: { lastSync: new Date() }
     });
   }
 
   async getCustomerHistory(customerId: string): Promise<CustomerConversation[]> {
-    const conversations = await prisma.customerConversation.findMany({
+    const conversations = await prisma.conversation.findMany({
       where: { customerId },
       include: {
         messages: {
-          orderBy: { timestamp: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: 5
         }
       },
       orderBy: { updatedAt: 'desc' }
     });
 
-    // Transform Prisma results to match interface
     return conversations.map((c: any) => ({
       id: c.id,
-      customerId: c.customerId || '',
-      channel: c.channel,
-      messages: c.messages || [],
+      customerId: c.customerId,
+      type: c.type,
+      messages: (c.messages || []).map((m: any) => ({
+        id: m.id,
+        senderRole: m.senderRole,
+        content: m.content,
+        createdAt: m.createdAt,
+        status: (m.metadata as any)?.status
+      })),
       status: c.status,
-      assignedAgent: c.assignedAgent?.id || null,
-      priority: c.priority,
-      tags: c.tags || [],
+      priority: (c.metadata as any)?.priority,
+      tags: (c.metadata as any)?.tags || [],
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
       organizationId: c.organizationId,
-      assignedAgentId: c.assignedAgentId
+      assignedAgentId: c.userId
     }));
   }
 
-  async createConversation(customerId: string, channel: string, initialMessage: string): Promise<CustomerConversation> {
-    const conversation = await prisma.customerConversation.create({
+  async createConversation(customerId: string, channel: string, _initialMessage: string): Promise<CustomerConversation> {
+    const conversation = await prisma.conversation.create({
       data: {
         customerId,
-        channel,
-        status: 'active',
-        priority: 'medium',
-        tags: [],
-        organizationId: 'default-org' // You should implement proper organization resolution
-        // Note: messages relationship doesn't exist in Prisma schema
-        // Consider implementing this functionality when the relationship is available
+        type: channel.toUpperCase() as any,
+        status: 'ACTIVE',
+        metadata: {
+          priority: 'MEDIUM',
+          tags: []
+        },
+        organizationId: 'default-org' // TODO: Implement proper org resolution
       },
       include: {
         messages: true,
@@ -308,20 +327,18 @@ export class OmnichannelService {
       }
     });
 
-    // Transform to match interface
     return {
       id: conversation.id,
-      customerId: conversation.customerId || '',
-      channel: conversation.channel,
-      messages: conversation.messages || [],
+      customerId: conversation.customerId,
+      type: conversation.type,
+      messages: [],
       status: conversation.status,
-      assignedAgent: null,
-      priority: conversation.priority,
-      tags: conversation.tags || [],
+      priority: 'MEDIUM',
+      tags: [],
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
       organizationId: conversation.organizationId,
-      assignedAgentId: conversation.assignedAgentId
+      assignedAgentId: conversation.userId
     };
   }
 
@@ -359,53 +376,49 @@ export class OmnichannelService {
 
   private async processIncomingMessage(organizationId: string, channel: string, message: any): Promise<void> {
     // Find or create conversation
-    let conversation: unknown = await prisma.customerConversation.findFirst({
+    let conversation = await prisma.conversation.findFirst({
       where: {
-        customerId: (message.customerId) || undefined, // Fix null safety - use undefined instead of null
-        channel,
-        status: { in: ['active', 'pending'] }
+        customerId: message.customerId || undefined,
+        type: channel.toUpperCase() as any,
+        status: { in: ['ACTIVE', 'PENDING'] }
       },
       include: {
         messages: true,
-        customer: true // include customer to satisfy CustomerConversation type if needed
+        customer: true
       }
     });
 
-    let customerConversation = conversation as any;
-
-    if (!customerConversation) {
-      // Create a conversation but cast the result to any or specific internal type so we can continue
-      const newConversation = await this.createConversation(message.customerId, channel, message.text);
-      customerConversation = newConversation as any; // Cast for now to proceed
+    if (!conversation) {
+      const newConv = await this.createConversation(message.customerId, channel, message.text);
+      conversation = await prisma.conversation.findUnique({
+        where: { id: newConv.id },
+        include: { messages: true, customer: true }
+      }) as any;
     }
 
-    // Ensure conversation exists
-    if (!customerConversation) {
+    if (!conversation) {
       throw new Error('Failed to create or find conversation');
     }
 
     // Save incoming message
-    await prisma.channelMessage.create({
+    await prisma.conversationMessage.create({
       data: {
-        conversationId: customerConversation.id,
-        conversation: {
-          connect: { id: customerConversation.id }
-        },
-        channel,
-        message: message.text,
-        content: message.text, // Add content field
-        timestamp: new Date(),
-        isIncoming: true,
-        status: 'delivered'
+        conversationId: conversation.id,
+        senderRole: 'CUSTOMER',
+        content: message.text,
+        createdAt: new Date(),
+        metadata: {
+          status: 'delivered'
+        }
       },
     });
 
     // Update conversation
-    await prisma.customerConversation.update({
-      where: { id: customerConversation.id },
+    await prisma.conversation.update({
+      where: { id: conversation.id },
       data: {
-        status: 'active',
-        // updatedAt is automatically updated by @updatedAt
+        status: 'ACTIVE',
+        updatedAt: new Date()
       }
     });
   }

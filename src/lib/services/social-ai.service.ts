@@ -19,13 +19,15 @@ export class SocialAIService {
         const conversation = await this.getOrCreateConversation(senderId, channel, organizationId);
 
         // 2. Persist the incoming message
-        await prisma.channelMessage.create({
+        await prisma.conversationMessage.create({
             data: {
                 conversationId: conversation.id,
-                channel,
-                message,
-                isIncoming: true,
-                status: 'RECEIVED'
+                senderRole: 'CUSTOMER',
+                content: message,
+                metadata: {
+                    channel,
+                    status: 'RECEIVED'
+                }
             }
         });
 
@@ -43,13 +45,15 @@ export class SocialAIService {
         const aiResponse = await AIOrchestrator.handleChatQuery(organizationId, 'ai-agent', message);
 
         // 5. Persist the AI's reply
-        await prisma.channelMessage.create({
+        await prisma.conversationMessage.create({
             data: {
                 conversationId: conversation.id,
-                channel,
-                message: aiResponse.answer,
-                isIncoming: false,
-                status: 'SENT'
+                senderRole: 'AI',
+                content: aiResponse.answer,
+                metadata: {
+                    channel,
+                    status: 'SENT'
+                }
             }
         });
 
@@ -57,17 +61,27 @@ export class SocialAIService {
     }
 
     private static async getOrCreateConversation(senderId: string, channel: string, organizationId: string) {
-        let conv = await prisma.customerConversation.findFirst({
-            where: { sessionId: senderId, organizationId }
+        let conv = await prisma.conversation.findFirst({
+            where: {
+                metadata: {
+                    path: ['sessionId'],
+                    equals: senderId
+                },
+                organizationId
+            }
         });
 
         if (!conv) {
-            conv = await prisma.customerConversation.create({
+            conv = await prisma.conversation.create({
                 data: {
-                    sessionId: senderId,
-                    channel,
+                    type: 'AI', // Or based on channel
                     organizationId,
-                    status: 'active'
+                    status: 'ACTIVE',
+                    metadata: {
+                        sessionId: senderId,
+                        channel,
+                        priority: 'MEDIUM'
+                    }
                 }
             });
         }
@@ -76,7 +90,7 @@ export class SocialAIService {
     }
 
     private static async getHistory(conversationId: string, limit: number = 5) {
-        return prisma.channelMessage.findMany({
+        return prisma.conversationMessage.findMany({
             where: { conversationId },
             take: limit,
             orderBy: { createdAt: 'desc' }

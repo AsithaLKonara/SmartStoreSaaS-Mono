@@ -108,7 +108,7 @@ export async function addPoints(
     });
 
     // Record transaction
-    await prisma.loyalty_transactions.create({
+    await prisma.loyaltyTransaction.create({
       data: {
         id: generateRandomString(12),
         customerId,
@@ -159,7 +159,7 @@ export async function redeemPoints(
       data: { points: newPoints },
     });
 
-    await prisma.loyalty_transactions.create({
+    await prisma.loyaltyTransaction.create({
       data: {
         id: generateRandomString(12),
         customerId,
@@ -237,8 +237,8 @@ export async function getLoyaltyStatus(customerId: string) {
  * Get loyalty transactions history
  */
 export async function getLoyaltyHistory(customerId: string, limit: number = 50) {
-  // customerId is on relation? loyalty_transactions has customerId field.
-  return await prisma.loyalty_transactions.findMany({
+  // customerId is on relation? loyaltyTransaction has customerId field.
+  return await prisma.loyaltyTransaction.findMany({
     where: { customerId },
     orderBy: { createdAt: 'desc' },
     take: limit,

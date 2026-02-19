@@ -86,8 +86,8 @@ export class SupplierService {
                         purchaseOrderId: purchaseOrder.id,
                         productId: item.productId,
                         quantity: item.quantity,
-                        unitCost: item.unitCost,
-                        totalCost: item.quantity * item.unitCost,
+                        unitPrice: item.unitCost,
+                        total: item.quantity * item.unitCost,
                     })),
                 });
             }
@@ -99,6 +99,58 @@ export class SupplierService {
                     items: true,
                 },
             });
+        });
+    }
+
+    /**
+     * Complete purchase order and update supplier performance metrics
+     */
+    static async completePurchaseOrder(poId: string, organizationId: string) {
+        return prisma.$transaction(async (tx) => {
+            const po = await tx.purchaseOrder.findUnique({
+                where: { id: poId, organizationId },
+                include: { items: true }
+            });
+
+            if (!po) throw new Error('Purchase order not found');
+
+            const completedAt = new Date();
+            const leadTimeDays = Math.ceil((completedAt.getTime() - po.orderDate.getTime()) / (1000 * 60 * 60 * 24));
+
+            // 1. Update PO Status
+            const updatedPO = await tx.purchaseOrder.update({
+                where: { id: poId },
+                data: {
+                    status: 'COMPLETED',
+                    completedAt,
+                    receivedDate: completedAt
+                }
+            });
+
+            // 2. Update Supplier lead time
+            await tx.supplier.update({
+                where: { id: po.supplierId },
+                data: {
+                    leadTime: leadTimeDays, // Simple update for now, could be moving average
+                    totalOrders: { increment: 1 },
+                    totalSpent: { increment: po.total }
+                }
+            });
+
+            // 3. Update SupplierProduct lead times
+            for (const item of po.items) {
+                await tx.supplierProduct.updateMany({
+                    where: {
+                        supplierId: po.supplierId,
+                        productId: item.productId
+                    },
+                    data: {
+                        leadTime: leadTimeDays
+                    }
+                });
+            }
+
+            return updatedPO;
         });
     }
 

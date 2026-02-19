@@ -211,14 +211,14 @@ export class BlockchainService {
           method: 'cryptocurrency',
           status: "PENDING",
           organizationId: organizationId,
-          metadata: JSON.stringify({
+          metadata: {
             cryptoCurrency: currency,
             cryptoAmount: amount,
             exchangeRate: exchangeRate,
             walletAddress: paymentAddress,
             confirmations: 0,
             expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
-          })
+          }
         }
       });
 
@@ -263,13 +263,13 @@ export class BlockchainService {
   ): Promise<SupplyChainRecord> {
     try {
       // Store supply chain record in ProductActivity with metadata
-      const record = await prisma.product_activities.create({
+      const record = await prisma.productActivity.create({
         data: {
           id: crypto.randomBytes(16).toString('hex'),
           productId: productId,
           type: "INVENTORY_UPDATE", // Cast to unknown to bypass enum restriction
           description: `Supply chain update: ${stage} at ${location}`,
-          metadata: JSON.stringify({
+          metadata: {
             batchNumber: batchNumber,
             stage: stage,
             location: location,
@@ -277,7 +277,7 @@ export class BlockchainService {
             transactionHash: crypto.randomBytes(32).toString('hex'),
             timestamp: new Date(),
             ...metadata,
-          }),
+          },
         },
       });
 
@@ -301,7 +301,7 @@ export class BlockchainService {
         timestamp: record.createdAt,
         verifiedBy,
         transactionHash,
-        metadata: record.metadata ? JSON.parse(record.metadata) : {},
+        metadata: record.metadata || {},
       };
     } catch (error) {
       logger.error({
@@ -427,7 +427,7 @@ export class BlockchainService {
   }> {
     try {
       // Get supply chain history from ProductActivity
-      const activities = await prisma.product_activities.findMany({
+      const activities = await prisma.productActivity.findMany({
         where: {
           productId,
           type: "INVENTORY_UPDATE",
@@ -439,25 +439,16 @@ export class BlockchainService {
 
       // Convert to SupplyChainRecord format
       const supplyChainHistory: SupplyChainRecord[] = activities.map((activity: any) => {
-        let metadata = activity.metadata;
-        try {
-          if (typeof metadata === 'string') {
-            metadata = JSON.parse(metadata);
-          }
-        } catch (e) {
-          metadata = {};
-        }
-        metadata = metadata || {};
-
+        const metadata = activity.metadata;
         return {
           id: activity.id,
           productId: activity.productId,
-          batchNumber: metadata.batchNumber || '',
-          stage: metadata.stage || 'manufactured',
-          location: metadata.location || '',
+          batchNumber: (metadata as any).batchNumber || '',
+          stage: (metadata as any).stage || 'manufactured',
+          location: (metadata as any).location || '',
           timestamp: activity.createdAt,
-          verifiedBy: metadata.verifiedBy || '',
-          transactionHash: metadata.transactionHash || '',
+          verifiedBy: (metadata as any).verifiedBy || '',
+          transactionHash: (metadata as any).transactionHash || '',
           metadata: metadata
         };
       });
@@ -569,11 +560,11 @@ export class BlockchainService {
         where: { id: paymentId },
         data: {
           status: 'COMPLETED',
-          metadata: JSON.stringify({
+          metadata: {
             transactionHash,
             confirmations: 6,
             confirmedAt: new Date(),
-          }),
+          },
         },
       });
     } catch (error) {

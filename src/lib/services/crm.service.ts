@@ -53,7 +53,7 @@ export class CRMService {
         name: string;
         email: string;
         phone?: string;
-        address?: string;
+        address?: any;
         organizationId: string;
         origin?: 'human' | 'ai';
     }) {
@@ -105,9 +105,8 @@ export class CRMService {
             });
 
             // 3. Log transaction
-            await tx.loyalty_transactions.create({
+            await tx.loyaltyTransaction.create({
                 data: {
-                    id: `tx-${Date.now()}`,
                     customerId,
                     loyaltyId: loyalty.id,
                     type,
