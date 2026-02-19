@@ -1,14 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
-
-const prisma = new PrismaClient();
-
-// Use string literals for OrderStatus since Prisma enums might not be available
-const OrderStatus = {
-  PENDING: 'PENDING',
-  CONFIRMED: 'CONFIRMED',
-  CANCELLED: 'CANCELLED'
-} as const;
+import { prisma } from '@/lib/prisma';
 
 interface PayPalConfig {
   clientId: string;
@@ -230,7 +222,7 @@ export class PayPalService {
       await prisma.order.updateMany({
         where: { paypalOrderId: paypalOrderId },
         data: {
-          status: OrderStatus.CONFIRMED,
+          status: OrderStatus.PROCESSING,
           paypalPaymentId: payment.id,
         },
       });

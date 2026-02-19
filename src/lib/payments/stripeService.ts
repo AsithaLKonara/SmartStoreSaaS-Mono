@@ -1,15 +1,7 @@
-import { PrismaClient, SubscriptionStatus } from '@prisma/client';
+import { OrderStatus, SubscriptionStatus } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { logger } from '@/lib/logger';
-
-const prisma = new PrismaClient();
-
-// Use string literals for OrderStatus since Prisma enums might not be available
-const OrderStatus = {
-  PENDING: 'PENDING',
-  CONFIRMED: 'CONFIRMED',
-  CANCELLED: 'CANCELLED'
-} as const;
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover', // Updated to required version
@@ -275,7 +267,7 @@ export class StripeService {
           stripePaymentIntentId: paymentIntent.id,
         },
         data: {
-          status: OrderStatus.CONFIRMED,
+          status: OrderStatus.PROCESSING,
         },
       });
 

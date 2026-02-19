@@ -35,7 +35,7 @@ export class BillingService {
       const totalRevenue = await prisma.payment.aggregate({
         where: {
           organizationId,
-          status: 'COMPLETED'
+          status: 'PAID'
         },
         _sum: {
           amount: true
@@ -50,7 +50,7 @@ export class BillingService {
       const monthlyRevenue = await prisma.payment.aggregate({
         where: {
           organizationId,
-          status: 'COMPLETED',
+          status: 'PAID',
           createdAt: {
             gte: startOfMonth
           }
@@ -139,7 +139,7 @@ export class BillingService {
       const yearlyRevenue = await prisma.payment.aggregate({
         where: {
           organizationId,
-          status: 'COMPLETED',
+          status: 'PAID',
           createdAt: {
             gte: new Date(new Date().getFullYear(), 0, 1)
           }
@@ -152,7 +152,7 @@ export class BillingService {
       const orderCount = await prisma.order.count({
         where: {
           organizationId,
-          status: 'COMPLETED'
+          status: 'DELIVERED'
         }
       });
 
