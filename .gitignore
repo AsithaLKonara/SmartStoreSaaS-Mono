@@ -188,3 +188,4 @@ test-results/
 archive/
 supabase/.temp/
 e2e-test-results*.txt
+playwright-report/
