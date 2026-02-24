@@ -35,12 +35,15 @@ export const POST = requirePermission('VIEW_AI_PREDICTIONS')(
         SalesVelocityService.getOrganizationVelocity(organizationId)
       ]);
 
+      const totalUnitsSold = velocity.reduce((sum, v) => sum + v.unitsSold, 0);
+      const avgVelocity = velocity.length > 0 ? totalUnitsSold / velocity.length : 0;
+
       const context: AIContext = {
-        inventory: inventory.items,
+        inventory: inventory.products,
         salesVelocity: velocity,
         analytics: {
           totalProducts: inventory.total,
-          activeVelocity: velocity.avgUnitsPerDay
+          activeVelocity: avgVelocity
         }
       };
 

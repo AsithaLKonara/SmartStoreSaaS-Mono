@@ -47,17 +47,26 @@ export class MarketingAutomationEngine {
    */
   async processAutomationTriggers(organizationId: string): Promise<void> {
     try {
-      const pendingTriggers = await prisma.analytics.findMany({
+      const pendingTriggersRaw = await prisma.analytics.findMany({
         where: {
           organizationId,
-          type: { in: ['CART_ABANDON', 'BIRTHDAY', 'INACTIVE_CUSTOMER'] },
-          metadata: {
-            // metadata is stored as a string in the schema; search for the flag inside the JSON string
-            contains: '"automationProcessed":false'
-          }
+          type: { in: ['CART_ABANDON', 'BIRTHDAY', 'INACTIVE_CUSTOMER'] }
         },
-        take: 100 // Process in batches
+        orderBy: { createdAt: 'desc' },
+        take: 500 // Fetch a larger batch to filter in memory
       });
+
+      const pendingTriggers = pendingTriggersRaw.filter((trigger: any) => {
+        if (!trigger.metadata) return false;
+        try {
+          const meta = typeof trigger.metadata === 'string'
+            ? JSON.parse(trigger.metadata)
+            : trigger.metadata;
+          return meta.automationProcessed === false;
+        } catch (e) {
+          return false;
+        }
+      }).slice(0, 100);
 
       for (const trigger of pendingTriggers) {
         await this.processTrigger(trigger);
@@ -387,7 +396,7 @@ export class MarketingAutomationEngine {
           organizationId: campaign.organizationId,
           name: `${campaign.type} - ${new Date().toISOString()}`,
           templateId: `temp_${Date.now()}`,
-          status: 'scheduled',
+          status: 'SCHEDULED',
           scheduledAt: new Date(),
           updatedAt: new Date()
         }
@@ -482,7 +491,7 @@ export class MarketingAutomationEngine {
         by: ['customerId'],
         where: {
           organizationId,
-          status: 'COMPLETED'
+          status: 'DELIVERED'
         },
         _sum: { total: true },
         _count: { id: true }

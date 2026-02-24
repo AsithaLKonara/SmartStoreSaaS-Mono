@@ -14,9 +14,10 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/middleware/auth';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { stripeService } from '@/lib/payments/stripeService';
-import { payHereService } from '@/lib/payments/payhereService';
-import { paypalService } from '@/lib/payments/paypalService';
+// Services will be lazy-loaded in the handler to prevent build-time errors
+// import { stripeService } from '@/lib/payments/stripeService';
+// import { payHereService } from '@/lib/payments/payhereService';
+// import { paypalService } from '@/lib/payments/paypalService';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +43,11 @@ interface CheckoutRequest {
 export const POST = requireAuth(
   async (request, user) => {
     try {
+      // Lazy-load services to ensure environment variables are available at runtime
+      const { stripeService } = await import('@/lib/payments/stripeService');
+      const { payHereService } = await import('@/lib/payments/payhereService');
+      const { paypalService } = await import('@/lib/payments/paypalService');
+
       const body: CheckoutRequest = await request.json();
 
       if (!body.paymentMethod || !body.shippingAddress) {

@@ -132,8 +132,8 @@ export const POST = requirePermission('CREATE_SUPPORT_TICKET')(
           id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: subject,
           description,
-          status: 'open',
-          priority: priority || 'medium',
+          status: 'OPEN',
+          priority: priority || 'MEDIUM',
           email: user.email || '',
           organizationId,
           updatedAt: new Date()

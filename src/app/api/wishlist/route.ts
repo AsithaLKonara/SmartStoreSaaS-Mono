@@ -5,12 +5,12 @@ import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 
 export const GET = requireAuth(async (req: AuthenticatedRequest, user) => {
-  const wishlist = await prisma.wishlists.findFirst({
+  const wishlist = await prisma.wishlist.findFirst({
     where: { customerId: user.id },
     include: {
-      wishlist_items: {
+      items: {
         include: {
-          products: true
+          product: true
         }
       }
     }
@@ -20,7 +20,7 @@ export const GET = requireAuth(async (req: AuthenticatedRequest, user) => {
     message: 'Wishlist fetched',
     context: {
       userId: user.id,
-      itemCount: wishlist?.wishlist_items.length || 0
+      itemCount: wishlist?.items.length || 0
     },
     correlation: req.correlationId
   });
@@ -33,9 +33,9 @@ export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
   const { productId } = body;
 
   if (!productId) {
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Product ID is required' 
+    return NextResponse.json({
+      success: false,
+      error: 'Product ID is required'
     }, { status: 400 });
   }
 
@@ -49,28 +49,29 @@ export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
     });
 
     if (!product) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Product not found or not accessible' 
+      return NextResponse.json({
+        success: false,
+        error: 'Product not found or not accessible'
       }, { status: 404 });
     }
   }
 
-  let wishlist = await prisma.wishlists.findFirst({
+  let wishlist = await prisma.wishlist.findFirst({
     where: { customerId: user.id }
   });
 
   if (!wishlist) {
-    wishlist = await prisma.wishlists.create({
-      data: { 
+    wishlist = await prisma.wishlist.create({
+      data: {
         id: crypto.randomUUID(),
         customerId: user.id,
+        organizationId: user.organizationId || 'default', // Wishlist requires organizationId
         updatedAt: new Date()
       }
     });
   }
 
-  const item = await prisma.wishlist_items.create({
+  const item = await prisma.wishlistItem.create({
     data: {
       id: crypto.randomUUID(),
       wishlistId: wishlist.id,
@@ -78,16 +79,16 @@ export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
     }
   });
 
-  logger.info({ 
-    message: 'Item added to wishlist', 
-    context: { 
-      userId: user.id, 
+  logger.info({
+    message: 'Item added to wishlist',
+    context: {
+      userId: user.id,
       productId,
       wishlistId: wishlist.id
     },
     correlation: req.correlationId
   });
-  
+
   return NextResponse.json(
     successResponse(item, { message: 'Item added to wishlist' }),
     { status: 201 }
@@ -99,39 +100,39 @@ export const DELETE = requireAuth(async (req: AuthenticatedRequest, user) => {
   const productId = searchParams.get('productId');
 
   if (!productId) {
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Product ID is required' 
+    return NextResponse.json({
+      success: false,
+      error: 'Product ID is required'
     }, { status: 400 });
   }
 
-  const wishlist = await prisma.wishlists.findFirst({
+  const wishlist = await prisma.wishlist.findFirst({
     where: { customerId: user.id }
   });
 
   if (!wishlist) {
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Wishlist not found' 
+    return NextResponse.json({
+      success: false,
+      error: 'Wishlist not found'
     }, { status: 404 });
   }
 
-  await prisma.wishlist_items.deleteMany({
+  await prisma.wishlistItem.deleteMany({
     where: {
       wishlistId: wishlist.id,
       productId
     }
   });
 
-  logger.info({ 
-    message: 'Item removed from wishlist', 
-    context: { 
-      userId: user.id, 
+  logger.info({
+    message: 'Item removed from wishlist',
+    context: {
+      userId: user.id,
       productId,
       wishlistId: wishlist.id
     },
     correlation: req.correlationId
   });
-  
+
   return NextResponse.json(successResponse(null, { message: 'Item removed' }));
 });
