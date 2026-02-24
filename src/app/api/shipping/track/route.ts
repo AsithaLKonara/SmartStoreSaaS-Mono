@@ -74,6 +74,14 @@ export const GET = requireAuth(
         }
       }
 
+      if (!delivery.trackingNumber) {
+        throw new ValidationError('Tracking number not assigned yet');
+      }
+
+      if (!delivery.courierId) {
+        throw new ValidationError('Courier ID not assigned yet');
+      }
+
       const trackingInfo = await sriLankaCourierService.trackShipment(delivery.trackingNumber, delivery.courierId);
 
       return NextResponse.json(successResponse(trackingInfo));

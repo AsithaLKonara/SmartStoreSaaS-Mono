@@ -46,8 +46,7 @@ export const POST = requirePermission('VIEW_REVIEWS')(
         where: { id: reviewId },
         data: {
           status: 'APPROVED',
-          approvedAt: new Date(),
-          approvedById: user.id
+          approvedAt: new Date()
         }
       });
 

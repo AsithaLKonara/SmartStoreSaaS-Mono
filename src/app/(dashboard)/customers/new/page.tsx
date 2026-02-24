@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { 
-  Save, 
+import {
+  Save,
   ArrowLeft,
   User,
   Mail,
@@ -89,10 +89,20 @@ export default function NewCustomerPage() {
 
     setLoading(true);
     try {
+      const payload = {
+        ...customerData,
+        address: {
+          street: customerData.address,
+          city: customerData.city,
+          zipCode: customerData.postalCode,
+          country: customerData.country
+        }
+      };
+
       const response = await fetch('/api/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customerData)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
@@ -146,7 +156,7 @@ export default function NewCustomerPage() {
             <User className="w-5 h-5 mr-2" />
             Basic Information
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -207,7 +217,7 @@ export default function NewCustomerPage() {
             <MapPin className="w-5 h-5 mr-2" />
             Address Information
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -275,7 +285,7 @@ export default function NewCustomerPage() {
             <Tag className="w-5 h-5 mr-2" />
             Tags & Preferences
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -356,7 +366,7 @@ export default function NewCustomerPage() {
             <Mail className="w-5 h-5 mr-2" />
             Notification Preferences
           </h2>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
