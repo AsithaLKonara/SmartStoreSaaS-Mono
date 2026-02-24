@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         const updatedTicket = await prisma.supportTicket.update({
           where: { id: ticketId },
           data: {
-            status: 'closed',
+            status: 'CLOSED',
             resolution: resolution || 'Resolved',
             satisfaction: satisfaction || null,
             closedAt: new Date(),

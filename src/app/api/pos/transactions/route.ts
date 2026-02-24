@@ -94,9 +94,9 @@ export const POST = requirePermission('MANAGE_ORDERS')(
 
       const transaction = await prisma.posTransaction.create({
         data: {
-          organizationId,
+          organizationId: organizationId as string,
           terminalId,
-          items,
+          itemsJson: items,
           total,
           paymentMethod: paymentMethod || 'CASH',
           cashierId: user.id,
@@ -106,8 +106,7 @@ export const POST = requirePermission('MANAGE_ORDERS')(
               productId: item.productId,
               quantity: item.quantity,
               unitPrice: item.price,
-              totalPrice: item.quantity * item.price,
-              metadata: item.metadata || {}
+              totalPrice: item.quantity * item.price
             }))
           }
         },

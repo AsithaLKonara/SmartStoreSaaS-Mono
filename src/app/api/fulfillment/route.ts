@@ -35,8 +35,8 @@ export const GET = requirePermission('VIEW_INVENTORY')(
       const [fulfillments, total] = await Promise.all([
         prisma.fulfillment.findMany({
           where: {
-            organizationId,
-            ...(filter !== 'all' ? { status: filter } : {})
+            organizationId: organizationId as string,
+            ...(filter !== 'all' ? { status: filter as any } : {})
           },
           include: {
             order: {
@@ -56,8 +56,8 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         }),
         prisma.fulfillment.count({
           where: {
-            organizationId,
-            ...(filter !== 'all' ? { status: filter } : {})
+            organizationId: organizationId as string,
+            ...(filter !== 'all' ? { status: filter as any } : {})
           }
         })
       ]);

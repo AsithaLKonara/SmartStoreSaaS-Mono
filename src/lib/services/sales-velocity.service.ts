@@ -19,7 +19,7 @@ export class SalesVelocityService {
                 order: {
                     organizationId,
                     createdAt: { gte: startDate },
-                    status: { notIn: ['CANCELLED', 'RETURNED'] }
+                    status: { notIn: ['CANCELLED', 'REFUNDED'] }
                 }
             },
             select: {
@@ -52,7 +52,7 @@ export class SalesVelocityService {
                 order: {
                     organizationId,
                     createdAt: { gte: startDate },
-                    status: { notIn: ['CANCELLED', 'RETURNED'] }
+                    status: { notIn: ['CANCELLED', 'REFUNDED'] }
                 }
             },
             _sum: {

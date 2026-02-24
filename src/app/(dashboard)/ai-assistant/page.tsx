@@ -25,6 +25,7 @@ interface Message {
     timestamp: Date;
     action?: {
         type: string;
+        action: string;
         data: any;
         reason: string;
         status: 'proposed' | 'approved' | 'executed' | 'rejected';

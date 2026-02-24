@@ -30,12 +30,15 @@ export const POST = requirePermission('MANAGE_AI_PRICING')(
                 SalesVelocityService.getOrganizationVelocity(organizationId)
             ]);
 
+            const totalUnitsSold = velocity.reduce((sum, v) => sum + v.unitsSold, 0);
+            const avgVelocity = velocity.length > 0 ? totalUnitsSold / velocity.length : 0;
+
             const context: AIContext = {
-                inventory: inventory.items,
+                inventory: inventory.products,
                 salesVelocity: velocity,
                 analytics: {
                     totalProducts: inventory.total,
-                    activeVelocity: velocity.avgUnitsPerDay
+                    activeVelocity: avgVelocity
                 }
             };
 
@@ -49,12 +52,12 @@ export const POST = requirePermission('MANAGE_AI_PRICING')(
 
                 await AuditService.log({
                     action: 'AI_OPTIMIZATION',
-                    entity: 'PRICING',
-                    entityId: organizationId,
+                    resource: 'PRICING',
+                    resourceId: organizationId,
                     userId: user.id,
                     organizationId,
                     ipAddress: req.ip || '0.0.0.0',
-                    metadata: { recommendationsCount: pricingData.recommendations.length }
+                    details: { recommendationsCount: pricingData.recommendations.length }
                 });
 
                 logger.info({

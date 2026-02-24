@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { QRCodeSVG } from 'qrcode.react'; // Not using this in backend, just generating string
+// QRCodeSVG import removed as it is not used in backend and causing build errors
 
 interface LankaQRPayload {
     merchantId: string;

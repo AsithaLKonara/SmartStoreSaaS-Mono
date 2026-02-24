@@ -25,6 +25,7 @@ export class IoTService {
                 status: 'ONLINE',
                 lastSeen: new Date(),
                 metadata: metadata || undefined,
+                updatedAt: new Date(),
             },
             create: {
                 id: deviceId,
@@ -37,6 +38,7 @@ export class IoTService {
                 metadata: metadata || undefined,
                 macAddress: 'unknown', // Placeholder
                 firmwareVersion: '1.0.0', // Placeholder
+                updatedAt: new Date(),
             }
         });
     }

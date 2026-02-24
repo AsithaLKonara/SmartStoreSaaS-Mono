@@ -45,7 +45,7 @@ export const POST = requirePermission('VIEW_ANALYTICS')(
           where: {
             organizationId,
             createdAt: { gte: startDate, lte: endDate },
-            status: 'COMPLETED'
+            status: 'DELIVERED'
           },
           _sum: { total: true },
         });
@@ -55,7 +55,7 @@ export const POST = requirePermission('VIEW_ANALYTICS')(
           where: {
             organizationId,
             createdAt: { gte: startDate, lte: endDate },
-            status: 'COMPLETED'
+            status: 'DELIVERED'
           },
           select: { createdAt: true, total: true }
         });
@@ -63,7 +63,9 @@ export const POST = requirePermission('VIEW_ANALYTICS')(
         const dailySales: Record<string, number> = {};
         salesByDate.forEach(s => {
           const day = s.createdAt.toISOString().split('T')[0];
-          dailySales[day] = (dailySales[day] || 0) + Number(s.total);
+          if (day) {
+            dailySales[day as string] = (dailySales[day as string] || 0) + Number(s.total);
+          }
         });
 
         results.salesOverTime = Object.entries(dailySales).map(([date, amount]) => ({ date, amount }));
@@ -86,12 +88,12 @@ export const POST = requirePermission('VIEW_ANALYTICS')(
 
         const currentSales = await prisma.order.aggregate({
           _sum: { total: true },
-          where: { organizationId, createdAt: { gte: startDate, lte: endDate }, status: 'COMPLETED' }
+          where: { organizationId, createdAt: { gte: startDate, lte: endDate }, status: 'DELIVERED' }
         });
 
         const previousSales = await prisma.order.aggregate({
           _sum: { total: true },
-          where: { organizationId, createdAt: { gte: previousStart, lte: startDate }, status: 'COMPLETED' }
+          where: { organizationId, createdAt: { gte: previousStart, lte: startDate }, status: 'DELIVERED' }
         });
 
         const current = Number(currentSales._sum.total || 0);

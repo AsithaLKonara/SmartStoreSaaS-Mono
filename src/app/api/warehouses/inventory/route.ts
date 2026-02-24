@@ -42,15 +42,6 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         where: { organizationId },
         include: {
           inventory: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  sku: true
-                }
-              }
-            },
             take: 100, // Limit for performance
             orderBy: { createdAt: 'desc' }
           }

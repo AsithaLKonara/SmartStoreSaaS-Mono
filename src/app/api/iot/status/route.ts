@@ -25,8 +25,8 @@ export const GET = requirePermission('VIEW_ANALYTICS')(
                 }),
                 prisma.iotAlert.findMany({
                     where: {
-                        organizationId,
-                        status: 'ACTIVE'
+                        iotDevice: { organizationId },
+                        isResolved: false
                     },
                     include: {
                         iotDevice: {
