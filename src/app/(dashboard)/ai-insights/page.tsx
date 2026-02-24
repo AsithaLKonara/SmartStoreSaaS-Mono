@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { 
-  Brain, 
-  TrendingUp, 
-  Users, 
-  Package, 
-  Target, 
-  BarChart3, 
+import {
+  Brain,
+  TrendingUp,
+  Users,
+  Package,
+  Target,
+  BarChart3,
   Lightbulb,
   Zap,
   Activity,
@@ -97,11 +97,15 @@ export default function AIInsightsPage() {
 
   const fetchAIInsights = useCallback(async () => {
     try {
-      const response = await fetch('/api/analytics/dashboard?organizationId=org-1&period=30');
+      const response = await fetch('/api/ai-analytics/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataType: 'all' })
+      });
       if (response.ok) {
         const data = await response.json();
-        if (data.aiInsights) {
-          setInsights(data.aiInsights);
+        if (data.data) {
+          setInsights(data.data);
         }
       }
     } catch (error) {
@@ -172,7 +176,7 @@ export default function AIInsightsPage() {
             <p className="text-gray-600 dark:text-gray-400">Powered by machine learning and predictive analytics</p>
           </div>
         </div>
-        
+
         {/* Status Indicator */}
         <div className="flex items-center space-x-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
           <CheckCircle className="w-5 h-5 text-green-600" />
@@ -193,11 +197,10 @@ export default function AIInsightsPage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
                 ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <tab.icon className="w-4 h-4" />
             <span>{tab.name}</span>
@@ -317,9 +320,8 @@ export default function AIInsightsPage() {
                           ) : (
                             <ArrowDownRight className="w-4 h-4 text-red-600" />
                           )}
-                          <span className={`text-sm font-medium ${
-                            forecast.predictedDemand > forecast.currentDemand ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <span className={`text-sm font-medium ${forecast.predictedDemand > forecast.currentDemand ? 'text-green-600' : 'text-red-600'
+                            }`}>
                             {forecast.predictedDemand > forecast.currentDemand ? 'Increase' : 'Decrease'}
                           </span>
                         </div>
@@ -402,9 +404,8 @@ export default function AIInsightsPage() {
                           ) : (
                             <ArrowDownRight className="w-4 h-4 text-red-600" />
                           )}
-                          <span className={`text-sm font-medium ${
-                            forecast.growthRate > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <span className={`text-sm font-medium ${forecast.growthRate > 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
                             {forecast.growthRate > 0 ? 'Growth' : 'Decline'}
                           </span>
                         </div>

@@ -38,8 +38,8 @@ export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
         recentTickets
       ] = await Promise.all([
         prisma.supportTicket.count({ where: { organizationId } }),
-        prisma.supportTicket.count({ where: { organizationId, status: 'open' } }),
-        prisma.supportTicket.count({ where: { organizationId, status: 'closed' } }),
+        prisma.supportTicket.count({ where: { organizationId, status: 'OPEN' } }),
+        prisma.supportTicket.count({ where: { organizationId, status: 'CLOSED' } }),
         prisma.supportTicket.groupBy({
           by: ['status'],
           where: { organizationId },
@@ -62,7 +62,7 @@ export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
         totalTickets,
         openTickets,
         closedTickets,
-        inProgressTickets: ticketsByStatus.find(s => s.status === 'in_progress')?._count.id || 0,
+        inProgressTickets: ticketsByStatus.find(s => s.status === 'IN_PROGRESS')?._count.id || 0,
         ticketsByStatus: ticketsByStatus.reduce((acc, item) => {
           acc[item.status] = item._count.id;
           return acc;

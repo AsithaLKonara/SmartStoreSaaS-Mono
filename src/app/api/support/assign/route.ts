@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           where: { id: ticketId },
           data: {
             assignedTo: agentId,
-            status: 'in_progress',
+            status: 'IN_PROGRESS',
             updatedAt: new Date()
           }
         });

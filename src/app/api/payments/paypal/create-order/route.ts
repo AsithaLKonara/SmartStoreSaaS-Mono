@@ -22,7 +22,7 @@ export const POST = requireAuth(
             }
 
             const body = await request.json();
-            const { amount, currency = 'USD', orderId } = body;
+            const { amount, currency = 'USD', orderId, returnUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/payment/success`, cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/payment/cancel` } = body;
 
             if (!amount || !orderId) {
                 throw new ValidationError('Amount and Order ID are required');
@@ -34,7 +34,7 @@ export const POST = requireAuth(
             });
 
             // Create PayPal order
-            const paypalOrder = await paypalService.createOrder(amount, currency, orderId);
+            const paypalOrder = await paypalService.createOrder(amount, currency, orderId, returnUrl, cancelUrl);
 
             // Audit log
             await AuditService.log({

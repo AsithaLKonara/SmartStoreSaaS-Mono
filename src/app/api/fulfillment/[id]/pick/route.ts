@@ -46,7 +46,7 @@ export async function PUT(
         await prisma.fulfillment.update({
           where: { id: fulfillmentId },
           data: {
-            status: 'PICKING'
+            status: 'PICKED'
           }
         });
 

@@ -9,12 +9,11 @@ import { logger } from '@/lib/logger';
 export enum FulfillmentStatus {
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
-  PICKING = 'PICKING',
-  PACKING = 'PACKING',
-  READY_TO_SHIP = 'READY_TO_SHIP',
+  PICKED = 'PICKED',
+  PACKED = 'PACKED',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
-  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
 }
 
 export interface FulfillmentRule {
@@ -133,7 +132,7 @@ async function allocateInventory(fulfillmentId: string): Promise<void> {
   await prisma.fulfillment.update({
     where: { id: fulfillmentId },
     data: {
-      status: FulfillmentStatus.PICKING,
+      status: FulfillmentStatus.PICKED,
     },
   });
 }
@@ -168,7 +167,7 @@ export async function markItemsPicked(
       await prisma.fulfillment.update({
         where: { id: fulfillmentId },
         data: {
-          status: FulfillmentStatus.PACKING,
+          status: FulfillmentStatus.PACKED,
         },
       });
     }
@@ -199,7 +198,7 @@ export async function markAsPacked(
     await prisma.fulfillment.update({
       where: { id: fulfillmentId },
       data: {
-        status: FulfillmentStatus.READY_TO_SHIP,
+        status: FulfillmentStatus.PACKED,
         weight: packingDetails.weight,
         dimensions: packingDetails.dimensions as any,
         trackingNumber: packingDetails.trackingNumber,
@@ -325,9 +324,8 @@ export async function getPendingFulfillments(organizationId: string) {
         in: [
           FulfillmentStatus.PENDING,
           FulfillmentStatus.PROCESSING,
-          FulfillmentStatus.PICKING,
-          FulfillmentStatus.PACKING,
-          FulfillmentStatus.READY_TO_SHIP,
+          FulfillmentStatus.PICKED,
+          FulfillmentStatus.PACKED,
         ],
       },
     },

@@ -27,12 +27,15 @@ export const POST = requirePermission('MANAGE_AI_AUTOMATION')(
                 SalesVelocityService.getOrganizationVelocity(organizationId)
             ]);
 
+            const totalUnitsSold = velocity.reduce((sum, v) => sum + v.unitsSold, 0);
+            const avgVelocity = velocity.length > 0 ? totalUnitsSold / velocity.length : 0;
+
             const context: AIContext = {
-                inventory: inventory.items,
+                inventory: inventory.products,
                 salesVelocity: velocity,
                 analytics: {
                     totalProducts: inventory.total,
-                    activeVelocity: velocity.avgUnitsPerDay
+                    activeVelocity: avgVelocity
                 }
             };
 
@@ -41,7 +44,7 @@ export const POST = requirePermission('MANAGE_AI_AUTOMATION')(
             // For now we use the main decision model
             // Actually, I'll use a mocked decision flow for procurement
 
-            const lowStockItems = inventory.items.filter((i: any) => i.stock <= i.minStock);
+            const lowStockItems = inventory.products.filter((i: any) => i.stock <= i.minStock);
             const decisions = lowStockItems.map((item: any) => ({
                 action: 'CREATE_PURCHASE_ORDER',
                 productId: item.id,
@@ -52,12 +55,12 @@ export const POST = requirePermission('MANAGE_AI_AUTOMATION')(
             if (decisions.length > 0) {
                 await AuditService.log({
                     action: 'AUTO_PROCUREMENT',
-                    entity: 'INVENTORY',
-                    entityId: organizationId,
+                    resource: 'INVENTORY',
+                    resourceId: organizationId,
                     userId: user.id,
                     organizationId,
                     ipAddress: req.ip || '0.0.0.0',
-                    metadata: { decisionsCount: decisions.length }
+                    details: { decisionsCount: decisions.length }
                 });
             }
 

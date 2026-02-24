@@ -16,7 +16,7 @@ export class FinancialService {
             where: {
                 organizationId,
                 createdAt: { gte: startDate, lte: endDate },
-                status: { notIn: ['CANCELLED', 'RETURNED'] }
+                status: { notIn: ['CANCELLED', 'REFUNDED'] }
             },
             _sum: { total: true }
         });
@@ -27,10 +27,10 @@ export class FinancialService {
             where: {
                 organizationId,
                 createdAt: { gte: startDate, lte: endDate },
-                status: { notIn: ['CANCELLED', 'RETURNED'] }
+                status: { notIn: ['CANCELLED', 'REFUNDED'] }
             },
             include: {
-                items: {
+                orderItems: {
                     include: { product: true }
                 }
             }
@@ -42,15 +42,16 @@ export class FinancialService {
 
         for (const order of orders) {
             totalSales += Number(order.total);
-            for (const item of order.items) {
+            for (const item of order.orderItems) {
                 const cost = Number(item.product.cost || 0) * item.quantity;
                 totalCost += cost;
 
                 if (!productPerformance[item.productId]) {
                     productPerformance[item.productId] = { revenue: 0, cost: 0 };
                 }
-                productPerformance[item.productId].revenue += Number(item.total);
-                productPerformance[item.productId].cost += cost;
+                const performance = productPerformance[item.productId]!;
+                performance.revenue += Number(item.total);
+                performance.cost += cost;
             }
         }
 
@@ -73,7 +74,7 @@ export class FinancialService {
             where: {
                 organizationId,
                 createdAt: { gte: startDate, lte: endDate },
-                status: 'RETURNED'
+                status: 'REFUNDED'
             }
         });
 
@@ -136,10 +137,10 @@ export class FinancialService {
             where: {
                 organizationId,
                 createdAt: { gte: start, lte: end },
-                status: { notIn: ['CANCELLED', 'RETURNED'] }
+                status: { notIn: ['CANCELLED', 'REFUNDED'] }
             },
             include: {
-                items: {
+                orderItems: {
                     include: { product: true }
                 }
             }
@@ -150,7 +151,7 @@ export class FinancialService {
 
         for (const order of sales) {
             totalRevenue += Number(order.total);
-            for (const item of order.items) {
+            for (const item of order.orderItems) {
                 totalCogs += Number(item.product.cost || 0) * item.quantity;
             }
         }

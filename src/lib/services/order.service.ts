@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { User, Order, Prisma } from '@prisma/client';
+import { User, Order, Prisma, OrderStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 export class OrderService {
@@ -10,7 +10,7 @@ export class OrderService {
         organizationId: string;
         page?: number;
         limit?: number;
-        status?: string;
+        status?: OrderStatus;
         customerId?: string;
     }) {
         const { organizationId, page = 1, limit = 20, status, customerId } = params;
@@ -141,7 +141,6 @@ export class OrderService {
                     notes,
                     status: 'PENDING',
                     createdById,
-                    createdByOrigin: origin,
                 },
             });
 
@@ -175,7 +174,7 @@ export class OrderService {
     static async updateStatus(params: {
         orderId: string;
         organizationId: string;
-        status: string;
+        status: OrderStatus;
         notes?: string;
         origin?: 'human' | 'ai';
     }) {

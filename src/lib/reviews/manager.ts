@@ -46,7 +46,7 @@ export async function createReview(
           productId: data.productId,
           order: {
             customerId: data.customerId,
-            status: { in: ['COMPLETED', 'DELIVERED'] },
+            status: { in: ['DELIVERED'] },
           },
         },
       });

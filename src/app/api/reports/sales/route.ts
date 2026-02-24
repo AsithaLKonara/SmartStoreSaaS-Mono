@@ -48,7 +48,7 @@ export const POST = requirePermission('VIEW_REPORTS')(
           total: true,
           status: true,
           createdAt: true,
-          items: {
+          orderItems: {
             select: {
               quantity: true
             }
@@ -60,13 +60,13 @@ export const POST = requirePermission('VIEW_REPORTS')(
       // Calculate totals
       const totalRevenue = sales.reduce((sum, order) => sum + Number(order.total), 0);
       const totalOrders = sales.length;
-      const totalItemsSold = sales.reduce((sum, order) => sum + order.items.reduce((acc, item) => acc + item.quantity, 0), 0);
+      const totalItemsSold = sales.reduce((sum, order) => sum + order.orderItems.reduce((acc, item) => acc + item.quantity, 0), 0);
 
       // Group by date (simplified)
       const groupedData: Record<string, { revenue: number, orders: number }> = {};
 
       sales.forEach(order => {
-        const dateKey = order.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateKey = order.createdAt.toISOString().split('T')[0] as string; // YYYY-MM-DD
         if (!groupedData[dateKey]) {
           groupedData[dateKey] = { revenue: 0, orders: 0 };
         }

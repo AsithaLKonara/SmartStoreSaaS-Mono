@@ -249,18 +249,46 @@ export const navigationConfig: NavigationItem[] = [
         icon: PieChart
       },
       {
+        label: 'Pricing Strategy',
+        href: '/pricing',
+        icon: DollarSign,
+        badge: 'AI',
+        badgeColor: 'purple'
+      },
+      {
+        label: 'AI Assistant',
+        href: '/ai-assistant',
+        icon: Sparkles,
+        badge: 'New',
+        badgeColor: 'purple'
+      },
+      {
+        label: 'Financial Audit',
+        href: '/ai-analytics/financial',
+        icon: Calculator,
+        badge: 'AI',
+        badgeColor: 'green'
+      },
+      {
         label: 'AI Analytics',
         href: '/ai-analytics',
         icon: Brain,
+        badge: 'Legacy',
+        badgeColor: 'gray'
+      },
+      {
+        label: 'IoT Grid',
+        href: '/ai-insights/iot',
+        icon: Zap,
         badge: 'AI',
-        badgeColor: 'purple'
+        badgeColor: 'red'
       },
       {
         label: 'AI Insights',
         href: '/ai-insights',
         icon: Sparkles,
-        badge: 'AI',
-        badgeColor: 'purple'
+        badge: 'Legacy',
+        badgeColor: 'gray'
       },
       {
         label: 'Customer Insights',

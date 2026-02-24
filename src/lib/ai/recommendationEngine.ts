@@ -32,7 +32,7 @@ export class AIRecommendationEngine {
         where: {
           customerId,
           organizationId,
-          status: { in: ['COMPLETED', 'DELIVERED'] }
+          status: { in: ['DELIVERED'] }
         },
         include: {
           orderItems: {
@@ -121,7 +121,7 @@ export class AIRecommendationEngine {
         where: {
           order: {
             organizationId,
-            status: { in: ['COMPLETED', 'DELIVERED'] },
+            status: { in: ['DELIVERED'] },
             createdAt: {
               gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
             }
@@ -179,7 +179,7 @@ export class AIRecommendationEngine {
           order: {
             organizationId,
             customerId: { not: customerId },
-            status: { in: ['COMPLETED', 'DELIVERED'] },
+            status: { in: ['DELIVERED'] },
             createdAt: {
               gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
             }
@@ -280,7 +280,7 @@ export class AIRecommendationEngine {
           order: {
             organizationId,
             customerId: { in: similarCustomers },
-            status: { in: ['COMPLETED', 'DELIVERED'] },
+            status: { in: ['DELIVERED'] },
             createdAt: {
               gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
             }
@@ -355,7 +355,7 @@ export class AIRecommendationEngine {
         where: {
           order: {
             organizationId,
-            status: { in: ['COMPLETED', 'DELIVERED'] },
+            status: { in: ['DELIVERED'] },
             createdAt: {
               gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
             }
@@ -411,7 +411,7 @@ export class AIRecommendationEngine {
           productId,
           order: {
             organizationId,
-            status: { in: ['COMPLETED', 'DELIVERED'] }
+            status: { in: ['DELIVERED'] }
           }
         },
         select: { orderId: true }

@@ -19,9 +19,10 @@ export const POST = requirePermission('MANAGE_AI')(
 
         try {
             const report = await AIOrchestrator.runFinancialAudit(organizationId);
+            const data = report?.data;
             const parsedReport = report ? {
                 ...report,
-                ...JSON.parse(report.data || '{}')
+                ...JSON.parse((data as string) || '{}')
             } : null;
             return NextResponse.json(successResponse(parsedReport));
         } catch (error: any) {
@@ -43,9 +44,10 @@ export const GET = requirePermission('VIEW_ANALYTICS')(
 
         try {
             const report = await FinancialService.getLatestReport(organizationId);
+            const data = report?.data;
             const parsedReport = report ? {
                 ...report,
-                ...JSON.parse(report.data || '{}')
+                ...JSON.parse((data as string) || '{}')
             } : null;
             return NextResponse.json(successResponse(parsedReport));
         } catch (error: any) {

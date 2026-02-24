@@ -37,14 +37,14 @@ export const GET = requirePermission('VIEW_ORDERS')(
           name: 'Warehouse',
           phone: '',
           address: origin,
-          city: origin.split(',')[0], // Simple extraction
+          city: origin.split(',')[0] || '', // Simple extraction
           postalCode: ''
         },
         deliveryAddress: {
           name: 'Customer',
           phone: '',
           address: destination,
-          city: destination.split(',')[0], // Simple extraction
+          city: destination.split(',')[0] || '', // Simple extraction
           postalCode: ''
         },
         package: {

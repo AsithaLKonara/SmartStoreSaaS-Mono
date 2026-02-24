@@ -101,10 +101,11 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         data: {
           name,
           key: fullKey,
-          organizationId,
-          // role: body.role || 'READ_ONLY', // Default to read only if field exists
+          organizationId: organizationId as string,
+          userId: user.id,
           isActive: true,
           expiresAt: expiresAt ? new Date(expiresAt) : null,
+          permissions: permissions || []
         }
       });
 

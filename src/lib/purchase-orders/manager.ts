@@ -7,12 +7,11 @@ import { logger } from '@/lib/logger';
 
 export enum PurchaseOrderStatus {
   DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
+  SUBMITTED = 'SUBMITTED',
   APPROVED = 'APPROVED',
   ORDERED = 'ORDERED',
   PARTIALLY_RECEIVED = 'PARTIALLY_RECEIVED',
   RECEIVED = 'RECEIVED',
-  COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }
 
