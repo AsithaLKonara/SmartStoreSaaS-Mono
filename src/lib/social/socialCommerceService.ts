@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import { logger } from '../logger';
+import { SocialPlatformType } from '@prisma/client';
 
 export interface SocialPlatform {
   id: string;
@@ -78,12 +79,12 @@ export class SocialCommerceService {
     }));
   }
 
-  async connectPlatform(organizationId: string, platform: string, config: any): Promise<SocialPlatform> {
+  async connectPlatform(organizationId: string, platform: SocialPlatformType, config: any): Promise<SocialPlatform> {
     // Check if exists first since we don't know the unique constraint name or if it exists
     const existing = await prisma.socialCommerce.findFirst({
       where: {
         organizationId,
-        platform
+        platform: platform as SocialPlatformType
       }
     });
 
@@ -102,7 +103,7 @@ export class SocialCommerceService {
         data: {
           id: crypto.randomUUID(),
           organizationId,
-          platform,
+          platform: platform as SocialPlatformType,
           settings: config,
           isActive: true,
           lastSync: new Date(),
@@ -314,7 +315,7 @@ export class SocialCommerceService {
 
       const posts = await prisma.socialPost.findMany({
         where: {
-          platform: { organizationId },
+          socialCommerce: { organizationId },
           createdAt: { gte: startDate, lte: endDate }
         }
       });
@@ -429,7 +430,7 @@ export class SocialCommerceService {
 
       const posts = await prisma.socialPost.findMany({
         where: whereClause as any,
-        include: { platform: true }
+        include: { socialCommerce: true }
       });
 
       return posts.map(post => ({

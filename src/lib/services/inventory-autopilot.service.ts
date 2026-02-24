@@ -83,17 +83,19 @@ export class InventoryAutopilotService {
                             origin: 'ai'
                         });
 
-                        results.push({
-                            productId: product.id,
-                            action: 'PO_CREATED',
-                            poId: po.id,
-                            reason: decision.reason
-                        });
+                        if (po) {
+                            results.push({
+                                productId: product.id,
+                                action: 'PO_CREATED',
+                                poId: po.id,
+                                reason: decision.reason
+                            });
 
-                        logger.info({
-                            message: 'Inventory Autopilot: PO Created',
-                            context: { product: product.sku, poId: po.id, reason: decision.reason }
-                        });
+                            logger.info({
+                                message: 'Inventory Autopilot: PO Created',
+                                context: { product: product.sku, poId: po.id, reason: decision.reason }
+                            });
+                        }
                     }
                 } else {
                     results.push({

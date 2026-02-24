@@ -26,13 +26,13 @@ import {
   Warehouse
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/utils';
+import { formatCurrency, formatDate, formatRelativeTime, formatAddress } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 interface Warehouse {
   id: string;
   name: string;
-  address: string;
+  address: any;
   isActive: boolean;
   settings: unknown;
   createdAt: string;
@@ -138,7 +138,7 @@ export default function WarehousePage() {
 
   const filteredInventory = (inventory || []).filter(item => {
     const matchesSearch = item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+      item.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -245,11 +245,10 @@ export default function WarehousePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as 'warehouses' | 'inventory' | 'overview' | 'movements')}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -288,7 +287,7 @@ export default function WarehousePage() {
                       <div key={warehouse.id} className="flex items-center justify-between p-3 bg-white rounded border">
                         <div>
                           <p className="font-medium">{warehouse.name}</p>
-                          <p className="text-sm text-gray-600">{warehouse.address}</p>
+                          <p className="text-sm text-gray-600">{formatAddress(warehouse.address)}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full ${warehouse.isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -463,9 +462,8 @@ export default function WarehousePage() {
                             {movement.productName}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              movement.type === 'in' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${movement.type === 'in' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
                               {movement.type.toUpperCase()}
                             </span>
                           </td>
@@ -513,7 +511,7 @@ export default function WarehousePage() {
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
-                        {warehouse.address}
+                        {formatAddress(warehouse.address)}
                       </div>
                       <div className="text-sm text-gray-600">
                         Created: {formatDate(warehouse.createdAt)}

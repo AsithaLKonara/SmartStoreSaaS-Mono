@@ -6,7 +6,7 @@ import { logger } from './logger';
 export interface ErrorEvent {
   id: string;
   type: 'api_error' | 'database_error' | 'validation_error' | 'authentication_error' | 'authorization_error' | 'business_logic_error' | 'external_service_error' | 'system_error';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   message: string;
   stackTrace?: string;
   context: {
@@ -30,7 +30,7 @@ export interface ErrorEvent {
 export interface ErrorAggregation {
   type: string;
   count: number;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   lastOccurrence: Date;
   trend: 'increasing' | 'decreasing' | 'stable';
   affectedUsers: number;
@@ -322,7 +322,7 @@ export class ErrorTrackingService {
     if (recentPatternCount > 10) {
       await productionMonitoringService.createAlert({
         type: 'error_rate',
-        severity: 'high',
+        severity: 'HIGH',
         title: 'Error Pattern Spike Detected',
         description: `Error pattern "${pattern}" has occurred ${recentPatternCount} times in the last hour`,
         organizationId: error.context.organizationId,
@@ -348,7 +348,7 @@ export class ErrorTrackingService {
     if (recentErrorCount > 50) {
       await productionMonitoringService.createAlert({
         type: 'error_rate',
-        severity: 'critical',
+        severity: 'CRITICAL',
         title: 'High Error Rate Detected',
         description: `${recentErrorCount} errors occurred in the last 5 minutes`,
         organizationId: error.context.organizationId,
@@ -479,8 +479,8 @@ export class ErrorTrackingService {
     };
   }
 
-  private getHigherSeverity(severity1: string, severity2: string): string {
-    const severityLevels = { low: 1, medium: 2, high: 3, critical: 4 };
+  private getHigherSeverity(severity1: string, severity2: string): any {
+    const severityLevels = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4, low: 1, medium: 2, high: 3, critical: 4 };
     return severityLevels[severity1 as keyof typeof severityLevels] >
       severityLevels[severity2 as keyof typeof severityLevels] ? severity1 : severity2;
   }
