@@ -38,13 +38,12 @@ export interface SyncConflict {
   id: string;
   entityType: string;
   entityId: string;
-  conflicts: {
-    field: string;
-    localValue: unknown;
-    remoteValue: unknown;
-    resolution: 'local' | 'remote' | 'manual' | 'merge';
-  }[];
-  resolved: boolean;
+  conflictType: string;
+  localData: any;
+  remoteData: any;
+  resolution?: string;
+  isResolved: boolean;
+  organizationId: string;
   createdAt: Date;
   resolvedAt?: Date;
   resolvedBy?: string;
@@ -243,24 +242,22 @@ export class RealTimeSyncService extends EventEmitter {
       id: conflictId,
       entityType: event.type,
       entityId: dataAny.id || dataAny._id,
-      conflicts: conflicts.map((c: any) => ({
-        field: c.field,
-        localValue: c.localValue,
-        remoteValue: c.remoteValue,
-        resolution: 'manual' as const
-      })),
-      resolved: false,
+      conflictType: 'FIELD_MISMATCH',
+      localData: (conflicts[0] as any)?.localValue || {},
+      remoteData: (conflicts[0] as any)?.remoteValue || {},
+      isResolved: false,
+      organizationId: event.organizationId,
       createdAt: new Date()
     };
 
-    await (prisma as any).syncConflict.create({
+    await prisma.syncConflict.create({
       data: {
         id: conflictId,
         entityType: conflictRecord.entityType,
         entityId: conflictRecord.entityId,
         conflictType: 'FIELD_MISMATCH',
-        localData: (conflicts[0] as any)?.localValue || {},
-        remoteData: (conflicts[0] as any)?.remoteValue || {},
+        localData: conflictRecord.localData,
+        remoteData: conflictRecord.remoteData,
         organizationId: event.organizationId,
         createdAt: conflictRecord.createdAt
       }
@@ -532,7 +529,7 @@ export class RealTimeSyncService extends EventEmitter {
 
     if (!conflict) throw new Error('Conflict not found');
 
-    await (prisma as any).syncConflict.update({
+    await prisma.syncConflict.update({
       where: { id: conflictId },
       data: {
         resolution: resolution.resolution,

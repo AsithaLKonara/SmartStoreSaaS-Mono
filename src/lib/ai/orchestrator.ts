@@ -143,8 +143,10 @@ export class AIOrchestrator {
             // In future: SMS/Slack Integration
             logger.error({
                 message: '🚨 EMERGENCY NOTIFICATION SENT 🚨',
-                alert: alert.message,
-                assessment: impactAnalysis
+                context: {
+                    alert: alert.message,
+                    assessment: impactAnalysis
+                }
             });
         }
     }
@@ -229,7 +231,7 @@ export class AIOrchestrator {
                     organizationId,
                     type: 'AI_DECISION',
                     description: `AI recommended ${decision.action}: ${decision.reason}`,
-                    metadata: { decision, contextSummary: context.analytics }
+                    metadata: { decision, contextSummary: context.analytics } as any
                 }
             });
         } catch (err) {
@@ -270,11 +272,18 @@ export class AIOrchestrator {
                     });
 
                 default:
-                    logger.warn({ message: 'AI Orchestrator: Action not implemented for auto-execution', action });
+                    logger.warn({
+                        message: 'AI Orchestrator: Action not implemented for auto-execution',
+                        context: { action }
+                    });
                     return null;
             }
         } catch (error) {
-            logger.error({ message: 'AI Orchestrator: Action execution failed', action, error });
+            logger.error({
+                message: 'AI Orchestrator: Action execution failed',
+                context: { action },
+                error
+            });
             throw error;
         }
     }

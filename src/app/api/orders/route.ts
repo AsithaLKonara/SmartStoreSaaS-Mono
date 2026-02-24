@@ -62,7 +62,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
         organizationId: orgId,
         page,
         limit,
-        status,
+        status: status as any,
         customerId
       });
 

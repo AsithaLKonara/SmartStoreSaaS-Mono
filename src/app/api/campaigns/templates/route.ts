@@ -97,7 +97,7 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
           organizationId,
           name,
           content,
-          variables: null,
+          variables: {},
           isActive: true,
           updatedAt: new Date()
         }

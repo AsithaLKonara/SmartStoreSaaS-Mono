@@ -52,21 +52,45 @@ interface PayPalAPIResponse {
 }
 
 export class PayPalService {
-  private config: PayPalConfig;
-  private baseURL: string;
+  private _config: PayPalConfig | null = null;
+  private _baseURL: string | null = null;
   private accessToken: string | null = null;
   private tokenExpiry: Date | null = null;
 
-  constructor() {
-    this.config = {
-      clientId: process.env.PAYPAL_CLIENT_ID!,
-      clientSecret: process.env.PAYPAL_CLIENT_SECRET!,
-      environment: (process.env.PAYPAL_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
-    };
+  constructor() { }
 
-    this.baseURL = this.config.environment === 'sandbox'
-      ? 'https://api-m.sandbox.paypal.com'
-      : 'https://api-m.paypal.com';
+  private get config(): PayPalConfig {
+    if (!this._config) {
+      const clientId = process.env.PAYPAL_CLIENT_ID;
+      const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+
+      if (!clientId || !clientSecret) {
+        if (process.env.NODE_ENV === 'production') {
+          throw new Error('PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET missing');
+        }
+        return {
+          clientId: 'mock',
+          clientSecret: 'mock',
+          environment: 'sandbox'
+        };
+      }
+
+      this._config = {
+        clientId,
+        clientSecret,
+        environment: (process.env.PAYPAL_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
+      };
+    }
+    return this._config;
+  }
+
+  private get baseURL(): string {
+    if (!this._baseURL) {
+      this._baseURL = this.config.environment === 'sandbox'
+        ? 'https://api-m.sandbox.paypal.com'
+        : 'https://api-m.paypal.com';
+    }
+    return this._baseURL;
   }
 
   /**
@@ -414,7 +438,7 @@ export class PayPalService {
       await prisma.order.updateMany({
         where: { paypalOrderId: orderId },
         data: {
-          status: OrderStatus.CONFIRMED,
+          status: OrderStatus.PROCESSING,
           paypalPaymentId: paymentId,
         },
       });

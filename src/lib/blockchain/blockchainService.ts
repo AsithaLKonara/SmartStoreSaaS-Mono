@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { prisma } from '../prisma';
+import { Prisma } from '@prisma/client';
 import * as crypto from 'crypto';
 import { logger } from '../logger';
 
@@ -301,7 +302,7 @@ export class BlockchainService {
         timestamp: record.createdAt,
         verifiedBy,
         transactionHash,
-        metadata: record.metadata || {},
+        metadata: (record.metadata as any) || {},
       };
     } catch (error) {
       logger.error({
@@ -432,7 +433,7 @@ export class BlockchainService {
           productId,
           type: "INVENTORY_UPDATE",
           metadata: {
-            not: null
+            not: Prisma.AnyNull
           }
         }
       });
@@ -559,7 +560,7 @@ export class BlockchainService {
       await prisma.payment.update({
         where: { id: paymentId },
         data: {
-          status: 'COMPLETED',
+          status: 'PAID',
           metadata: {
             transactionHash,
             confirmations: 6,

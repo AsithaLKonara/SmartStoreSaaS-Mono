@@ -3,9 +3,27 @@ import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 import { logger } from '@/lib/logger';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover', // Updated to required version
-});
+let stripeClient: Stripe | null = null;
+
+function getStripeClient() {
+  if (stripeClient) return stripeClient;
+
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('STRIPE_SECRET_KEY missing');
+    }
+    // Allow build to proceed or mock in development
+    console.warn('Stripe not configured - using mock/placeholder');
+    return {} as Stripe;
+  }
+
+  stripeClient = new Stripe(key, {
+    apiVersion: '2026-01-28.clover' as any,
+  });
+
+  return stripeClient;
+}
 
 export interface PaymentIntent {
   id: string;
@@ -53,7 +71,7 @@ export class StripeService {
     metadata?: Record<string, string>
   ): Promise<PaymentIntent> {
     try {
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await getStripeClient().paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency,
         customer: customerId,
@@ -90,7 +108,7 @@ export class StripeService {
     metadata?: Record<string, string>
   ): Promise<string> {
     try {
-      const customer = await stripe.customers.create({
+      const customer = await getStripeClient().customers.create({
         email,
         name,
         metadata,
@@ -112,7 +130,7 @@ export class StripeService {
    */
   async getPaymentMethods(customerId: string): Promise<PaymentMethod[]> {
     try {
-      const paymentMethods = await stripe.paymentMethods.list({
+      const paymentMethods = await getStripeClient().paymentMethods.list({
         customer: customerId,
         type: 'card',
       });
@@ -147,7 +165,7 @@ export class StripeService {
     metadata?: Record<string, string>
   ): Promise<any> {
     try {
-      const subscription = await stripe.subscriptions.create({
+      const subscription = await getStripeClient().subscriptions.create({
         customer: customerId,
         items: [{ price: priceId }],
         metadata,
@@ -172,7 +190,7 @@ export class StripeService {
    */
   async cancelSubscription(subscriptionId: string): Promise<any> {
     try {
-      return await stripe.subscriptions.cancel(subscriptionId);
+      return await getStripeClient().subscriptions.cancel(subscriptionId);
     } catch (error) {
       logger.error({
         message: 'Error canceling subscription',
@@ -201,7 +219,7 @@ export class StripeService {
         refundData.amount = Math.round(amount * 100);
       }
 
-      return await stripe.refunds.create(refundData);
+      return await getStripeClient().refunds.create(refundData);
     } catch (error) {
       logger.error({
         message: 'Error creating refund',
@@ -219,7 +237,7 @@ export class StripeService {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
     try {
-      const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      const event = getStripeClient().webhooks.constructEvent(body, signature, webhookSecret);
 
       switch (event.type) {
         case 'payment_intent.succeeded':
@@ -407,7 +425,7 @@ export class StripeService {
    */
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     try {
-      const prices = await stripe.prices.list({
+      const prices = await getStripeClient().prices.list({
         active: true,
         type: 'recurring',
         expand: ['data.product'],
@@ -441,7 +459,7 @@ export class StripeService {
    */
   async createSetupIntent(customerId: string): Promise<{ clientSecret: string }> {
     try {
-      const setupIntent = await stripe.setupIntents.create({
+      const setupIntent = await getStripeClient().setupIntents.create({
         customer: customerId,
         payment_method_types: ['card'],
       });

@@ -48,7 +48,7 @@ export const GET = requirePermission('VIEW_REPORTS')(
       return NextResponse.json(successResponse({
         templates: templates.map(t => ({
           ...t,
-          config: t.data ? JSON.parse(t.data) : {} // Map 'data' back to 'config'
+          config: t.data || {} // Map 'data' back to 'config'
         }))
       }));
     } catch (error: any) {
@@ -102,7 +102,7 @@ export const POST = requirePermission('VIEW_REPORTS')(
         data: {
           name,
           type,
-          data: config ? JSON.stringify(config) : null,
+          data: config ? config : null,
           schedule: schedule || null,
           organizationId,
           createdById: user.id

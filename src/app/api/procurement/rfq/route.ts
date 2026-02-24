@@ -96,8 +96,8 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
         data: {
           organizationId,
           title,
-          items,
-          suppliers,
+          itemsJson: items,
+          suppliersJson: suppliers,
           deadline: deadline ? new Date(deadline) : undefined,
           status: 'DRAFT',
           createdBy: user.id,
@@ -105,8 +105,7 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
             create: items.map((item: any) => ({
               productId: item.productId,
               quantity: item.quantity,
-              specifications: item.specifications || '',
-              targetPrice: item.targetPrice
+              notes: item.specifications || item.notes || ''
             }))
           }
         },

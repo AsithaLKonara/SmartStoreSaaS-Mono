@@ -175,8 +175,8 @@ export class IoTService {
           firmwareVersion: deviceData.firmwareVersion,
           batteryLevel: deviceData.batteryLevel,
           status: deviceData.status.toUpperCase() as any,
-          configuration: deviceData.configuration,
-          metadata: deviceData.metadata,
+          configuration: deviceData.configuration as any,
+          metadata: deviceData.metadata as any,
           isActive: deviceData.isActive,
           organizationId: deviceData.organizationId,
           installedAt: new Date(),
@@ -255,7 +255,7 @@ export class IoTService {
           value: reading.value,
           unit: reading.unit,
           location: reading.location,
-          metadata: reading.metadata || {},
+          metadata: (reading.metadata || {}) as any,
           timestamp: new Date()
         }
       });
@@ -504,7 +504,7 @@ export class IoTService {
           type: alertData.type,
           severity: alertData.severity,
           message: alertData.message,
-          data: alertData.data,
+          data: alertData.data as any,
           isResolved: false,
           createdAt: new Date()
         }
