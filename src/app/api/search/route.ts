@@ -43,7 +43,7 @@ export const GET = requireAuth(
           userId: user.id,
           organizationId,
           query,
-          type
+          type: action
         },
         correlation: req.correlationId
       });

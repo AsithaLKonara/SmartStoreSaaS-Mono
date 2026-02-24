@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { AIChatService } from '../ai/chatService';
 import { emailService } from '../email';
 import { whatsAppService } from '../messaging';
@@ -412,14 +413,14 @@ export class WorkflowEngine {
     if (order.payments && order.payments.length > 0 && order.payments[0]) {
       await prisma.payment.update({
         where: { id: order.payments[0].id },
-        data: { status: 'COMPLETED' }
+        data: { status: 'PAID' }
       });
     }
   }
 
   private async updateOrderStatus(data: Record<string, unknown>): Promise<void> {
     const id = data.orderId as string | undefined;
-    const newStatus = data.newStatus as string | undefined;
+    const newStatus = data.newStatus as OrderStatus | undefined;
 
     if (!id || !newStatus) return;
 

@@ -463,7 +463,7 @@ export class SubscriptionService {
         where: { id: customerId },
         include: {
           orders: {
-            where: { status: 'COMPLETED' },
+            where: { status: 'DELIVERED' },
             select: { total: true, createdAt: true }
           }
         }

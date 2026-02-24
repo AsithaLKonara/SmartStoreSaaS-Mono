@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Use string literals for OrderStatus since Prisma enums might not be available
 const OrderStatus = {
   PENDING: 'PENDING',
-  CONFIRMED: 'CONFIRMED',
+  PROCESSING: 'PROCESSING',
   CANCELLED: 'CANCELLED'
 } as const;
 
@@ -68,13 +68,18 @@ export interface PaymentAnalytics {
 }
 
 export class AdvancedPaymentService {
-  private stripe: Stripe;
+  private _stripe: Stripe | null = null;
 
-  constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16' as any
-    });
+  private get stripe(): Stripe {
+    if (!this._stripe) {
+      this._stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2023-10-16' as any
+      });
+    }
+    return this._stripe;
   }
+
+  constructor() { }
 
   async createPaymentIntent(data: {
     amount: number;
@@ -362,7 +367,7 @@ export class AdvancedPaymentService {
         paymentIntentId: paymentIntent.id,
         amount: (refund.amount || 0) / 100,
         reason: refund.reason as string || 'requested_by_customer',
-        status: refund.status || 'pending',
+        status: 'PENDING',
         metadata: { stripeRefundId: refund.id },
         organizationId: paymentIntent.organizationId
       }
@@ -531,7 +536,7 @@ export class AdvancedPaymentService {
     if (paymentIntent.metadata?.orderId) {
       await prisma.order.update({
         where: { id: paymentIntent.metadata.orderId },
-        data: { status: OrderStatus.CONFIRMED }
+        data: { status: OrderStatus.PROCESSING }
       });
     }
   }

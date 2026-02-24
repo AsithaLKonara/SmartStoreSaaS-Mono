@@ -60,8 +60,8 @@ export class OrderParser {
 
                 while ((match = pattern.exec(currentText)) !== null) {
                     const fullMatch = match[0];
-                    const qty = parseInt(match[1]);
-                    const product = match[2];
+                    const qty = parseInt(match[1] || '0');
+                    const product = match[2] || '';
 
                     if (addItem(qty, product)) {
                         // Replace match with spaces to avoid re-matching by subsequent patterns
