@@ -332,7 +332,7 @@ export class AIAnalyticsService {
       const orders = await prisma.order.findMany({
         where: {
           organizationId,
-          status: { in: ['CONFIRMED', 'PACKED'] },
+          status: { in: ['PENDING', 'PROCESSING'] },
         },
         include: {
           customer: true,

@@ -117,7 +117,7 @@ export const POST = requirePermission('MANAGE_CAMPAIGNS')(
           organizationId,
           name,
           templateId: template.id,
-          status: 'draft',
+          status: 'DRAFT',
           scheduledAt: scheduledFor ? new Date(scheduledFor) : null,
           updatedAt: new Date()
         }

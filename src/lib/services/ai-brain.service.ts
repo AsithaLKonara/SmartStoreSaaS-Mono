@@ -22,7 +22,7 @@ export class AIBrainService {
      */
     static async decideNextAction(context: AIContext): Promise<AIResponse> {
         if (!this.API_KEY) {
-            logger.warn('HUGGINGFACE_API_KEY is not set. Falling back to mock decision.');
+            logger.warn({ message: 'HUGGINGFACE_API_KEY is not set. Falling back to mock decision.' });
             return this.getMockDecision(context);
         }
 
@@ -105,7 +105,7 @@ export class AIBrainService {
     /**
      * Specialized dynamic pricing optimization
      */
-    static async optimizePricing(context: AIContext) {
+    static async optimizePricing(context: AIContext): Promise<{ recommendations: any[] }> {
         if (!this.API_KEY) {
             return {
                 recommendations: (context.inventory || []).slice(0, 4).map(p => ({
@@ -135,7 +135,7 @@ export class AIBrainService {
     /**
      * Specialized structured insights for the AI Insights Dashboard
      */
-    static async generateDashboardInsights(context: AIContext) {
+    static async generateDashboardInsights(context: AIContext): Promise<any> {
         if (!this.API_KEY) {
             return {
                 demandForecasts: [
@@ -247,7 +247,10 @@ ${JSON.stringify(context, null, 2)}
             }
             throw new Error('No JSON found in model output');
         } catch (e) {
-            logger.error({ message: 'Failed to parse AI output', output });
+            logger.error({
+                message: 'Failed to parse AI output',
+                context: { output }
+            });
             throw e;
         }
     }

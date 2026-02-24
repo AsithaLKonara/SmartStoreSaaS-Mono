@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { 
+import {
   ArrowLeft,
   Edit,
   MessageSquare,
@@ -23,7 +23,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
+import { formatCurrency, formatDate, formatPhoneNumber, formatAddress } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 interface Customer {
@@ -31,10 +31,7 @@ interface Customer {
   name: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
+  address: any;
   dateOfBirth: string;
   tags: string[];
   notes: string;
@@ -74,7 +71,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
   const { data: session, status } = useSession();
   const router = useRouter();
   const customerId = params.id;
-  
+
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -189,7 +186,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             <p className="text-gray-600">Customer Details</p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -272,11 +269,10 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -303,7 +299,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 text-gray-400 mr-3" />
                     <span className="text-gray-900 dark:text-white">
-                      {customer.address}, {customer.city} {customer.postalCode}, {customer.country}
+                      {formatAddress(customer.address)}
                     </span>
                   </div>
                   {customer.dateOfBirth && (
@@ -326,8 +322,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                   <div>
                     <span className="text-sm font-medium text-gray-600">Language:</span>
                     <span className="ml-2 text-gray-900 dark:text-white">
-                      {customer.preferences.language === 'en' ? 'English' : 
-                       customer.preferences.language === 'si' ? 'Sinhala' : 'Tamil'}
+                      {customer.preferences.language === 'en' ? 'English' :
+                        customer.preferences.language === 'si' ? 'Sinhala' : 'Tamil'}
                     </span>
                   </div>
                   <div>
@@ -404,7 +400,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         {order.items.map((item, index) => (
                           <div key={index} className="flex items-center justify-between text-sm">
@@ -419,7 +415,7 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                           </div>
                         ))}
                       </div>
-                      
+
                       <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                         <Button
                           variant="outline"

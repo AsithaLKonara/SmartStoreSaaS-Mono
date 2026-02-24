@@ -28,10 +28,10 @@ export interface HealthCheck {
 export interface ProductionAlert {
   id: string;
   type: 'error_rate' | 'response_time' | 'availability' | 'security' | 'business' | 'infrastructure';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   title: string;
   description: string;
-  status: 'active' | 'acknowledged' | 'resolved' | 'suppressed';
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED';
   organizationId?: string;
   service: string;
   metric: string;
@@ -186,7 +186,7 @@ export class ProductionMonitoringService {
     type?: string
   ): Promise<ProductionAlert[]> {
     try {
-      const where: any = { status: 'active' };
+      const where: any = { status: 'ACTIVE' };
 
       if (organizationId) where.organizationId = organizationId;
       if (severity) where.severity = severity;
@@ -234,7 +234,7 @@ export class ProductionMonitoringService {
         ...alert,
         id: this.generateAlertId(),
         timestamp: new Date(),
-        status: 'active',
+        status: 'ACTIVE',
       };
 
       await this.storeAlert(newAlert);
@@ -262,7 +262,7 @@ export class ProductionMonitoringService {
       await prisma.productionAlert.update({
         where: { id: alertId },
         data: {
-          status: 'acknowledged',
+          status: 'ACKNOWLEDGED',
           resolvedBy: acknowledgedBy,
         } as any,
       });
@@ -284,7 +284,7 @@ export class ProductionMonitoringService {
       await prisma.productionAlert.update({
         where: { id: alertId },
         data: {
-          status: 'resolved',
+          status: 'RESOLVED',
           resolvedAt: new Date(),
           resolvedBy,
         } as any,
@@ -575,14 +575,14 @@ export class ProductionMonitoringService {
     const thresholds = this.alertThresholds[metric.name as keyof typeof this.alertThresholds];
     if (!thresholds) return;
 
-    let severity: 'low' | 'medium' | 'high' | 'critical' | null = null;
+    let severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | null = null;
 
     if (metric.value >= thresholds.critical) {
-      severity = 'critical';
+      severity = 'CRITICAL';
     } else if (metric.value >= thresholds.high) {
-      severity = 'high';
+      severity = 'HIGH';
     } else if (metric.value >= thresholds.medium) {
-      severity = 'medium';
+      severity = 'MEDIUM';
     }
 
     if (severity) {
@@ -594,7 +594,7 @@ export class ProductionMonitoringService {
         organizationId: metric.organizationId,
         service: 'system',
         metric: metric.name,
-        threshold: thresholds[severity],
+        threshold: thresholds[severity.toLowerCase() as keyof typeof thresholds],
         currentValue: metric.value,
         tags: ['threshold', 'monitoring'],
         metadata: metric.metadata,
@@ -662,7 +662,7 @@ export class ProductionMonitoringService {
     healthChecks: HealthCheck[],
     activeAlerts: ProductionAlert[]
   ): 'healthy' | 'degraded' | 'unhealthy' {
-    const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
+    const criticalAlerts = activeAlerts.filter(a => a.severity === 'CRITICAL');
     const unhealthyChecks = healthChecks.filter(h => h.status === 'unhealthy');
 
     if (criticalAlerts.length > 0 || unhealthyChecks.length > 0) {
@@ -670,7 +670,7 @@ export class ProductionMonitoringService {
     }
 
     const degradedChecks = healthChecks.filter(h => h.status === 'degraded');
-    const highAlerts = activeAlerts.filter(a => a.severity === 'high');
+    const highAlerts = activeAlerts.filter(a => a.severity === 'HIGH');
 
     if (degradedChecks.length > 0 || highAlerts.length > 0) {
       return 'degraded';
@@ -680,7 +680,7 @@ export class ProductionMonitoringService {
   }
 
   private shouldNotify(alert: ProductionAlert): boolean {
-    return alert.severity === 'high' || alert.severity === 'critical';
+    return alert.severity === 'HIGH' || alert.severity === 'CRITICAL';
   }
 
   private async sendNotifications(alert: ProductionAlert): Promise<void> {
