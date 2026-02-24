@@ -63,7 +63,7 @@ export class ProductionIoTService {
         organizationId: deviceData.organizationId,
         warehouseId: deviceData.warehouseId,
         firmwareVersion: deviceData.firmwareVersion || '1.0.0',
-        status: 'online',
+        status: 'ONLINE',
         isActive: true,
         updatedAt: new Date(),
       },
@@ -148,7 +148,7 @@ export class ProductionIoTService {
         type: alertData.type,
         severity: alertData.severity,
         message: alertData.message,
-        data: alertData.data ? JSON.stringify(alertData.data) : null,
+        data: (alertData.data ? JSON.stringify(alertData.data) : null) as any,
         isResolved: false,
         createdAt: new Date(),
       },
@@ -201,19 +201,19 @@ export class ProductionIoTService {
    */
   async updateDeviceStatus(
     deviceId: string,
-    status: 'online' | 'offline' | 'maintenance' | 'error'
+    status: 'ONLINE' | 'OFFLINE' | 'MAINTENANCE' | 'RETIRED'
   ): Promise<void> {
     await prisma.iotDevice.update({
       where: { id: deviceId },
       data: {
-        status,
+        status: status as any,
         lastSeen: new Date(),
         updatedAt: new Date(),
       },
     });
 
     // Create alert if device went offline
-    if (status === 'offline') {
+    if (status === 'OFFLINE') {
       await this.createAlert({
         deviceId,
         type: 'device_offline',

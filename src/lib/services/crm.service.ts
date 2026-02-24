@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CRMService {
     /**
@@ -107,6 +108,7 @@ export class CRMService {
             // 3. Log transaction
             await tx.loyaltyTransaction.create({
                 data: {
+                    id: uuidv4(),
                     customerId,
                     loyaltyId: loyalty.id,
                     type,

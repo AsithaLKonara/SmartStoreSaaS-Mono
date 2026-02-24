@@ -60,21 +60,12 @@ export class BillingService {
         }
       });
 
-      // Get active subscriptions (using Organization as proxy for now)
-      let activeSubscriptions = 0;
-      try {
-        activeSubscriptions = await (prisma as any).pWASubscription.count({
-          where: {
-            organizationId,
-            isActive: true
-          }
-        });
-      } catch (error) {
-        // Table doesn't exist yet, use organization count as proxy
-        activeSubscriptions = await prisma.organization.count({
-          where: { id: organizationId }
-        });
-      }
+      const activeSubscriptions = await prisma.subscription.count({
+        where: {
+          customer: { organizationId },
+          status: 'ACTIVE'
+        }
+      });
 
       // Get pending payments
       const pendingPayments = await prisma.payment.count({
@@ -101,39 +92,20 @@ export class BillingService {
         }
       });
 
-      // Get subscription metrics (using Organization as proxy for now)
-      let subscriptionMetrics = {
-        totalSubscriptions: 0,
-        activeSubscriptions: 0,
-        cancelledSubscriptions: 0,
-        trialSubscriptions: 0
-      };
+      const subs = await prisma.subscription.groupBy({
+        by: ['status'],
+        where: {
+          customer: { organizationId }
+        },
+        _count: true
+      });
 
-      try {
-        subscriptionMetrics = {
-          totalSubscriptions: await (prisma as any).pWASubscription.count({
-            where: { organizationId }
-          }),
-          activeSubscriptions: await (prisma as any).pWASubscription.count({
-            where: { organizationId, isActive: true }
-          }),
-          cancelledSubscriptions: await (prisma as any).pWASubscription.count({
-            where: { organizationId, isActive: false }
-          }),
-          trialSubscriptions: 0 // No trial concept in PWA subscriptions
-        };
-      } catch (error) {
-        // Table doesn't exist yet, use organization count as proxy
-        const orgCount = await prisma.organization.count({
-          where: { id: organizationId }
-        });
-        subscriptionMetrics = {
-          totalSubscriptions: orgCount,
-          activeSubscriptions: orgCount,
-          cancelledSubscriptions: 0,
-          trialSubscriptions: 0
-        };
-      }
+      const subscriptionMetrics = {
+        totalSubscriptions: subs.reduce((sum, s) => sum + s._count, 0),
+        activeSubscriptions: subs.find(s => s.status === 'ACTIVE')?._count || 0,
+        cancelledSubscriptions: subs.find(s => s.status === 'CANCELLED')?._count || 0,
+        trialSubscriptions: subs.find(s => s.status === 'TRIAL')?._count || 0
+      };
 
       // Get revenue metrics
       const yearlyRevenue = await prisma.payment.aggregate({

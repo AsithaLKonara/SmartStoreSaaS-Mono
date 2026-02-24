@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, PurchaseOrderStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 export class SupplierService {
@@ -121,7 +121,7 @@ export class SupplierService {
             const updatedPO = await tx.purchaseOrder.update({
                 where: { id: poId },
                 data: {
-                    status: 'COMPLETED',
+                    status: 'RECEIVED',
                     completedAt,
                     receivedDate: completedAt
                 }
@@ -157,7 +157,7 @@ export class SupplierService {
     /**
      * Update purchase order status (AI Supply Chain Support)
      */
-    static async updatePOStatus(poId: string, organizationId: string, status: string) {
+    static async updatePOStatus(poId: string, organizationId: string, status: PurchaseOrderStatus) {
         return prisma.purchaseOrder.update({
             where: { id: poId, organizationId },
             data: { status },

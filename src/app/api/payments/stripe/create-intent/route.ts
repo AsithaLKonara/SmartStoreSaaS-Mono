@@ -78,7 +78,7 @@ export const POST = requireAuth(
       // Audit log the action
       await AuditService.log({
         userId: user.id,
-        organizationId: user.organizationId,
+        organizationId: (user.organizationId || order.organizationId) as string,
         action: 'CREATE_PAYMENT_INTENT',
         resource: 'PAYMENT',
         resourceId: paymentIntent.id,

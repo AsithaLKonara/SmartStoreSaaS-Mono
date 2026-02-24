@@ -36,7 +36,7 @@ export const GET = requireAuth(
           where: {
             id: conversationId,
             OR: [
-              { organizationId },
+              { organizationId: organizationId as string },
               { customerId: user.id } // Simple check, might need better customer ID mapping
             ]
           },
@@ -48,7 +48,7 @@ export const GET = requireAuth(
       const conversations = await prisma.conversation.findMany({
         where: user.role === 'CUSTOMER'
           ? { customerId: user.id }
-          : { organizationId },
+          : { organizationId: organizationId as string },
         orderBy: { updatedAt: 'desc' },
         include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } }
       });
@@ -82,7 +82,7 @@ export const POST = requireAuth(
           data: {
             organizationId,
             customerId: user.role === 'CUSTOMER' ? user.id : undefined,
-            type: toAI ? 'AI_SUPPORT' : 'SUPPORT'
+            type: toAI ? 'AI' : 'SUPPORT'
           }
         });
         convoId = newConvo.id;
@@ -108,7 +108,7 @@ export const POST = requireAuth(
         ]);
 
         const context: AIContext = {
-          inventory: inventory.items,
+          inventory: inventory.products,
           salesVelocity: velocity,
           analytics: { todayDate: new Date().toISOString() }
         };

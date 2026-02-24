@@ -15,7 +15,7 @@ export class AnalyticsService {
                 where: {
                     organizationId,
                     createdAt: { gte: today },
-                    status: { notIn: ['CANCELLED', 'RETURNED'] }
+                    status: { notIn: ['CANCELLED', 'REFUNDED'] }
                 },
                 _sum: { total: true }
             }),
@@ -59,7 +59,7 @@ export class AnalyticsService {
             where: {
                 organizationId,
                 createdAt: { gte: startDate },
-                status: { notIn: ['CANCELLED', 'RETURNED'] }
+                status: { notIn: ['CANCELLED', 'REFUNDED'] }
             },
             select: {
                 total: true,
