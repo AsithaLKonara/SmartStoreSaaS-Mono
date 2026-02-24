@@ -76,7 +76,7 @@ export class SocialAIService {
                 data: {
                     type: 'AI', // Or based on channel
                     organizationId,
-                    status: 'ACTIVE',
+                    status: 'OPEN',
                     metadata: {
                         sessionId: senderId,
                         channel,

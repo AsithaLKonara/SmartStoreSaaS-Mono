@@ -1,5 +1,6 @@
 import twilio from 'twilio';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { smsLogger } from '@/lib/utils/logger';
 
 // Lazy Twilio client initialization (to avoid build errors with invalid credentials)
@@ -356,7 +357,7 @@ export class SMSService {
           id: `sms_log_${Date.now()}`,
           phone: from,
           message: body,
-          status: 'RECEIVED',
+          status: 'PENDING', // SmsLogStatus does not have RECEIVED
           provider: 'twilio',
           messageId,
           organization: {
@@ -486,7 +487,7 @@ export class SMSService {
           id: `sms_sub_${Date.now()}`,
           phone,
           listId,
-          customFields: customFields || null,
+          customFields: (customFields || Prisma.JsonNull) as any,
           organizationId,
           isActive: true,
           subscribedAt: new Date()

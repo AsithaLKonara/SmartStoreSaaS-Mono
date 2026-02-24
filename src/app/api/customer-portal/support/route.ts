@@ -103,8 +103,8 @@ export const POST = requireAuth(
           id: `ticket_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: subject,
           description: message,
-          priority: 'medium',
-          status: 'open',
+          priority: 'MEDIUM',
+          status: 'OPEN',
           email: customer.email,
           organizationId: customer.organizationId,
           updatedAt: new Date()
