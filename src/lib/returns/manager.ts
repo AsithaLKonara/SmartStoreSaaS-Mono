@@ -16,12 +16,13 @@ export enum ReturnReason {
 }
 
 export enum ReturnStatus {
-  REQUESTED = 'REQUESTED',
+  PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   RECEIVED = 'RECEIVED',
   REFUNDED = 'REFUNDED',
   COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum RefundMethod {
@@ -72,7 +73,7 @@ export async function createReturnRequest(data: {
         orderId: data.orderId,
         customerId: order.customerId,
         organizationId: order.organizationId, // Add required organizationId
-        status: 'PENDING' as any,
+        status: ReturnStatus.PENDING,
         reason: data.items[0]?.reason || 'OTHER', // Add required reason from first item
         refundMethod: data.refundMethod || RefundMethod.ORIGINAL_PAYMENT,
         refundAmount,
@@ -197,7 +198,7 @@ export async function markReturnReceived(
     await prisma.return.update({
       where: { id: returnId },
       data: {
-        status: 'RECEIVED' as any, // Note: receivedAt field doesn't exist in Prisma schema
+        status: ReturnStatus.RECEIVED,
       },
     });
 
@@ -239,7 +240,7 @@ export async function processRefund(
         // customerId removed - not in Refund schema
         amount: new Prisma.Decimal(Number(returnRequest.refundAmount ?? 0)), // Fix null safety
         // method removed - not in Refund schema
-        status: 'PROCESSED',
+        status: 'COMPLETED',
         organizationId: returnRequest.organizationId,
       },
     });
@@ -247,7 +248,7 @@ export async function processRefund(
     await prisma.return.update({
       where: { id: returnId },
       data: {
-        status: 'REFUNDED' as any, // Note: refundedAt field doesn't exist in Prisma schema
+        status: ReturnStatus.REFUNDED,
       },
     });
 

@@ -8,28 +8,34 @@ interface WooCommerceConfig {
 }
 
 export class WooCommerceService {
-  private api: any;
+  private _api: any;
   private isConfigured: boolean = false;
 
-  constructor(config?: WooCommerceConfig) {
-    const url = config?.url || process.env.WOOCOMMERCE_URL;
-    const consumerKey = config?.consumerKey || process.env.WOOCOMMERCE_CONSUMER_KEY;
-    const consumerSecret = config?.consumerSecret || process.env.WOOCOMMERCE_CONSUMER_SECRET;
+  constructor() { }
+
+  private get api(): any {
+    if (this._api) return this._api;
+
+    const url = process.env.WOOCOMMERCE_URL;
+    const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+    const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
     if (url && consumerKey && consumerSecret) {
-      this.api = new WooCommerceRestApi({
+      this._api = new WooCommerceRestApi({
         url,
         consumerKey,
         consumerSecret,
         version: 'wc/v3',
       });
       this.isConfigured = true;
+      return this._api;
     } else {
       logger.warn({
         message: 'WooCommerce not configured. Set environment variables.',
-        context: { service: 'WooCommerceIntegration', operation: 'constructor' }
+        context: { service: 'WooCommerceIntegration', operation: 'getApi' }
       });
       this.isConfigured = false;
+      return null;
     }
   }
 
@@ -37,7 +43,7 @@ export class WooCommerceService {
    * Sync products from WooCommerce to SmartStore
    */
   async syncProducts(organizationId: string) {
-    if (!this.isConfigured) {
+    if (!this.api) {
       throw new Error('WooCommerce not configured');
     }
 
@@ -76,7 +82,7 @@ export class WooCommerceService {
    * Sync orders from WooCommerce to SmartStore
    */
   async syncOrders(organizationId: string) {
-    if (!this.isConfigured) {
+    if (!this.api) {
       throw new Error('WooCommerce not configured');
     }
 
@@ -127,7 +133,7 @@ export class WooCommerceService {
    * Export product to WooCommerce
    */
   async exportProduct(product: any) {
-    if (!this.isConfigured) {
+    if (!this.api) {
       throw new Error('WooCommerce not configured');
     }
 
@@ -164,7 +170,7 @@ export class WooCommerceService {
    * Update inventory in WooCommerce
    */
   async updateInventory(productId: string, quantity: number) {
-    if (!this.isConfigured) {
+    if (!this.api) {
       throw new Error('WooCommerce not configured');
     }
 
@@ -194,11 +200,11 @@ export class WooCommerceService {
     const statusMap: Record<string, string> = {
       'pending': 'PENDING',
       'processing': 'PROCESSING',
-      'on-hold': 'ON_HOLD',
-      'completed': 'COMPLETED',
+      'on-hold': 'PENDING',
+      'completed': 'DELIVERED',
       'cancelled': 'CANCELLED',
       'refunded': 'REFUNDED',
-      'failed': 'FAILED',
+      'failed': 'CANCELLED',
     };
     return statusMap[wcStatus] || 'PENDING';
   }
@@ -207,7 +213,7 @@ export class WooCommerceService {
    * Verify WooCommerce connection
    */
   async verifyConnection() {
-    if (!this.isConfigured) {
+    if (!this.api) {
       return { success: false, error: 'Not configured' };
     }
 

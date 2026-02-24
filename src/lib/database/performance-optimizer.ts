@@ -296,7 +296,7 @@ class DatabasePerformanceOptimizer {
           prisma.order.count({
             where: {
               organizationId,
-              status: { in: ['completed', 'processing', 'shipped'] },
+              status: { in: ['DELIVERED', 'PROCESSING', 'SHIPPED'] },
             },
           }),
           prisma.customer.count({
@@ -305,7 +305,7 @@ class DatabasePerformanceOptimizer {
           prisma.order.aggregate({
             where: {
               organizationId,
-              status: 'completed',
+              status: 'DELIVERED',
             },
             _sum: {
               total: true,
@@ -421,7 +421,7 @@ class DatabasePerformanceOptimizer {
                 where: {
                   order: {
                     createdAt: { gte: startDate },
-                    status: 'completed'
+                    status: 'DELIVERED'
                   }
                 }
               }
@@ -578,7 +578,7 @@ class DatabasePerformanceOptimizer {
         where: {
           organizationId,
           createdAt: { gte: dateFrom },
-          status: 'completed',
+          status: 'DELIVERED',
         },
         _sum: { total: true },
       }),
@@ -586,14 +586,14 @@ class DatabasePerformanceOptimizer {
         where: {
           organizationId,
           createdAt: { gte: dateFrom },
-          status: 'completed',
+          status: 'DELIVERED',
         },
       }),
       prisma.order.aggregate({
         where: {
           organizationId,
           createdAt: { gte: dateFrom },
-          status: 'completed',
+          status: 'DELIVERED',
         },
         _avg: { total: true },
       }),
@@ -655,7 +655,7 @@ class DatabasePerformanceOptimizer {
             where: {
               order: {
                 createdAt: { gte: dateFrom },
-                status: 'completed',
+                status: 'DELIVERED',
               },
             },
           },

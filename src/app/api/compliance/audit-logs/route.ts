@@ -27,7 +27,7 @@ export const GET = requirePermission('VIEW_AUDIT_LOGS')(
       const limit = parseInt(searchParams.get('limit') || '50');
 
       const result = await AuditService.getLogs({
-        organizationId,
+        organizationId: organizationId as string,
         page,
         limit,
         userId,
@@ -92,7 +92,7 @@ export const POST = requirePermission('VIEW_AUDIT_LOGS')(
 
       const log = await AuditService.log({
         userId: userId || user.id,
-        organizationId,
+        organizationId: organizationId as string,
         action,
         resource: entity,
         resourceId: entityId,

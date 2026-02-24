@@ -32,7 +32,7 @@ export const GET = requireAuth(
       }
 
       // First get the customer's wishlist
-      const wishlist = await prisma.wishlists.findFirst({
+      const wishlist = await prisma.wishlist.findFirst({
         where: { customerId: customer.id }
       });
 
@@ -40,9 +40,9 @@ export const GET = requireAuth(
         return NextResponse.json(successResponse([]));
       }
 
-      const wishlistItems = await prisma.wishlist_items.findMany({
+      const wishlistItems = await prisma.wishlistItem.findMany({
         where: { wishlistId: wishlist.id },
-        include: { products: true },
+        include: { product: true },
         orderBy: { createdAt: 'desc' }
       });
 
@@ -68,7 +68,7 @@ export const GET = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -104,15 +104,16 @@ export const POST = requireAuth(
       }
 
       // Get or create customer's wishlist
-      let wishlist = await prisma.wishlists.findFirst({
+      let wishlist = await prisma.wishlist.findFirst({
         where: { customerId: customer.id }
       });
 
       if (!wishlist) {
-        wishlist = await prisma.wishlists.create({
+        wishlist = await prisma.wishlist.create({
           data: {
             id: `wishlist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             customerId: customer.id,
+            organizationId: customer.organizationId,
             name: 'My Wishlist',
             updatedAt: new Date()
           }
@@ -120,7 +121,7 @@ export const POST = requireAuth(
       }
 
       // Check if already in wishlist
-      const existing = await prisma.wishlist_items.findFirst({
+      const existing = await prisma.wishlistItem.findFirst({
         where: {
           wishlistId: wishlist.id,
           productId
@@ -131,13 +132,13 @@ export const POST = requireAuth(
         return NextResponse.json(successResponse(existing));
       }
 
-      const wishlistItem = await prisma.wishlist_items.create({
+      const wishlistItem = await prisma.wishlistItem.create({
         data: {
           id: `wishlist_item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           wishlistId: wishlist.id,
           productId
         },
-        include: { products: true }
+        include: { product: true }
       });
 
       logger.info({
@@ -162,11 +163,11 @@ export const POST = requireAuth(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

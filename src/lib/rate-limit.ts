@@ -3,10 +3,30 @@ import { NextResponse } from 'next/server';
 import { logger } from './logger';
 
 // Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// Initialize Redis client lazily to avoid build-time errors with missing env vars
+let _redis: Redis | null = null;
+function getRedis() {
+  if (!_redis) {
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    if (!url || !token) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN missing');
+      }
+      // Allow build to proceed with mock
+      return {
+        get: async () => null,
+        setex: async () => 'OK',
+        ttl: async () => 0,
+        incr: async () => 1
+      } as any;
+    }
+
+    _redis = new Redis({ url, token });
+  }
+  return _redis;
+}
 
 // Rate limit configurations
 export const RATE_LIMITS = {
@@ -77,12 +97,12 @@ export async function checkRateLimit(
 
   try {
     // Get current count and window info
-    const current = await redis.get(key);
+    const current = await getRedis().get(key);
     const now = Math.floor(Date.now() / 1000);
 
     if (!current) {
       // First request in this window
-      await redis.setex(key, config.window, 1);
+      await getRedis().setex(key, config.window, 1);
       return {
         success: true,
         limit: config.max,
@@ -96,7 +116,7 @@ export async function checkRateLimit(
 
     if (count >= config.max) {
       // Rate limit exceeded
-      const ttl = await redis.ttl(key);
+      const ttl = await getRedis().ttl(key);
       return {
         success: false,
         limit: config.max,
@@ -107,7 +127,7 @@ export async function checkRateLimit(
     }
 
     // Increment counter
-    await redis.incr(key);
+    await getRedis().incr(key);
 
     return {
       success: true,
@@ -201,8 +221,8 @@ export async function getRateLimitInfo(
   const key = `rate_limit:${type}:${clientId}`;
 
   try {
-    const current = await redis.get(key);
-    const ttl = await redis.ttl(key);
+    const current = await getRedis().get(key);
+    const ttl = await getRedis().ttl(key);
     const count = (current as number) || 0;
 
     return {

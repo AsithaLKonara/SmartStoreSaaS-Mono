@@ -120,7 +120,7 @@ export class PredictiveAnalyticsEngine {
         by: ['createdAt'],
         where: {
           organizationId,
-          status: { in: ['COMPLETED', 'DELIVERED'] },
+          status: { in: ['DELIVERED'] },
           createdAt: {
             gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) // Last 90 days
           }
@@ -179,7 +179,7 @@ export class PredictiveAnalyticsEngine {
           productId,
           order: {
             organizationId,
-            status: { in: ['COMPLETED', 'DELIVERED'] },
+            status: { in: ['DELIVERED'] },
             createdAt: {
               gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
             }

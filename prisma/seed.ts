@@ -16,7 +16,7 @@ async function main() {
       domain: 'smartstore-demo.com',
       plan: 'PRO',
       status: 'ACTIVE',
-        description: 'Demo organization for SmartStore SaaS platform',
+      description: 'Demo organization for SmartStore SaaS platform',
       settings: JSON.stringify({
         website: 'https://smartstore-demo.com',
         logo: 'https://via.placeholder.com/150x150/4F46E5/FFFFFF?text=SS',
@@ -56,7 +56,7 @@ async function main() {
       domain: 'techsolutions.lk',
       plan: 'BASIC',
       status: 'ACTIVE',
-        description: 'Technology solutions provider',
+      description: 'Technology solutions provider',
       settings: JSON.stringify({
         website: 'https://techsolutions.lk',
         logo: 'https://via.placeholder.com/150x150/10B981/FFFFFF?text=TS',
@@ -181,7 +181,8 @@ async function main() {
       id: 'cat-1',
       name: 'Electronics',
       description: 'Electronic devices and accessories',
-        isActive: true,
+      organizationId: organization1.id,
+      isActive: true,
     },
   });
 
@@ -192,7 +193,8 @@ async function main() {
       id: 'cat-2',
       name: 'Clothing',
       description: 'Fashion and apparel',
-        isActive: true,
+      organizationId: organization1.id,
+      isActive: true,
     },
   });
 
@@ -203,7 +205,8 @@ async function main() {
       id: 'cat-3',
       name: 'Home & Garden',
       description: 'Home improvement and garden supplies',
-        isActive: true,
+      organizationId: organization1.id,
+      isActive: true,
     },
   });
 
@@ -281,7 +284,7 @@ async function main() {
       phone: '+94 11 500 5000',
       email: 'support@domex.lk',
       organizationId: organization1.id,
-        isActive: true,
+      isActive: true,
     },
   });
 
@@ -294,7 +297,7 @@ async function main() {
       phone: '+94 11 400 4000',
       email: 'info@prontolanka.lk',
       organizationId: organization1.id,
-        isActive: true,
+      isActive: true,
     },
   });
 
@@ -307,7 +310,7 @@ async function main() {
       orderNumber: 'ORD001',
       customerId: customer1.id,
       organizationId: organization1.id,
-      status: 'CONFIRMED',
+      status: 'PROCESSING',
       total: 150000,
       subtotal: 140000,
       tax: 10000,
@@ -354,7 +357,7 @@ async function main() {
       id: 'item-2',
       orderId: order1.id,
       productId: product2.id,
-        quantity: 1,
+      quantity: 1,
       price: 25000,
       total: 25000,
     },
@@ -367,7 +370,7 @@ async function main() {
       id: 'item-3',
       orderId: order2.id,
       productId: product2.id,
-        quantity: 1,
+      quantity: 1,
       price: 25000,
       total: 25000,
     },
@@ -380,7 +383,7 @@ async function main() {
       id: 'item-4',
       orderId: order2.id,
       productId: product3.id,
-        quantity: 1,
+      quantity: 1,
       price: 2500,
       total: 2500,
     },
@@ -392,13 +395,13 @@ async function main() {
     update: {},
     create: {
       id: 'payment-1',
-        orderId: order1.id,
+      orderId: order1.id,
       organizationId: organization1.id,
       amount: 150000,
-        currency: 'LKR',
+      currency: 'LKR',
       method: 'CARD',
       gateway: 'STRIPE',
-        status: 'COMPLETED',
+      status: 'PAID',
       transactionId: 'txn_123456789',
     },
   });
@@ -408,10 +411,10 @@ async function main() {
     update: {},
     create: {
       id: 'payment-2',
-        orderId: order2.id,
+      orderId: order2.id,
       organizationId: organization1.id,
       amount: 27500,
-        currency: 'LKR',
+      currency: 'LKR',
       method: 'COD',
       gateway: 'CASH',
       status: 'PENDING',
@@ -442,7 +445,7 @@ async function main() {
       orderId: order2.id,
       courierId: courier2.id,
       organizationId: organization1.id,
-      status: 'DISPATCHED',
+      status: 'SHIPPED',
       trackingNumber: 'TRK87654321',
       estimatedDelivery: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day
     },

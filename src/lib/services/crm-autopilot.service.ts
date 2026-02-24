@@ -81,7 +81,10 @@ export class CRMAutopilotService {
                     content: `Hi! We noticed you haven't visited us in a while. Here is a 15% discount for your next order: WELCOMEBACK15`
                 });
 
-                logger.info({ message: 'Retention campaign sent by AI', customerId: customer.customerId });
+                logger.info({
+                    message: 'Retention campaign sent by AI',
+                    context: { customerId: customer.customerId }
+                });
             }
         }
 

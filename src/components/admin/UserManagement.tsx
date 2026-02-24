@@ -140,7 +140,7 @@ export function UserManagement() {
           <CardContent>
             <div className="text-2xl font-bold">{users.length}</div>
             <p className="text-xs text-muted-foreground">
-              {users.filter(u => u.status === 'active').length} active
+              {users.filter(u => u.status === 'ACTIVE').length} active
             </p>
           </CardContent>
         </Card>
@@ -151,7 +151,7 @@ export function UserManagement() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.filter(u => u.status === 'active').length}</div>
+            <div className="text-2xl font-bold">{users.filter(u => u.status === 'ACTIVE').length}</div>
             <p className="text-xs text-muted-foreground">
               Currently active
             </p>

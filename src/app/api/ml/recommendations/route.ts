@@ -40,42 +40,42 @@ export const POST = requirePermission('VIEW_AI_INSIGHTS')(
         correlation: req.correlationId
       });
 
-    // Get customer's purchase history for collaborative filtering
-    const customerOrders = await prisma.order.findMany({
-      where: {
-        customerId,
-        organizationId,
-        status: { in: ['COMPLETED', 'DELIVERED'] }
-      },
-      include: {
-        orderItems: {
-          include: {
-            product: true
+      // Get customer's purchase history for collaborative filtering
+      const customerOrders = await prisma.order.findMany({
+        where: {
+          customerId,
+          organizationId,
+          status: { in: ['DELIVERED'] }
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: true
+            }
           }
-        }
-      },
-      take: 10,
-      orderBy: { createdAt: 'desc' }
-    });
+        },
+        take: 10,
+        orderBy: { createdAt: 'desc' }
+      });
 
-    // Get products from same categories that customer bought from
-    const purchasedProductIds = customerOrders.flatMap(order =>
-      order.orderItems.map(item => item.productId)
-    );
+      // Get products from same categories that customer bought from
+      const purchasedProductIds = customerOrders.flatMap(order =>
+        order.orderItems.map(item => item.productId)
+      );
 
-    const recommendations = await prisma.product.findMany({
-      where: {
-        organizationId,
-        isActive: true,
-        id: { notIn: purchasedProductIds }, // Exclude already purchased
-        stock: { gt: 0 }
-      },
-      orderBy: [
-        { stock: 'desc' }, // Prioritize available items
-        { createdAt: 'desc' } // Newer products first
-      ],
-      take: limit
-    });
+      const recommendations = await prisma.product.findMany({
+        where: {
+          organizationId,
+          isActive: true,
+          id: { notIn: purchasedProductIds }, // Exclude already purchased
+          stock: { gt: 0 }
+        },
+        orderBy: [
+          { stock: 'desc' }, // Prioritize available items
+          { createdAt: 'desc' } // Newer products first
+        ],
+        take: limit
+      });
 
       return NextResponse.json(successResponse({
         customerId,
@@ -97,11 +97,11 @@ export const POST = requirePermission('VIEW_AI_INSIGHTS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

@@ -97,6 +97,7 @@ enum SupportPriority {
 }
 
 enum OrderStatus {
+  DRAFT
   PENDING
   PROCESSING
   SHIPPED
