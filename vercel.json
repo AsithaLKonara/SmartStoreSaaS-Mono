@@ -1,5 +1,5 @@
 {
-  "name": "smartstore-saas",
   "buildCommand": "./scripts/build-production.sh",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile"
 }
