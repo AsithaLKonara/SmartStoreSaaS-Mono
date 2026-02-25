@@ -5,26 +5,17 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
-  // Add CSRF configuration
+  secret: process.env.NEXTAUTH_SECRET,
+  // @ts-ignore - trustHost is required for Vercel in some configurations despite not being in NextAuthOptions v4 types
+  trustHost: true,
   cookies: {
-    csrfToken: {
-      name: 'next-auth.csrf-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production'
-      }
-    },
     sessionToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      name: `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60, // 24 hours
+        secure: true
       }
     }
   },
@@ -80,7 +71,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const isValid = await bcrypt.compare(credentials.password, user.password);
-          
+
           if (!isValid) {
             logger.warn({
               message: 'NextAuth: Invalid password',
@@ -96,7 +87,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
             organizationId: user.organizationId,
           };
-          
+
           logger.info({
             message: 'NextAuth: Authentication successful',
             context: { service: 'NextAuth', operation: 'authorize', email: user.email, userId: user.id, role: user.role }
