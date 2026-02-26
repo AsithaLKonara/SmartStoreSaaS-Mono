@@ -6,19 +6,6 @@ import { logger } from '@/lib/logger';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  // @ts-ignore - trustHost is required for Vercel in some configurations despite not being in NextAuthOptions v4 types
-  trustHost: true,
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: true
-      }
-    }
-  },
   providers: [
     CredentialsProvider({
       name: 'Credentials',

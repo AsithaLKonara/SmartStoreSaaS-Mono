@@ -12,11 +12,15 @@ function getRedis() {
 
     if (!url || !token) {
       if (process.env.NODE_ENV === 'production') {
-        throw new Error('UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN missing');
+        logger.warn({
+          message: 'UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN missing in production. Rate limiting is DISABLED.',
+          context: { service: 'RateLimit' }
+        });
       }
-      // Allow build to proceed with mock
+      // Allow build to proceed and app to run with mock
       return {
         get: async () => null,
+        set: async () => 'OK',
         setex: async () => 'OK',
         ttl: async () => 0,
         incr: async () => 1
