@@ -4,6 +4,14 @@ import { authMiddleware } from './middleware/auth';
 import { applySecurityHeaders, applyCorsHeaders } from './lib/security/headers';
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Paths that must bypass all middleware filters (including CORS and security)
+  const bypassPaths = ['/api/auth', '/api/auth-debug', '/_next', '/favicon.ico'];
+  if (bypassPaths.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+
   // Apply authentication middleware first
   const authResponse = await authMiddleware(request);
 
@@ -18,7 +26,7 @@ export async function middleware(request: NextRequest) {
   // Apply security headers
   response = applySecurityHeaders(response);
 
-  // Apply CORS headers for API routes
+  // Apply CORS headers for API routes (excluding auth which we bypassed above)
   if (request.nextUrl.pathname.startsWith('/api/')) {
     response = applyCorsHeaders(response);
   }
