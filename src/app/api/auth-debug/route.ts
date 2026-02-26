@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import redisCache from '@/lib/cache/redis';
+import { getRedisClient } from '@/lib/cache/redis';
 import { Redis } from '@upstash/redis';
 
 export const dynamic = 'force-dynamic';
@@ -20,18 +20,18 @@ export async function GET() {
 
     // Check Database
     try {
-        await prisma.user.count();
-        status.database = 'OK';
+        const count = await prisma.user.count();
+        status.database = `OK (count: ${count})`;
     } catch (err: any) {
         status.database = `FAIL: ${err.message}`;
     }
 
     // Check Redis (ioredis)
     try {
-        const client = redisCache.client;
+        const client = getRedisClient();
         if (client) {
-            await client.ping();
-            status.redis = 'OK';
+            const ping = await client.ping();
+            status.redis = `OK (${ping})`;
         } else {
             status.redis = 'DISABLED (No config)';
         }
@@ -45,8 +45,8 @@ export async function GET() {
         const token = process.env.UPSTASH_REDIS_REST_TOKEN;
         if (url && token) {
             const upstash = new Redis({ url, token });
-            await upstash.ping();
-            status.upstash = 'OK';
+            const ping = await upstash.ping();
+            status.upstash = `OK (${ping})`;
         } else {
             status.upstash = 'MISSING_CONFIG';
         }
