@@ -5,19 +5,11 @@ const nextConfig = {
       '@panva/oidc',
       'openid-client',
       'oauth',
-      '@prisma/client'
+      '@prisma/client',
+      'jose'
     ]
   },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Externalize ESM packages for server-side (Node runtime only, NOT edge)
-      config.externals = config.externals || [];
-      config.externals.push({
-        'openid-client': 'commonjs openid-client',
-        'oauth': 'commonjs oauth',
-        '@panva/oidc': 'commonjs @panva/oidc'
-      });
-    }
+  webpack: (config) => {
     return config
   }
 }
