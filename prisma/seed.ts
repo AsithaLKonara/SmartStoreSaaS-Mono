@@ -1,12 +1,21 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole, OrganizationStatus, ActionOrigin, PaymentStatus, OrderStatus, SupportStatus, SupportPriority, IoTStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seeding...');
+  console.log('🌱 Starting MASSIVE relational database seeding...');
 
-  // ─── ORGANIZATIONS ───────────────────────────────────────────────
+  // --- PASSWORDS ---
+  const superAdminHash = await hash('SuperAdmin123!', 12);
+  const demoHash = await hash('Demo1234!', 12);
+
+  // --- 1. ORGANIZATIONS (Total 10) ---
+  console.log('🏢 Seeding Organizations...');
+  const organizations = [];
+
+  // Keep existing orgs 1 and 2
   const org1 = await prisma.organization.upsert({
     where: { id: 'org-1' },
     update: {},
@@ -17,35 +26,9 @@ async function main() {
       plan: 'PRO',
       status: 'ACTIVE',
       description: 'Demo organization for SmartStore SaaS platform',
-      settings: {
-        website: 'https://smartstore-demo.com',
-        logo: 'https://via.placeholder.com/150x150/4F46E5/FFFFFF?text=SS',
-        address: {
-          street: '123 Business Street',
-          city: 'Colombo',
-          state: 'Western Province',
-          country: 'Sri Lanka',
-          postalCode: '00100',
-        },
-        phone: '+94 11 234 5678',
-        email: 'demo@smartstore.com',
-        currency: 'LKR',
-        timezone: 'Asia/Colombo',
-        features: {
-          courierManagement: true,
-          analytics: true,
-          loyaltyProgram: true,
-          socialCommerce: true,
-          notifications: true,
-          wishlist: true,
-          coupons: true,
-          aiInsights: true,
-          bulkOperations: true,
-          multiLanguage: true,
-        },
-      },
     },
   });
+  organizations.push(org1);
 
   const org2 = await prisma.organization.upsert({
     where: { id: 'org-2' },
@@ -57,43 +40,29 @@ async function main() {
       plan: 'BASIC',
       status: 'ACTIVE',
       description: 'Technology solutions provider',
-      settings: {
-        website: 'https://techsolutions.lk',
-        logo: 'https://via.placeholder.com/150x150/10B981/FFFFFF?text=TS',
-        address: {
-          street: '456 Tech Avenue',
-          city: 'Kandy',
-          state: 'Central Province',
-          country: 'Sri Lanka',
-          postalCode: '20000',
-        },
-        phone: '+94 81 234 5678',
-        email: 'info@techsolutions.lk',
-        currency: 'LKR',
-        timezone: 'Asia/Colombo',
-        features: {
-          courierManagement: true,
-          analytics: false,
-          loyaltyProgram: false,
-          socialCommerce: true,
-          notifications: true,
-          wishlist: false,
-          coupons: true,
-          aiInsights: false,
-          bulkOperations: false,
-          multiLanguage: false,
-        },
-      },
     },
   });
+  organizations.push(org2);
 
-  // ─── USERS ───────────────────────────────────────────────────────
-  // Superadmin password: SuperAdmin123! — matches LoginForm.tsx defaults
-  const superAdminHash = await hash('SuperAdmin123!', 12);
-  // General password for other demo users
-  const demoHash = await hash('Demo1234!', 12);
+  for (let i = 3; i <= 10; i++) {
+    const org = await prisma.organization.create({
+      data: {
+        id: `org-${i}`,
+        name: faker.company.name(),
+        domain: faker.internet.domainName(),
+        description: faker.company.catchPhrase(),
+        status: 'ACTIVE',
+        plan: faker.helpers.arrayElement(['FREE', 'BASIC', 'PRO', 'ENTERPRISE'] as any),
+      },
+    });
+    organizations.push(org);
+  }
 
-  // SUPER_ADMIN — the default login page credentials
+  // --- 2. USERS (At least 10 per org) ---
+  console.log('👤 Seeding Users...');
+  const users: any[] = [];
+
+  // Existing superadmin
   const superAdmin = await prisma.user.upsert({
     where: { email: 'superadmin@smartstore.com' },
     update: { password: superAdminHash },
@@ -107,650 +76,270 @@ async function main() {
       emailVerified: new Date(),
     },
   });
+  users.push(superAdmin);
 
-  // TENANT_ADMIN for org-1
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@smartstore.com' },
-    update: { password: demoHash },
-    create: {
-      email: 'admin@smartstore.com',
-      name: 'Admin User',
-      password: demoHash,
-      role: 'TENANT_ADMIN',
-      organizationId: org1.id,
-      isActive: true,
-      emailVerified: new Date(),
-    },
-  });
+  // Seed at least 10 users for each organization
+  for (const org of organizations) {
+    for (let i = 1; i <= 10; i++) {
+      const email = i === 1 && org.id === 'org-1' ? 'admin@smartstore.com' :
+        i === 1 && org.id === 'org-2' ? 'admin@techsolutions.lk' :
+          faker.internet.email({ firstName: org.name.split(' ')[0], lastName: `user-${i}-${org.id.slice(-1)}` });
 
-  // STAFF for org-1
-  const managerUser = await prisma.user.upsert({
-    where: { email: 'manager@smartstore.com' },
-    update: { password: demoHash },
-    create: {
-      email: 'manager@smartstore.com',
-      name: 'Manager User',
-      password: demoHash,
-      role: 'STAFF',
-      roleTag: 'manager',
-      organizationId: org1.id,
-      isActive: true,
-      emailVerified: new Date(),
-    },
-  });
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: {},
+        create: {
+          email,
+          name: faker.person.fullName(),
+          password: demoHash,
+          role: i === 1 ? 'TENANT_ADMIN' : faker.helpers.arrayElement(['STAFF', 'CUSTOMER']),
+          organizationId: org.id,
+          isActive: true,
+          emailVerified: new Date(),
+        },
+      });
+      users.push(user);
+    }
+  }
 
-  const staffUser = await prisma.user.upsert({
-    where: { email: 'staff@smartstore.com' },
-    update: { password: demoHash },
-    create: {
-      email: 'staff@smartstore.com',
-      name: 'Staff User',
-      password: demoHash,
-      role: 'STAFF',
-      roleTag: 'inventory_manager',
-      organizationId: org1.id,
-      isActive: true,
-      emailVerified: new Date(),
-    },
-  });
+  // --- 3. CATEGORIES & PRODUCTS ---
+  console.log('📦 Seeding Categories & Products...');
+  for (const org of organizations) {
+    const categories = [];
+    for (let i = 1; i <= 10; i++) {
+      const cat = await prisma.category.create({
+        data: {
+          name: faker.commerce.department(),
+          description: faker.commerce.productDescription(),
+          organizationId: org.id,
+          isActive: true,
+        },
+      });
+      categories.push(cat);
+    }
 
-  // TENANT_ADMIN for org-2
-  const org2Admin = await prisma.user.upsert({
-    where: { email: 'admin@techsolutions.lk' },
-    update: { password: demoHash },
-    create: {
-      email: 'admin@techsolutions.lk',
-      name: 'Tech Admin',
-      password: demoHash,
-      role: 'TENANT_ADMIN',
-      organizationId: org2.id,
-      isActive: true,
-      emailVerified: new Date(),
-    },
-  });
+    for (const cat of categories) {
+      for (let i = 1; i <= 5; i++) {
+        await prisma.product.create({
+          data: {
+            name: faker.commerce.productName(),
+            description: faker.commerce.productDescription(),
+            sku: faker.string.alphanumeric(10).toUpperCase(),
+            price: parseFloat(faker.commerce.price({ min: 10, max: 1000 })),
+            cost: parseFloat(faker.commerce.price({ min: 5, max: 500 })),
+            stock: faker.number.int({ min: 0, max: 500 }),
+            organizationId: org.id,
+            categoryId: cat.id,
+            isActive: true,
+          },
+        });
+      }
+    }
+  }
 
-  // ─── CATEGORIES ─────────────────────────────────────────────────
-  const catElectronics = await prisma.category.upsert({
-    where: { id: 'cat-1' },
-    update: {},
-    create: {
-      id: 'cat-1',
-      name: 'Electronics',
-      description: 'Electronic devices and accessories',
-      organizationId: org1.id,
-      isActive: true,
-    },
-  });
+  // --- 4. CUSTOMERS ---
+  console.log('👥 Seeding Customers...');
+  const allCustomers = [];
+  for (const org of organizations) {
+    for (let i = 1; i <= 15; i++) {
+      const customer = await prisma.customer.create({
+        data: {
+          name: faker.person.fullName(),
+          email: faker.internet.email(),
+          phone: faker.phone.number(),
+          organizationId: org.id,
+          totalSpent: 0,
+          address: {
+            street: faker.location.streetAddress(),
+            city: faker.location.city(),
+            country: 'Sri Lanka',
+          },
+        },
+      });
+      allCustomers.push(customer);
+    }
+  }
 
-  const catClothing = await prisma.category.upsert({
-    where: { id: 'cat-2' },
-    update: {},
-    create: {
-      id: 'cat-2',
-      name: 'Clothing',
-      description: 'Fashion and apparel',
-      organizationId: org1.id,
-      isActive: true,
-    },
-  });
+  // --- 5. ORDERS, ITEMS, PAYMENTS ---
+  console.log('🛒 Seeding Orders & Payments...');
+  for (const customer of allCustomers) {
+    const orgProducts = await prisma.product.findMany({
+      where: { organizationId: customer.organizationId },
+      take: 5
+    });
 
-  const catHome = await prisma.category.upsert({
-    where: { id: 'cat-3' },
-    update: {},
-    create: {
-      id: 'cat-3',
-      name: 'Home & Garden',
-      description: 'Home improvement and garden supplies',
-      organizationId: org1.id,
-      isActive: true,
-    },
-  });
+    for (let i = 1; i <= 3; i++) {
+      const subtotal = orgProducts.reduce((acc, p) => acc + Number(p.price), 0);
+      const order = await prisma.order.create({
+        data: {
+          orderNumber: `ORD-${faker.string.alphanumeric(8).toUpperCase()}`,
+          customerId: customer.id,
+          organizationId: customer.organizationId,
+          status: faker.helpers.arrayElement(Object.values(OrderStatus)),
+          total: subtotal,
+          subtotal: subtotal,
+          tax: subtotal * 0.1,
+          shipping: 10,
+          discount: 0,
+        },
+      });
 
-  // ─── PRODUCTS ───────────────────────────────────────────────────
-  const product1 = await prisma.product.upsert({
-    where: { sku: 'SPM-001' },
-    update: {},
-    create: {
-      id: 'prod-1',
-      name: 'Smartphone Pro Max',
-      description: 'Latest smartphone with advanced AI camera features',
-      sku: 'SPM-001',
-      price: 125000,
-      cost: 100000,
-      stock: 50,
-      minStock: 5,
-      lowStockThreshold: 10,
-      reorderPoint: 15,
-      weight: 0.2,
-      dimensions: '15x7x0.8',
-      tags: 'smartphone,mobile,electronics,flagship',
-      organizationId: org1.id,
-      categoryId: catElectronics.id,
-      isActive: true,
-    },
-  });
+      for (const product of orgProducts) {
+        await prisma.orderItem.create({
+          data: {
+            orderId: order.id,
+            productId: product.id,
+            quantity: faker.number.int({ min: 1, max: 3 }),
+            price: product.price,
+            total: Number(product.price) * 1,
+          },
+        });
+      }
 
-  const product2 = await prisma.product.upsert({
-    where: { sku: 'WH-001' },
-    update: {},
-    create: {
-      id: 'prod-2',
-      name: 'Wireless Headphones',
-      description: 'High-quality wireless headphones with noise cancellation',
-      sku: 'WH-001',
-      price: 25000,
-      cost: 18000,
-      stock: 100,
-      minStock: 10,
-      lowStockThreshold: 20,
-      reorderPoint: 25,
-      weight: 0.3,
-      dimensions: '20x18x8',
-      tags: 'headphones,wireless,audio,bluetooth',
-      organizationId: org1.id,
-      categoryId: catElectronics.id,
-      isActive: true,
-    },
-  });
+      await prisma.payment.create({
+        data: {
+          orderId: order.id,
+          organizationId: customer.organizationId,
+          amount: subtotal,
+          method: faker.helpers.arrayElement(['CARD', 'CASH', 'BANK_TRANSFER']),
+          status: faker.helpers.arrayElement(Object.values(PaymentStatus)),
+          gateway: faker.helpers.arrayElement(['STRIPE', 'PAYPAL', 'PAYHERE', 'MANUAL']),
+          transactionId: faker.string.uuid(),
+        },
+      });
+    }
+  }
 
-  const product3 = await prisma.product.upsert({
-    where: { sku: 'CTS-001' },
-    update: {},
-    create: {
-      id: 'prod-3',
-      name: 'Premium Cotton T-Shirt',
-      description: 'Comfortable premium cotton t-shirt in various sizes',
-      sku: 'CTS-001',
-      price: 2500,
-      cost: 1500,
-      stock: 200,
-      minStock: 20,
-      lowStockThreshold: 30,
-      reorderPoint: 50,
-      weight: 0.2,
-      dimensions: '30x25x1',
-      tags: 'clothing,t-shirt,cotton,fashion',
-      organizationId: org1.id,
-      categoryId: catClothing.id,
-      isActive: true,
-    },
-  });
+  // --- 6. WAREHOUSES & IOT ---
+  console.log('🏪 Seeding Warehouses & IoT...');
+  for (const org of organizations) {
+    for (let i = 1; i <= 5; i++) {
+      const wh = await prisma.warehouse.create({
+        data: {
+          name: `${org.name} - Wh ${i}`,
+          organizationId: org.id,
+          address: {
+            street: faker.location.streetAddress(),
+            city: faker.location.city(),
+          },
+        },
+      });
 
-  const product4 = await prisma.product.upsert({
-    where: { sku: 'LAPTOP-001' },
-    update: {},
-    create: {
-      id: 'prod-4',
-      name: 'UltraBook Pro 15',
-      description: 'Slim high-performance laptop for professionals',
-      sku: 'LAPTOP-001',
-      price: 285000,
-      cost: 230000,
-      stock: 25,
-      minStock: 3,
-      lowStockThreshold: 5,
-      reorderPoint: 8,
-      weight: 1.5,
-      dimensions: '35x24x1.5',
-      tags: 'laptop,computer,electronics,professional',
-      organizationId: org1.id,
-      categoryId: catElectronics.id,
-      isActive: true,
-    },
-  });
+      for (let j = 1; j <= 3; j++) {
+        await prisma.iotDevice.create({
+          data: {
+            id: faker.string.uuid(),
+            name: `Sensor ${wh.name} ${j}`,
+            type: faker.helpers.arrayElement(['TEMPERATURE', 'HUMIDITY', 'MOTION']),
+            location: 'Main Aisle',
+            warehouseId: wh.id,
+            macAddress: faker.internet.mac(),
+            firmwareVersion: '1.0.0',
+            status: faker.helpers.arrayElement(Object.values(IoTStatus)),
+            organizationId: org.id,
+            updatedAt: new Date(),
+          },
+        });
+      }
+    }
+  }
 
-  const product5 = await prisma.product.upsert({
-    where: { sku: 'GDN-001' },
-    update: {},
-    create: {
-      id: 'prod-5',
-      name: 'Garden Tool Set',
-      description: 'Complete 5-piece stainless steel garden tool set',
-      sku: 'GDN-001',
-      price: 4500,
-      cost: 3000,
-      stock: 80,
-      minStock: 10,
-      lowStockThreshold: 15,
-      reorderPoint: 20,
-      weight: 2.0,
-      dimensions: '35x12x10',
-      tags: 'garden,tools,home,outdoor',
-      organizationId: org1.id,
-      categoryId: catHome.id,
-      isActive: true,
-    },
-  });
+  // --- 7. SUPPORT TICKETS ---
+  console.log('🎫 Seeding Support Tickets...');
+  for (const customer of allCustomers.slice(0, 50)) {
+    for (let i = 1; i <= 2; i++) {
+      await prisma.supportTicket.create({
+        data: {
+          id: faker.string.uuid(),
+          title: faker.lorem.sentence(),
+          description: faker.lorem.paragraph(),
+          status: faker.helpers.arrayElement(Object.values(SupportStatus)),
+          priority: faker.helpers.arrayElement(Object.values(SupportPriority)),
+          organizationId: customer.organizationId,
+          updatedAt: new Date(),
+        },
+      });
 
-  // ─── CUSTOMERS ──────────────────────────────────────────────────
-  const customer1 = await prisma.customer.upsert({
-    where: { id: 'customer-1' },
-    update: {},
-    create: {
-      id: 'customer-1',
-      email: 'john.doe@example.com',
-      name: 'John Doe',
-      phone: '+94 77 123 4567',
-      organizationId: org1.id,
-      totalSpent: 177500,
-      address: {
-        street: '789 Customer Street',
-        city: 'Colombo',
-        state: 'Western Province',
-        country: 'Sri Lanka',
-        postalCode: '00200',
-      },
-    },
-  });
+      await prisma.conversation.create({
+        data: {
+          id: faker.string.uuid(),
+          type: 'SUPPORT',
+          status: 'OPEN',
+          organizationId: customer.organizationId,
+          customerId: customer.id,
+          updatedAt: new Date(),
+        },
+      });
+    }
+  }
 
-  const customer2 = await prisma.customer.upsert({
-    where: { id: 'customer-2' },
-    update: {},
-    create: {
-      id: 'customer-2',
-      email: 'jane.smith@example.com',
-      name: 'Jane Smith',
-      phone: '+94 77 234 5678',
-      organizationId: org1.id,
-      totalSpent: 27500,
-      address: {
-        street: '321 Customer Avenue',
-        city: 'Galle',
-        state: 'Southern Province',
-        country: 'Sri Lanka',
-        postalCode: '80000',
-      },
-    },
-  });
+  // --- 8. AUDIT LOGS & ANALYTICS ---
+  console.log('📊 Seeding Audit Logs & Analytics...');
+  for (const org of organizations) {
+    for (let i = 1; i <= 20; i++) {
+      await prisma.auditLog.create({
+        data: {
+          userId: users.find(u => u.organizationId === org.id)?.id || users[0].id,
+          action: faker.helpers.arrayElement(['LOGIN', 'UPDATE_PRODUCT', 'CREATE_ORDER', 'DELETE_USER']),
+          resource: 'System',
+          resourceId: faker.string.uuid(),
+          organizationId: org.id,
+          details: { ip: faker.internet.ip() },
+        },
+      });
 
-  const customer3 = await prisma.customer.upsert({
-    where: { id: 'customer-3' },
-    update: {},
-    create: {
-      id: 'customer-3',
-      email: 'kamal.perera@example.com',
-      name: 'Kamal Perera',
-      phone: '+94 71 345 6789',
-      organizationId: org1.id,
-      totalSpent: 310000,
-      address: {
-        street: '55 Kandy Road',
-        city: 'Kandy',
-        state: 'Central Province',
-        country: 'Sri Lanka',
-        postalCode: '20000',
-      },
-    },
-  });
+      await prisma.analytics.create({
+        data: {
+          type: faker.helpers.arrayElement(['PAGE_VIEW', 'PRODUCT_CLICK', 'CART_ADD', 'SEARCH']),
+          value: faker.number.int({ min: 1, max: 100 }),
+          organizationId: org.id,
+          metadata: { path: '/dashboard' },
+        },
+      });
+    }
+  }
 
-  // ─── WAREHOUSE ──────────────────────────────────────────────────
-  const warehouse1 = await prisma.warehouse.upsert({
-    where: { id: 'wh-1' },
-    update: {},
-    create: {
-      id: 'wh-1',
-      name: 'Main Warehouse - Colombo',
-      organizationId: org1.id,
-      address: {
-        street: '1 Warehouse Road',
-        city: 'Colombo',
-        country: 'Sri Lanka',
-      },
-    },
-  });
+  // --- 9. SUPPLIERS ---
+  console.log('🏭 Seeding Suppliers...');
+  for (const org of organizations) {
+    for (let i = 1; i <= 5; i++) {
+      await prisma.supplier.create({
+        data: {
+          code: `SUP-${faker.string.alphanumeric(5).toUpperCase()}`,
+          name: faker.company.name(),
+          email: faker.internet.email(),
+          organizationId: org.id,
+          status: 'ACTIVE',
+        },
+      });
+    }
+  }
 
-  // ─── COURIERS ───────────────────────────────────────────────────
-  const courier1 = await prisma.courier.upsert({
-    where: { id: 'courier-1' },
-    update: {},
-    create: {
-      id: 'courier-1',
-      name: 'Domex Express',
-      phone: '+94 11 500 5000',
-      email: 'support@domex.lk',
-      organizationId: org1.id,
-      isActive: true,
-    },
-  });
+  // --- 10. POS ---
+  console.log('🖥️ Seeding POS Terminals...');
+  for (const org of organizations) {
+    for (let i = 1; i <= 3; i++) {
+      await prisma.posTerminal.create({
+        data: {
+          name: `Terminal ${i}`,
+          location: 'Front Desk',
+          organizationId: org.id,
+        },
+      });
+    }
+  }
 
-  const courier2 = await prisma.courier.upsert({
-    where: { id: 'courier-2' },
-    update: {},
-    create: {
-      id: 'courier-2',
-      name: 'Pronto Lanka',
-      phone: '+94 11 400 4000',
-      email: 'info@prontolanka.lk',
-      organizationId: org1.id,
-      isActive: true,
-    },
-  });
-
-  // ─── ORDERS ─────────────────────────────────────────────────────
-  const order1 = await prisma.order.upsert({
-    where: { id: 'order-1' },
-    update: {},
-    create: {
-      id: 'order-1',
-      orderNumber: 'ORD-2024-001',
-      customerId: customer1.id,
-      organizationId: org1.id,
-      status: 'DELIVERED',
-      total: 150000,
-      subtotal: 140000,
-      tax: 10000,
-      shipping: 0,
-      discount: 0,
-      createdById: adminUser.id,
-    },
-  });
-
-  const order2 = await prisma.order.upsert({
-    where: { id: 'order-2' },
-    update: {},
-    create: {
-      id: 'order-2',
-      orderNumber: 'ORD-2024-002',
-      customerId: customer2.id,
-      organizationId: org1.id,
-      status: 'SHIPPED',
-      total: 27500,
-      subtotal: 25000,
-      tax: 2500,
-      shipping: 0,
-      discount: 0,
-      createdById: adminUser.id,
-    },
-  });
-
-  const order3 = await prisma.order.upsert({
-    where: { id: 'order-3' },
-    update: {},
-    create: {
-      id: 'order-3',
-      orderNumber: 'ORD-2024-003',
-      customerId: customer3.id,
-      organizationId: org1.id,
-      status: 'PROCESSING',
-      total: 310000,
-      subtotal: 295000,
-      tax: 15000,
-      shipping: 0,
-      discount: 0,
-      createdById: adminUser.id,
-    },
-  });
-
-  const order4 = await prisma.order.upsert({
-    where: { id: 'order-4' },
-    update: {},
-    create: {
-      id: 'order-4',
-      orderNumber: 'ORD-2024-004',
-      customerId: customer1.id,
-      organizationId: org1.id,
-      status: 'PENDING',
-      total: 27500,
-      subtotal: 25000,
-      tax: 2500,
-      shipping: 0,
-      discount: 0,
-      createdById: staffUser.id,
-    },
-  });
-
-  // ─── ORDER ITEMS ────────────────────────────────────────────────
-  await prisma.orderItem.upsert({
-    where: { id: 'item-1' },
-    update: {},
-    create: {
-      id: 'item-1',
-      orderId: order1.id,
-      productId: product1.id,
-      quantity: 1,
-      price: 125000,
-      total: 125000,
-    },
-  });
-
-  await prisma.orderItem.upsert({
-    where: { id: 'item-2' },
-    update: {},
-    create: {
-      id: 'item-2',
-      orderId: order1.id,
-      productId: product2.id,
-      quantity: 1,
-      price: 25000,
-      total: 25000,
-    },
-  });
-
-  await prisma.orderItem.upsert({
-    where: { id: 'item-3' },
-    update: {},
-    create: {
-      id: 'item-3',
-      orderId: order2.id,
-      productId: product2.id,
-      quantity: 1,
-      price: 25000,
-      total: 25000,
-    },
-  });
-
-  await prisma.orderItem.upsert({
-    where: { id: 'item-4' },
-    update: {},
-    create: {
-      id: 'item-4',
-      orderId: order3.id,
-      productId: product4.id,
-      quantity: 1,
-      price: 285000,
-      total: 285000,
-    },
-  });
-
-  await prisma.orderItem.upsert({
-    where: { id: 'item-5' },
-    update: {},
-    create: {
-      id: 'item-5',
-      orderId: order4.id,
-      productId: product2.id,
-      quantity: 1,
-      price: 25000,
-      total: 25000,
-    },
-  });
-
-  // ─── PAYMENTS ───────────────────────────────────────────────────
-  await prisma.payment.upsert({
-    where: { id: 'payment-1' },
-    update: {},
-    create: {
-      id: 'payment-1',
-      orderId: order1.id,
-      organizationId: org1.id,
-      amount: 150000,
-      currency: 'LKR',
-      method: 'CARD',
-      gateway: 'STRIPE',
-      status: 'PAID',
-      transactionId: 'txn_demo_001',
-    },
-  });
-
-  await prisma.payment.upsert({
-    where: { id: 'payment-2' },
-    update: {},
-    create: {
-      id: 'payment-2',
-      orderId: order2.id,
-      organizationId: org1.id,
-      amount: 27500,
-      currency: 'LKR',
-      method: 'COD',
-      gateway: 'CASH',
-      status: 'PENDING',
-      transactionId: 'cod_demo_002',
-    },
-  });
-
-  await prisma.payment.upsert({
-    where: { id: 'payment-3' },
-    update: {},
-    create: {
-      id: 'payment-3',
-      orderId: order3.id,
-      organizationId: org1.id,
-      amount: 310000,
-      currency: 'LKR',
-      method: 'BANK_TRANSFER',
-      gateway: 'PAYHERE',
-      status: 'PAID',
-      transactionId: 'ph_demo_003',
-    },
-  });
-
-  // ─── DELIVERIES ─────────────────────────────────────────────────
-  await prisma.delivery.upsert({
-    where: { id: 'delivery-1' },
-    update: {},
-    create: {
-      id: 'delivery-1',
-      orderId: order1.id,
-      courierId: courier1.id,
-      organizationId: org1.id,
-      status: 'DELIVERED',
-      trackingNumber: 'TRK-DEMO-001',
-      estimatedDelivery: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      actualDelivery: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  await prisma.delivery.upsert({
-    where: { id: 'delivery-2' },
-    update: {},
-    create: {
-      id: 'delivery-2',
-      orderId: order2.id,
-      courierId: courier2.id,
-      organizationId: org1.id,
-      status: 'SHIPPED',
-      trackingNumber: 'TRK-DEMO-002',
-      estimatedDelivery: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  // ─── CUSTOMER LOYALTY ───────────────────────────────────────────
-  await prisma.customerLoyalty.upsert({
-    where: { id: 'loyalty-1' },
-    update: {},
-    create: {
-      id: 'loyalty-1',
-      customerId: customer1.id,
-      points: 1775,
-      tier: 'GOLD',
-      totalSpent: 177500,
-      lastActivity: new Date(),
-    },
-  });
-
-  await prisma.customerLoyalty.upsert({
-    where: { id: 'loyalty-2' },
-    update: {},
-    create: {
-      id: 'loyalty-2',
-      customerId: customer2.id,
-      points: 275,
-      tier: 'BRONZE',
-      totalSpent: 27500,
-      lastActivity: new Date(),
-    },
-  });
-
-  await prisma.customerLoyalty.upsert({
-    where: { id: 'loyalty-3' },
-    update: {},
-    create: {
-      id: 'loyalty-3',
-      customerId: customer3.id,
-      points: 3100,
-      tier: 'PLATINUM',
-      totalSpent: 310000,
-      lastActivity: new Date(),
-    },
-  });
-
-  // ─── SUPPLIER ───────────────────────────────────────────────────
-  const supplier1 = await prisma.supplier.upsert({
-    where: { id: 'supplier-1' },
-    update: {},
-    create: {
-      id: 'supplier-1',
-      code: 'SUP-001',
-      name: 'TechImport Lanka',
-      contactName: 'Dinesh Fernando',
-      email: 'dinesh@techimport.lk',
-      phone: '+94 11 234 9999',
-      status: 'ACTIVE',
-      currency: 'LKR',
-      paymentTerms: 'Net 30',
-      isActive: true,
-      organizationId: org1.id,
-    },
-  });
-
-  // ─── SUBSCRIPTION ───────────────────────────────────────────────
-  await prisma.subscription.upsert({
-    where: { organizationId: org1.id },
-    update: {},
-    create: {
-      organizationId: org1.id,
-      plan: 'PRO',
-      status: 'ACTIVE',
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      startDate: new Date(),
-    },
-  });
-
-  // ─── SUMMARY ────────────────────────────────────────────────────
-  console.log('');
-  console.log('✅ Database seeding completed successfully!');
-  console.log('');
-  console.log('📊 Seeded:');
-  console.log('  🏢  2 Organizations (SmartStore Demo, Tech Solutions Ltd)');
-  console.log('  👤  5 Users');
-  console.log('');
-  console.log('  🔐 Login Credentials:');
-  console.log('  ┌─────────────────────────────────────────────┬──────────────────┬──────────────┐');
-  console.log('  │ Email                                       │ Password         │ Role         │');
-  console.log('  ├─────────────────────────────────────────────┼──────────────────┼──────────────┤');
-  console.log('  │ superadmin@smartstore.com  (default login)  │ SuperAdmin123!   │ SUPER_ADMIN  │');
-  console.log('  │ admin@smartstore.com                        │ Demo1234!        │ TENANT_ADMIN │');
-  console.log('  │ manager@smartstore.com                      │ Demo1234!        │ STAFF        │');
-  console.log('  │ staff@smartstore.com                        │ Demo1234!        │ STAFF        │');
-  console.log('  │ admin@techsolutions.lk                      │ Demo1234!        │ TENANT_ADMIN │');
-  console.log('  └─────────────────────────────────────────────┴──────────────────┴──────────────┘');
-  console.log('');
-  console.log('  📦  5 Products');
-  console.log('  👥  3 Customers');
-  console.log('  🏪  1 Warehouse');
-  console.log('  🚚  2 Couriers');
-  console.log('  🛒  4 Orders with items');
-  console.log('  💳  3 Payments');
-  console.log('  📬  2 Deliveries');
-  console.log('  🎁  3 Customer loyalty records');
-  console.log('  🏭  1 Supplier');
-  console.log('  💎  1 Subscription (PRO plan)');
+  console.log('\n✅ MASSIVE seeding completed!');
+  console.log('Total Orgs:', await prisma.organization.count());
+  console.log('Total Users:', await prisma.user.count());
+  console.log('Total Products:', await prisma.product.count());
+  console.log('Total Orders:', await prisma.order.count());
+  console.log('Total Customers:', await prisma.customer.count());
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error during seeding:', e);
+    console.error('❌ Error during massive seeding:', e);
     process.exit(1);
   })
   .finally(async () => {
