@@ -32,21 +32,19 @@ export const GET = requirePermission('VIEW_AUDIT_LOGS')(
 
       // Build where clause
       const where: any = {};
-      if (orgId) {
-        where.organizationId = orgId;
-      }
+      where.organizationId = orgId;
 
       // Query audit logs if model exists, otherwise return empty
       let logs: any[] = [];
       let total = 0;
-      
+
       try {
         // Check if audit_log table exists by attempting a count
         const result = await prisma.$queryRaw<Array<{ count: bigint }>>`
           SELECT COUNT(*) as count FROM information_schema.tables 
           WHERE table_schema = current_schema() AND table_name = 'audit_log'
         `;
-        
+
         if (result[0]?.count && Number(result[0].count) > 0) {
           // If audit_log table exists, query it
           logs = await prisma.$queryRaw<any[]>`
@@ -92,7 +90,7 @@ export const GET = requirePermission('VIEW_AUDIT_LOGS')(
         },
         correlation: req.correlationId
       });
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

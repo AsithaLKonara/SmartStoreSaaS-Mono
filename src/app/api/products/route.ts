@@ -43,9 +43,7 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
       const where: any = {};
 
       // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
-      if (orgId) {
-        where.organizationId = orgId;
-      }
+      where.organizationId = orgId;
 
       // Add optional filters
       if (search) {

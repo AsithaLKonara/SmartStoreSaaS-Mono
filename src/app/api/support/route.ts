@@ -37,9 +37,7 @@ export const GET = requirePermission('VIEW_SUPPORT')(
       const where: any = {};
 
       // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
-      if (orgId) {
-        where.organizationId = orgId;
-      }
+      where.organizationId = orgId;
 
       if (status) where.status = status;
       if (priority) where.priority = priority;

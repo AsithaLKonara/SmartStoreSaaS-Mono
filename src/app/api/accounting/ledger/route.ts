@@ -24,11 +24,11 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
 
       const { searchParams } = new URL(request.url);
       const accountId = searchParams.get('accountId');
-      
+
       const orgId = getOrganizationScope(user);
 
       const where: any = {};
-      if (orgId) where.organizationId = orgId;
+      where.organizationId = orgId;
       if (accountId) where.accountId = accountId;
 
       const ledgerEntries = await prisma.ledger.findMany({

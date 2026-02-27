@@ -21,12 +21,12 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
     try {
       const { searchParams } = new URL(request.url);
       const status = searchParams.get('status');
-      
+
       // Organization scoping
       const orgId = getOrganizationScope(user);
 
       const where: any = {};
-      if (orgId) where.organizationId = orgId;
+      where.organizationId = orgId;
       if (status) where.status = status;
 
       const purchaseOrders = await prisma.purchaseOrder.findMany({
@@ -85,9 +85,9 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
       }
 
       const orderNumber = `PO-${Date.now()}`;
-      
+
       // Calculate totals
-      const subtotal = items.reduce((sum: number, item: any) => 
+      const subtotal = items.reduce((sum: number, item: any) =>
         sum + (item.unitPrice * item.quantity), 0
       );
       const tax = subtotal * 0.1;
