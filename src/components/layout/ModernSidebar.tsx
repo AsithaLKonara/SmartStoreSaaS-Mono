@@ -9,14 +9,15 @@ import { AdvancedSearch } from '@/components/search/AdvancedSearch';
 
 interface ModernSidebarProps {
   userRole: string;
+  roleTag?: string;
   onClose?: () => void;
 }
 
-export function ModernSidebar({ userRole, onClose }: ModernSidebarProps) {
+export function ModernSidebar({ userRole, roleTag, onClose }: ModernSidebarProps) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  const filteredNav = filterNavigationByRole(navigationConfig, userRole);
+  const filteredNav = filterNavigationByRole(navigationConfig, userRole, roleTag);
 
   const toggleExpand = (label: string) => {
     const newExpanded = new Set(expandedItems);

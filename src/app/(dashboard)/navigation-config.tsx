@@ -490,14 +490,28 @@ export const navigationConfig: NavigationItem[] = [
   }
 ];
 
-export function filterNavigationByRole(navigation: NavigationItem[], userRole: string): NavigationItem[] {
+import { canAccessRoute, UserRole } from '@/lib/rbac/roles';
+
+export function filterNavigationByRole(navigation: NavigationItem[], userRole: string, roleTag?: string): NavigationItem[] {
   return navigation
-    .filter(item => !item.roles || item.roles.includes(userRole))
+    .filter(item => {
+      // Check roles array for backward compatibility
+      if (item.roles && !item.roles.includes(userRole)) {
+        return false;
+      }
+      // Check route permission
+      if (item.href) {
+        return canAccessRoute(userRole as UserRole, item.href, roleTag);
+      }
+      return true;
+    })
     .map(item => ({
       ...item,
       children: item.children
-        ? filterNavigationByRole(item.children, userRole)
+        ? filterNavigationByRole(item.children, userRole, roleTag)
         : undefined
-    }));
+    }))
+    // Remove parents that ended up with no children and no href
+    .filter(item => item.href || (item.children && item.children.length > 0));
 }
 
