@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server';
 import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';
 import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 

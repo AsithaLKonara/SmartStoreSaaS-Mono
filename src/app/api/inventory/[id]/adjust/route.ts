@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import { InventoryService } from '@/lib/services/inventory.service';

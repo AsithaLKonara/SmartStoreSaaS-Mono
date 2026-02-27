@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';

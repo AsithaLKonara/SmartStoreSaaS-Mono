@@ -22,51 +22,51 @@ export enum Permission {
   PRODUCT_READ = 'product.read',
   PRODUCT_UPDATE = 'product.update',
   PRODUCT_DELETE = 'product.delete',
-  
+
   // Order permissions
   ORDER_CREATE = 'order.create',
   ORDER_READ = 'order.read',
   ORDER_UPDATE = 'order.update',
   ORDER_DELETE = 'order.delete',
   ORDER_CANCEL = 'order.cancel',
-  
+
   // Customer permissions
   CUSTOMER_CREATE = 'customer.create',
   CUSTOMER_READ = 'customer.read',
   CUSTOMER_UPDATE = 'customer.update',
   CUSTOMER_DELETE = 'customer.delete',
-  
+
   // Finance permissions
   FINANCE_READ = 'finance.read',
   FINANCE_CREATE = 'finance.create',
   FINANCE_UPDATE = 'finance.update',
   FINANCE_DELETE = 'finance.delete',
-  
+
   // Inventory permissions
   INVENTORY_READ = 'inventory.read',
   INVENTORY_UPDATE = 'inventory.update',
   INVENTORY_ADJUST = 'inventory.adjust',
-  
+
   // User management
   USER_CREATE = 'user.create',
   USER_READ = 'user.read',
   USER_UPDATE = 'user.update',
   USER_DELETE = 'user.delete',
-  
+
   // Reports
   REPORTS_VIEW = 'reports.view',
   REPORTS_EXPORT = 'reports.export',
-  
+
   // Settings
   SETTINGS_VIEW = 'settings.view',
   SETTINGS_UPDATE = 'settings.update',
-  
+
   // Tenant management (Super Admin only)
   TENANT_CREATE = 'tenant.create',
   TENANT_READ = 'tenant.read',
   TENANT_UPDATE = 'tenant.update',
   TENANT_DELETE = 'tenant.delete',
-  
+
   // Billing (Super Admin only)
   BILLING_VIEW = 'billing.view',
   BILLING_MANAGE = 'billing.manage'
@@ -75,7 +75,7 @@ export enum Permission {
 // Role to Permissions mapping
 export const RolePermissions: Record<UserRole, Permission[]> = {
   [UserRole.SUPER_ADMIN]: Object.values(Permission), // All permissions
-  
+
   [UserRole.TENANT_ADMIN]: [
     // Products
     Permission.PRODUCT_CREATE,
@@ -114,7 +114,7 @@ export const RolePermissions: Record<UserRole, Permission[]> = {
     Permission.SETTINGS_VIEW,
     Permission.SETTINGS_UPDATE
   ],
-  
+
   [UserRole.STAFF]: [
     // Default staff permissions (can be extended by roleTag)
     Permission.PRODUCT_READ,
@@ -124,7 +124,7 @@ export const RolePermissions: Record<UserRole, Permission[]> = {
     Permission.INVENTORY_READ,
     Permission.REPORTS_VIEW
   ],
-  
+
   [UserRole.CUSTOMER]: [
     Permission.PRODUCT_READ,
     Permission.ORDER_CREATE,
@@ -144,7 +144,7 @@ export const StaffRolePermissions: Record<StaffRoleTag, Permission[]> = {
     Permission.INVENTORY_ADJUST,
     Permission.REPORTS_VIEW
   ],
-  
+
   [StaffRoleTag.SALES_EXECUTIVE]: [
     Permission.ORDER_CREATE,
     Permission.ORDER_READ,
@@ -154,7 +154,7 @@ export const StaffRolePermissions: Record<StaffRoleTag, Permission[]> = {
     Permission.CUSTOMER_UPDATE,
     Permission.PRODUCT_READ
   ],
-  
+
   [StaffRoleTag.FINANCE_OFFICER]: [
     Permission.FINANCE_READ,
     Permission.FINANCE_CREATE,
@@ -163,21 +163,21 @@ export const StaffRolePermissions: Record<StaffRoleTag, Permission[]> = {
     Permission.REPORTS_VIEW,
     Permission.REPORTS_EXPORT
   ],
-  
+
   [StaffRoleTag.MARKETING_MANAGER]: [
     Permission.CUSTOMER_READ,
     Permission.PRODUCT_READ,
     Permission.REPORTS_VIEW,
     Permission.ORDER_READ
   ],
-  
+
   [StaffRoleTag.SUPPORT_AGENT]: [
     Permission.CUSTOMER_READ,
     Permission.CUSTOMER_UPDATE,
     Permission.ORDER_READ,
     Permission.ORDER_UPDATE
   ],
-  
+
   [StaffRoleTag.HR_MANAGER]: [
     Permission.USER_READ,
     Permission.USER_UPDATE,
@@ -185,27 +185,84 @@ export const StaffRolePermissions: Record<StaffRoleTag, Permission[]> = {
   ]
 };
 
+/**
+ * Legacy Permission definitions (String-based)
+ */
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
+  SUPER_ADMIN: [
+    'VIEW_ALL_ORGANIZATIONS', 'MANAGE_ORGANIZATIONS', 'VIEW_SYSTEM_LOGS', 'MANAGE_SYSTEM_SETTINGS',
+    'VIEW_AUDIT_LOGS', 'MANAGE_PACKAGES', 'VIEW_USERS', 'MANAGE_USERS', 'VIEW_PRODUCTS',
+    'MANAGE_PRODUCTS', 'VIEW_ORDERS', 'MANAGE_ORDERS', 'VIEW_CUSTOMERS', 'MANAGE_CUSTOMERS',
+    'VIEW_INVENTORY', 'MANAGE_INVENTORY', 'VIEW_ANALYTICS', 'VIEW_REPORTS', 'VIEW_AI_INSIGHTS',
+    'VIEW_SETTINGS', 'MANAGE_SETTINGS', 'VIEW_BILLING', 'MANAGE_BILLING', 'VIEW_MONITORING',
+    'MANAGE_MONITORING', 'VIEW_SUPPORT', 'MANAGE_SUPPORT', 'CREATE_SUPPORT_TICKET',
+    'VIEW_WEBHOOKS', 'MANAGE_WEBHOOKS', 'VIEW_MARKETING', 'MANAGE_MARKETING', 'VIEW_CAMPAIGNS',
+    'MANAGE_CAMPAIGNS', 'VIEW_INTEGRATIONS', 'MANAGE_INTEGRATIONS', 'VIEW_LOYALTY',
+    'MANAGE_LOYALTY', 'VIEW_AFFILIATES', 'MANAGE_AFFILIATES', 'VIEW_SUBSCRIPTIONS',
+    'MANAGE_SUBSCRIPTIONS', 'VIEW_REALTIME', 'VIEW_NOTIFICATIONS', 'MANAGE_NOTIFICATIONS',
+    'VIEW_PURCHASE_ORDERS', 'MANAGE_PURCHASE_ORDERS', 'VIEW_SHIPPING_STATS', 'MANAGE_AI'
+  ],
+  TENANT_ADMIN: [
+    'VIEW_USERS', 'MANAGE_USERS', 'VIEW_PRODUCTS', 'MANAGE_PRODUCTS', 'VIEW_ORDERS',
+    'MANAGE_ORDERS', 'VIEW_CUSTOMERS', 'MANAGE_CUSTOMERS', 'VIEW_INVENTORY', 'MANAGE_INVENTORY',
+    'VIEW_ANALYTICS', 'VIEW_REPORTS', 'VIEW_AI_INSIGHTS', 'VIEW_SETTINGS', 'MANAGE_SETTINGS',
+    'VIEW_BILLING', 'MANAGE_BILLING', 'VIEW_ORGANIZATION', 'MANAGE_ORGANIZATION_SETTINGS',
+    'VIEW_SUPPORT', 'MANAGE_SUPPORT', 'CREATE_SUPPORT_TICKET', 'VIEW_WEBHOOKS', 'MANAGE_WEBHOOKS',
+    'VIEW_MARKETING', 'MANAGE_MARKETING', 'VIEW_CAMPAIGNS', 'MANAGE_CAMPAIGNS', 'VIEW_INTEGRATIONS',
+    'MANAGE_INTEGRATIONS', 'VIEW_LOYALTY', 'MANAGE_LOYALTY', 'VIEW_AFFILIATES', 'MANAGE_AFFILIATES',
+    'VIEW_SUBSCRIPTIONS', 'MANAGE_SUBSCRIPTIONS', 'VIEW_REALTIME', 'VIEW_NOTIFICATIONS',
+    'MANAGE_NOTIFICATIONS', 'VIEW_PURCHASE_ORDERS', 'MANAGE_PURCHASE_ORDERS', 'VIEW_SHIPPING_STATS',
+    'MANAGE_AI'
+  ],
+  STAFF: [
+    'VIEW_ASSIGNED_PRODUCTS', 'VIEW_ASSIGNED_CUSTOMERS', 'VIEW_ASSIGNED_INVENTORY',
+    'VIEW_ORDERS', 'CREATE_ORDERS', 'VIEW_SUPPORT', 'CREATE_SUPPORT_TICKET'
+  ],
+  CUSTOMER: [
+    'VIEW_OWN_ORDERS', 'VIEW_BILLING_INFO', 'CREATE_SUPPORT_TICKET', 'VIEW_OWN_SUPPORT_TICKETS'
+  ]
+};
+
 // Permission checking functions
-export function hasPermission(role: UserRole, permission: Permission, roleTag?: string): boolean {
+export function hasPermission(role: UserRole | string, permission: Permission | string, roleTag?: string): boolean {
   // Super admin has all permissions
-  if (role === UserRole.SUPER_ADMIN) {
+  if (role === UserRole.SUPER_ADMIN || role === 'SUPER_ADMIN') {
     return true;
   }
-  
-  // Check role-based permissions
-  const rolePerms = RolePermissions[role] || [];
-  if (rolePerms.includes(permission)) {
+
+  // Handle Legacy String-based Permissions
+  if (typeof permission === 'string' && !Object.values(Permission).includes(permission as Permission)) {
+    const permissions = ROLE_PERMISSIONS[role as string] || [];
+
+    // Staff legacy permissions depend on roleTag
+    if ((role === UserRole.STAFF || role === 'STAFF') && roleTag) {
+      const staffPermissions: Record<string, string[]> = {
+        sales_staff: ['VIEW_PRODUCTS', 'VIEW_ORDERS', 'CREATE_ORDERS', 'VIEW_CUSTOMERS'],
+        inventory_manager: ['VIEW_PRODUCTS', 'MANAGE_PRODUCTS', 'VIEW_INVENTORY', 'MANAGE_INVENTORY'],
+        customer_service: ['VIEW_CUSTOMERS', 'VIEW_ORDERS', 'UPDATE_ORDERS', 'MANAGE_CUSTOMERS'],
+        accountant: ['VIEW_ANALYTICS', 'VIEW_REPORTS', 'VIEW_BILLING']
+      };
+      const tagPermissions = staffPermissions[roleTag] || [];
+      if (tagPermissions.includes(permission)) return true;
+    }
+
+    return permissions.includes(permission);
+  }
+
+  // Check role-based enum permissions
+  const rolePerms = RolePermissions[role as UserRole] || [];
+  if (rolePerms.includes(permission as Permission)) {
     return true;
   }
-  
-  // Check staff role tag permissions
-  if (role === UserRole.STAFF && roleTag) {
+
+  // Check staff role tag enum permissions
+  if ((role === UserRole.STAFF || role === 'STAFF') && roleTag) {
     const staffPerms = StaffRolePermissions[roleTag as StaffRoleTag] || [];
-    if (staffPerms.includes(permission)) {
+    if (staffPerms.includes(permission as Permission)) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -234,12 +291,12 @@ export function canAccessRoute(role: UserRole, route: string, roleTag?: string):
     '/admin': [Permission.TENANT_READ, Permission.BILLING_VIEW],
     '/procurement': [Permission.PRODUCT_READ, Permission.INVENTORY_READ]
   };
-  
+
   const requiredPermissions = routePermissions[route];
   if (!requiredPermissions) {
     return true; // Allow access to routes without specific permissions
   }
-  
+
   return hasAnyPermission(role, requiredPermissions, roleTag);
 }
 
@@ -262,7 +319,7 @@ export function getAccessibleRoutes(role: UserRole, roleTag?: string): string[] 
     '/audit',
     '/backup'
   ];
-  
+
   return allRoutes.filter(route => canAccessRoute(role, route, roleTag));
 }
 

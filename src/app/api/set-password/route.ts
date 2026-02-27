@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requireAuth, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requireAuth, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import bcrypt from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';

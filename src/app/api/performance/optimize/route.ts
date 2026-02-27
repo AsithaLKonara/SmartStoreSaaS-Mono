@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 

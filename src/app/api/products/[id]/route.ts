@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';

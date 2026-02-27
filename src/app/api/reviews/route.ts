@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { successResponse, AppError } from '@/lib/middleware/withErrorHandler';
-import { requireAuth, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requireAuth, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { withErrorHandlerApp } from '@/lib/middleware/withErrorHandlerApp';
 
 export const GET = withErrorHandlerApp(

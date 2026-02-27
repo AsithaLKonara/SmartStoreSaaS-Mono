@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, NotFoundError } from '@/lib/middleware/withErrorHandler';
-import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 

@@ -14,7 +14,7 @@ import { successResponse, ValidationError } from '@/lib/middleware/withErrorHand
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope } from '@/lib/middleware/auth';
+import { requireRole, getOrganizationScope } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 

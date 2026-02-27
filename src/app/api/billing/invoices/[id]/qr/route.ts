@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError, AppError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';

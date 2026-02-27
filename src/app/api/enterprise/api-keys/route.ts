@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requireRole, getOrganizationScope, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requireRole, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { prisma } from '@/lib/prisma';
 import { AuditService } from '@/lib/audit';

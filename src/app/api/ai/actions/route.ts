@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { AIActionSchema } from '@/lib/validations/ai-actions';

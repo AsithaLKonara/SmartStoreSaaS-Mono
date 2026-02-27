@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, getOrganizationScope } from '@/lib/middleware/auth';
+import { requireAuth, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { PayPalService } from '@/lib/payments/paypalService';

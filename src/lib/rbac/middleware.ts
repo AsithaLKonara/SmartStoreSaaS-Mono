@@ -1,27 +1,43 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { v4 as uuidv4 } from 'uuid';
 import { UserRole, Permission, hasPermission, canAccessRoute } from './roles';
+export { UserRole, Permission };
 import { logger } from '@/lib/logger';
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  name?: string;
+  role: UserRole;
+  roleTag?: string;
+  organizationId?: string;
+}
+
+export interface AuthenticatedRequest extends NextRequest {
+  user: AuthenticatedUser;
+  correlationId: string;
+}
 
 export async function checkPermission(
   request: NextRequest,
-  requiredPermission: Permission
+  requiredPermission: Permission | string
 ): Promise<{ authorized: boolean; user?: any; error?: string }> {
   try {
     const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
-    
+
     if (!token) {
       return { authorized: false, error: 'Not authenticated' };
     }
-    
+
     const userRole = token.role as UserRole || UserRole.TENANT_ADMIN;
     const roleTag = token.roleTag as string | undefined;
-    
+
     if (!hasPermission(userRole, requiredPermission, roleTag)) {
       return { authorized: false, error: 'Insufficient permissions' };
     }
-    
+
     return { authorized: true, user: token };
   } catch (error) {
     logger.error({
@@ -39,17 +55,17 @@ export async function checkRole(
 ): Promise<{ authorized: boolean; user?: any; error?: string }> {
   try {
     const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
-    
+
     if (!token) {
       return { authorized: false, error: 'Not authenticated' };
     }
-    
+
     const userRole = token.role as UserRole || UserRole.TENANT_ADMIN;
-    
+
     if (!allowedRoles.includes(userRole)) {
       return { authorized: false, error: 'Insufficient role' };
     }
-    
+
     return { authorized: true, user: token };
   } catch (error) {
     logger.error({
@@ -73,6 +89,83 @@ export async function requireStaff(request: NextRequest) {
   return checkRole(request, [UserRole.SUPER_ADMIN, UserRole.TENANT_ADMIN, UserRole.STAFF]);
 }
 
+/**
+ * Legacy Support Functions
+ */
+
+export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
+  try {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
+    });
+
+    if (!token) return null;
+
+    return {
+      id: token.id as string,
+      email: token.email as string,
+      name: token.name as string,
+      role: (token.role as UserRole) || UserRole.CUSTOMER,
+      roleTag: token.roleTag as string,
+      organizationId: token.organizationId as string
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+export function requireAuth(handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) {
+  return async (request: NextRequest, params?: any): Promise<NextResponse> => {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
+      return NextResponse.json({ success: false, code: 'ERR_AUTH', message: 'Authentication required' }, { status: 401 });
+    }
+
+    (request as unknown as AuthenticatedRequest).user = user;
+    (request as unknown as AuthenticatedRequest).correlationId = request.headers.get('x-correlation-id') || uuidv4();
+
+    return handler(request as unknown as AuthenticatedRequest, user, params);
+  };
+}
+
+export function requireRole(allowedRoles: UserRole | UserRole[]) {
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+
+  return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) => {
+    return requireAuth(async (request, user, params) => {
+      if (!roles.includes(user.role)) {
+        return NextResponse.json({ success: false, code: 'ERR_FORBIDDEN', message: 'Insufficient permissions' }, { status: 403 });
+      }
+      return handler(request, user, params);
+    });
+  };
+}
+
+export function requirePermission(permission: string | Permission) {
+  return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) => {
+    return requireAuth(async (request, user, params) => {
+      if (!hasPermission(user.role, permission, user.roleTag)) {
+        return NextResponse.json({ success: false, code: 'ERR_FORBIDDEN', message: `Permission required: ${permission}` }, { status: 403 });
+      }
+      return handler(request, user, params);
+    });
+  };
+}
+
+export function getOrganizationScope(user: AuthenticatedUser, requestOrgId?: string): string | null {
+  if (user.role === UserRole.SUPER_ADMIN) {
+    return requestOrgId || null;
+  }
+  return user.organizationId || null;
+}
+
+export function validateOrganizationAccess(user: AuthenticatedUser, resourceOrganizationId: string): boolean {
+  if (user.role === UserRole.SUPER_ADMIN) return true;
+  return user.organizationId === resourceOrganizationId;
+}
+
 // Get user's organization ID for tenant isolation
 export async function getUserOrganizationId(request: NextRequest): Promise<string | null> {
   try {
@@ -87,14 +180,14 @@ export async function getUserOrganizationId(request: NextRequest): Promise<strin
 export function withRBAC(allowedRoles: UserRole[]) {
   return async function (request: NextRequest, handler: Function) {
     const check = await checkRole(request, allowedRoles);
-    
+
     if (!check.authorized) {
       return NextResponse.json(
         { success: false, error: check.error },
         { status: 403 }
       );
     }
-    
+
     return handler(request, check.user);
   };
 }
@@ -103,14 +196,14 @@ export function withRBAC(allowedRoles: UserRole[]) {
 export function withPermission(requiredPermission: Permission) {
   return async function (request: NextRequest, handler: Function) {
     const check = await checkPermission(request, requiredPermission);
-    
+
     if (!check.authorized) {
       return NextResponse.json(
         { success: false, error: check.error },
         { status: 403 }
       );
     }
-    
+
     return handler(request, check.user);
   };
 }

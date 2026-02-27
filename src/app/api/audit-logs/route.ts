@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requireRole, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 

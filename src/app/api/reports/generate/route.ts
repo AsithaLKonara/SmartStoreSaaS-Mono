@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 
@@ -108,7 +108,7 @@ async function generateFinancialReport(organizationId: string, start: Date, end:
   };
 }
 
-import { AuthenticatedRequest } from '@/lib/middleware/auth';
+import { AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const POST = requirePermission('VIEW_REPORTS')(
   async (req: AuthenticatedRequest, user) => {

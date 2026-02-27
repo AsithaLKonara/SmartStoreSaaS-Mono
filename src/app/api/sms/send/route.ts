@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sendSMS, sendBulkSMS } from '@/lib/integrations/sms';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { AIBrainService } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';

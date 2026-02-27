@@ -10,7 +10,7 @@
  */
 
 import { ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requireRole } from '@/lib/middleware/auth';
+import { requireRole } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 

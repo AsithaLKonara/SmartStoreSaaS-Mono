@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, AuthenticatedRequest } from '@/lib/middleware/auth';
+import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
