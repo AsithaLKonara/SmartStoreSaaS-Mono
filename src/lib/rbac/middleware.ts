@@ -132,12 +132,12 @@ export function requireAuth(handler: (req: AuthenticatedRequest, user: Authentic
   };
 }
 
-export function requireRole(allowedRoles: UserRole | UserRole[]) {
-  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+export function requireRole(allowedRoles: UserRole | UserRole[] | string | string[]) {
+  const roles = Array.isArray(allowedRoles) ? allowedRoles as string[] : [allowedRoles as string];
 
   return (handler: (req: AuthenticatedRequest, user: AuthenticatedUser, params?: any) => Promise<NextResponse>) => {
     return requireAuth(async (request, user, params) => {
-      if (!roles.includes(user.role)) {
+      if (!roles.includes(user.role as string)) {
         return NextResponse.json({ success: false, code: 'ERR_FORBIDDEN', message: 'Insufficient permissions' }, { status: 403 });
       }
       return handler(request, user, params);

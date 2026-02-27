@@ -9,4 +9,4 @@ export * from './security';
 export * from './error-handling';
 
 // Middleware
-export * from './middleware/auth';
+export * from './rbac/middleware';
