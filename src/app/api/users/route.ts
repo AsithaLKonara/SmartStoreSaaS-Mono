@@ -92,8 +92,8 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
 
     // Validation
     if (!email || !password) {
-      return NextResponse.json({ 
-        success: false, 
+      return NextResponse.json({
+        success: false,
         message: 'Email and password are required',
         fields: { email: !email, password: !password }
       }, { status: 400 });
@@ -101,9 +101,9 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
 
     // Role validation - Only SUPER_ADMIN can create SUPER_ADMIN users
     if (role === 'SUPER_ADMIN' && user.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Only SUPER_ADMIN can create SUPER_ADMIN users' 
+      return NextResponse.json({
+        success: false,
+        message: 'Only SUPER_ADMIN can create SUPER_ADMIN users'
       }, { status: 403 });
     }
 
@@ -111,14 +111,16 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Determine organization - SUPER_ADMIN can create users for any org, others create for their own
-    const organizationId = user.role === 'SUPER_ADMIN' 
-      ? requestedOrgId || user.organizationId
+    let organizationId = user.role === 'SUPER_ADMIN'
+      ? requestedOrgId || user.activeOrganizationId
       : getOrganizationScope(user);
 
-    if (!organizationId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Organization ID is required' 
+    if (role === 'SUPER_ADMIN') {
+      organizationId = null; // Detach SUPER_ADMIN from any tenant
+    } else if (!organizationId) {
+      return NextResponse.json({
+        success: false,
+        message: 'Organization ID is required for tenant users'
       }, { status: 400 });
     }
 

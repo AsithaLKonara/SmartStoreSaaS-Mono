@@ -71,7 +71,7 @@ async function main() {
       name: 'Super Admin',
       password: superAdminHash,
       role: 'SUPER_ADMIN',
-      organizationId: org1.id,
+      organizationId: null,
       isActive: true,
       emailVerified: new Date(),
     },
