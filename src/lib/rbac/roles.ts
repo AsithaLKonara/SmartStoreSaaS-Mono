@@ -74,7 +74,20 @@ export enum Permission {
 
 // Role to Permissions mapping
 export const RolePermissions: Record<UserRole, Permission[]> = {
-  [UserRole.SUPER_ADMIN]: Object.values(Permission), // All permissions
+  [UserRole.SUPER_ADMIN]: [
+    Permission.TENANT_CREATE,
+    Permission.TENANT_READ,
+    Permission.TENANT_UPDATE,
+    Permission.TENANT_DELETE,
+    Permission.BILLING_VIEW,
+    Permission.BILLING_MANAGE,
+    Permission.USER_CREATE,
+    Permission.USER_READ,
+    Permission.USER_UPDATE,
+    Permission.USER_DELETE,
+    Permission.SETTINGS_VIEW,
+    Permission.SETTINGS_UPDATE
+  ],
 
   [UserRole.TENANT_ADMIN]: [
     // Products
@@ -191,16 +204,10 @@ export const StaffRolePermissions: Record<StaffRoleTag, Permission[]> = {
 export const ROLE_PERMISSIONS: Record<string, string[]> = {
   SUPER_ADMIN: [
     'VIEW_ALL_ORGANIZATIONS', 'MANAGE_ORGANIZATIONS', 'VIEW_SYSTEM_LOGS', 'MANAGE_SYSTEM_SETTINGS',
-    'VIEW_AUDIT_LOGS', 'MANAGE_PACKAGES', 'VIEW_USERS', 'MANAGE_USERS', 'VIEW_PRODUCTS',
-    'MANAGE_PRODUCTS', 'VIEW_ORDERS', 'MANAGE_ORDERS', 'VIEW_CUSTOMERS', 'MANAGE_CUSTOMERS',
-    'VIEW_INVENTORY', 'MANAGE_INVENTORY', 'VIEW_ANALYTICS', 'VIEW_REPORTS', 'VIEW_AI_INSIGHTS',
-    'VIEW_SETTINGS', 'MANAGE_SETTINGS', 'VIEW_BILLING', 'MANAGE_BILLING', 'VIEW_MONITORING',
-    'MANAGE_MONITORING', 'VIEW_SUPPORT', 'MANAGE_SUPPORT', 'CREATE_SUPPORT_TICKET',
-    'VIEW_WEBHOOKS', 'MANAGE_WEBHOOKS', 'VIEW_MARKETING', 'MANAGE_MARKETING', 'VIEW_CAMPAIGNS',
-    'MANAGE_CAMPAIGNS', 'VIEW_INTEGRATIONS', 'MANAGE_INTEGRATIONS', 'VIEW_LOYALTY',
-    'MANAGE_LOYALTY', 'VIEW_AFFILIATES', 'MANAGE_AFFILIATES', 'VIEW_SUBSCRIPTIONS',
-    'MANAGE_SUBSCRIPTIONS', 'VIEW_REALTIME', 'VIEW_NOTIFICATIONS', 'MANAGE_NOTIFICATIONS',
-    'VIEW_PURCHASE_ORDERS', 'MANAGE_PURCHASE_ORDERS', 'VIEW_SHIPPING_STATS', 'MANAGE_AI'
+    'VIEW_AUDIT_LOGS', 'MANAGE_PACKAGES', 'VIEW_USERS', 'MANAGE_USERS', 'VIEW_BILLING', 'MANAGE_BILLING',
+    'VIEW_SUBSCRIPTIONS', 'MANAGE_SUBSCRIPTIONS', 'VIEW_MONITORING', 'MANAGE_MONITORING',
+    'VIEW_REALTIME', 'VIEW_NOTIFICATIONS', 'MANAGE_NOTIFICATIONS', 'VIEW_WEBHOOKS', 'MANAGE_WEBHOOKS',
+    'VIEW_MARKETING', 'MANAGE_MARKETING', 'VIEW_AFFILIATES', 'MANAGE_AFFILIATES'
   ],
   TENANT_ADMIN: [
     'VIEW_USERS', 'MANAGE_USERS', 'VIEW_PRODUCTS', 'MANAGE_PRODUCTS', 'VIEW_ORDERS',
@@ -225,11 +232,6 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 // Permission checking functions
 export function hasPermission(role: UserRole | string, permission: Permission | string, roleTag?: string): boolean {
-  // Super admin has all permissions
-  if (role === UserRole.SUPER_ADMIN || role === 'SUPER_ADMIN') {
-    return true;
-  }
-
   // Handle Legacy String-based Permissions
   if (typeof permission === 'string' && !Object.values(Permission).includes(permission as Permission)) {
     const permissions = ROLE_PERMISSIONS[role as string] || [];
