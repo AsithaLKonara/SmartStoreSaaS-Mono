@@ -13,6 +13,7 @@ export interface AuthenticatedUser {
   role: UserRole;
   roleTag?: string;
   organizationId?: string;
+  activeOrganizationId?: string | null;
 }
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -108,7 +109,8 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
       name: token.name as string,
       role: (token.role as UserRole) || UserRole.CUSTOMER,
       roleTag: token.roleTag as string,
-      organizationId: token.organizationId as string
+      organizationId: token.organizationId as string,
+      activeOrganizationId: request.headers.get('x-tenant-id') || null
     };
   } catch (error) {
     return null;
@@ -154,11 +156,19 @@ export function requirePermission(permission: string | Permission) {
   };
 }
 
-export function getOrganizationScope(user: AuthenticatedUser, requestOrgId?: string): string | null {
+export function getOrganizationScope(user: AuthenticatedUser, requestOrgId?: string): string {
   if (user.role === UserRole.SUPER_ADMIN) {
-    return requestOrgId || null;
+    const activeOrg = requestOrgId || user.activeOrganizationId;
+    if (!activeOrg) {
+      throw new Error('SUPER_ADMIN requires explicit organization scope (impersonation via x-tenant-id)');
+    }
+    return activeOrg;
   }
-  return user.organizationId || null;
+
+  if (!user.organizationId) {
+    throw new Error('User does not belong to an organization');
+  }
+  return user.organizationId;
 }
 
 export function validateOrganizationAccess(user: AuthenticatedUser, resourceOrganizationId: string): boolean {
