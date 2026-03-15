@@ -1,287 +1,375 @@
 {
-  "roles": {
-    "SUPER_ADMIN": {
-      "name": "Super Administrator",
-      "description": "Full system access, manages all organizations and system-wide settings",
-      "permissions": [
-        "VIEW_ALL_ORGANIZATIONS",
-        "MANAGE_ORGANIZATIONS",
-        "VIEW_SYSTEM_LOGS",
-        "MANAGE_SYSTEM_SETTINGS",
-        "VIEW_AUDIT_LOGS",
-        "MANAGE_PACKAGES",
-        "VIEW_ALL_USERS",
-        "MANAGE_ALL_USERS",
-        "VIEW_BILLING",
-        "MANAGE_BILLING",
-        "VIEW_MONITORING",
-        "MANAGE_MONITORING",
-        "VIEW_COMPLIANCE",
-        "MANAGE_COMPLIANCE",
-        "VIEW_BACKUP",
-        "MANAGE_BACKUP",
-        "VIEW_PERFORMANCE",
-        "MANAGE_PERFORMANCE",
-        "ACCESS_ALL_FEATURES"
-      ],
-      "pages": [
-        "/dashboard",
-        "/dashboard/tenants",
-        "/dashboard/admin/billing",
-        "/dashboard/admin/packages",
-        "/dashboard/audit",
-        "/dashboard/backup",
-        "/dashboard/compliance",
-        "/dashboard/monitoring",
-        "/dashboard/performance",
-        "/dashboard/logs"
-      ],
-      "expectedPageCount": 72
+  "rbac": {
+    "version": "2.0.0",
+    "lastUpdated": "2026-03-15"
+  },
+  "permissionScopes": [
+    "all",
+    "tenant",
+    "own",
+    "assigned"
+  ],
+  "permissions": [
+    {
+      "id": "system.read",
+      "resource": "system",
+      "action": "read",
+      "scope": "all"
     },
-    "TENANT_ADMIN": {
-      "name": "Organization Administrator",
-      "description": "Full access to their organization, manages users, settings, and all business operations",
+    {
+      "id": "system.manage",
+      "resource": "system",
+      "action": "manage",
+      "scope": "all"
+    },
+    {
+      "id": "tenants.read",
+      "resource": "tenants",
+      "action": "read",
+      "scope": "all"
+    },
+    {
+      "id": "tenants.create",
+      "resource": "tenants",
+      "action": "create",
+      "scope": "all"
+    },
+    {
+      "id": "tenants.update",
+      "resource": "tenants",
+      "action": "update",
+      "scope": "all"
+    },
+    {
+      "id": "tenants.delete",
+      "resource": "tenants",
+      "action": "delete",
+      "scope": "all"
+    },
+    {
+      "id": "tenants.impersonate",
+      "resource": "tenants",
+      "action": "impersonate",
+      "scope": "tenant"
+    },
+    {
+      "id": "users.read",
+      "resource": "users",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "users.create",
+      "resource": "users",
+      "action": "create",
+      "scope": "tenant"
+    },
+    {
+      "id": "users.update",
+      "resource": "users",
+      "action": "update",
+      "scope": "tenant"
+    },
+    {
+      "id": "users.delete",
+      "resource": "users",
+      "action": "delete",
+      "scope": "tenant"
+    },
+    {
+      "id": "roles.read",
+      "resource": "roles",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "roles.manage",
+      "resource": "roles",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "products.read",
+      "resource": "products",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "products.create",
+      "resource": "products",
+      "action": "create",
+      "scope": "tenant"
+    },
+    {
+      "id": "products.update",
+      "resource": "products",
+      "action": "update",
+      "scope": "tenant"
+    },
+    {
+      "id": "products.delete",
+      "resource": "products",
+      "action": "delete",
+      "scope": "tenant"
+    },
+    {
+      "id": "orders.read",
+      "resource": "orders",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "orders.create",
+      "resource": "orders",
+      "action": "create",
+      "scope": "tenant"
+    },
+    {
+      "id": "orders.update",
+      "resource": "orders",
+      "action": "update",
+      "scope": "tenant"
+    },
+    {
+      "id": "customers.read",
+      "resource": "customers",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "customers.update",
+      "resource": "customers",
+      "action": "update",
+      "scope": "tenant"
+    },
+    {
+      "id": "inventory.read",
+      "resource": "inventory",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "inventory.manage",
+      "resource": "inventory",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "warehouse.manage",
+      "resource": "warehouse",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "returns.manage",
+      "resource": "returns",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "shipping.manage",
+      "resource": "shipping",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "procurement.manage",
+      "resource": "procurement",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "accounting.manage",
+      "resource": "accounting",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "marketing.manage",
+      "resource": "marketing",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "analytics.read",
+      "resource": "analytics",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "reports.read",
+      "resource": "reports",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "ai.read",
+      "resource": "ai",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "integrations.manage",
+      "resource": "integrations",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "settings.manage",
+      "resource": "settings",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "billing.read",
+      "resource": "billing",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "logs.read",
+      "resource": "logs",
+      "action": "read",
+      "scope": "all"
+    },
+    {
+      "id": "monitoring.read",
+      "resource": "monitoring",
+      "action": "read",
+      "scope": "all"
+    },
+    {
+      "id": "backup.manage",
+      "resource": "backup",
+      "action": "manage",
+      "scope": "all"
+    }
+  ],
+  "roles": [
+    {
+      "id": "SUPER_ADMIN",
+      "level": "platform",
+      "description": "Platform administrator with full system control",
       "permissions": [
-        "VIEW_ORGANIZATION",
-        "MANAGE_ORGANIZATION_SETTINGS",
-        "VIEW_USERS",
-        "MANAGE_USERS",
-        "VIEW_PRODUCTS",
-        "MANAGE_PRODUCTS",
-        "VIEW_ORDERS",
-        "MANAGE_ORDERS",
-        "VIEW_CUSTOMERS",
-        "MANAGE_CUSTOMERS",
-        "VIEW_INVENTORY",
-        "MANAGE_INVENTORY",
-        "VIEW_ANALYTICS",
-        "VIEW_REPORTS",
-        "MANAGE_INTEGRATIONS",
-        "VIEW_SETTINGS",
-        "MANAGE_SETTINGS",
-        "VIEW_BILLING_INFO",
-        "VIEW_AI_INSIGHTS",
-        "MANAGE_WAREHOUSE",
-        "MANAGE_PROCUREMENT",
-        "MANAGE_ACCOUNTING",
-        "MANAGE_MARKETING",
-        "MANAGE_SHIPPING",
-        "MANAGE_RETURNS"
-      ],
-      "pages": [
-        "/dashboard",
-        "/dashboard/products",
-        "/dashboard/orders",
-        "/dashboard/customers",
-        "/dashboard/inventory",
-        "/dashboard/warehouse",
-        "/dashboard/pos",
-        "/dashboard/fulfillment",
-        "/dashboard/returns",
-        "/dashboard/shipping",
-        "/dashboard/analytics",
-        "/dashboard/reports",
-        "/dashboard/ai-insights",
-        "/dashboard/integrations",
-        "/dashboard/settings",
-        "/dashboard/users",
-        "/dashboard/marketing",
-        "/dashboard/accounting",
-        "/dashboard/procurement"
-      ],
-      "expectedPageCount": 63,
-      "restrictions": [
-        "Cannot access Super Admin pages",
-        "Cannot view other organizations",
-        "Cannot access system-wide logs",
-        "Cannot manage system packages"
+        "system.read",
+        "system.manage",
+        "tenants.read",
+        "tenants.create",
+        "tenants.update",
+        "tenants.delete",
+        "tenants.impersonate",
+        "logs.read",
+        "monitoring.read",
+        "backup.manage"
       ]
     },
-    "STAFF": {
-      "name": "Staff Member",
-      "description": "Limited business operations access based on assigned role tag",
+    {
+      "id": "TENANT_ADMIN",
+      "level": "tenant",
+      "description": "Full organization administrator",
       "permissions": [
-        "VIEW_ASSIGNED_PRODUCTS",
-        "VIEW_ASSIGNED_ORDERS",
-        "VIEW_ASSIGNED_CUSTOMERS",
-        "VIEW_ASSIGNED_INVENTORY"
-      ],
-      "roleTags": {
-        "sales_staff": {
-          "permissions": [
-            "VIEW_PRODUCTS",
-            "VIEW_ORDERS",
-            "CREATE_ORDERS",
-            "VIEW_CUSTOMERS",
-            "VIEW_POS"
-          ],
-          "pages": [
-            "/dashboard",
-            "/dashboard/products",
-            "/dashboard/orders",
-            "/dashboard/customers",
-            "/dashboard/pos"
-          ]
-        },
-        "inventory_manager": {
-          "permissions": [
-            "VIEW_PRODUCTS",
-            "MANAGE_PRODUCTS",
-            "VIEW_INVENTORY",
-            "MANAGE_INVENTORY",
-            "VIEW_WAREHOUSE",
-            "MANAGE_WAREHOUSE"
-          ],
-          "pages": [
-            "/dashboard",
-            "/dashboard/products",
-            "/dashboard/inventory",
-            "/dashboard/warehouse"
-          ]
-        },
-        "customer_service": {
-          "permissions": [
-            "VIEW_CUSTOMERS",
-            "MANAGE_CUSTOMERS",
-            "VIEW_ORDERS",
-            "UPDATE_ORDERS",
-            "VIEW_RETURNS",
-            "MANAGE_RETURNS"
-          ],
-          "pages": [
-            "/dashboard",
-            "/dashboard/customers",
-            "/dashboard/orders",
-            "/dashboard/returns"
-          ]
-        },
-        "accountant": {
-          "permissions": [
-            "VIEW_ACCOUNTING",
-            "MANAGE_ACCOUNTING",
-            "VIEW_REPORTS",
-            "VIEW_ANALYTICS"
-          ],
-          "pages": [
-            "/dashboard",
-            "/dashboard/accounting",
-            "/dashboard/reports",
-            "/dashboard/analytics"
-          ]
-        }
-      },
-      "expectedPageCount": 25,
-      "restrictions": [
-        "Cannot access admin settings",
-        "Cannot manage users",
-        "Cannot access integrations",
-        "Cannot view organization-wide analytics"
+        "users.read",
+        "users.create",
+        "users.update",
+        "users.delete",
+        "roles.read",
+        "roles.manage",
+        "products.create",
+        "products.update",
+        "products.delete",
+        "orders.update",
+        "customers.update",
+        "inventory.manage",
+        "warehouse.manage",
+        "returns.manage",
+        "shipping.manage",
+        "procurement.manage",
+        "accounting.manage",
+        "marketing.manage",
+        "analytics.read",
+        "reports.read",
+        "ai.read",
+        "integrations.manage",
+        "settings.manage",
+        "billing.read"
       ]
     },
-    "CUSTOMER": {
-      "name": "Customer",
-      "description": "Customer portal access only, can browse products and manage their orders",
+    {
+      "id": "SALES_STAFF",
+      "level": "tenant",
       "permissions": [
-        "VIEW_PRODUCTS",
-        "VIEW_OWN_ORDERS",
-        "VIEW_OWN_PROFILE",
-        "MANAGE_OWN_PROFILE",
-        "CREATE_ORDERS",
-        "VIEW_OWN_WISHLIST",
-        "MANAGE_OWN_WISHLIST"
-      ],
-      "pages": [
-        "/portal",
-        "/portal/products",
-        "/portal/orders",
-        "/portal/profile",
-        "/portal/wishlist",
-        "/portal/cart"
-      ],
-      "expectedPageCount": 6,
-      "restrictions": [
-        "Cannot access dashboard",
-        "Cannot view other customers' data",
-        "Cannot access admin features",
-        "Portal access only"
+        "products.read",
+        "orders.read",
+        "orders.create",
+        "customers.read"
+      ]
+    },
+    {
+      "id": "INVENTORY_MANAGER",
+      "level": "tenant",
+      "permissions": [
+        "products.read",
+        "products.update",
+        "inventory.manage",
+        "warehouse.manage"
+      ]
+    },
+    {
+      "id": "CUSTOMER_SUPPORT",
+      "level": "tenant",
+      "permissions": [
+        "customers.read",
+        "customers.update",
+        "orders.read",
+        "orders.update",
+        "returns.manage"
+      ]
+    },
+    {
+      "id": "CUSTOMER",
+      "level": "portal",
+      "permissions": [
+        "products.read",
+        "orders.create"
       ]
     }
-  },
-  "permissionCategories": {
-    "system": [
-      "VIEW_ALL_ORGANIZATIONS",
-      "MANAGE_ORGANIZATIONS",
-      "VIEW_SYSTEM_LOGS",
-      "MANAGE_SYSTEM_SETTINGS"
+  ],
+  "routePermissions": {
+    "/dashboard/products": [
+      "products.read"
     ],
-    "users": [
-      "VIEW_USERS",
-      "MANAGE_USERS",
-      "VIEW_ALL_USERS",
-      "MANAGE_ALL_USERS"
+    "/dashboard/products/create": [
+      "products.create"
     ],
-    "products": [
-      "VIEW_PRODUCTS",
-      "MANAGE_PRODUCTS",
-      "VIEW_ASSIGNED_PRODUCTS"
+    "/dashboard/orders": [
+      "orders.read"
     ],
-    "orders": [
-      "VIEW_ORDERS",
-      "MANAGE_ORDERS",
-      "CREATE_ORDERS",
-      "UPDATE_ORDERS",
-      "VIEW_OWN_ORDERS"
+    "/dashboard/orders/edit": [
+      "orders.update"
     ],
-    "customers": [
-      "VIEW_CUSTOMERS",
-      "MANAGE_CUSTOMERS",
-      "VIEW_ASSIGNED_CUSTOMERS"
+    "/dashboard/inventory": [
+      "inventory.read"
     ],
-    "inventory": [
-      "VIEW_INVENTORY",
-      "MANAGE_INVENTORY",
-      "VIEW_ASSIGNED_INVENTORY"
+    "/dashboard/warehouse": [
+      "warehouse.manage"
     ],
-    "analytics": [
-      "VIEW_ANALYTICS",
-      "VIEW_REPORTS",
-      "VIEW_AI_INSIGHTS"
+    "/dashboard/returns": [
+      "returns.manage"
     ],
-    "integrations": [
-      "MANAGE_INTEGRATIONS"
+    "/dashboard/shipping": [
+      "shipping.manage"
     ],
-    "settings": [
-      "VIEW_SETTINGS",
-      "MANAGE_SETTINGS",
-      "VIEW_ORGANIZATION",
-      "MANAGE_ORGANIZATION_SETTINGS"
+    "/dashboard/accounting": [
+      "accounting.manage"
     ],
-    "billing": [
-      "VIEW_BILLING",
-      "MANAGE_BILLING",
-      "VIEW_BILLING_INFO"
+    "/dashboard/marketing": [
+      "marketing.manage"
     ],
-    "monitoring": [
-      "VIEW_MONITORING",
-      "MANAGE_MONITORING",
-      "VIEW_AUDIT_LOGS",
-      "VIEW_PERFORMANCE",
-      "MANAGE_PERFORMANCE"
+    "/dashboard/settings": [
+      "settings.manage"
     ],
-    "compliance": [
-      "VIEW_COMPLIANCE",
-      "MANAGE_COMPLIANCE",
-      "VIEW_BACKUP",
-      "MANAGE_BACKUP"
+    "/portal/orders": [
+      "orders.create"
     ]
-  },
-  "metadata": {
-    "version": "1.0.0",
-    "lastUpdated": "2025-10-12",
-    "totalRoles": 4,
-    "totalPermissions": 45
   }
 }
-
-
-
