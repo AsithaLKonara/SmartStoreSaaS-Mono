@@ -128,7 +128,31 @@ export function requireAuth(handler: (req: AuthenticatedRequest, user: Authentic
     (request as unknown as AuthenticatedRequest).user = user;
     (request as unknown as AuthenticatedRequest).correlationId = request.headers.get('x-correlation-id') || uuidv4();
 
-    return handler(request as unknown as AuthenticatedRequest, user, params);
+    try {
+      return await handler(request as unknown as AuthenticatedRequest, user, params);
+    } catch (error: any) {
+      logger.error({
+        message: 'API handler error',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { path: request.nextUrl.pathname, userId: user.id }
+      });
+
+      if (error.statusCode) {
+        return NextResponse.json({
+          success: false,
+          code: error.code || 'ERR_INTERNAL',
+          message: error.message,
+          correlation: (request as any).correlationId
+        }, { status: error.statusCode });
+      }
+
+      return NextResponse.json({
+        success: false,
+        code: 'ERR_INTERNAL',
+        message: 'Internal server error',
+        correlation: (request as any).correlationId
+      }, { status: 500 });
+    }
   };
 }
 
