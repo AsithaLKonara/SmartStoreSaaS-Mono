@@ -92,8 +92,9 @@ export default function DashboardPage() {
       const orgId = session?.user?.organizationId || 'org-1';
       const response = await fetch(`/api/analytics/dashboard?organizationId=${orgId}&period=30`);
       if (response.ok) {
-        const data = await response.json();
-        setDashboardData(data);
+        const result = await response.json();
+        // Unpack data from successResponse wrapper
+        setDashboardData(result.data || result);
       } else {
         // Error handled silently - user sees UI feedback
         // Set default data structure to prevent errors
@@ -184,7 +185,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData ? formatCurrency(dashboardData.revenue.total) : 'රු0'}
+                {dashboardData?.revenue ? formatCurrency(dashboardData.revenue.total) : 'රු0'}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
@@ -211,7 +212,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData ? dashboardData.orders.total.toLocaleString() : '0'}
+                {dashboardData?.orders ? dashboardData.orders.total.toLocaleString() : '0'}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
@@ -238,7 +239,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData ? dashboardData.customers.total.toLocaleString() : '0'}
+                {dashboardData?.customers ? dashboardData.customers.total.toLocaleString() : '0'}
               </p>
             </div>
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
@@ -265,7 +266,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Products</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {dashboardData ? dashboardData.products.total.toLocaleString() : '0'}
+                {dashboardData?.products ? dashboardData.products.total.toLocaleString() : '0'}
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
@@ -289,7 +290,10 @@ export default function DashboardPage() {
       </div>
 
       {/* AI-Powered Recommendations */}
-      <RecommendationsWidget customerId={session?.user?.id} />
+      <RecommendationsWidget
+        customerId={session?.user?.id}
+        organizationId={session?.user?.organizationId || 'org-1'}
+      />
 
       {/* Trending Products */}
       <TrendingProducts limit={10} />

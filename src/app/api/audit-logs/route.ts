@@ -25,12 +25,13 @@ export const GET = requireRole('SUPER_ADMIN')(
       const { searchParams } = new URL(req.url);
       const organizationId = searchParams.get('organizationId');
 
-      // SUPER_ADMIN can query specific organization or all
-      if (!organizationId) {
+      const where: any = {};
+
+      if (organizationId) {
+        where.organizationId = organizationId;
+      } else if (user.role !== 'SUPER_ADMIN') {
         throw new ValidationError('Organization ID is required');
       }
-
-      const where: any = { organizationId };
 
       if (searchParams.get('userId')) {
         where.userId = searchParams.get('userId');

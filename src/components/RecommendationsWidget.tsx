@@ -12,7 +12,13 @@ interface Recommendation {
     confidence: number;
 }
 
-export function RecommendationsWidget({ customerId }: { customerId?: string }) {
+export function RecommendationsWidget({
+    customerId,
+    organizationId
+}: {
+    customerId?: string;
+    organizationId?: string;
+}) {
     const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -20,8 +26,11 @@ export function RecommendationsWidget({ customerId }: { customerId?: string }) {
     useEffect(() => {
         async function loadRecommendations() {
             try {
-                const params = customerId ? `?customerId=${customerId}` : '';
-                const response = await fetch(`/api/recommendations${params}`);
+                const queryParams = new URLSearchParams();
+                if (customerId) queryParams.append('customerId', customerId);
+                if (organizationId) queryParams.append('organizationId', organizationId);
+
+                const response = await fetch(`/api/recommendations?${queryParams.toString()}`);
 
                 if (!response.ok) {
                     throw new Error('Failed to load recommendations');
