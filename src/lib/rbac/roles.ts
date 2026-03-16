@@ -72,6 +72,10 @@ export enum Permission {
   TENANT_UPDATE = 'tenants.update',
   TENANT_DELETE = 'tenants.delete',
 
+  // Analytics
+  ANALYTICS_READ = 'analytics.read',
+  VIEW_ANALYTICS = 'analytics.read', // Alias for backward compatibility
+
   // Billing (Super Admin only)
   BILLING_VIEW = 'billing.read',
   BILLING_MANAGE = 'billing.manage'
@@ -100,6 +104,9 @@ function getEffectiveRole(role: string, roleTag?: string): string {
 }
 
 export function hasPermission(role: UserRole | string, permission: Permission | string, roleTag?: string): boolean {
+  // SUPER_ADMIN bypasses all permission checks
+  if (role === UserRole.SUPER_ADMIN || role === 'SUPER_ADMIN') return true;
+
   const effectiveRole = getEffectiveRole(role as string, roleTag);
   const schemaPermissions = jsonRoles[effectiveRole] || [];
 

@@ -89,7 +89,8 @@ export default function DashboardPage() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const response = await fetch('/api/analytics/dashboard?organizationId=org-1&period=30');
+      const orgId = session?.user?.organizationId || 'org-1';
+      const response = await fetch(`/api/analytics/dashboard?organizationId=${orgId}&period=30`);
       if (response.ok) {
         const data = await response.json();
         setDashboardData(data);

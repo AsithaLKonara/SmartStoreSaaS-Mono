@@ -21,8 +21,9 @@ export const GET = requirePermission('VIEW_ANALYTICS')(
     try {
       const { searchParams } = new URL(req.url);
       const period = searchParams.get('period') || '30';
+      const requestOrgId = searchParams.get('organizationId') || undefined;
 
-      const organizationId = getOrganizationScope(user);
+      const organizationId = getOrganizationScope(user, requestOrgId);
       if (!organizationId) {
         return NextResponse.json({
           success: false,
