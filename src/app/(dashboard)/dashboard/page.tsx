@@ -192,7 +192,7 @@ export default function DashboardPage() {
               <Banknote className="w-6 h-6 text-green-600" />
             </div>
           </div>
-          {dashboardData && (
+          {dashboardData?.revenue && (
             <div className="flex items-center mt-2">
               {dashboardData.revenue.trend === 'up' ? (
                 <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -219,7 +219,7 @@ export default function DashboardPage() {
               <ShoppingCart className="w-6 h-6 text-blue-600" />
             </div>
           </div>
-          {dashboardData && (
+          {dashboardData?.orders && (
             <div className="flex items-center mt-2">
               {dashboardData.orders.trend === 'up' ? (
                 <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -246,7 +246,7 @@ export default function DashboardPage() {
               <Users className="w-6 h-6 text-purple-600" />
             </div>
           </div>
-          {dashboardData && (
+          {dashboardData?.customers && (
             <div className="flex items-center mt-2">
               {dashboardData.customers.trend === 'up' ? (
                 <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -273,7 +273,7 @@ export default function DashboardPage() {
               <Package className="w-6 h-6 text-orange-600" />
             </div>
           </div>
-          {dashboardData && (
+          {dashboardData?.products && (
             <div className="flex items-center mt-2">
               {dashboardData.products.trend === 'up' ? (
                 <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
