@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
 
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/shipping/rates
  * Get shipping rates
  */
-export const GET = requirePermission('VIEW_ORDERS')(
+export const GET = requirePermission(Permission.ORDER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -163,7 +163,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
  * POST /api/shipping/rates
  * Create shipping rate
  */
-export const POST = requirePermission('MANAGE_SETTINGS')(
+export const POST = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

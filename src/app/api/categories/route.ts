@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/categories
  * Get categories (public or VIEW_PRODUCTS permission)
  */
-export const GET = requirePermission('VIEW_PRODUCTS')(
+export const GET = requirePermission(Permission.PRODUCT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -96,7 +96,7 @@ export const GET = requirePermission('VIEW_PRODUCTS')(
  * POST /api/categories
  * Create category (MANAGE_PRODUCTS permission)
  */
-export const POST = requirePermission('MANAGE_PRODUCTS')(
+export const POST = requirePermission(Permission.PRODUCT_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

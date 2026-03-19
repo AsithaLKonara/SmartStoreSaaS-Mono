@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { AIOrchestrator } from '@/lib/ai/orchestrator';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/ai/chat
  * Chat with the AI Store Manager
  */
-export const POST = requirePermission('MANAGE_AI')(
+export const POST = requirePermission(Permission.AI_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
         try {
             const { query } = await req.json();

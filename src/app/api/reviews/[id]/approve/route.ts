@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/reviews/[id]/approve
  * Approve a review
  */
-export const POST = requirePermission('VIEW_REVIEWS')(
+export const POST = requirePermission(Permission.REVIEWS_READ)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const reviewId = params.id;

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';
@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/inventory/autopilot/run
  * Run autonomous inventory procurement
  */
-export const POST = requirePermission('MANAGE_AI_AUTOMATION')(
+export const POST = requirePermission(Permission.AI_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
         try {
             const organizationId = getOrganizationScope(user);

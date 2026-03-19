@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { OrderService } from '@/lib/services/order.service';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +25,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/orders
  * List orders with organization and customer scoping
  */
-export const GET = requirePermission('VIEW_ORDERS')(
+export const GET = requirePermission(Permission.ORDER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -109,7 +109,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
  * POST /api/orders
  * Create new order
  */
-export const POST = requirePermission('CREATE_ORDERS')(
+export const POST = requirePermission(Permission.ORDER_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

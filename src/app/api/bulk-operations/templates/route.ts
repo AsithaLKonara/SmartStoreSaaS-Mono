@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/bulk-operations/templates
  * Get bulk operation templates (VIEW_SETTINGS permission)
  */
-export const GET = requirePermission('VIEW_SETTINGS')(
+export const GET = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -71,7 +71,7 @@ export const GET = requirePermission('VIEW_SETTINGS')(
  * POST /api/bulk-operations/templates
  * Create bulk operation template (MANAGE_SETTINGS permission)
  */
-export const POST = requirePermission('MANAGE_SETTINGS')(
+export const POST = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

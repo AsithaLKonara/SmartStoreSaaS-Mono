@@ -11,12 +11,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { databaseOptimizer } from '@/lib/database/performance-optimizer';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requirePermission('VIEW_ANALYTICS')(
+export const GET = requirePermission(Permission.ANALYTICS_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);

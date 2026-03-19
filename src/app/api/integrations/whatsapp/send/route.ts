@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/integrations/whatsapp/send
  * Send WhatsApp message (MANAGE_INTEGRATIONS permission)
  */
-export const POST = requirePermission('MANAGE_INTEGRATIONS')(
+export const POST = requirePermission(Permission.INTEGRATIONS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

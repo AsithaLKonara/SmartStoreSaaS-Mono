@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, getOrganizationScope, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, getOrganizationScope, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError, NotFoundError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/white-label
  * Get white-label configuration (VIEW_SETTINGS permission)
  */
-export const GET = requirePermission('VIEW_SETTINGS')(
+export const GET = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -70,7 +70,7 @@ export const GET = requirePermission('VIEW_SETTINGS')(
  * POST /api/white-label
  * Update white-label configuration (MANAGE_SETTINGS permission)
  */
-export const POST = requirePermission('MANAGE_SETTINGS')(
+export const POST = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

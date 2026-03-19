@@ -108,9 +108,9 @@ async function generateFinancialReport(organizationId: string, start: Date, end:
   };
 }
 
-import { AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, AuthenticatedRequest  } from '@/lib/rbac/middleware';
 
-export const POST = requirePermission('VIEW_REPORTS')(
+export const POST = requirePermission(Permission.REPORTS_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

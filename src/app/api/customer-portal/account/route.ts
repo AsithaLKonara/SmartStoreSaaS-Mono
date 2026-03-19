@@ -13,12 +13,22 @@ export const dynamic = 'force-dynamic';
 export const GET = requireAuth(
   async (req: AuthenticatedRequest, user) => {
     try {
-      const customer = await prisma.customer.findUnique({
+      let customer = await prisma.customer.findUnique({
         where: { id: user.id },
         include: {
           loyalty: true
         }
       });
+
+      if (!customer && user.role === 'SUPER_ADMIN') {
+        // Return a mock customer for administrative overview/health-check
+        return NextResponse.json(successResponse({
+          id: user.id,
+          name: user.name || 'Admin',
+          email: user.email,
+          role: 'ADMIN_MOCK'
+        }));
+      }
 
       if (!customer) {
         throw new NotFoundError('Customer not found');

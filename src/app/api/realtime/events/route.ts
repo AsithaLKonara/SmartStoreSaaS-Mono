@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/realtime/events
  * Get real-time events (VIEW_REALTIME permission)
  */
-export const GET = requirePermission('VIEW_REALTIME')(
+export const GET = requirePermission(Permission.SYSTEM_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -114,7 +114,7 @@ export const GET = requirePermission('VIEW_REALTIME')(
  * POST /api/realtime/events
  * Create real-time event (VIEW_REALTIME permission - for now)
  */
-export const POST = requirePermission('VIEW_REALTIME')(
+export const POST = requirePermission(Permission.SYSTEM_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

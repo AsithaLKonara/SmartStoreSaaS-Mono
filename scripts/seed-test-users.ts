@@ -41,6 +41,13 @@ const TEST_USERS: TestUser[] = [
     role: 'SUPER_ADMIN'
   },
   {
+    email: 'admin@techhub.lk',
+    password: 'demo123',
+    name: 'TechHub Admin',
+    role: 'TENANT_ADMIN',
+    organizationId: 'demo-org-1'
+  },
+  {
     email: 'admin@demo.com',
     password: 'Admin123!',
     name: 'Demo Admin',

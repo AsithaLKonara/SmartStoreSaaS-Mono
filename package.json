@@ -11,7 +11,7 @@
     "typecheck": "bash scripts/fetch-type-errors.sh",
     "test": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
     "test:unit": "jest -c jest.config.unit.js --runInBand",
-    "test:integration": "cross-env NODE_ENV=test jest -c jest.config.integration.js --runInBand",
+    "test:integration": "cross-env NODE_ENV=test test -c jest.config.integration.js --runInBand",
     "test:e2e": "playwright test",
     "test:e2e:local": "dotenv -e .env.test -- playwright test",
     "test:e2e:server": "E2E_BASE_URL=http://localhost:3000 playwright test --project=chromium",
@@ -63,7 +63,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/speakeasy": "^2.0.10",
     "@types/three": "^0.182.0",
-    "@upstash/redis": "^1.36.2",
+    "@upstash/redis": "^1.1.1",
     "@woocommerce/woocommerce-rest-api": "^1.0.2",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
@@ -131,6 +131,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "wait-on": "^7.2.0"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/fullSeed.ts"
   },
   "packageManager": "pnpm@9.15.2"
 }

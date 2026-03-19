@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/pos/transactions
  * Get POS transactions
  */
-export const GET = requirePermission('VIEW_ORDERS')(
+export const GET = requirePermission(Permission.ORDER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -75,7 +75,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
  * POST /api/pos/transactions
  * Create POS transaction
  */
-export const POST = requirePermission('MANAGE_ORDERS')(
+export const POST = requirePermission(Permission.ORDER_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

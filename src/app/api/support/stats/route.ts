@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/support/stats
  * Get support ticket statistics
  */
-export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
+export const GET = requirePermission(Permission.SUPPORT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

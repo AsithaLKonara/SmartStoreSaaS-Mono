@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import { InventoryService } from '@/lib/services/inventory.service';
@@ -30,7 +30,7 @@ export async function POST(
   const resolvedParams = params instanceof Promise ? await params : params;
   const inventoryId = resolvedParams.id;
 
-  const handler = requirePermission('MANAGE_INVENTORY')(
+  const handler = requirePermission(Permission.INVENTORY_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();

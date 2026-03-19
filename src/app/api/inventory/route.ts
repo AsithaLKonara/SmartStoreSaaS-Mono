@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { InventoryService } from '@/lib/services/inventory.service';
 
@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/inventory
  * List inventory items with organization scoping
  */
-export const GET = requirePermission('VIEW_INVENTORY')(
+export const GET = requirePermission(Permission.INVENTORY_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -92,7 +92,7 @@ export const GET = requirePermission('VIEW_INVENTORY')(
  * POST /api/inventory
  * Create new inventory item with organization scoping
  */
-export const POST = requirePermission('MANAGE_INVENTORY')(
+export const POST = requirePermission(Permission.INVENTORY_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

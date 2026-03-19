@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { AIBrainService } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/ai/brain
  * Test endpoint to see what the AI Brain thinks of the current store state
  */
-export const GET = requirePermission('MANAGE_AI')(
+export const GET = requirePermission(Permission.AI_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
         try {
             const organizationId = getOrganizationScope(user);

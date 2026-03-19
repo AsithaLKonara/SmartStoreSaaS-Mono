@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError, NotFoundError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/procurement/purchase-orders/[id]
  * Get purchase order (VIEW_PURCHASE_ORDERS permission)
  */
-export const GET = requirePermission('VIEW_PURCHASE_ORDERS')(
+export const GET = requirePermission(Permission.PROCUREMENT_MANAGE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const poId = params.id;
@@ -97,7 +97,7 @@ export const GET = requirePermission('VIEW_PURCHASE_ORDERS')(
  * PUT /api/procurement/purchase-orders/[id]
  * Update purchase order (MANAGE_PURCHASE_ORDERS permission)
  */
-export const PUT = requirePermission('MANAGE_PURCHASE_ORDERS')(
+export const PUT = requirePermission(Permission.PROCUREMENT_MANAGE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const poId = params.id;

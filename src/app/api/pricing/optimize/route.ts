@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';
@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/pricing/optimize
  * Dynamic pricing analysis and application
  */
-export const POST = requirePermission('MANAGE_AI_PRICING')(
+export const POST = requirePermission(Permission.AI_READ)(
     async (req: AuthenticatedRequest, user) => {
         try {
             const organizationId = getOrganizationScope(user);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/notifications/[id]
  * Get single notification (VIEW_NOTIFICATIONS permission)
  */
-export const GET = requirePermission('VIEW_NOTIFICATIONS')(
+export const GET = requirePermission(Permission.NOTIFICATIONS_READ)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
 
@@ -69,7 +69,7 @@ export const GET = requirePermission('VIEW_NOTIFICATIONS')(
  * PUT /api/notifications/[id]
  * Update notification (MANAGE_NOTIFICATIONS permission)
  */
-export const PUT = requirePermission('MANAGE_NOTIFICATIONS')(
+export const PUT = requirePermission(Permission.NOTIFICATIONS_MANAGE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const notificationId = params.id;
@@ -131,7 +131,7 @@ export const PUT = requirePermission('MANAGE_NOTIFICATIONS')(
  * DELETE /api/notifications/[id]
  * Delete notification (MANAGE_NOTIFICATIONS permission)
  */
-export const DELETE = requirePermission('MANAGE_NOTIFICATIONS')(
+export const DELETE = requirePermission(Permission.NOTIFICATIONS_MANAGE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const notificationId = params.id;

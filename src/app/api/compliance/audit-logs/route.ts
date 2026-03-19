@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,7 @@ import { AuditService } from '@/lib/services/audit.service';
  * GET /api/compliance/audit-logs
  * Get compliance audit logs (VIEW_AUDIT_LOGS permission)
  */
-export const GET = requirePermission('VIEW_AUDIT_LOGS')(
+export const GET = requirePermission(Permission.AUDIT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -74,7 +74,7 @@ export const GET = requirePermission('VIEW_AUDIT_LOGS')(
  * POST /api/compliance/audit-logs
  * Create audit log
  */
-export const POST = requirePermission('VIEW_AUDIT_LOGS')(
+export const POST = requirePermission(Permission.AUDIT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

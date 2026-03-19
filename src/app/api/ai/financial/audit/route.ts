@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { AIOrchestrator } from '@/lib/ai/orchestrator';
 import { FinancialService } from '@/lib/services/financial.service';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/ai/financial/audit
  * Trigger a manual financial audit
  */
-export const POST = requirePermission('MANAGE_AI')(
+export const POST = requirePermission(Permission.AI_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
         const organizationId = getOrganizationScope(user);
         if (!organizationId) {
@@ -35,7 +35,7 @@ export const POST = requirePermission('MANAGE_AI')(
  * GET /api/ai/financial/audit
  * Get the latest financial report
  */
-export const GET = requirePermission('VIEW_ANALYTICS')(
+export const GET = requirePermission(Permission.ANALYTICS_READ)(
     async (req: AuthenticatedRequest, user) => {
         const organizationId = getOrganizationScope(user);
         if (!organizationId) {

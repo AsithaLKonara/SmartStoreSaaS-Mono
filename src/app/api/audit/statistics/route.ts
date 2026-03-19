@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/audit/statistics
  * Get audit statistics with organization scoping
  */
-export const GET = requirePermission('VIEW_AUDIT_LOGS')(
+export const GET = requirePermission(Permission.AUDIT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       // Get organization scoping (SUPER_ADMIN can see all)

@@ -10,13 +10,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = requirePermission('VIEW_SETTINGS')(
+export const GET = requirePermission(Permission.SETTINGS_MANAGE)(
   async (request: AuthenticatedRequest, user) => {
     try {
       const organizationId = user.organizationId;
@@ -54,7 +54,7 @@ export const GET = requirePermission('VIEW_SETTINGS')(
   }
 );
 
-export const POST = requirePermission('MANAGE_SETTINGS')(
+export const POST = requirePermission(Permission.SETTINGS_MANAGE)(
   async (request: AuthenticatedRequest, user) => {
     try {
       const body = await request.json();

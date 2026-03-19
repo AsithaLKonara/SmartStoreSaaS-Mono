@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/support
  * List support tickets with organization scoping
  */
-export const GET = requirePermission('VIEW_SUPPORT')(
+export const GET = requirePermission(Permission.SUPPORT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -106,7 +106,7 @@ export const GET = requirePermission('VIEW_SUPPORT')(
  * Create support ticket with organization scoping
  * Note: CUSTOMER can create their own tickets, others need MANAGE_SUPPORT
  */
-export const POST = requirePermission('CREATE_SUPPORT_TICKET')(
+export const POST = requirePermission(Permission.SUPPORT_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/procurement/suppliers
  * Get suppliers
  */
-export const GET = requirePermission('VIEW_INVENTORY')(
+export const GET = requirePermission(Permission.PROCUREMENT_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -55,11 +55,11 @@ export const GET = requirePermission('VIEW_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -74,7 +74,7 @@ export const GET = requirePermission('VIEW_INVENTORY')(
  * POST /api/procurement/suppliers
  * Create supplier
  */
-export const POST = requirePermission('MANAGE_INVENTORY')(
+export const POST = requirePermission(Permission.PROCUREMENT_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -136,11 +136,11 @@ export const POST = requirePermission('MANAGE_INVENTORY')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/pos/cash-drawer
  * Get cash drawer status
  */
-export const GET = requirePermission('VIEW_ORDERS')(
+export const GET = requirePermission(Permission.ORDER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       // TODO: Get actual cash drawer status
@@ -63,7 +63,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
  * POST /api/pos/cash-drawer
  * Perform cash drawer action
  */
-export const POST = requirePermission('MANAGE_ORDERS')(
+export const POST = requirePermission(Permission.ORDER_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

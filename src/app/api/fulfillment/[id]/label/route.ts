@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { sriLankaCourierService } from '@/lib/courier/sriLankaCourierService';
@@ -29,7 +29,7 @@ export async function POST(
   const resolvedParams = params instanceof Promise ? await params : params;
   const fulfillmentId = resolvedParams.id;
 
-  const handler = requirePermission('MANAGE_INVENTORY')(
+  const handler = requirePermission(Permission.INVENTORY_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         let body: any = {};

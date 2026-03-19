@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { AggregatedAnalyticsService } from '@/lib/services/aggregated-analytics.service';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/ai/benchmarks
  * Global benchmarking for the organization
  */
-export const GET = requirePermission('VIEW_ANALYTICS')(
+export const GET = requirePermission(Permission.ANALYTICS_READ)(
     async (req: AuthenticatedRequest, user) => {
         try {
             const organizationId = getOrganizationScope(user);

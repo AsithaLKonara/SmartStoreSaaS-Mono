@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/marketing/abandoned-carts
  * Get abandoned carts
  */
-export const GET = requirePermission('VIEW_MARKETING')(
+export const GET = requirePermission(Permission.MARKETING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -33,41 +33,41 @@ export const GET = requirePermission('VIEW_MARKETING')(
       const limit = parseInt(searchParams.get('limit') || '10');
       const hours = parseInt(searchParams.get('hours') || '24');
 
-    // Calculate cutoff time for abandoned carts
-    const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+      // Calculate cutoff time for abandoned carts
+      const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-    // Query orders that are PENDING and older than cutoff (abandoned carts)
-    const [abandonedOrders, total] = await Promise.all([
-      prisma.order.findMany({
-        where: {
-          organizationId,
-          status: 'PENDING',
-          createdAt: { lte: cutoffTime }
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          customer: {
-            select: { name: true, email: true }
+      // Query orders that are PENDING and older than cutoff (abandoned carts)
+      const [abandonedOrders, total] = await Promise.all([
+        prisma.order.findMany({
+          where: {
+            organizationId,
+            status: 'PENDING',
+            createdAt: { lte: cutoffTime }
           },
-          orderItems: {
-            include: {
-              product: {
-                select: { name: true, price: true }
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            customer: {
+              select: { name: true, email: true }
+            },
+            orderItems: {
+              include: {
+                product: {
+                  select: { name: true, price: true }
+                }
               }
             }
           }
-        }
-      }),
-      prisma.order.count({
-        where: {
-          organizationId,
-          status: 'PENDING',
-          createdAt: { lte: cutoffTime }
-        }
-      })
-    ]);
+        }),
+        prisma.order.count({
+          where: {
+            organizationId,
+            status: 'PENDING',
+            createdAt: { lte: cutoffTime }
+          }
+        })
+      ]);
 
       logger.info({
         message: 'Abandoned carts fetched successfully',
@@ -104,11 +104,11 @@ export const GET = requirePermission('VIEW_MARKETING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -123,7 +123,7 @@ export const GET = requirePermission('VIEW_MARKETING')(
  * POST /api/marketing/abandoned-carts
  * Initiate abandoned cart campaign
  */
-export const POST = requirePermission('MANAGE_MARKETING')(
+export const POST = requirePermission(Permission.MARKETING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -181,11 +181,11 @@ export const POST = requirePermission('MANAGE_MARKETING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

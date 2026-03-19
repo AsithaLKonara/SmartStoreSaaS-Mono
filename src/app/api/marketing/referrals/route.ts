@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/marketing/referrals
  * Get referrals
  */
-export const GET = requirePermission('VIEW_MARKETING')(
+export const GET = requirePermission(Permission.MARKETING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -37,27 +37,27 @@ export const GET = requirePermission('VIEW_MARKETING')(
       const where: any = { organizationId };
       if (customerId) where.referrerId = customerId;
 
-    // Query referrals from database (using affiliate or create referral tracking)
-    const [referrals, total] = await Promise.all([
-      prisma.affiliate.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        select: {
-          id: true,
-          code: true,
-          name: true,
-          email: true,
-          status: true,
-          commissionRate: true,
-          totalSales: true,
-          totalCommission: true,
-          createdAt: true
-        }
-      }),
-      prisma.affiliate.count({ where })
-    ]);
+      // Query referrals from database (using affiliate or create referral tracking)
+      const [referrals, total] = await Promise.all([
+        prisma.affiliate.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            email: true,
+            status: true,
+            commissionRate: true,
+            totalSales: true,
+            totalCommission: true,
+            createdAt: true
+          }
+        }),
+        prisma.affiliate.count({ where })
+      ]);
 
       logger.info({
         message: 'Referrals fetched successfully',
@@ -95,11 +95,11 @@ export const GET = requirePermission('VIEW_MARKETING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -114,7 +114,7 @@ export const GET = requirePermission('VIEW_MARKETING')(
  * POST /api/marketing/referrals
  * Create referral
  */
-export const POST = requirePermission('MANAGE_MARKETING')(
+export const POST = requirePermission(Permission.MARKETING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -175,11 +175,11 @@ export const POST = requirePermission('MANAGE_MARKETING')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

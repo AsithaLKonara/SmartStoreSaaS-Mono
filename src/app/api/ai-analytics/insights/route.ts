@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server';
 import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';
 import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 
@@ -19,7 +19,7 @@ import { logger } from '@/lib/logger';
  * POST /api/ai-analytics/insights
  * Generate AI insights (VIEW_AI_INSIGHTS permission)
  */
-export const POST = requirePermission('VIEW_AI_INSIGHTS')(
+export const POST = requirePermission(Permission.AI_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

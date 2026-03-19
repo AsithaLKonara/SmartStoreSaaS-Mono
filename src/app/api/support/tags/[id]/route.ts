@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, NotFoundError, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,7 +30,7 @@ export async function GET(
   const resolvedParams = params instanceof Promise ? await params : params;
   const tagId = resolvedParams.id;
   
-  const handler = requirePermission('VIEW_SUPPORT_TICKETS')(
+  const handler = requirePermission(Permission.SUPPORT_READ)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const organizationId = getOrganizationScope(user);
@@ -102,7 +102,7 @@ export async function PUT(
   const resolvedParams = params instanceof Promise ? await params : params;
   const tagId = resolvedParams.id;
   
-  const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
+  const handler = requirePermission(Permission.SUPPORT_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();
@@ -176,7 +176,7 @@ export async function DELETE(
   const resolvedParams = params instanceof Promise ? await params : params;
   const tagId = resolvedParams.id;
   
-  const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
+  const handler = requirePermission(Permission.SUPPORT_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const organizationId = getOrganizationScope(user);

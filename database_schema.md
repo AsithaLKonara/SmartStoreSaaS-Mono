@@ -1,0 +1,1933 @@
+# Database Schema Overview
+
+Total Tables: 110
+
+## User
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| email | String | @unique |
+| name | String? |  |
+| password | String? |  |
+| role | UserRole | @default(TENANT_ADMIN) |
+| roleTag | String? | // For STAFF: inventory_manager, sales_executive, finance_officer, etc. |
+| organizationId | String? |  |
+| isActive | Boolean | @default(true) |
+| emailVerified | DateTime? |  |
+| image | String? |  |
+| phone | String? |  |
+| mfaEnabled | Boolean | @default(false) |
+| mfaSecret | String? |  |
+| mfaBackupCodes | String? |  |
+| deletedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| reports | Report[] |  |
+| organization | Organization? | @relation(fields: [organizationId], references: [id]) |
+| purchaseOrdersCreated | PurchaseOrder[] | @relation("PurchaseOrderCreator") |
+| returnsApproved | Return[] |  |
+| giftCardsIssued | GiftCard[] |  |
+| posTransactions | PosTransaction[] |  |
+| procurementInvoices | ProcurementInvoice[] |  |
+| rfqs | RFQ[] |  |
+| apiKeys | ApiKey[] |  |
+| auditLogs | AuditLog[] |  |
+| mfaMethods | UserMFA[] |  |
+| searchHistory | SearchHistory[] |  |
+| errorEvents | ErrorEvent[] |  |
+| assignedConversations | Conversation[] | @relation("AssignedAgent") |
+| products | Product[] | @relation("ProductCreator") |
+| orders | Order[] | @relation("OrderCreator") |
+| browsingHistory | BrowsingHistory[] |  |
+| experiments | PersonalizationExperiment[] |  |
+
+## Organization
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| domain | String? | @unique |
+| description | String? |  |
+| logo | String? |  |
+| status | OrganizationStatus | @default(ACTIVE) |
+| plan | PlanType | @default(FREE) |
+| settings | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| subscription | Subscription? |  |
+| activityLogs | ActivityLog[] |  |
+| aiAnalytics | AiAnalytics[] |  |
+| analytics | Analytics[] |  |
+| channelIntegrations | ChannelIntegration[] |  |
+| chartOfAccounts | ChartOfAccount[] |  |
+| couriers | Courier[] |  |
+| customerSegments | CustomerSegment[] |  |
+| customers | Customer[] |  |
+| deliveries | Delivery[] |  |
+| iotDevices | IotDevice[] |  |
+| journalEntries | JournalEntry[] |  |
+| ledger | Ledger[] |  |
+| orders | Order[] |  |
+| payments | Payment[] |  |
+| performanceMetrics | PerformanceMetric[] |  |
+| products | Product[] |  |
+| reports | Report[] |  |
+| conversations | Conversation[] |  |
+| smsCampaigns | SmsCampaign[] |  |
+| smsLogs | SmsLog[] |  |
+| smsSubscriptions | SmsSubscription[] |  |
+| smsTemplates | SmsTemplate[] |  |
+| socialCommerce | SocialCommerce[] |  |
+| supportTickets | SupportTicket[] |  |
+| taxRates | TaxRate[] |  |
+| taxTransactions | TaxTransaction[] |  |
+| users | User[] |  |
+| warehouses | Warehouse[] |  |
+| whatsappIntegrations | WhatsAppIntegration? |  |
+| whatsappMessages | WhatsAppMessage[] |  |
+| woocommerceIntegrations | WooCommerceIntegration[] |  |
+| suppliers | Supplier[] |  |
+| purchaseOrders | PurchaseOrder[] |  |
+| returns | Return[] |  |
+| giftCards | GiftCard[] |  |
+| affiliates | Affiliate[] |  |
+| referrals | Referral[] |  |
+| posTerminals | PosTerminal[] |  |
+| errorEvents | ErrorEvent[] |  |
+| posTransactions | PosTransaction[] |  |
+| procurementInvoices | ProcurementInvoice[] |  |
+| rfqs | RFQ[] |  |
+| wishlists | Wishlist[] |  |
+| apiKeys | ApiKey[] |  |
+| auditLogs | AuditLog[] |  |
+| categories | Category[] |  |
+| bulkOperations | BulkOperation[] |  |
+| workflows | Workflow[] |  |
+| personalizationExperiments | PersonalizationExperiment[] |  |
+| webhookSubscriptions | WebhookSubscription[] |  |
+
+## Customer
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| email | String |  |
+| phone | String? |  |
+| address | Json? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| loyalty | CustomerLoyalty[] |  |
+| segmentCustomers | CustomerSegmentCustomer[] |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| orders | Order[] |  |
+| whatsappMessages | WhatsAppMessage[] |  |
+| wishlists | Wishlist[] |  |
+| returns | Return[] |  |
+| referralsGiven | Referral[] | @relation("Referrer") |
+| referralsReceived | Referral[] | @relation("Referred") |
+| reviews | Review[] |  |
+| reviewHelpful | ReviewHelpful[] |  |
+| totalSpent | Decimal | @default(0) // Added for membership/subscription tracking |
+| subscriptions | Subscription[] |  |
+| conversations | Conversation[] |  |
+| paymentIntents | PaymentIntent[] |  |
+| createdByOrigin | ActionOrigin | @default(human) |
+| updatedByOrigin | ActionOrigin | @default(human) |
+
+## Product
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| description | String? |  |
+| sku | String | @unique |
+| price | Decimal |  |
+| cost | Decimal? |  |
+| stock | Int | @default(0) |
+| minStock | Int | @default(0) |
+| weight | Float? |  |
+| dimensions | String? |  |
+| tags | String? |  |
+| isVariant | Boolean | @default(false) |
+| parentProductId | String? |  |
+| organizationId | String |  |
+| categoryId | String? |  |
+| wooCommerceId | String? |  |
+| syncedAt | DateTime? |  |
+| lowStockThreshold | Int | @default(0) |
+| reorderPoint | Int | @default(0) |
+| isActive | Boolean | @default(true) |
+| rating | Float | @default(0) |
+| reviewCount | Int | @default(0) |
+| slug | String? | @unique |
+| createdById | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| inventoryMovements | InventoryMovement[] |  |
+| orderItems | OrderItem[] |  |
+| posItems | PosTransactionItem[] |  |
+| rfqItems | RFQItem[] |  |
+| activities | ProductActivity[] |  |
+| variants | ProductVariant[] |  |
+| fulfillmentItems | FulfillmentItem[] |  |
+| category | Category? | @relation(fields: [categoryId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| createdBy | User? | @relation("ProductCreator", fields: [createdById], references: [id]) |
+| socialProducts | SocialProduct[] |  |
+| wishlistItems | WishlistItem[] |  |
+| purchaseOrderItems | PurchaseOrderItem[] |  |
+| supplierProducts | SupplierProduct[] |  |
+| browsingHistory | BrowsingHistory[] |  |
+| returnItems | ReturnItem[] |  |
+| reviews | Review[] |  |
+| createdByOrigin | ActionOrigin | @default(human) |
+| updatedByOrigin | ActionOrigin | @default(human) |
+| embeddingData | ProductEmbedding? | @relation("ProductEmbeddingRelation") |
+
+## ProductEmbedding
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| productId | String | @unique |
+| product | Product | @relation("ProductEmbeddingRelation", fields: [productId], references: [id]) |
+| modelVersion | String | @default("v1") |
+| embedding | Json |  |
+| imageUrl | String? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## Category
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| description | String? |  |
+| parentId | String? |  |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| categories | Category? | @relation("categoriesTocategories", fields: [parentId], references: [id]) |
+| other_categories | Category[] | @relation("categoriesTocategories") |
+| products | Product[] |  |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## Order
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderNumber | String | @unique |
+| customerId | String |  |
+| organizationId | String |  |
+| status | OrderStatus | @default(PENDING) |
+| total | Decimal |  |
+| subtotal | Decimal |  |
+| tax | Decimal | @default(0) |
+| shipping | Decimal | @default(0) |
+| discount | Decimal | @default(0) |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| deliveries | Delivery[] |  |
+| orderItems | OrderItem[] |  |
+| statusHistory | OrderStatusHistory[] |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+| payments | Payment[] |  |
+| returns | Return[] |  |
+| fulfillments | Fulfillment[] |  |
+| giftCardTransactions | GiftCardTransaction[] |  |
+| affiliateCommissions | AffiliateCommission[] |  |
+| stripePaymentIntentId | String? | @unique |
+| paypalOrderId | String? | @unique |
+| paypalPaymentId | String? |  |
+| createdById | String? |  |
+| creator | User? | @relation("OrderCreator", fields: [createdById], references: [id]) |
+| updatedByOrigin | ActionOrigin | @default(human) |
+
+## OrderItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String |  |
+| productId | String |  |
+| variantId | String? |  |
+| quantity | Int |  |
+| price | Decimal |  |
+| total | Decimal |  |
+| createdAt | DateTime | @default(now()) |
+| product_variants | ProductVariant? | @relation(fields: [variantId], references: [id]) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+| order | Order | @relation(fields: [orderId], references: [id]) |
+
+## Payment
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String |  |
+| organizationId | String |  |
+| amount | Decimal |  |
+| currency | String | @default("LKR") |
+| method | String |  |
+| status | PaymentStatus | @default(PENDING) |
+| transactionId | String? |  |
+| gateway | String? |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| order | Order | @relation(fields: [orderId], references: [id]) |
+
+## Delivery
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String |  |
+| organizationId | String |  |
+| courierId | String? |  |
+| status | DeliveryStatus | @default(PENDING) |
+| trackingNumber | String? |  |
+| estimatedDelivery | DateTime? |  |
+| actualDelivery | DateTime? |  |
+| customerId | String? |  |
+| address | Json? |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| courier | Courier? | @relation(fields: [courierId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| order | Order | @relation(fields: [orderId], references: [id]) |
+| statusHistory | DeliveryStatusHistory[] |  |
+
+## Courier
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| phone | String? |  |
+| email | String? |  |
+| organizationId | String |  |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| deliveries | Delivery[] |  |
+
+## ProductVariant
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| sku | String | @unique |
+| price | Decimal |  |
+| cost | Decimal? |  |
+| stock | Int | @default(0) |
+| weight | Float? |  |
+| dimensions | String? |  |
+| isActive | Boolean | @default(true) |
+| productId | String |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| inventory_movements | InventoryMovement[] |  |
+| order_items | OrderItem[] |  |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## InventoryMovement
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| productId | String |  |
+| variantId | String? |  |
+| type | String |  |
+| quantity | Int |  |
+| reason | String? |  |
+| reference | String? |  |
+| createdAt | DateTime | @default(now()) |
+| product_variants | ProductVariant? | @relation(fields: [variantId], references: [id]) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## OrderStatusHistory
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String |  |
+| status | String |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| order | Order | @relation(fields: [orderId], references: [id]) |
+
+## CustomerLoyalty
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| customerId | String |  |
+| points | Int | @default(0) |
+| tier | String | @default("BRONZE") |
+| totalSpent | Decimal | @default(0) |
+| lastActivity | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+| transactions | LoyaltyTransaction[] |  |
+
+## Analytics
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| type | String |  |
+| value | Int |  |
+| metadata | Json? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## Report
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| type | String |  |
+| data | Json? |  |
+| schedule | String? |  |
+| organizationId | String |  |
+| createdById | String? |  |
+| createdAt | DateTime | @default(now()) |
+| users | User? | @relation(fields: [createdById], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## Warehouse
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| address | Json? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| iotDevices | IotDevice[] |  |
+| inventory | WarehouseInventory[] |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## WooCommerceIntegration
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| storeUrl | String |  |
+| consumerKey | String |  |
+| consumerSecret | String |  |
+| apiVersion | String? | @default("wc/v3") |
+| isActive | Boolean | @default(true) |
+| lastSync | DateTime? |  |
+| syncSettings | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## WhatsAppIntegration
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String | @unique |
+| phoneNumber | String |  |
+| accessToken | String |  |
+| isActive | Boolean | @default(true) |
+| lastSync | DateTime? |  |
+| syncSettings | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## AiAnalytics
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| query | String |  |
+| insights | Json |  |
+| dataContext | Json? |  |
+| filters | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## ChannelIntegration
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| name | String |  |
+| type | String |  |
+| provider | String |  |
+| channel | String |  |
+| status | String | @default("INACTIVE") |
+| credentials | Json? |  |
+| settings | Json? |  |
+| webhookUrl | String? |  |
+| isActive | Boolean | @default(true) |
+| metadata | Json? |  |
+| config | Json? | // Added missing field |
+| lastSync | DateTime? | // Added missing field |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| integrationLogs | IntegrationLog[] |  |
+
+## ChartOfAccount
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| code | String |  |
+| name | String |  |
+| description | String? |  |
+| accountType | String |  |
+| accountSubType | String |  |
+| parentId | String? |  |
+| isActive | Boolean | @default(true) |
+| balance | Float | @default(0) |
+| currency | String | @default("USD") |
+| taxEnabled | Boolean | @default(false) |
+| taxRateId | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| taxRate | TaxRate? | @relation(fields: [taxRateId], references: [id]) |
+| parent | ChartOfAccount? | @relation("AccountHierarchy", fields: [parentId], references: [id]) |
+| children | ChartOfAccount[] | @relation("AccountHierarchy") |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| journalEntryLines | JournalEntryLine[] |  |
+| ledger | Ledger[] |  |
+
+## CustomerSegmentCustomer
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| segmentId | String |  |
+| customerId | String |  |
+| createdAt | DateTime | @default(now()) |
+| customerSegment | CustomerSegment | @relation(fields: [segmentId], references: [id]) |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+
+## CustomerSegment
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| name | String |  |
+| description | String? |  |
+| criteria | String? |  |
+| organizationId | String |  |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| customerSegmentCustomers | CustomerSegmentCustomer[] |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| smsCampaignSegments | SmsCampaignSegment[] |  |
+
+## DeliveryStatusHistory
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| deliveryId | String |  |
+| status | String |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| delivery | Delivery | @relation(fields: [deliveryId], references: [id]) |
+
+## IntegrationLog
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| integrationId | String |  |
+| level | String |  |
+| message | String |  |
+| data | Json? |  |
+| timestamp | DateTime | @default(now()) |
+| channelIntegration | ChannelIntegration | @relation(fields: [integrationId], references: [id]) |
+
+## IotAlert
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| deviceId | String |  |
+| type | String |  |
+| severity | String |  |
+| message | String |  |
+| data | Json? |  |
+| isResolved | Boolean | @default(false) |
+| resolvedAt | DateTime? |  |
+| resolvedBy | String? |  |
+| createdAt | DateTime | @default(now()) |
+| iotDevice | IotDevice | @relation(fields: [deviceId], references: [id]) |
+
+## IotDevice
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| name | String |  |
+| type | String |  |
+| location | String |  |
+| warehouseId | String? |  |
+| storeId | String? |  |
+| macAddress | String |  |
+| ipAddress | String? |  |
+| firmwareVersion | String |  |
+| batteryLevel | Int? |  |
+| status | IoTStatus | @default(OFFLINE) |
+| lastSeen | DateTime? |  |
+| configuration | Json? |  |
+| metadata | Json? |  |
+| isActive | Boolean | @default(true) |
+| organizationId | String |  |
+| installedAt | DateTime | @default(now()) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| iotAlerts | IotAlert[] |  |
+| warehouses | Warehouse? | @relation(fields: [warehouseId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| sensorReadings | SensorReading[] |  |
+
+## PosTerminal
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| location | String? |  |
+| type | String | @default("STANDARD") |
+| isActive | Boolean | @default(true) |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| transactions | PosTransaction[] |  |
+
+## PosTransaction
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| terminalId | String |  |
+| itemsJson | Json? | @map("items") // Kept for transition |
+| total | Decimal |  |
+| paymentMethod | String | @default("CASH") |
+| cashierId | String |  |
+| status | String | @default("COMPLETED") |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| terminal | PosTerminal | @relation(fields: [terminalId], references: [id]) |
+| cashier | User | @relation(fields: [cashierId], references: [id]) |
+| transactionItems | PosTransactionItem[] |  |
+
+## PosTransactionItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| transactionId | String |  |
+| productId | String |  |
+| variantId | String? |  |
+| quantity | Int |  |
+| unitPrice | Decimal |  |
+| totalPrice | Decimal |  |
+| transaction | PosTransaction | @relation(fields: [transactionId], references: [id], onDelete: Cascade) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## JournalEntry
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| entryNumber | String |  |
+| entryDate | DateTime |  |
+| description | String |  |
+| reference | String? |  |
+| status | String | @default("DRAFT") |
+| postedAt | DateTime? |  |
+| postedBy | String? |  |
+| reversedAt | DateTime? |  |
+| reversedBy | String? |  |
+| reversalOfId | String? |  |
+| attachments | Json? |  |
+| notes | String? |  |
+| createdBy | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| reversalOf | JournalEntry? | @relation("JournalReversals", fields: [reversalOfId], references: [id]) |
+| reversals | JournalEntry[] | @relation("JournalReversals") |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| lines | JournalEntryLine[] |  |
+
+## JournalEntryLine
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| journalEntryId | String |  |
+| accountId | String |  |
+| description | String? |  |
+| debit | Float | @default(0) |
+| credit | Float | @default(0) |
+| lineNumber | Int |  |
+| createdAt | DateTime | @default(now()) |
+| journalEntry | JournalEntry | @relation(fields: [journalEntryId], references: [id], onDelete: Cascade) |
+| account | ChartOfAccount | @relation(fields: [accountId], references: [id]) |
+
+## Ledger
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| accountId | String |  |
+| transactionDate | DateTime |  |
+| description | String |  |
+| reference | String? |  |
+| referenceType | String? |  |
+| referenceId | String? |  |
+| debit | Float | @default(0) |
+| credit | Float | @default(0) |
+| balance | Float |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| account | ChartOfAccount | @relation(fields: [accountId], references: [id]) |
+
+## LoyaltyTransaction
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| customerId | String |  |
+| loyaltyId | String |  |
+| type | String |  |
+| points | Int |  |
+| description | String? |  |
+| createdAt | DateTime | @default(now()) |
+| loyalty | CustomerLoyalty | @relation(fields: [loyaltyId], references: [id]) |
+
+## PerformanceMetric
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| endpoint | String |  |
+| method | String |  |
+| responseTime | Float |  |
+| statusCode | Int | @default(200) |
+| errorMessage | String? |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## ProductActivity
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| productId | String |  |
+| type | String |  |
+| quantity | Int | @default(0) |
+| description | String |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## SensorReading
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| deviceId | String |  |
+| type | String |  |
+| value | Float |  |
+| unit | String |  |
+| location | String |  |
+| metadata | Json? |  |
+| timestamp | DateTime | @default(now()) |
+| iotDevice | IotDevice | @relation(fields: [deviceId], references: [id]) |
+
+## SmsCampaignSegment
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| campaignId | String |  |
+| customerSegmentId | String |  |
+| createdAt | DateTime | @default(now()) |
+| customerSegment | CustomerSegment | @relation(fields: [customerSegmentId], references: [id]) |
+| campaign | SmsCampaign | @relation(fields: [campaignId], references: [id]) |
+
+## SmsCampaign
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| name | String |  |
+| templateId | String |  |
+| status | SmsStatus | @default(DRAFT) |
+| scheduledAt | DateTime? |  |
+| startedAt | DateTime? |  |
+| completedAt | DateTime? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| segments | SmsCampaignSegment[] |  |
+| template | SmsTemplate | @relation(fields: [templateId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## SmsLog
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| phone | String |  |
+| message | String |  |
+| status | SmsLogStatus | @default(PENDING) |
+| provider | String | @default("twilio") |
+| messageId | String? |  |
+| organizationId | String |  |
+| sentAt | DateTime? |  |
+| deliveredAt | DateTime? |  |
+| clicked | Boolean | @default(false) |
+| clickedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## SmsSubscription
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| phone | String |  |
+| listId | String |  |
+| customFields | Json? |  |
+| isActive | Boolean | @default(true) |
+| organizationId | String |  |
+| subscribedAt | DateTime | @default(now()) |
+| unsubscribedAt | DateTime? |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## SmsTemplate
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| name | String |  |
+| content | String |  |
+| variables | Json? |  |
+| organizationId | String |  |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| campaigns | SmsCampaign[] |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## SocialCommerce
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| platform | SocialPlatformType |  |
+| organizationId | String |  |
+| accessToken | String? |  |
+| refreshToken | String? |  |
+| expiresAt | DateTime? |  |
+| isActive | Boolean | @default(true) |
+| lastSync | DateTime? |  |
+| settings | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| socialPosts | SocialPost[] |  |
+| socialProducts | SocialProduct[] |  |
+
+## SocialPost
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| platformId | String? | // Renamed from socialCommerceId |
+| content | String |  |
+| mediaUrls | String[] | @default([]) // Changed to String[] |
+| hashtags | String? |  |
+| platformName | SocialPlatformType | @map("platform") |
+| status | SocialPostStatus | @default(DRAFT) |
+| type | String | @default("post") // Added missing field |
+| productIds | String[] | @default([]) // Added missing field |
+| metadata | Json? | // Added missing field |
+| scheduledAt | DateTime? |  |
+| publishedAt | DateTime? |  |
+| externalId | String? |  |
+| engagement | Json? | // Changed to Json for structured engagement data |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| socialCommerce | SocialCommerce? | @relation(fields: [platformId], references: [id]) |
+
+## SocialProduct
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| platformId | String | // Renamed from socialCommerceId |
+| productId | String |  |
+| platformProductId | String |  |
+| status | SocialProductStatus | @default(ACTIVE) // Added missing field |
+| metadata | Json? | // Added missing field |
+| lastSync | DateTime | @default(now()) // Added missing field |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+| socialCommerce | SocialCommerce | @relation(fields: [platformId], references: [id]) |
+
+## SupportTicket
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| title | String |  |
+| description | String |  |
+| priority | SupportPriority | @default(MEDIUM) |
+| status | SupportStatus | @default(OPEN) |
+| phone | String? |  |
+| email | String? |  |
+| organizationId | String |  |
+| assignedTo | String? |  |
+| resolution | String? |  |
+| satisfaction | Int? |  |
+| closedAt | DateTime? |  |
+| escalationReason | String? |  |
+| escalatedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| replies | SupportReply[] |  |
+
+## SupportReply
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| ticketId | String |  |
+| message | String |  |
+| author | String? | // Re-aligned with logic (authorId in some places, author in others) |
+| authorId | String? |  |
+| authorName | String |  |
+| isInternal | Boolean | @default(false) |
+| createdAt | DateTime | @default(now()) |
+| ticket | SupportTicket | @relation(fields: [ticketId], references: [id], onDelete: Cascade) |
+
+## TaxRate
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| name | String |  |
+| code | String |  |
+| rate | Float |  |
+| jurisdiction | String? |  |
+| taxType | String |  |
+| isActive | Boolean | @default(true) |
+| effectiveFrom | DateTime | @default(now()) |
+| effectiveTo | DateTime? |  |
+| isCompound | Boolean | @default(false) |
+| description | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| accounts | ChartOfAccount[] |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| taxTransactions | TaxTransaction[] |  |
+
+## TaxTransaction
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| taxRateId | String |  |
+| transactionDate | DateTime |  |
+| transactionType | String |  |
+| baseAmount | Float |  |
+| taxAmount | Float |  |
+| totalAmount | Float |  |
+| reference | String? |  |
+| referenceType | String? |  |
+| referenceId | String? |  |
+| description | String? |  |
+| createdAt | DateTime | @default(now()) |
+| taxRate | TaxRate | @relation(fields: [taxRateId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+
+## WarehouseInventory
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| warehouseId | String |  |
+| productId | String |  |
+| variantId | String? |  |
+| quantity | Int | @default(0) |
+| reservedQuantity | Int | @default(0) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| warehouse | Warehouse | @relation(fields: [warehouseId], references: [id]) |
+
+## WhatsAppMessage
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| organizationId | String |  |
+| customerId | String? |  |
+| phoneNumber | String |  |
+| message | String |  |
+| type | String | @default("text") |
+| mediaUrl | String? |  |
+| status | String | @default("PENDING") |
+| direction | String | @default("OUTBOUND") |
+| externalId | String? |  |
+| isAutoReply | Boolean | @default(false) |
+| receivedAt | DateTime? |  |
+| sentAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| customer | Customer? | @relation(fields: [customerId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## WishlistItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| wishlistId | String |  |
+| productId | String |  |
+| quantity | Int | @default(1) |
+| createdAt | DateTime | @default(now()) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+| wishlist | Wishlist | @relation(fields: [wishlistId], references: [id]) |
+
+## Wishlist
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| customerId | String? |  |
+| organizationId | String |  |
+| name | String | @default("My Wishlist") |
+| isDefault | Boolean | @default(false) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime |  |
+| items | WishlistItem[] |  |
+| customer | Customer? | @relation(fields: [customerId], references: [id]) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## Subscription
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String? | @unique // Made optional if customerId is present |
+| customerId | String? | // Added for customer-level subscriptions |
+| plan | PlanType | @default(FREE) |
+| planId | String? |  |
+| status | SubscriptionStatus | @default(TRIAL) |
+| stripeCustomerId | String? |  |
+| stripeSubscriptionId | String? |  |
+| metadata | Json? | // Added for flexible storage (like plan definition) |
+| currentPeriodStart | DateTime | @default(now()) |
+| currentPeriodEnd | DateTime |  |
+| startDate | DateTime | @default(now()) |
+| trialEndsAt | DateTime? |  |
+| trialEndDate | DateTime? | // For compatibility with manager.ts |
+| nextBillingDate | DateTime? |  |
+| endsAt | DateTime? |  |
+| cancelledAt | DateTime? |  |
+| pausedAt | DateTime? |  |
+| cancelAtPeriodEnd | Boolean | @default(false) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization? | @relation(fields: [organizationId], references: [id]) |
+| customer | Customer? | @relation(fields: [customerId], references: [id]) |
+| subscriptionPlan | SubscriptionPlan? | @relation(fields: [planId], references: [id]) |
+
+## Supplier
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| code | String |  |
+| name | String |  |
+| contactName | String? |  |
+| email | String? |  |
+| phone | String? |  |
+| address | Json? |  |
+| paymentTerms | String? |  |
+| currency | String | @default("LKR") |
+| taxId | String? |  |
+| status | SupplierStatus | @default(ACTIVE) |
+| rating | Float? |  |
+| totalOrders | Int | @default(0) |
+| totalSpent | Decimal | @default(0) |
+| notes | String? |  |
+| contactPerson | String? |  |
+| leadTime | Int? |  |
+| minimumOrderValue | Decimal? |  |
+| isActive | Boolean | @default(true) |
+| totalRatings | Int | @default(0) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| purchaseOrders | PurchaseOrder[] |  |
+| supplierProducts | SupplierProduct[] |  |
+
+## SupplierProduct
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| supplierId | String |  |
+| productId | String |  |
+| supplierSku | String? |  |
+| cost | Decimal |  |
+| leadTime | Int |  |
+| minimumOrderQuantity | Int? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| supplier | Supplier | @relation(fields: [supplierId], references: [id], onDelete: Cascade) |
+| product | Product | @relation(fields: [productId], references: [id], onDelete: Cascade) |
+
+## PurchaseOrder
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderNumber | String | @unique |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| supplierId | String |  |
+| supplier | Supplier | @relation(fields: [supplierId], references: [id]) |
+| status | PurchaseOrderStatus | @default(DRAFT) |
+| orderDate | DateTime | @default(now()) |
+| expectedDate | DateTime? |  |
+| receivedDate | DateTime? |  |
+| subtotal | Decimal |  |
+| tax | Decimal | @default(0) |
+| shipping | Decimal | @default(0) |
+| total | Decimal |  |
+| currency | String | @default("LKR") |
+| notes | String? |  |
+| createdById | String |  |
+| creator | User | @relation("PurchaseOrderCreator", fields: [createdById], references: [id]) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| createdByOrigin | ActionOrigin | @default(human) |
+| updatedByOrigin | ActionOrigin | @default(human) |
+| approvedAt | DateTime? |  |
+| approvedBy | String? |  |
+| orderedAt | DateTime? |  |
+| completedAt | DateTime? |  |
+| cancelledAt | DateTime? |  |
+| cancelReason | String? |  |
+| items | PurchaseOrderItem[] |  |
+| procurementInvoices | ProcurementInvoice[] |  |
+
+## PurchaseOrderItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| purchaseOrderId | String |  |
+| purchaseOrder | PurchaseOrder | @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade) |
+| productId | String |  |
+| product | Product | @relation(fields: [productId], references: [id]) |
+| quantity | Int |  |
+| receivedQuantity | Int | @default(0) |
+| unitPrice | Decimal |  |
+| tax | Decimal | @default(0) |
+| total | Decimal |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## ProcurementInvoice
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| purchaseOrderId | String |  |
+| purchaseOrder | PurchaseOrder | @relation(fields: [purchaseOrderId], references: [id]) |
+| amount | Decimal |  |
+| dueDate | DateTime? |  |
+| status | String | @default("PENDING") |
+| createdBy | String |  |
+| createdByUser | User | @relation(fields: [createdBy], references: [id]) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## RFQ
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| title | String |  |
+| itemsJson | Json? | @map("items") // Kept for transition |
+| suppliersJson | Json? | @map("suppliers") // Kept for transition |
+| deadline | DateTime? |  |
+| status | String | @default("DRAFT") |
+| createdBy | String |  |
+| createdByUser | User | @relation(fields: [createdBy], references: [id]) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| rfqItems | RFQItem[] |  |
+
+## RFQItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| rfqId | String |  |
+| productId | String |  |
+| quantity | Int |  |
+| notes | String? |  |
+| rfq | RFQ | @relation(fields: [rfqId], references: [id], onDelete: Cascade) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## Return
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| returnNumber | String | @unique |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| orderId | String |  |
+| order | Order | @relation(fields: [orderId], references: [id]) |
+| customerId | String |  |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+| reason | String |  |
+| status | ReturnStatus | @default(PENDING) |
+| refundMethod | RefundMethod? |  |
+| refundAmount | Decimal? |  |
+| restockFee | Decimal | @default(0) |
+| notes | String? |  |
+| approvedAt | DateTime? |  |
+| approvedById | String? |  |
+| approvedBy | User? | @relation(fields: [approvedById], references: [id]) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| items | ReturnItem[] |  |
+
+## ReturnItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| returnId | String |  |
+| return | Return | @relation(fields: [returnId], references: [id], onDelete: Cascade) |
+| orderItemId | String? |  |
+| productId | String |  |
+| product | Product | @relation(fields: [productId], references: [id]) |
+| quantity | Int |  |
+| reason | String? |  |
+| condition | String? |  |
+| refundAmount | Decimal? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## GiftCard
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| code | String | @unique |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| initialValue | Decimal |  |
+| currentValue | Decimal |  |
+| currency | String | @default("LKR") |
+| status | GiftCardStatus | @default(ACTIVE) |
+| expiresAt | DateTime? |  |
+| issuedTo | String? |  |
+| issuedToEmail | String? |  |
+| issuedById | String? |  |
+| issuedBy | User? | @relation(fields: [issuedById], references: [id]) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| transactions | GiftCardTransaction[] |  |
+
+## GiftCardTransaction
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| giftCardId | String |  |
+| giftCard | GiftCard | @relation(fields: [giftCardId], references: [id], onDelete: Cascade) |
+| orderId | String? |  |
+| order | Order? | @relation(fields: [orderId], references: [id]) |
+| amount | Decimal |  |
+| type | GiftCardTransactionType |  |
+| balance | Decimal |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+
+## Affiliate
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| code | String |  |
+| name | String |  |
+| email | String |  |
+| phone | String? |  |
+| commissionRate | Decimal | @default(10) |
+| status | AffiliateStatus | @default(PENDING) |
+| totalSales | Decimal | @default(0) |
+| totalCommission | Decimal | @default(0) |
+| paymentDetails | Json? |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| commissions | AffiliateCommission[] |  |
+| referrals | Referral[] |  |
+
+## AffiliateCommission
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| affiliateId | String |  |
+| affiliate | Affiliate | @relation(fields: [affiliateId], references: [id], onDelete: Cascade) |
+| orderId | String |  |
+| order | Order | @relation(fields: [orderId], references: [id]) |
+| saleAmount | Decimal |  |
+| commission | Decimal |  |
+| status | CommissionStatus | @default(PENDING) |
+| paidAt | DateTime? |  |
+| notes | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## Referral
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+| referrerId | String |  |
+| referrer | Customer | @relation("Referrer", fields: [referrerId], references: [id]) |
+| referredId | String? |  |
+| referred | Customer? | @relation("Referred", fields: [referredId], references: [id]) |
+| affiliateId | String? |  |
+| affiliate | Affiliate? | @relation(fields: [affiliateId], references: [id]) |
+| code | String | @unique |
+| status | ReferralStatus | @default(PENDING) |
+| rewardType | String? |  |
+| rewardValue | Decimal? |  |
+| rewardedAt | DateTime? |  |
+| completedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## ApiKey
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| key | String | @unique |
+| name | String |  |
+| permissions | String[] |  |
+| isActive | Boolean | @default(true) |
+| expiresAt | DateTime? |  |
+| lastUsedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organizationId | String |  |
+| userId | String |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| user | User | @relation(fields: [userId], references: [id]) |
+
+## AuditLog
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| userId | String |  |
+| organizationId | String |  |
+| action | String |  |
+| resource | String |  |
+| resourceId | String? |  |
+| details | Json? |  |
+| ipAddress | String? |  |
+| userAgent | String? |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| user | User | @relation(fields: [userId], references: [id]) |
+
+## UserMFA
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| userId | String |  |
+| method | String |  |
+| secret | String? |  |
+| backupCodes | String[] |  |
+| isEnabled | Boolean | @default(false) |
+| lastUsedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| user | User | @relation(fields: [userId], references: [id]) |
+| phone | String? |  |
+| email | String? |  |
+
+## Workflow
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| name | String |  |
+| description | String? |  |
+| type | String? | // Added missing field |
+| version | Int | @default(1) // Added missing field |
+| trigger | String |  |
+| conditions | Json? |  |
+| actions | Json |  |
+| nodes | Json? | // Added missing field |
+| connections | Json? | // Added missing field |
+| triggers | Json? | // Added missing field |
+| config | Json? | // Added missing field |
+| isActive | Boolean | @default(true) |
+| lastRunAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| executions | WorkflowExecution[] |  |
+
+## WorkflowExecution
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| workflowId | String |  |
+| status | String |  |
+| currentNodeId | String? | // Added missing field |
+| data | Json? | // Added missing field |
+| input | Json? | // Added missing field |
+| output | Json? | // Added missing field |
+| startedAt | DateTime | @default(now()) |
+| completedAt | DateTime? |  |
+| error | String? |  |
+| logs | Json? | // Still present for backward compatibility or direct storage |
+| workflow | Workflow | @relation(fields: [workflowId], references: [id]) |
+| executionLogs | WorkflowLog[] | @relation("ExecutionLogs") // Added relation |
+
+## BulkOperation
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| type | String |  |
+| entity | String |  |
+| status | String | @default("pending") // pending, processing, completed, failed |
+| totalRecords | Int | @default(0) |
+| processedRecords | Int | @default(0) |
+| successRecords | Int | @default(0) |
+| failedRecords | Int | @default(0) |
+| errors | String[] |  |
+| fileUrl | String? |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| completedAt | DateTime? |  |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## Review
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| productId | String |  |
+| customerId | String |  |
+| rating | Int |  |
+| title | String? |  |
+| comment | String? |  |
+| images | String[] |  |
+| verifiedPurchase | Boolean | @default(false) |
+| status | String | @default("PENDING") // PENDING, APPROVED, REJECTED |
+| helpfulCount | Int | @default(0) |
+| rejectionReason | String? |  |
+| response | String? |  |
+| responderId | String? |  |
+| respondedAt | DateTime? |  |
+| approvedAt | DateTime? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| product | Product | @relation(fields: [productId], references: [id]) |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+| helpfulAction | ReviewHelpful[] |  |
+
+## ReviewHelpful
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| reviewId | String |  |
+| customerId | String |  |
+| createdAt | DateTime | @default(now()) |
+| review | Review | @relation(fields: [reviewId], references: [id]) |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+
+## SecurityAudit
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| userId | String |  |
+| action | String? |  |
+| type | String? | // For alerts: LOGIN_ATTEMPT, PERMISSION_VIOLATION, etc. |
+| severity | String? | // LOW, MEDIUM, HIGH, CRITICAL |
+| status | String? | @default("active") // active, acknowledged, resolved |
+| title | String? |  |
+| description | String? |  |
+| source | String? |  |
+| message | String? |  |
+| ipAddress | String |  |
+| userAgent | String |  |
+| organizationId | String |  |
+| metadata | Json? |  |
+| resolvedAt | DateTime? |  |
+| resolvedBy | String? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## StockAlert
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| productId | String |  |
+| warehouseId | String? |  |
+| alertType | String | // LOW_STOCK, OUT_OF_STOCK, OVERSTOCK |
+| severity | String | @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL |
+| threshold | Int? |  |
+| currentQuantity | Int |  |
+| message | String? |  |
+| isResolved | Boolean | @default(false) |
+| resolvedAt | DateTime? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## EmailCampaign
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| subject | String |  |
+| content | String |  |
+| status | String | @default("DRAFT") // DRAFT, SCHEDULED, SENDING, SENT, FAILED |
+| organizationId | String |  |
+| scheduledAt | DateTime? |  |
+| sentAt | DateTime? |  |
+| recipientCount | Int | @default(0) |
+| openCount | Int | @default(0) |
+| clickCount | Int | @default(0) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## EmailSubscription
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| email | String |  |
+| status | String | @default("ACTIVE") // ACTIVE, UNSUBSCRIBED |
+| organizationId | String |  |
+| subscribedAt | DateTime | @default(now()) |
+| unsubscribedAt | DateTime? |  |
+
+## PaymentIntent
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String? |  |
+| customerId | String |  |
+| amount | Decimal |  |
+| currency | String | @default("LKR") |
+| status | String | @default("PENDING") // PENDING, PROCESSING, SUCCEEDED, FAILED, CANCELLED |
+| paymentMethodId | String? |  |
+| stripeId | String? |  |
+| metadata | Json? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| customer | Customer | @relation(fields: [customerId], references: [id]) |
+| paymentMethod | PaymentMethod? | @relation(fields: [paymentMethodId], references: [id]) |
+| refunds | Refund[] |  |
+
+## PaymentMethod
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| customerId | String |  |
+| type | String | // CARD, BANK_ACCOUNT, WALLET |
+| last4 | String? |  |
+| brand | String? |  |
+| expiryMonth | Int? |  |
+| expiryYear | Int? |  |
+| isDefault | Boolean | @default(false) |
+| stripeId | String? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| paymentIntents | PaymentIntent[] |  |
+
+## Fulfillment
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String |  |
+| status | FulfillmentStatus | @default(PENDING) |
+| trackingNumber | String? |  |
+| carrier | String? |  |
+| weight | Float? |  |
+| dimensions | Json? | // {length, width, height |
+
+## FulfillmentItem
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| fulfillmentId | String |  |
+| productId | String |  |
+| quantity | Int |  |
+| status | String | @default("PENDING") // PENDING, PICKED, PACKED |
+| fulfillment | Fulfillment | @relation(fields: [fulfillmentId], references: [id]) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## Shipment
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String |  |
+| trackingNumber | String |  |
+| carrier | String |  |
+| status | String | @default("PENDING") |
+| shippedAt | DateTime? |  |
+| estimatedDelivery | DateTime? |  |
+| actualDelivery | DateTime? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## Conversation
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| type | ConversationType | @default(SUPPORT) |
+| organizationId | String |  |
+| customerId | String? |  |
+| userId | String? | // Assigned agent/user |
+| guestId | String? | // For visitor chats |
+| status | String | @default("OPEN") |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+| customer | Customer? | @relation(fields: [customerId], references: [id]) |
+| assignedAgent | User? | @relation("AssignedAgent", fields: [userId], references: [id]) |
+| messages | ConversationMessage[] |  |
+
+## ConversationMessage
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| conversationId | String |  |
+| senderId | String? | // User ID or Customer ID or SYSTEM/AI |
+| senderRole | String | // SYSTEM, AI, HUMAN |
+| content | String |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| conversation | Conversation | @relation(fields: [conversationId], references: [id], onDelete: Cascade) |
+
+## VoiceCommand
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| customerId | String? |  |
+| command | String |  |
+| transcript | String? |  |
+| intent | String? |  |
+| response | String? |  |
+| entities | Json? | // Added missing field |
+| confidence | Float? | @default(1.0) // Added missing field |
+| processed | Boolean | @default(false) // Added missing field |
+| action | String? | // Added missing field |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt // Added for tracking updates |
+
+## SyncConflict
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| entityType | String |  |
+| entityId | String |  |
+| conflictType | String |  |
+| localData | Json |  |
+| remoteData | Json |  |
+| resolution | String? | // KEEP_LOCAL, KEEP_REMOTE, MERGE, MANUAL |
+| resolvedAt | DateTime? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+
+## ErrorEvent
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| type | String |  |
+| message | String |  |
+| severity | String | @default("error") // info, warn, error, fatal |
+| stack | String? |  |
+| userId | String? |  |
+| url | String? |  |
+| userAgent | String? |  |
+| metadata | Json? |  |
+| tags | Json? | // Array of strings or key-value pairs |
+| resolved | Boolean | @default(false) |
+| resolvedAt | DateTime? |  |
+| resolvedBy | String? |  |
+| organizationId | String? |  |
+| createdAt | DateTime | @default(now()) |
+| user | User? | @relation(fields: [userId], references: [id]) |
+| organization | Organization? | @relation(fields: [organizationId], references: [id]) |
+
+## ProductionAlert
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| type | String |  |
+| severity | AlertSeverity | @default(MEDIUM) |
+| title | String |  |
+| description | String |  |
+| status | AlertStatus | @default(ACTIVE) |
+| service | String |  |
+| metric | String |  |
+| threshold | Float |  |
+| currentValue | Float |  |
+| tags | String? | // Comma separated |
+| metadata | Json? |  |
+| organizationId | String? |  |
+| timestamp | DateTime | @default(now()) |
+| resolvedAt | DateTime? |  |
+| resolvedBy | String? |  |
+
+## MonitoringMetric
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| type | String |  |
+| name | String |  |
+| value | Float |  |
+| unit | String |  |
+| tags | Json? |  |
+| timestamp | DateTime | @default(now()) |
+| organizationId | String? |  |
+| metadata | Json? |  |
+
+## HealthCheck
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id |
+| name | String |  |
+| status | String |  |
+| responseTime | Float |  |
+| lastCheck | DateTime | @default(now()) |
+| error | String? |  |
+| details | Json? |  |
+
+## SearchHistory
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| userId | String |  |
+| query | String |  |
+| results | Int | @default(0) |
+| resultClicks | Int | @default(0) |
+| createdAt | DateTime | @default(now()) |
+| user | User | @relation(fields: [userId], references: [id]) |
+
+## LoyaltyAccount
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| customerId | String | @unique |
+| points | Int | @default(0) |
+| tier | String | @default("BRONZE") |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## SocialPlatform
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| type | String | // FACEBOOK, INSTAGRAM, TWITTER, etc. |
+| accessToken | String? |  |
+| refreshToken | String? |  |
+| isActive | Boolean | @default(true) |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## Notification
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| userId | String |  |
+| type | String |  |
+| title | String |  |
+| message | String |  |
+| isRead | Boolean | @default(false) |
+| data | Json? |  |
+| createdAt | DateTime | @default(now()) |
+
+## EmailTemplate
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| subject | String |  |
+| body | String |  |
+| variables | Json? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## WorkflowTemplate
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| description | String? |  |
+| category | String? | // Added missing field |
+| trigger | String |  |
+| definition | Json? | // Added missing field |
+| actions | Json |  |
+| tags | Json? | // Added missing field |
+| usageCount | Int | @default(0) // Added missing field |
+| isPublic | Boolean | @default(false) // Added missing field |
+| config | Json? | // Added missing field |
+| isActive | Boolean | @default(true) |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## WorkflowLog
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| workflowId | String? | // Made optional as executionId might be preferred |
+| executionId | String? | // Added missing field |
+| level | String? | // Added missing field |
+| nodeId | String? | // Added missing field |
+| nodeName | String? | // Added missing field |
+| action | String? | // Added missing field |
+| status | String |  |
+| message | String? | // Added missing field |
+| data | Json? | // Added missing field |
+| input | Json? |  |
+| output | Json? |  |
+| error | String? |  |
+| duration | Int? | // Added missing field |
+| organizationId | String? |  |
+| timestamp | DateTime | @default(now()) // Added/Ensured |
+| createdAt | DateTime | @default(now()) |
+| execution | WorkflowExecution? | @relation("ExecutionLogs", fields: [executionId], references: [id]) |
+
+## SubscriptionPlan
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| description | String? |  |
+| price | Decimal |  |
+| interval | String | // MONTHLY, YEARLY |
+| features | Json? |  |
+| isActive | Boolean | @default(true) |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| subscriptions | Subscription[] |  |
+
+## Refund
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String? |  |
+| paymentIntentId | String? |  |
+| amount | Decimal |  |
+| reason | String? |  |
+| status | RefundStatus | @default(PENDING) |
+| processedAt | DateTime? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| metadata | Json? |  |
+| paymentIntent | PaymentIntent? | @relation(fields: [paymentIntentId], references: [id]) |
+
+## Invoice
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| orderId | String? |  |
+| customerId | String |  |
+| invoiceNumber | String | @unique |
+| amount | Decimal |  |
+| tax | Decimal | @default(0) |
+| total | Decimal |  |
+| status | InvoiceStatus | @default(DRAFT) |
+| dueDate | DateTime? |  |
+| paidAt | DateTime? |  |
+| organizationId | String |  |
+| stripeInvoiceId | String? |  |
+| subscriptionId | String? |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+## BrowsingHistory
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| userId | String |  |
+| productId | String |  |
+| timestamp | DateTime | @default(now()) |
+| duration | Int | @default(0) |
+| actions | Json? | // Array of actions like ['view', 'scroll', 'click'] |
+| user | User | @relation(fields: [userId], references: [id]) |
+| product | Product | @relation(fields: [productId], references: [id]) |
+
+## PersonalizationExperiment
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| name | String |  |
+| description | String? |  |
+| type | String | // recommendation, layout, pricing, content |
+| status | String | @default("DRAFT") // DRAFT, RUNNING, PAUSED, COMPLETED |
+| startDate | DateTime | @default(now()) |
+| endDate | DateTime? |  |
+| winnerVariantId | String? |  |
+| organizationId | String |  |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| variants | ABTestVariant[] |  |
+| users | User[] | // Implicit many-to-many |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## ABTestVariant
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| experimentId | String |  |
+| name | String |  |
+| description | String? |  |
+| config | Json? |  |
+| trafficAllocation | Float | @default(0) |
+| isActive | Boolean | @default(true) |
+| impressions | Int | @default(0) |
+| clicks | Int | @default(0) |
+| conversions | Int | @default(0) |
+| revenue | Decimal | @default(0) |
+| experiment | PersonalizationExperiment | @relation(fields: [experimentId], references: [id], onDelete: Cascade) |
+
+## ActivityLog
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| userId | String? |  |
+| type | String |  |
+| description | String |  |
+| metadata | Json? |  |
+| createdAt | DateTime | @default(now()) |
+| organization | Organization | @relation(fields: [organizationId], references: [id]) |
+
+## WebhookSubscription
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| id | String | @id @default(cuid()) |
+| organizationId | String |  |
+| name | String |  |
+| url | String |  |
+| events | String[] | // e.g. ["order.created", "inventory.low"] |
+| secret | String? |  |
+| isActive | Boolean | @default(true) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+| organization | Organization | @relation(fields: [organizationId], references: [id], onDelete: Cascade) |
+

@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 import { successResponse, AppError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { withErrorHandlerApp } from '@/lib/middleware/withErrorHandlerApp';
 
 export const GET = withErrorHandlerApp(
-  requirePermission('VIEW_SUPPLIERS')(
+  requirePermission(Permission.PROCUREMENT_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const { searchParams } = new URL(req.url);
@@ -61,7 +61,7 @@ export const GET = withErrorHandlerApp(
 );
 
 export const POST = withErrorHandlerApp(
-  requirePermission('MANAGE_SUPPLIERS')(
+  requirePermission(Permission.PROCUREMENT_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();

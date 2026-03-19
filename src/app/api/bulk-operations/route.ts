@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/bulk-operations
  * Execute bulk operation (MANAGE_PRODUCTS permission - can be adjusted based on entityType)
  */
-export const POST = requirePermission('MANAGE_PRODUCTS')(
+export const POST = requirePermission(Permission.PRODUCT_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

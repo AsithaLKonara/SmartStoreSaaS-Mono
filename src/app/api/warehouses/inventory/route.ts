@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
 
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/warehouses/inventory
  * Get warehouse inventory
  */
-export const GET = requirePermission('VIEW_INVENTORY')(
+export const GET = requirePermission(Permission.INVENTORY_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

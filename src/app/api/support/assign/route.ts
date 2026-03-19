@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, getOrganizationScope, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const correlationId = request.headers.get('x-request-id') || request.headers.get('x-correlation-id') || uuidv4();
 
-  const handler = requirePermission('MANAGE_SUPPORT_TICKETS')(
+  const handler = requirePermission(Permission.SUPPORT_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();

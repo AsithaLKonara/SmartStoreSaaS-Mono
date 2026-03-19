@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/support/tags
  * List support tags
  */
-export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
+export const GET = requirePermission(Permission.SUPPORT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -95,7 +95,7 @@ export const GET = requirePermission('VIEW_SUPPORT_TICKETS')(
  * POST /api/support/tags
  * Create support tag
  */
-export const POST = requirePermission('MANAGE_SUPPORT_TICKETS')(
+export const POST = requirePermission(Permission.SUPPORT_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

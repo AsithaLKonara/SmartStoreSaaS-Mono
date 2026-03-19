@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/returns
  * List returns with organization scoping
  */
-export const GET = requirePermission('VIEW_ORDERS')(
+export const GET = requirePermission(Permission.ORDER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -33,7 +33,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
       const limit = parseInt(searchParams.get('limit') || '10');
       const status = searchParams.get('status');
       const orderId = searchParams.get('orderId');
-    
+
       // Build where clause
       const where: any = { organizationId };
       if (status) where.status = status;
@@ -95,11 +95,11 @@ export const GET = requirePermission('VIEW_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',
@@ -114,7 +114,7 @@ export const GET = requirePermission('VIEW_ORDERS')(
  * POST /api/returns
  * Create return request
  */
-export const POST = requirePermission('CREATE_ORDERS')(
+export const POST = requirePermission(Permission.ORDER_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -178,11 +178,11 @@ export const POST = requirePermission('CREATE_ORDERS')(
         },
         correlation: req.correlationId
       });
-      
+
       if (error instanceof ValidationError) {
         throw error;
       }
-      
+
       return NextResponse.json({
         success: false,
         code: 'ERR_INTERNAL',

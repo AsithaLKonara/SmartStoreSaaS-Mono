@@ -17,7 +17,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { CRMService } from '@/lib/services/crm.service';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +26,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/customers
  * List customers with organization scoping
  */
-export const GET = requirePermission('VIEW_CUSTOMERS')(
+export const GET = requirePermission(Permission.CUSTOMER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
@@ -93,7 +93,7 @@ export const GET = requirePermission('VIEW_CUSTOMERS')(
  * POST /api/customers
  * Create new customer
  */
-export const POST = requirePermission('MANAGE_CUSTOMERS')(
+export const POST = requirePermission(Permission.CUSTOMER_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();
@@ -176,7 +176,7 @@ export const POST = requirePermission('MANAGE_CUSTOMERS')(
  * PUT /api/customers
  * Update existing customer
  */
-export const PUT = requirePermission('MANAGE_CUSTOMERS')(
+export const PUT = requirePermission(Permission.CUSTOMER_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();
@@ -257,7 +257,7 @@ export const PUT = requirePermission('MANAGE_CUSTOMERS')(
  * DELETE /api/customers
  * Delete customer (soft delete recommended in production)
  */
-export const DELETE = requirePermission('MANAGE_CUSTOMERS')(
+export const DELETE = requirePermission(Permission.CUSTOMER_UPDATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

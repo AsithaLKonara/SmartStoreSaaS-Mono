@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { AIActionSchema } from '@/lib/validations/ai-actions';
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/ai/actions
  * Central gateway for AI-driven business operations
  */
-export const POST = requirePermission('MANAGE_AI')(
+export const POST = requirePermission(Permission.AI_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
         const correlationId = req.headers.get('x-correlation-id') || crypto.randomUUID();
 

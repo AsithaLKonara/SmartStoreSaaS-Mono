@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/configuration/stats
  * Get configuration statistics
  */
-export const GET = requirePermission('VIEW_SETTINGS')(
+export const GET = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       // TODO: Calculate configuration statistics

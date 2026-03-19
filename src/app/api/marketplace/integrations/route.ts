@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/marketplace/integrations
  * Get marketplace integrations (VIEW_INTEGRATIONS permission)
  */
-export const GET = requirePermission('VIEW_INTEGRATIONS')(
+export const GET = requirePermission(Permission.INTEGRATIONS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -120,7 +120,7 @@ export const GET = requirePermission('VIEW_INTEGRATIONS')(
  * POST /api/marketplace/integrations
  * Create marketplace integration (MANAGE_INTEGRATIONS permission)
  */
-export const POST = requirePermission('MANAGE_INTEGRATIONS')(
+export const POST = requirePermission(Permission.INTEGRATIONS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

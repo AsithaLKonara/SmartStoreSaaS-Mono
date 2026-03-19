@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { FinancialService } from '@/lib/services/financial.service';
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/accounting/reports/balance-sheet
  * Get balance sheet report
  */
-export const GET = requirePermission('VIEW_ACCOUNTING')(
+export const GET = requirePermission(Permission.ACCOUNTING_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       if (user.role === 'STAFF' && user.roleTag !== 'accountant') {

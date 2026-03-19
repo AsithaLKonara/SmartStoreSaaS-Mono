@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/subscriptions
  * Get subscriptions (VIEW_SUBSCRIPTIONS permission)
  */
-export const GET = requirePermission('VIEW_SUBSCRIPTIONS')(
+export const GET = requirePermission(Permission.SUBSCRIPTIONS_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -94,7 +94,7 @@ export const GET = requirePermission('VIEW_SUBSCRIPTIONS')(
  * POST /api/subscriptions
  * Manage subscription actions (VIEW_SUBSCRIPTIONS permission - for now, may need MANAGE_SUBSCRIPTIONS)
  */
-export const POST = requirePermission('VIEW_SUBSCRIPTIONS')(
+export const POST = requirePermission(Permission.SUBSCRIPTIONS_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

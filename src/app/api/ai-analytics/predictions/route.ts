@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { AIBrainService, AIContext } from '@/lib/services/ai-brain.service';
 import { InventoryService } from '@/lib/services/inventory.service';
 import { SalesVelocityService } from '@/lib/services/sales-velocity.service';
@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/ai-analytics/predictions
  * Generate AI predictions (VIEW_AI_PREDICTIONS permission)
  */
-export const POST = requirePermission('VIEW_AI_PREDICTIONS')(
+export const POST = requirePermission(Permission.AI_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

@@ -108,6 +108,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.organizationId = user.organizationId;
+        token.activeOrganizationId = user.organizationId;
         logger.debug({
           message: 'NextAuth: JWT callback - updated token with user data',
           context: { service: 'NextAuth', operation: 'jwt', userId: user.id, role: user.role }

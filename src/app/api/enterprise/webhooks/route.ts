@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,7 @@ import { WebhookService } from '@/lib/services/webhook.service';
  * GET /api/enterprise/webhooks
  * Get enterprise webhooks (VIEW_WEBHOOKS permission)
  */
-export const GET = requirePermission('VIEW_WEBHOOKS')(
+export const GET = requirePermission(Permission.WEBHOOKS_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -50,7 +50,7 @@ export const GET = requirePermission('VIEW_WEBHOOKS')(
  * POST /api/enterprise/webhooks
  * Create enterprise webhook (MANAGE_WEBHOOKS permission)
  */
-export const POST = requirePermission('MANAGE_WEBHOOKS')(
+export const POST = requirePermission(Permission.WEBHOOKS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/campaigns
  * List campaigns
  */
-export const GET = requirePermission('VIEW_CAMPAIGNS')(
+export const GET = requirePermission(Permission.MARKETING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);
@@ -82,7 +82,7 @@ export const GET = requirePermission('VIEW_CAMPAIGNS')(
  * POST /api/campaigns
  * Create campaign
  */
-export const POST = requirePermission('MANAGE_CAMPAIGNS')(
+export const POST = requirePermission(Permission.MARKETING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

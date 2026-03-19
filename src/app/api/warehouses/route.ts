@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 
-export const GET = requirePermission('VIEW_INVENTORY')(
+export const GET = requirePermission(Permission.INVENTORY_READ)(
   async (req: AuthenticatedRequest, user) => {
     const organizationId = getOrganizationScope(user);
     if (!organizationId) {
@@ -49,7 +49,7 @@ export const GET = requirePermission('VIEW_INVENTORY')(
   }
 );
 
-export const POST = requirePermission('MANAGE_INVENTORY')(
+export const POST = requirePermission(Permission.INVENTORY_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     const organizationId = getOrganizationScope(user);
     if (!organizationId) {

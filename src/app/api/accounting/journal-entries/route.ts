@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/accounting/journal-entries
  * List journal entries with organization scoping
  */
-export const GET = requirePermission('VIEW_ACCOUNTING')(
+export const GET = requirePermission(Permission.ACCOUNTING_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       // Additional check for STAFF role - must be accountant
@@ -79,7 +79,7 @@ export const GET = requirePermission('VIEW_ACCOUNTING')(
  * POST /api/accounting/journal-entries
  * Create journal entry with organization scoping
  */
-export const POST = requirePermission('MANAGE_ACCOUNTING')(
+export const POST = requirePermission(Permission.ACCOUNTING_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       // Additional check for STAFF role - must be accountant

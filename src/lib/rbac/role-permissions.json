@@ -243,6 +243,126 @@
       "resource": "backup",
       "action": "manage",
       "scope": "all"
+    },
+    {
+      "id": "webhooks.read",
+      "resource": "webhooks",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "webhooks.manage",
+      "resource": "webhooks",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "support.read",
+      "resource": "support",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "support.create",
+      "resource": "support",
+      "action": "create",
+      "scope": "tenant"
+    },
+    {
+      "id": "support.manage",
+      "resource": "support",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "reviews.read",
+      "resource": "reviews",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "reviews.manage",
+      "resource": "reviews",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "compliance.read",
+      "resource": "compliance",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "compliance.manage",
+      "resource": "compliance",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "audit.read",
+      "resource": "audit",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "audit.manage",
+      "resource": "audit",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "iot.read",
+      "resource": "iot",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "iot.manage",
+      "resource": "iot",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "subscriptions.read",
+      "resource": "subscriptions",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "subscriptions.manage",
+      "resource": "subscriptions",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "pos.read",
+      "resource": "pos",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "pos.manage",
+      "resource": "pos",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "ai.manage",
+      "resource": "ai",
+      "action": "manage",
+      "scope": "tenant"
+    },
+    {
+      "id": "notifications.read",
+      "resource": "notifications",
+      "action": "read",
+      "scope": "tenant"
+    },
+    {
+      "id": "notifications.manage",
+      "resource": "notifications",
+      "action": "manage",
+      "scope": "tenant"
     }
   ],
   "roles": [
@@ -289,6 +409,26 @@
         "analytics.read",
         "reports.read",
         "ai.read",
+        "ai.manage",
+        "webhooks.read",
+        "webhooks.manage",
+        "support.read",
+        "support.create",
+        "support.manage",
+        "reviews.read",
+        "reviews.manage",
+        "compliance.read",
+        "compliance.manage",
+        "audit.read",
+        "audit.manage",
+        "iot.read",
+        "iot.manage",
+        "subscriptions.read",
+        "subscriptions.manage",
+        "pos.read",
+        "pos.manage",
+        "notifications.read",
+        "notifications.manage",
         "integrations.manage",
         "settings.manage",
         "billing.read"
@@ -301,7 +441,8 @@
         "products.read",
         "orders.read",
         "orders.create",
-        "customers.read"
+        "customers.read",
+        "analytics.read"
       ]
     },
     {
@@ -322,7 +463,10 @@
         "customers.update",
         "orders.read",
         "orders.update",
-        "returns.manage"
+        "returns.manage",
+        "support.read",
+        "support.create",
+        "support.manage"
       ]
     },
     {
@@ -330,7 +474,8 @@
       "level": "portal",
       "permissions": [
         "products.read",
-        "orders.create"
+        "orders.create",
+        "support.create"
       ]
     }
   ],
@@ -367,6 +512,9 @@
     ],
     "/dashboard/settings": [
       "settings.manage"
+    ],
+    "/dashboard/analytics": [
+      "analytics.read"
     ],
     "/portal/orders": [
       "orders.create"

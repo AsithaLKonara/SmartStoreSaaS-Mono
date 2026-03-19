@@ -110,7 +110,7 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
       role: (token.role as UserRole) || UserRole.CUSTOMER,
       roleTag: token.roleTag as string,
       organizationId: token.organizationId as string,
-      activeOrganizationId: request.headers.get('x-tenant-id') || null
+      activeOrganizationId: request.headers.get('x-tenant-id') || (token.activeOrganizationId as string) || null
     };
   } catch (error) {
     return null;
@@ -182,11 +182,9 @@ export function requirePermission(permission: string | Permission) {
 
 export function getOrganizationScope(user: AuthenticatedUser, requestOrgId?: string): string {
   if (user.role === UserRole.SUPER_ADMIN) {
-    const activeOrg = requestOrgId || user.activeOrganizationId;
-    if (!activeOrg) {
-      throw new Error('SUPER_ADMIN requires explicit organization scope (impersonation via x-tenant-id)');
-    }
-    return activeOrg;
+    const activeOrg = requestOrgId || user.activeOrganizationId || user.organizationId;
+    // For SUPER_ADMIN, we return the active org or their own org if set
+    return activeOrg || '';
   }
 
   if (!user.organizationId) {

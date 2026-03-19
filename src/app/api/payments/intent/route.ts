@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { stripeService } from '@/lib/payments/stripeService';
 import { AuditService } from '@/lib/audit';
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/payments/intent
  * Create payment intent
  */
-export const POST = requirePermission('CREATE_ORDERS')(
+export const POST = requirePermission(Permission.ORDER_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const organizationId = getOrganizationScope(user);

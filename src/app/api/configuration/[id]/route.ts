@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { Permission, requirePermission, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const resolvedParams = params instanceof Promise ? await params : params;
   const configId = resolvedParams.id;
   
-  const handler = requirePermission('VIEW_SETTINGS')(
+  const handler = requirePermission(Permission.SETTINGS_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
 
@@ -98,7 +98,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const resolvedParams = params instanceof Promise ? await params : params;
   const configId = resolvedParams.id;
   
-  const handler = requirePermission('MANAGE_SETTINGS')(
+  const handler = requirePermission(Permission.SETTINGS_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
         const body = await req.json();
@@ -175,7 +175,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const resolvedParams = params instanceof Promise ? await params : params;
   const configId = resolvedParams.id;
   
-  const handler = requirePermission('MANAGE_SETTINGS')(
+  const handler = requirePermission(Permission.SETTINGS_MANAGE)(
     async (req: AuthenticatedRequest, user) => {
       try {
 

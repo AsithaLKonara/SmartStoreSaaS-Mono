@@ -396,7 +396,7 @@ class DatabasePerformanceOptimizer {
           totalOrders,
           recentOrders,
           orderStats,
-          topProductsData
+          topOrderItems
         ] = await Promise.all([
           prisma.product.count({ where }),
           prisma.customer.count({ where }),
@@ -407,41 +407,48 @@ class DatabasePerformanceOptimizer {
               customer: { select: { name: true, email: true } }
             },
             orderBy: { createdAt: 'desc' },
-            take: 5
+            take: 10
           }),
           prisma.order.aggregate({
             where: orderWhere,
             _sum: { total: true },
             _count: true
-          }) as any,
-          prisma.product.findMany({
-            where,
-            include: {
-              orderItems: {
-                where: {
-                  order: {
-                    createdAt: { gte: startDate },
-                    status: 'DELIVERED'
-                  }
-                }
+          }),
+          prisma.orderItem.groupBy({
+            by: ['productId'],
+            where: {
+              order: {
+                organizationId,
+                createdAt: { gte: startDate },
+                status: 'DELIVERED'
               }
             },
+            _sum: { quantity: true, total: true },
+            orderBy: { _sum: { total: 'desc' } },
             take: 5
           })
         ]);
 
-        const totalRevenue = Number((orderStats as any)._sum?.total || 0);
+        const totalRevenue = Number(orderStats._sum?.total || 0);
+
+        // Fetch product names for top products
+        const topProductIds = topOrderItems.map(item => item.productId);
+        const topProducts = await prisma.product.findMany({
+          where: { id: { in: topProductIds } },
+          select: { id: true, name: true }
+        });
+        const productNameMap = new Map(topProducts.map(p => [p.id, p.name]));
 
         return {
           revenue: { total: totalRevenue, trend: 'up' },
           orders: { total: totalOrders, trend: 'up' },
           customers: { total: totalCustomers, trend: 'up' },
           products: { total: totalProducts, trend: 'up' },
-          topProducts: topProductsData.map(p => ({
-            productId: p.id,
-            name: p.name,
-            revenue: (p as any).orderItems.reduce((sum: number, item: any) => sum + Number(item.total || 0), 0),
-            orders: (p as any).orderItems.length
+          topProducts: topOrderItems.map(item => ({
+            productId: item.productId,
+            name: productNameMap.get(item.productId) || 'Unknown Product',
+            revenue: Number(item._sum.total || 0),
+            orders: item._sum.quantity || 0
           })),
           recentOrders: recentOrders.map(o => ({
             id: o.id,

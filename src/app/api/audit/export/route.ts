@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
-import { requirePermission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * POST /api/audit/export
  * Export audit logs with organization scoping
  */
-export const POST = requirePermission('VIEW_AUDIT_LOGS')(
+export const POST = requirePermission(Permission.AUDIT_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const body = await req.json();

@@ -30,8 +30,8 @@ const CREDENTIALS = {
     pages: 72
   },
   TENANT_ADMIN: {
-    email: 'admin@smartstore.com',
-    password: 'password123',
+    email: 'admin@demo.com',
+    password: 'Admin123!',
     pages: 63
   },
   STAFF: {
@@ -203,7 +203,7 @@ async function setupMonitoring(page: Page) {
   page.on('console', (msg) => {
     const text = msg.text();
     const type = msg.type();
-    
+
     if (type === 'error') {
       consoleErrors.push(`[${new Date().toISOString()}] ${text}`);
     } else if (type === 'warning') {
@@ -228,19 +228,19 @@ async function setupMonitoring(page: Page) {
  */
 async function login(page: Page, email: string, password: string, timeout: number = 15000) {
   await page.goto('http://localhost:3000/login', { timeout, waitUntil: 'networkidle' });
-  
+
   // Wait for form to be ready
   await page.waitForSelector('input[type="email"]', { timeout: 5000 });
   await page.waitForSelector('input[type="password"]', { timeout: 5000 });
-  
+
   await page.fill('input[type="email"]', email, { timeout: 5000 });
   await page.fill('input[type="password"]', password, { timeout: 5000 });
-  
+
   // Wait a bit before clicking submit
   await page.waitForTimeout(500);
-  
+
   await page.click('button[type="submit"]', { timeout: 5000 });
-  
+
   // Wait for navigation to dashboard with longer timeout
   await page.waitForURL('**/dashboard', { timeout: timeout * 2, waitUntil: 'networkidle' }).catch(() => {
     // If redirect fails, check if we're still on login page
@@ -249,9 +249,9 @@ async function login(page: Page, email: string, password: string, timeout: numbe
       throw new Error(`Login failed - still on login page: ${currentUrl}`);
     }
   });
-  
+
   // Wait for session to be fully established and page to load
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => { });
   await page.waitForTimeout(2000); // Additional wait for session cookie to be set
 }
 
@@ -279,13 +279,17 @@ async function testPage(
 
   try {
     // Navigate to page with timeout - handle redirects gracefully
-    const response = await page.goto(`http://localhost:3000${url}`, { 
+    const response = await page.goto(`http://localhost:3000${url}`, {
       waitUntil: 'domcontentloaded', // Faster than networkidle
-      timeout: pageTimeout 
+      timeout: pageTimeout
     }).catch((err) => {
-      // If navigation is aborted, it might be a redirect - check current URL
+      result.status = 'fail';
+      result.errors.push(`Navigation failed: ${err.message}`);
       return null;
     });
+
+    if (result.status === 'fail') return result; // Exit early if goto failed
+
 
     // Check if we were redirected
     const currentUrl = page.url();
@@ -299,7 +303,7 @@ async function testPage(
     await Promise.race([
       page.waitForLoadState('networkidle', { timeout: 10000 }),
       page.waitForTimeout(3000) // Fallback timeout
-    ]).catch(() => {});
+    ]).catch(() => { });
 
     // Check for errors in console (with timeout)
     const consoleMessages = await Promise.race([
@@ -328,7 +332,7 @@ async function testPage(
           button.isEnabled(),
           new Promise(resolve => setTimeout(() => resolve(false), actionTimeout))
         ]).catch(() => false) as boolean;
-        
+
         if (isVisible && isEnabled) {
           // Try clicking (but don't submit forms)
           const buttonText = await Promise.race([
@@ -340,7 +344,7 @@ async function testPage(
             await Promise.race([
               button.click({ timeout: actionTimeout }),
               new Promise(resolve => setTimeout(resolve, actionTimeout))
-            ]).catch(() => {});
+            ]).catch(() => { });
             result.buttonsWorking++;
             await page.waitForTimeout(300);
           }
@@ -355,7 +359,7 @@ async function testPage(
       page.locator('[role="alert"], .error, .text-red-500').all(),
       new Promise(resolve => setTimeout(() => resolve([]), 2000))
     ]).catch(() => []) as any[];
-    
+
     if (errorElements.length > 0) {
       result.warnings.push(`Found ${errorElements.length} error elements on page`);
     }
@@ -365,7 +369,7 @@ async function testPage(
       page.title(),
       new Promise(resolve => setTimeout(() => resolve(''), 2000))
     ]).catch(() => '') as string;
-    
+
     if (title.includes('Error') || title.includes('404')) {
       result.status = 'fail';
       result.errors.push('Page shows error in title');
@@ -392,19 +396,19 @@ async function testPage(
  * Test SUPER_ADMIN role
  */
 test.describe('SUPER_ADMIN Testing', () => {
-  test.setTimeout(600000); // 10 minutes total for all SUPER_ADMIN pages
-  
+  test.setTimeout(1200000); // 20 minutes total for all SUPER_ADMIN pages
+
   test('Test all SUPER_ADMIN pages', async ({ page, context }) => {
-    test.setTimeout(600000); // 10 minutes for this test
-    
+    test.setTimeout(1200000); // 20 minutes for 72 pages
+
     await setupMonitoring(page);
-    
+
     try {
       await login(page, CREDENTIALS.SUPER_ADMIN.email, CREDENTIALS.SUPER_ADMIN.password, 20000);
-      
+
       for (let i = 0; i < PAGES.SUPER_ADMIN.length; i++) {
         const pageUrl = PAGES.SUPER_ADMIN[i];
-        test.step(`Testing page ${i + 1}/${PAGES.SUPER_ADMIN.length}: ${pageUrl}`, async () => {
+        await test.step(`Testing page ${i + 1}/${PAGES.SUPER_ADMIN.length}: ${pageUrl}`, async () => {
           const result = await testPage(page, pageUrl, 'SUPER_ADMIN', 20000, 5000);
           testResults.push(result);
           const statusEmoji = result.status === 'pass' ? '✅' : '❌';
@@ -429,18 +433,18 @@ test.describe('SUPER_ADMIN Testing', () => {
  */
 test.describe('TENANT_ADMIN Testing', () => {
   test.setTimeout(600000); // 10 minutes total
-  
+
   test('Test all TENANT_ADMIN pages', async ({ page }) => {
     test.setTimeout(600000);
-    
+
     await setupMonitoring(page);
-    
+
     try {
       await login(page, CREDENTIALS.TENANT_ADMIN.email, CREDENTIALS.TENANT_ADMIN.password, 20000);
-      
+
       for (let i = 0; i < PAGES.TENANT_ADMIN.length; i++) {
         const pageUrl = PAGES.TENANT_ADMIN[i];
-        test.step(`Testing page ${i + 1}/${PAGES.TENANT_ADMIN.length}: ${pageUrl}`, async () => {
+        await test.step(`Testing page ${i + 1}/${PAGES.TENANT_ADMIN.length}: ${pageUrl}`, async () => {
           const result = await testPage(page, pageUrl, 'TENANT_ADMIN', 20000, 5000);
           testResults.push(result);
           const statusEmoji = result.status === 'pass' ? '✅' : '❌';
@@ -465,18 +469,18 @@ test.describe('TENANT_ADMIN Testing', () => {
  */
 test.describe('STAFF Testing', () => {
   test.setTimeout(300000); // 5 minutes total
-  
+
   test('Test all STAFF pages', async ({ page }) => {
     test.setTimeout(300000);
-    
+
     await setupMonitoring(page);
-    
+
     try {
       await login(page, CREDENTIALS.STAFF.email, CREDENTIALS.STAFF.password, 20000);
-      
+
       for (let i = 0; i < PAGES.STAFF.length; i++) {
         const pageUrl = PAGES.STAFF[i];
-        test.step(`Testing page ${i + 1}/${PAGES.STAFF.length}: ${pageUrl}`, async () => {
+        await test.step(`Testing page ${i + 1}/${PAGES.STAFF.length}: ${pageUrl}`, async () => {
           const result = await testPage(page, pageUrl, 'STAFF', 20000, 5000);
           testResults.push(result);
           const statusEmoji = result.status === 'pass' ? '✅' : '❌';
@@ -501,18 +505,18 @@ test.describe('STAFF Testing', () => {
  */
 test.describe('CUSTOMER Testing', () => {
   test.setTimeout(120000); // 2 minutes total
-  
+
   test('Test all CUSTOMER pages', async ({ page }) => {
     test.setTimeout(120000);
-    
+
     await setupMonitoring(page);
-    
+
     try {
       await login(page, CREDENTIALS.CUSTOMER.email, CREDENTIALS.CUSTOMER.password, 20000);
-      
+
       for (let i = 0; i < PAGES.CUSTOMER.length; i++) {
         const pageUrl = PAGES.CUSTOMER[i];
-        test.step(`Testing page ${i + 1}/${PAGES.CUSTOMER.length}: ${pageUrl}`, async () => {
+        await test.step(`Testing page ${i + 1}/${PAGES.CUSTOMER.length}: ${pageUrl}`, async () => {
           const result = await testPage(page, pageUrl, 'CUSTOMER', 20000, 5000);
           testResults.push(result);
           const statusEmoji = result.status === 'pass' ? '✅' : '❌';

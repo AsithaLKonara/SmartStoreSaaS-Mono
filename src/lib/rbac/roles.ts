@@ -22,6 +22,13 @@ export enum StaffRoleTag {
 }
 
 export enum Permission {
+  // System & Support
+  SYSTEM_READ = 'system.read',
+  SYSTEM_MANAGE = 'system.manage',
+  MONITORING_READ = 'monitoring.read',
+  LOGS_READ = 'logs.read',
+  BACKUP_MANAGE = 'backup.manage',
+
   // Product permissions
   PRODUCT_CREATE = 'products.create',
   PRODUCT_READ = 'products.read',
@@ -41,44 +48,98 @@ export enum Permission {
   CUSTOMER_UPDATE = 'customers.update',
   CUSTOMER_DELETE = 'customers.delete',
 
-  // Finance permissions
-  FINANCE_READ = 'accounting.read',
-  FINANCE_CREATE = 'accounting.manage',
-  FINANCE_UPDATE = 'accounting.manage',
-  FINANCE_DELETE = 'accounting.manage',
-
-  // Inventory permissions
+  // Inventory & Warehouse
   INVENTORY_READ = 'inventory.read',
   INVENTORY_UPDATE = 'inventory.manage',
-  INVENTORY_ADJUST = 'inventory.manage',
+  INVENTORY_MANAGE = 'inventory.manage',
+  WAREHOUSE_MANAGE = 'warehouse.manage',
+
+  // Finance & Accounting
+  ACCOUNTING_MANAGE = 'accounting.manage',
+  ACCOUNTING_READ = 'accounting.read',
+  FINANCE_READ = 'accounting.read',
+  FINANCE_MANAGE = 'accounting.manage',
+
+  // Procurement
+  PROCUREMENT_MANAGE = 'procurement.manage',
+
+  // Logistics
+  SHIPPING_MANAGE = 'shipping.manage',
+  RETURNS_MANAGE = 'returns.manage',
+
+  // Marketing & Campaigns
+  MARKETING_MANAGE = 'marketing.manage',
+  CAMPAIGNS_READ = 'marketing.manage',
+  CAMPAIGNS_MANAGE = 'marketing.manage',
+
+  // Analytics & AI
+  ANALYTICS_READ = 'analytics.read',
+  VIEW_ANALYTICS = 'analytics.read',
+  AI_READ = 'ai.read',
+  AI_MANAGE = 'ai.manage',
+  AI_CREATE = 'ai.manage',
+  AI_UPDATE = 'ai.manage',
 
   // User management
   USER_CREATE = 'users.create',
   USER_READ = 'users.read',
   USER_UPDATE = 'users.update',
   USER_DELETE = 'users.delete',
+  ROLES_MANAGE = 'roles.manage',
 
-  // Reports
-  REPORTS_VIEW = 'reports.read',
-  REPORTS_EXPORT = 'reports.read',
-
-  // Settings
-  SETTINGS_VIEW = 'settings.read',
-  SETTINGS_UPDATE = 'settings.manage',
-
-  // Tenant management (Super Admin only)
+  // Tenant management
   TENANT_CREATE = 'tenants.create',
   TENANT_READ = 'tenants.read',
   TENANT_UPDATE = 'tenants.update',
   TENANT_DELETE = 'tenants.delete',
+  TENANT_IMPERSONATE = 'tenants.impersonate',
 
-  // Analytics
-  ANALYTICS_READ = 'analytics.read',
-  VIEW_ANALYTICS = 'analytics.read', // Alias for backward compatibility
+  // Settings & Integrations
+  SETTINGS_MANAGE = 'settings.manage',
+  INTEGRATIONS_MANAGE = 'integrations.manage',
 
-  // Billing (Super Admin only)
-  BILLING_VIEW = 'billing.read',
-  BILLING_MANAGE = 'billing.manage'
+  // Reports
+  REPORTS_READ = 'reports.read',
+  REPORTS_VIEW = 'reports.read',
+
+  // Billing
+  BILLING_READ = 'billing.read',
+  BILLING_MANAGE = 'billing.manage',
+
+  // Webhooks
+  WEBHOOKS_READ = 'webhooks.read',
+  WEBHOOKS_MANAGE = 'webhooks.manage',
+
+  // Support
+  SUPPORT_READ = 'support.read',
+  SUPPORT_CREATE = 'support.create',
+  SUPPORT_MANAGE = 'support.manage',
+
+  // Review & Rating
+  REVIEWS_READ = 'reviews.read',
+  REVIEWS_MANAGE = 'reviews.manage',
+
+  // Compliance & Audit
+  COMPLIANCE_READ = 'compliance.read',
+  COMPLIANCE_MANAGE = 'compliance.manage',
+  AUDIT_READ = 'audit.read',
+  AUDIT_MANAGE = 'audit.manage',
+
+  // IoT & Devices
+  IOT_READ = 'iot.read',
+  IOT_MANAGE = 'iot.manage',
+
+  // Subscriptions
+  SUBSCRIPTIONS_READ = 'subscriptions.read',
+  SUBSCRIPTIONS_MANAGE = 'subscriptions.manage',
+
+  // POS
+  POS_READ = 'pos.read',
+  POS_MANAGE = 'pos.manage',
+
+  // Notifications
+  NOTIFICATIONS_READ = 'notifications.read',
+  NOTIFICATIONS_MANAGE = 'notifications.manage'
 }
 
 // Ensure smooth compilation of any outside files that may have used these exact exports
