@@ -17,8 +17,11 @@ import { GlobalBackground } from '@/components/marketing/GlobalBackground';
 export default function Home() {
   useEffect(() => {
     document.body.classList.add('marketing-page');
+    // Ensure absolute transparency even if CSS fails to load early
+    document.body.style.backgroundColor = 'transparent';
     return () => {
       document.body.classList.remove('marketing-page');
+      document.body.style.backgroundColor = '';
     };
   }, []);
 

@@ -16,10 +16,14 @@ export const GlobalBackground = () => {
         muted
         playsInline
         onLoadedData={() => {
-          console.log("GLOBAL_BG: Video loaded");
+          console.log("PRODUCTION_DEBUG: Global background video loaded successfully");
           setIsLoaded(true);
         }}
-        onError={(e) => console.error("GLOBAL_BG: Video Error", e)}
+        onError={(e) => {
+          console.error("PRODUCTION_DEBUG: Global background video failed to load", e);
+          const videoElement = e.currentTarget as HTMLVideoElement;
+          console.log("PRODUCTION_DEBUG: Attempted source:", videoElement.src);
+        }}
         className={cn(
           "absolute inset-0 w-full h-full object-cover transition-opacity duration-1000",
           isLoaded ? "opacity-40" : "opacity-20"

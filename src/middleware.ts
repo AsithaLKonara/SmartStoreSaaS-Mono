@@ -7,14 +7,23 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Paths that must bypass all middleware filters (including CORS and security)
-  const bypassPaths = ['/api/auth', '/api/auth-debug', '/_next', '/favicon.ico'];
-  if (bypassPaths.some(path => pathname.startsWith(path))) {
+  const bypassPaths = [
+    '/api/auth', 
+    '/api/auth-debug', 
+    '/_next', 
+    '/favicon.ico',
+    '/videos',
+    '/images',
+    '/icons',
+    '/fonts'
+  ];
+  if (bypassPaths.some(path => pathname === path || pathname.startsWith(path + '/'))) {
     return NextResponse.next();
   }
 
   // Apply authentication middleware first
   const authResponse = await authMiddleware(request);
-
+  
   // If auth middleware returns a redirect or error, return it
   if (authResponse.status !== 200) {
     return authResponse;
@@ -27,7 +36,7 @@ export async function middleware(request: NextRequest) {
   response = applySecurityHeaders(response);
 
   // Apply CORS headers for API routes (excluding auth which we bypassed above)
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  if (pathname.startsWith('/api/')) {
     response = applyCorsHeaders(response);
   }
 
@@ -41,8 +50,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - api/auth (NextAuth internal routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/auth|videos|images|icons|fonts).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
