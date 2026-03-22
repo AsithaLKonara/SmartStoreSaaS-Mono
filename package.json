@@ -11,7 +11,7 @@
     "typecheck": "bash scripts/fetch-type-errors.sh",
     "test": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
     "test:unit": "jest -c jest.config.unit.js --runInBand",
-    "test:integration": "cross-env NODE_ENV=test test -c jest.config.integration.js --runInBand",
+    "test:integration": "cross-env NODE_ENV=test jest -c jest.config.integration.js --runInBand",
     "test:e2e": "playwright test",
     "test:e2e:local": "dotenv -e .env.test -- playwright test",
     "test:e2e:server": "E2E_BASE_URL=http://localhost:3000 playwright test --project=chromium",
