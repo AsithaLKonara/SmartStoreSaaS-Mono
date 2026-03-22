@@ -135,14 +135,14 @@ export function RegistrationWizard() {
   const CurrentStepComponent = currentStepData.component;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen bg-transparent py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Join SmartStore SaaS
+          <h1 className="text-4xl font-bold mb-2">
+            Join <span className="text-gradient">SmartStore SaaS</span>
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-400">
             Start your e-commerce journey with our comprehensive platform
           </p>
         </div>
@@ -150,28 +150,28 @@ export function RegistrationWizard() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-300">
               Step {currentStep} of {steps.length}
             </span>
             <span className="text-sm text-gray-500">
               {Math.round(progress)}% Complete
             </span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-2 bg-white/5" />
         </div>
 
         {/* Step Navigation */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-8 overflow-x-auto pb-4 custom-scrollbar">
           <div className="flex space-x-4">
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full ${currentStep >= step.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-600'
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full whitespace-nowrap ${currentStep >= step.id
+                  ? 'bg-primary text-white glow'
+                  : 'bg-white/5 text-gray-500 border border-white/5'
                   }`}
               >
-                <div className="w-6 h-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-sm font-bold">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${currentStep >= step.id ? 'bg-white/20' : 'bg-white/5'}`}>
                   {step.id}
                 </div>
                 <span className="text-sm font-medium">{step.title}</span>
@@ -181,12 +181,12 @@ export function RegistrationWizard() {
         </div>
 
         {/* Current Step Content */}
-        <Card className="shadow-lg">
+        <Card className="glass-dark border-white/10 shadow-2xl">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">
+            <CardTitle className="text-2xl text-center text-white">
               {currentStepData.title}
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-gray-400">
               {currentStepData.description}
             </CardDescription>
           </CardHeader>

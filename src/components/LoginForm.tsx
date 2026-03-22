@@ -88,49 +88,53 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" data-testid="login-page">
-      <Card className="w-full max-w-lg">
+    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" data-testid="login-page">
+      <Card className="w-full max-w-lg glass-dark border-white/10">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">SmartStore SaaS</CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-400">
+          <CardTitle className="text-3xl font-bold mb-2">
+            <span className="text-gradient">SmartStore SaaS</span>
+          </CardTitle>
+          <CardDescription className="text-gray-400">
             Sign in to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+              <Label htmlFor="email" className="text-gray-300">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
+                placeholder="name@company.com"
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
                 data-testid="email-input"
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:ring-primary/50 ${errors.email ? 'border-red-500/50' : ''}`}
               />
               <FormErrorMessage message={errors.email} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-gray-300">Password</Label>
+              </div>
               <Input
                 id="password"
                 type="password"
                 value={password}
+                placeholder="••••••••"
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
                 data-testid="password-input"
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:ring-primary/50 ${errors.password ? 'border-red-500/50' : ''}`}
               />
               <FormErrorMessage message={errors.password} />
             </div>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-primary hover:bg-primary/90 text-white py-6 rounded-xl font-bold text-lg glow"
               disabled={isLoading}
               data-testid="submit-button"
             >
@@ -138,12 +142,18 @@ export default function LoginForm() {
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          {message && (
+            <div className={`mt-4 p-3 rounded-lg text-sm text-center ${message.includes('❌') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+              {message}
+            </div>
+          )}
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-400">
               Don&apos;t have an account?{' '}
               <button
                 onClick={() => router.push('/register')}
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                className="font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="register-link"
               >
                 Register here

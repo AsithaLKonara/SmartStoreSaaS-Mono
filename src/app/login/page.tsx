@@ -1,22 +1,31 @@
-import LoginForm from '@/components/LoginForm';
-import { Metadata } from 'next';
-import { Suspense } from 'react';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Login - SmartStore SaaS',
-  description: 'Sign in to your SmartStore SaaS account to manage your business operations.',
-  keywords: 'login, sign in, smartstore, saas, business management',
-  openGraph: {
-    title: 'Login - SmartStore SaaS',
-    description: 'Sign in to your SmartStore SaaS account to manage your business operations.',
-    type: 'website',
-  },
-};
+import React, { useEffect, Suspense } from 'react';
+import LoginForm from '@/components/LoginForm';
+import { Navbar } from '@/components/marketing/Navbar';
+import { Footer } from '@/components/marketing/Footer';
+import { GlobalBackground } from '@/components/marketing/GlobalBackground';
 
 export default function LoginPage() {
+  useEffect(() => {
+    document.body.classList.add('marketing-page');
+    return () => {
+      document.body.classList.remove('marketing-page');
+    };
+  }, []);
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm />
-    </Suspense>
+    <main className="relative min-h-screen selection:bg-primary/30 selection:text-primary overflow-x-hidden">
+      <GlobalBackground />
+      <Navbar />
+      
+      <div className="relative z-10 pt-32 pb-24">
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">Loading...</div>}>
+          <LoginForm />
+        </Suspense>
+      </div>
+
+      <Footer />
+    </main>
   );
 }

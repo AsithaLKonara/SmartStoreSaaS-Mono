@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, Mail, Phone, MapPin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BusinessInfoStepProps {
   data: any;
@@ -100,19 +101,19 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
       {/* Business Information */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
-          <Building2 className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold">Business Information</h3>
+          <Building2 className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-white">Business Information</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="businessName">Business Name *</Label>
+            <Label htmlFor="businessName" className="text-gray-300">Business Name *</Label>
             <Input
               id="businessName"
               value={formData.businessName}
               onChange={(e) => handleInputChange('businessName', e.target.value)}
               placeholder="Your Business Name"
-              className={errors.businessName ? 'border-red-500' : ''}
+              className={cn("bg-white/5 border-white/10 text-white placeholder:text-gray-600", errors.businessName ? 'border-red-500/50' : '')}
             />
             {errors.businessName && (
               <p className="text-sm text-red-500">{errors.businessName}</p>
@@ -120,13 +121,13 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contactName">Contact Person *</Label>
+            <Label htmlFor="contactName" className="text-gray-300">Contact Person *</Label>
             <Input
               id="contactName"
               value={formData.contactName}
               onChange={(e) => handleInputChange('contactName', e.target.value)}
               placeholder="Full Name"
-              className={errors.contactName ? 'border-red-500' : ''}
+              className={cn("bg-white/5 border-white/10 text-white placeholder:text-gray-600", errors.contactName ? 'border-red-500/50' : '')}
             />
             {errors.contactName && (
               <p className="text-sm text-red-500">{errors.contactName}</p>
@@ -136,7 +137,7 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="email">
+            <Label htmlFor="email" className="text-gray-300">
               <Mail className="w-4 h-4 inline mr-1" />
               Email Address *
             </Label>
@@ -146,7 +147,7 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="email@example.com"
-              className={errors.email ? 'border-red-500' : ''}
+              className={cn("bg-white/5 border-white/10 text-white placeholder:text-gray-600", errors.email ? 'border-red-500/50' : '')}
             />
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email}</p>
@@ -154,7 +155,7 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">
+            <Label htmlFor="phone" className="text-gray-300">
               <Phone className="w-4 h-4 inline mr-1" />
               Phone Number *
             </Label>
@@ -164,7 +165,7 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="+94 XXX XXX XXX"
-              className={errors.phone ? 'border-red-500' : ''}
+              className={cn("bg-white/5 border-white/10 text-white placeholder:text-gray-600", errors.phone ? 'border-red-500/50' : '')}
             />
             {errors.phone && (
               <p className="text-sm text-red-500">{errors.phone}</p>
@@ -174,38 +175,38 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="businessType">Business Type</Label>
+            <Label htmlFor="businessType" className="text-gray-300">Business Type</Label>
             <select
               id="businessType"
               value={formData.businessType}
               onChange={(e) => handleInputChange('businessType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-white"
             >
-              <option value="retail">Retail</option>
-              <option value="wholesale">Wholesale</option>
-              <option value="ecommerce">E-Commerce</option>
-              <option value="manufacturing">Manufacturing</option>
-              <option value="services">Services</option>
-              <option value="other">Other</option>
+              <option value="retail" className="bg-zinc-900">Retail</option>
+              <option value="wholesale" className="bg-zinc-900">Wholesale</option>
+              <option value="ecommerce" className="bg-zinc-900">E-Commerce</option>
+              <option value="manufacturing" className="bg-zinc-900">Manufacturing</option>
+              <option value="services" className="bg-zinc-900">Services</option>
+              <option value="other" className="bg-zinc-900">Other</option>
             </select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="industry">Industry</Label>
+            <Label htmlFor="industry" className="text-gray-300">Industry</Label>
             <select
               id="industry"
               value={formData.industry}
               onChange={(e) => handleInputChange('industry', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-white"
             >
-              <option value="general">General</option>
-              <option value="fashion">Fashion & Apparel</option>
-              <option value="electronics">Electronics</option>
-              <option value="food">Food & Beverage</option>
-              <option value="health">Health & Beauty</option>
-              <option value="home">Home & Garden</option>
-              <option value="sports">Sports & Outdoors</option>
-              <option value="other">Other</option>
+              <option value="general" className="bg-zinc-900">General</option>
+              <option value="fashion" className="bg-zinc-900">Fashion & Apparel</option>
+              <option value="electronics" className="bg-zinc-900">Electronics</option>
+              <option value="food" className="bg-zinc-900">Food & Beverage</option>
+              <option value="health" className="bg-zinc-900">Health & Beauty</option>
+              <option value="home" className="bg-zinc-900">Home & Garden</option>
+              <option value="sports" className="bg-zinc-900">Sports & Outdoors</option>
+              <option value="other" className="bg-zinc-900">Other</option>
             </select>
           </div>
         </div>
@@ -214,29 +215,30 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
       {/* Address Information */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
-          <MapPin className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold">Business Address</h3>
+          <MapPin className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-white">Business Address</h3>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="street">Street Address</Label>
+          <Label htmlFor="street" className="text-gray-300">Street Address</Label>
           <Input
             id="street"
             value={formData.address.street}
             onChange={(e) => handleAddressChange('street', e.target.value)}
             placeholder="123 Main Street"
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="city">City *</Label>
+            <Label htmlFor="city" className="text-gray-300">City *</Label>
             <Input
               id="city"
               value={formData.address.city}
               onChange={(e) => handleAddressChange('city', e.target.value)}
               placeholder="Colombo"
-              className={errors.city ? 'border-red-500' : ''}
+              className={cn("bg-white/5 border-white/10 text-white placeholder:text-gray-600", errors.city ? 'border-red-500/50' : '')}
             />
             {errors.city && (
               <p className="text-sm text-red-500">{errors.city}</p>
@@ -244,34 +246,37 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="state">State/Province</Label>
+            <Label htmlFor="state" className="text-gray-300">State/Province</Label>
             <Input
               id="state"
               value={formData.address.state}
               onChange={(e) => handleAddressChange('state', e.target.value)}
               placeholder="Western Province"
+              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="country">Country</Label>
+            <Label htmlFor="country" className="text-gray-300">Country</Label>
             <Input
               id="country"
               value={formData.address.country}
               onChange={(e) => handleAddressChange('country', e.target.value)}
               placeholder="Sri Lanka"
+              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="postalCode">Postal Code</Label>
+            <Label htmlFor="postalCode" className="text-gray-300">Postal Code</Label>
             <Input
               id="postalCode"
               value={formData.address.postalCode}
               onChange={(e) => handleAddressChange('postalCode', e.target.value)}
               placeholder="10100"
+              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
             />
           </div>
         </div>
@@ -282,7 +287,7 @@ export function BusinessInfoStep({ data, onNext, isLoading }: BusinessInfoStepPr
         <Button
           type="submit"
           disabled={isLoading}
-          className="px-8"
+          className="px-8 bg-primary hover:bg-primary/90 text-white rounded-xl py-6 font-bold glow"
         >
           {isLoading ? 'Processing...' : 'Continue'}
         </Button>
