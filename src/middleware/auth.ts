@@ -5,8 +5,8 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
   const { pathname } = request.nextUrl;
   
   // Public paths that don't require authentication
-  const publicPaths = ['/login', '/register', '/unauthorized', '/api/auth', '/api/health', '/api/db-check'];
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
+  const publicPaths = ['/login', '/register', '/demo', '/unauthorized', '/api/auth', '/api/health', '/api/db-check', '/videos', '/images'];
+  const isPublicPath = pathname === '/' || publicPaths.some(path => pathname.startsWith(path));
   
   if (isPublicPath) {
     return NextResponse.next();
