@@ -20,4 +20,4 @@ const nextConfig = {
   }
 }
 
-module.exports = nextConfig
+module.exports = nextConfig; // DEV SERVER RESTART TRIGGER
