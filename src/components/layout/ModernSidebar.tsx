@@ -46,7 +46,7 @@ export function ModernSidebar({ userRole, roleTag, onClose }: ModernSidebarProps
           <button
             onClick={() => toggleExpand(item.label)}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200
-              ${active ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700'}
+              ${active ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}
               ${depth > 0 ? 'pl-8' : ''}
             `}
           >
@@ -88,8 +88,8 @@ export function ModernSidebar({ userRole, roleTag, onClose }: ModernSidebarProps
         onClick={onClose}
         className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 mb-1
           ${active
-            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
-            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+            ? 'bg-primary text-white shadow-lg shadow-primary/30'
+            : 'text-slate-300 hover:bg-white/10 hover:text-white'
           }
           ${depth > 0 ? 'pl-8' : ''}
         `}
@@ -114,31 +114,31 @@ export function ModernSidebar({ userRole, roleTag, onClose }: ModernSidebarProps
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-transparent">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-700">
-        <Link href="/dashboard" className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">S</span>
+      <div className="p-6 border-b border-white/10">
+        <Link href="/dashboard" className="flex items-center space-x-3 group">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+            <span className="text-white font-bold text-xl text-shadow-glow">S</span>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">SmartStore</h2>
-            <p className="text-xs text-gray-400">SaaS Platform</p>
+            <h2 className="text-xl font-bold text-white group-hover:text-primary transition-colors">SmartStore</h2>
+            <p className="text-xs text-slate-400">SaaS Platform</p>
           </div>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
         {filteredNav.map(item => renderNavItem(item))}
       </nav>
 
       {/* Search */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-white/10">
         <AdvancedSearch
           showFilters={false}
           placeholder="Search... (Ctrl+K)"
-          className="w-full"
+          className="w-full bg-white/5 border-white/10 focus:border-primary/50 transition-all"
         />
       </div>
     </div>

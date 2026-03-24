@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormErrorMessage } from '@/components/ui/ErrorBoundary';
 import { logger } from '@/lib/logger';
+import { toast } from 'react-hot-toast';
+import TurnstileWidget from '@/components/auth/TurnstileWidget';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function LoginForm() {
   const { data: session, status } = useSession();
   const [email, setEmail] = useState('superadmin@smartstore.com');
   const [password, setPassword] = useState('SuperAdmin123!');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -55,12 +57,16 @@ export default function LoginForm() {
       return;
     }
 
+    if (!turnstileToken) {
+      toast.error('Please complete the security check');
+      return;
+    }
+
     setIsLoading(true);
     setMessage('');
     setErrors({});
 
     try {
-      // Get callback URL from query params or default to dashboard
       const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
       const result = await signIn('credentials', {
@@ -68,10 +74,10 @@ export default function LoginForm() {
         password,
         redirect: true,
         callbackUrl: callbackUrl,
+        // We could pass the turnstile token here if our backend handles it,
+        // but for now we just verify it on the frontend before allowing sign-in.
       });
 
-      // If redirect is true, NextAuth handles the redirect automatically
-      // This code won't execute if redirect succeeds, but we keep it for error handling
       if (result?.error) {
         setMessage('❌ Invalid credentials. Please try again.');
         setIsLoading(false);
@@ -132,10 +138,13 @@ export default function LoginForm() {
               />
               <FormErrorMessage message={errors.password} />
             </div>
+
+            <TurnstileWidget onVerify={setTurnstileToken} />
+
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-white py-6 rounded-xl font-bold text-lg glow"
-              disabled={isLoading}
+              disabled={isLoading || !turnstileToken}
               data-testid="submit-button"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
@@ -161,7 +170,6 @@ export default function LoginForm() {
             </p>
           </div>
 
-          {/* Test Credentials Toggle */}
           <div className="mt-6 border-t pt-4">
             <details className="group">
               <summary className="flex items-center justify-center cursor-pointer list-none text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
@@ -169,11 +177,6 @@ export default function LoginForm() {
                 <span className="ml-2 group-open:rotate-180 transition-transform">▼</span>
               </summary>
               <div className="mt-4 space-y-2">
-                <p className="text-xs text-center text-gray-500 mb-3">
-                  Click on any credential to auto-fill the form
-                </p>
-
-                {/* SUPER ADMIN */}
                 <button
                   type="button"
                   onClick={() => {
@@ -199,7 +202,6 @@ export default function LoginForm() {
                   </div>
                 </button>
 
-                {/* TENANT ADMIN */}
                 <button
                   type="button"
                   onClick={() => {
@@ -220,58 +222,6 @@ export default function LoginForm() {
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
                         admin@demo.com / Admin123!
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* STAFF */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('sales@demo.com');
-                    setPassword('Sales123!');
-                  }}
-                  className="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-green-600 text-white">
-                          STAFF
-                        </span>
-                        <span className="text-xs text-green-700 dark:text-green-400">
-                          Limited Operations
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                        sales@demo.com / Sales123!
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* CUSTOMER */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('customer@demo.com');
-                    setPassword('Customer123!');
-                  }}
-                  className="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-purple-600 text-white">
-                          CUSTOMER
-                        </span>
-                        <span className="text-xs text-purple-700 dark:text-purple-400">
-                          Customer Portal
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                        customer@demo.com / Customer123!
                       </p>
                     </div>
                   </div>
