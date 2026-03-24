@@ -22,14 +22,14 @@ export const Hero = () => {
 
         {/* Main Heading */}
         <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter mb-8 max-w-5xl leading-[1.1] animate-fade-in">
-          Scale Your Commerce <br />
-          <span className="text-gradient">With AI Automation</span>
+          The Ultimate <br />
+          <span className="text-gradient">Commerce OS</span>
         </h1>
 
         {/* Subtext */}
         <p className="text-gray-300 text-lg md:text-2xl max-w-3xl mb-12 leading-relaxed animate-fade-in delay-200">
-          SmartStore unifies your inventory, marketing, and analytics <br className="hidden md:block"/>
-          across every sales channel — automatically.
+          Global Marketplace + SaaS E-Commerce + Backend ERP + POS. <br className="hidden md:block"/>
+          All your merchant operations unified in one powerful system.
         </p>
 
         {/* CTAs */}
@@ -38,7 +38,7 @@ export const Hero = () => {
             href="/register"
             className="w-full sm:w-auto px-10 py-5 bg-primary text-white text-lg font-bold rounded-full flex items-center justify-center space-x-3 transition-all hover:scale-110 hover:shadow-2xl hover:shadow-primary/40 group"
           >
-            <span>Start Free Trial</span>
+            <span>Start Selling Today</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           
