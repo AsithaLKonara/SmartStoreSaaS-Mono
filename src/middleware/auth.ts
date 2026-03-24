@@ -25,8 +25,17 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
     url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
   }
+
+  // MFA Enforcement
+  const isMfaPath = pathname.startsWith('/auth/mfa');
+  if (token.mfaEnabled && !token.mfaVerified && !isMfaPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/mfa';
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
+  }
   
-  // User is authenticated, allow the request
+  // User is authenticated and MFA is verified (if required), allow the request
   return NextResponse.next();
 }
 

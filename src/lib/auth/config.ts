@@ -38,6 +38,7 @@ export const authOptions: NextAuthOptions = {
               password: true,
               isActive: true,
               organizationId: true,
+              mfaEnabled: true,
             },
           });
 
@@ -73,11 +74,12 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             organizationId: user.organizationId,
+            mfaEnabled: user.mfaEnabled,
           };
 
           logger.info({
             message: 'NextAuth: Authentication successful',
-            context: { service: 'NextAuth', operation: 'authorize', email: user.email, userId: user.id, role: user.role }
+            context: { service: 'NextAuth', operation: 'authorize', email: user.email, userId: user.id, role: user.role, mfaEnabled: user.mfaEnabled }
           });
           return userObject;
         } catch (error) {
@@ -100,7 +102,7 @@ export const authOptions: NextAuthOptions = {
     error: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.sub = user.id; // Set sub for getToken compatibility
@@ -109,11 +111,19 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.organizationId = user.organizationId;
         token.activeOrganizationId = user.organizationId;
+        token.mfaEnabled = (user as any).mfaEnabled;
+        token.mfaVerified = false; // Initially false if MFA is enabled
+
         logger.debug({
           message: 'NextAuth: JWT callback - updated token with user data',
-          context: { service: 'NextAuth', operation: 'jwt', userId: user.id, role: user.role }
+          context: { service: 'NextAuth', operation: 'jwt', userId: user.id, role: user.role, mfaEnabled: (user as any).mfaEnabled }
         });
       }
+
+      if (trigger === 'update' && session?.mfaVerified) {
+        token.mfaVerified = session.mfaVerified;
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -121,9 +131,12 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.organizationId = token.organizationId as string;
+        session.user.mfaEnabled = token.mfaEnabled as boolean;
+        session.user.mfaVerified = token.mfaVerified as boolean;
+        
         logger.debug({
           message: 'NextAuth: Session callback - updated session with token data',
-          context: { service: 'NextAuth', operation: 'session', userId: token.id, role: token.role }
+          context: { service: 'NextAuth', operation: 'session', userId: token.id, role: token.role, mfaVerified: token.mfaVerified }
         });
       }
       return session;

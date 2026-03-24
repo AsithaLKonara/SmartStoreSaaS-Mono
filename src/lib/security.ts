@@ -11,7 +11,11 @@ export function applySecurityHeaders(response: NextResponse): NextResponse {
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+        "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; frame-src 'self' https://challenges.cloudflare.com; object-src 'none';"
+    );
+    response.headers.set(
+        'Permissions-Policy',
+        'camera=(), microphone=(), geolocation=(), interest-cohort=()'
     );
     response.headers.set(
         'Strict-Transport-Security',

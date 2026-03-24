@@ -171,7 +171,37 @@ export function withEnhancedSecurity<T extends any[]>(
         }
       }
 
-      // Authentication
+      // MFA Check for API routes
+      if (requireAuth && user) {
+        const isMfaBypass = request.nextUrl.pathname.startsWith('/api/auth/mfa');
+        if ((token as any).mfaEnabled && !(token as any).mfaVerified && !isMfaBypass) {
+          return secureResponse(
+            { error: 'MFA verification required', code: 'MFA_REQUIRED' },
+            403
+          );
+        }
+      }
+
+      // Request Signing Check
+      const signature = request.headers.get('x-signature');
+      const timestamp = request.headers.get('x-timestamp');
+      
+      if (signature && timestamp) {
+        const { verifySignature } = require('./security/requestSigning');
+        let body = '';
+        if (request.method !== 'GET') {
+          // Note: In Next.js middleware, reading body is complex and can consume the stream
+          // Use with caution or only for specific routes
+        }
+        
+        const isValid = verifySignature(signature, body, timestamp);
+        if (!isValid) {
+          return secureResponse(
+            { error: 'Invalid request signature', code: 'INVALID_SIGNATURE' },
+            401
+          );
+        }
+      }
       let user: EnhancedAuthUser | null = null;
 
       if (requireAuth) {
