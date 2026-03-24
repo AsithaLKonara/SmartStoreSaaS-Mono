@@ -22,6 +22,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { canManageOrder } from '@/lib/auth/permissions';
+
 
 interface Order {
   id: string;
@@ -36,6 +38,7 @@ interface Order {
   totalAmount: number;
   paymentMethod: 'COD' | 'ONLINE' | 'BANK_TRANSFER';
   paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+  parentOrderId?: string;
   items: Array<{
     id: string;
     product: {
@@ -206,20 +209,24 @@ export default function OrdersPage() {
           <p className="text-slate-400 dark:text-gray-400">Manage customer orders and track delivery status</p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleExportCSV}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-          <Button
-            onClick={() => router.push('/dashboard/orders/new')}
-            data-testid="create-order-button"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Order
-          </Button>
+          {canManageOrder(session?.user?.role) && (
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          )}
+          {canManageOrder(session?.user?.role) && (
+            <Button
+              onClick={() => router.push('/dashboard/orders/new')}
+              data-testid="create-order-button"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Order
+            </Button>
+          )}
         </div>
       </div>
 
@@ -380,8 +387,13 @@ export default function OrdersPage() {
                 <tr key={order.id} className="hover:bg-white/5">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-white dark:text-white">
+                      <div className="text-sm font-medium text-white dark:text-white flex items-center gap-2">
                         #{order.orderNumber}
+                        {order.parentOrderId && (
+                          <span className="bg-indigo-500/20 text-indigo-400 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border border-indigo-500/30">
+                            Marketplace
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-gray-500">
                         {order.items.length} items
@@ -433,13 +445,15 @@ export default function OrdersPage() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/dashboard/orders/${order.id}`)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                      {canManageOrder(session?.user?.role) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/dashboard/orders/${order.id}`)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
