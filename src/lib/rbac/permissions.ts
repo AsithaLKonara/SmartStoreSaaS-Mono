@@ -43,6 +43,13 @@ export enum Permission {
   ADMIN_INTEGRATIONS = 'admin:integrations',
   ADMIN_REPORTS = 'admin:reports',
   ADMIN_FULL_ACCESS = 'admin:full',
+
+  // POS permissions
+  POS_USE_TERMINAL = 'pos.use_terminal',
+  POS_PROCESS_PAYMENT = 'pos.process_payment',
+  POS_REFUND = 'pos.refund',
+  POS_APPLY_DISCOUNT = 'pos.apply_discount',
+  POS_MANAGE_SHIFT = 'pos.manage_shift',
 }
 
 export enum Role {
@@ -82,6 +89,11 @@ export const RolePermissions: Record<Role, Permission[]> = {
     Permission.ADMIN_SETTINGS,
     Permission.ADMIN_INTEGRATIONS,
     Permission.ADMIN_REPORTS,
+    Permission.POS_USE_TERMINAL,
+    Permission.POS_PROCESS_PAYMENT,
+    Permission.POS_REFUND,
+    Permission.POS_APPLY_DISCOUNT,
+    Permission.POS_MANAGE_SHIFT,
   ],
   
   [Role.MANAGER]: [
@@ -100,6 +112,11 @@ export const RolePermissions: Record<Role, Permission[]> = {
     Permission.FINANCIAL_VIEW,
     Permission.USER_VIEW,
     Permission.ADMIN_REPORTS,
+    Permission.POS_USE_TERMINAL,
+    Permission.POS_PROCESS_PAYMENT,
+    Permission.POS_REFUND,
+    Permission.POS_APPLY_DISCOUNT,
+    Permission.POS_MANAGE_SHIFT,
   ],
   
   [Role.INVENTORY_MANAGER]: [
@@ -121,6 +138,9 @@ export const RolePermissions: Record<Role, Permission[]> = {
     Permission.CUSTOMER_CREATE,
     Permission.CUSTOMER_UPDATE,
     Permission.PAYMENT_PROCESS,
+    Permission.POS_USE_TERMINAL,
+    Permission.POS_PROCESS_PAYMENT,
+    Permission.POS_APPLY_DISCOUNT,
   ],
   
   [Role.ACCOUNTANT]: [
@@ -138,6 +158,8 @@ export const RolePermissions: Record<Role, Permission[]> = {
     Permission.ORDER_CREATE,
     Permission.CUSTOMER_VIEW,
     Permission.INVENTORY_VIEW,
+    Permission.POS_USE_TERMINAL,
+    Permission.POS_PROCESS_PAYMENT,
   ],
   
   [Role.VIEWER]: [
