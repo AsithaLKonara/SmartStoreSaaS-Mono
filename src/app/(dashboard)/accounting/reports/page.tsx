@@ -49,8 +49,8 @@ export default function ReportsPage() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Financial Reports</h1>
-          <p className="text-gray-600 dark:text-gray-400">Generate and view financial reports</p>
+          <h1 className="text-3xl font-bold text-white dark:text-white">Financial Reports</h1>
+          <p className="text-slate-400 dark:text-gray-400">Generate and view financial reports</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
@@ -66,7 +66,7 @@ export default function ReportsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {reports.map((report) => (
-          <div key={report.name} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div key={report.name} className="glass-dark rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className={`p-3 bg-${report.color}-100 rounded-lg`}>
                 <report.icon className={`w-6 h-6 text-${report.color}-600`} />
@@ -79,21 +79,21 @@ export default function ReportsPage() {
                 {loading && reportType === report.name ? 'Generating...' : 'Generate'}
               </Button>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{report.name}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{report.description}</p>
+            <h3 className="text-lg font-semibold text-white dark:text-white mb-2">{report.name}</h3>
+            <p className="text-sm text-slate-400 dark:text-gray-400">{report.description}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="glass-dark rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Recent Reports</h2>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-white/5 dark:bg-gray-700 rounded-lg">
             <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-gray-600" />
+              <FileText className="w-5 h-5 text-slate-400" />
               <div>
                 <p className="font-medium">Balance Sheet - October 2025</p>
-                <p className="text-sm text-gray-600">Generated on Oct 9, 2025</p>
+                <p className="text-sm text-slate-400">Generated on Oct 9, 2025</p>
               </div>
             </div>
             <Button variant="outline" size="sm">

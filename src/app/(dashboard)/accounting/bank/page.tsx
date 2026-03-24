@@ -53,7 +53,7 @@ export default function BankReconciliationPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Bank Reconciliation</h1>
-          <p className="text-gray-600 mt-2">Manage bank accounts and reconcile transactions</p>
+          <p className="text-slate-400 mt-2">Manage bank accounts and reconcile transactions</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
@@ -81,15 +81,15 @@ export default function BankReconciliationPage() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Bank:</span>
+                  <span className="text-slate-400">Bank:</span>
                   <span className="font-medium">{account.bankName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Account:</span>
+                  <span className="text-slate-400">Account:</span>
                   <span className="font-mono">****{account.accountNumber}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Type:</span>
+                  <span className="text-slate-400">Type:</span>
                   <span className="capitalize">{account.accountType.replace('_', ' ')}</span>
                 </div>
                 <div className="flex justify-between items-center border-t pt-2 mt-2">

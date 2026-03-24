@@ -11,13 +11,13 @@ export default function AccountingPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="accounting-title">Accounting</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage financial records and reports</p>
+          <h1 className="text-3xl font-bold text-white dark:text-white" data-testid="accounting-title">Accounting</h1>
+          <p className="text-slate-400 dark:text-gray-400">Manage financial records and reports</p>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-white/5">
         <nav className="-mb-px flex space-x-8">
           {[
             { id: 'overview', name: 'Overview' },
@@ -41,7 +41,7 @@ export default function AccountingPage() {
       </div>
 
       {/* Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="glass-dark rounded-lg shadow p-6">
         {activeTab === 'overview' && (
           <div>
             <h2 className="text-xl font-semibold mb-4">Accounting Overview</h2>
@@ -68,7 +68,7 @@ export default function AccountingPage() {
               <h2 className="text-xl font-semibold">Chart of Accounts</h2>
               <Button>Add Account</Button>
             </div>
-            <p className="text-gray-600 dark:text-gray-400">Manage your chart of accounts</p>
+            <p className="text-slate-400 dark:text-gray-400">Manage your chart of accounts</p>
           </div>
         )}
 
@@ -78,7 +78,7 @@ export default function AccountingPage() {
               <h2 className="text-xl font-semibold">Journal Entries</h2>
               <Button>Create Entry</Button>
             </div>
-            <p className="text-gray-600 dark:text-gray-400">Record financial transactions</p>
+            <p className="text-slate-400 dark:text-gray-400">Record financial transactions</p>
           </div>
         )}
 

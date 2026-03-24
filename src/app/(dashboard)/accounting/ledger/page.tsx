@@ -119,7 +119,7 @@ export default function GeneralLedgerPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">General Ledger</h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-slate-400 mt-2">
             View all accounting transactions
           </p>
         </div>
@@ -224,7 +224,7 @@ export default function GeneralLedgerPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-white/5 border-b">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
@@ -237,7 +237,7 @@ export default function GeneralLedgerPage() {
                 </thead>
                 <tbody className="divide-y">
                   {entries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-gray-50">
+                    <tr key={entry.id} className="hover:bg-white/5">
                       <td className="px-4 py-3 text-sm">
                         {new Date(entry.transactionDate).toLocaleDateString()}
                       </td>

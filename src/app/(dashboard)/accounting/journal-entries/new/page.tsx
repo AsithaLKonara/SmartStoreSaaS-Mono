@@ -184,7 +184,7 @@ export default function NewJournalEntryPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">New Journal Entry</h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-slate-400 mt-2">
             Record a manual accounting transaction
           </p>
         </div>

@@ -55,7 +55,7 @@ export default function TaxManagementPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Tax Management</h1>
-          <p className="text-gray-600 mt-2">Configure tax rates and jurisdictions</p>
+          <p className="text-slate-400 mt-2">Configure tax rates and jurisdictions</p>
         </div>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
@@ -80,15 +80,15 @@ export default function TaxManagementPage() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Code:</span>
+                  <span className="text-sm text-slate-400">Code:</span>
                   <span className="font-mono font-semibold">{tax.code}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Rate:</span>
+                  <span className="text-sm text-slate-400">Rate:</span>
                   <span className="font-mono font-semibold text-lg">{tax.rate}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Type:</span>
+                  <span className="text-sm text-slate-400">Type:</span>
                   <span className="text-sm">{tax.taxType}</span>
                 </div>
                 {tax.isCompound && (
