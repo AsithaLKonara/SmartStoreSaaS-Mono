@@ -171,13 +171,13 @@ export default function NewPaymentPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Record Payment</h1>
-          <p className="text-gray-600">Record a payment for an order</p>
+          <p className="text-slate-400">Record a payment for an order</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Selection */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <ShoppingCart className="w-5 h-5 mr-2" />
             Select Order
@@ -202,14 +202,14 @@ export default function NewPaymentPage() {
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     selectedOrder?.id === order.id 
                       ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-white/10 hover:border-gray-300'
                   }`}
                   onClick={() => handleOrderSelect(order)}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <div className="font-medium">#{order.orderNumber}</div>
-                      <div className="text-sm text-gray-600">{order.customer.name}</div>
+                      <div className="text-sm text-slate-400">{order.customer.name}</div>
                       <div className="text-sm text-gray-500">{order.customer.email}</div>
                     </div>
                     <div className="text-right">
@@ -248,7 +248,7 @@ export default function NewPaymentPage() {
         </div>
 
         {/* Payment Details */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Banknote className="w-5 h-5 mr-2" />
             Payment Details

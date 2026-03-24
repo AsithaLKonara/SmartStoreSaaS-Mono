@@ -57,7 +57,7 @@ export default function ProcurementAnalyticsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Procurement Analytics</h1>
-        <p className="text-gray-600 mt-2">Spend analysis and supplier performance</p>
+        <p className="text-slate-400 mt-2">Spend analysis and supplier performance</p>
       </div>
 
       {/* Summary Cards */}
@@ -71,7 +71,7 @@ export default function ProcurementAnalyticsPage() {
             <div className="text-2xl font-bold">
               ${analytics.summary.totalSpend.toFixed(2)}
             </div>
-            <p className="text-xs text-gray-600">All time paid invoices</p>
+            <p className="text-xs text-slate-400">All time paid invoices</p>
           </CardContent>
         </Card>
 
@@ -84,7 +84,7 @@ export default function ProcurementAnalyticsPage() {
             <div className="text-2xl font-bold">
               ${analytics.summary.pendingAmount.toFixed(2)}
             </div>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-slate-400">
               {analytics.summary.pendingCount} outstanding invoices
             </p>
           </CardContent>
@@ -97,7 +97,7 @@ export default function ProcurementAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.summary.activeSuppliers}</div>
-            <p className="text-xs text-gray-600">In supplier database</p>
+            <p className="text-xs text-slate-400">In supplier database</p>
           </CardContent>
         </Card>
 
@@ -108,7 +108,7 @@ export default function ProcurementAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.summary.openPOs}</div>
-            <p className="text-xs text-gray-600">Pending delivery</p>
+            <p className="text-xs text-slate-400">Pending delivery</p>
           </CardContent>
         </Card>
       </div>
@@ -124,17 +124,17 @@ export default function ProcurementAnalyticsPage() {
           ) : (
             <div className="space-y-4">
               {analytics.topSuppliers.map((supplier, index) => (
-                <div key={supplier.supplierCode} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={supplier.supplierCode} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="text-2xl font-bold text-gray-400">#{index + 1}</div>
                     <div>
                       <div className="font-semibold">{supplier.supplierName}</div>
-                      <div className="text-sm text-gray-600">{supplier.supplierCode}</div>
+                      <div className="text-sm text-slate-400">{supplier.supplierCode}</div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-xl font-bold">${supplier.totalSpend.toFixed(2)}</div>
-                    <div className="text-sm text-gray-600">{supplier.invoiceCount} invoices</div>
+                    <div className="text-sm text-slate-400">{supplier.invoiceCount} invoices</div>
                   </div>
                 </div>
               ))}

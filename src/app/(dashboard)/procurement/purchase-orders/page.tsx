@@ -83,8 +83,8 @@ export default function PurchaseOrdersPage() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Purchase Orders</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track and manage purchase orders</p>
+          <h1 className="text-3xl font-bold text-white dark:text-white">Purchase Orders</h1>
+          <p className="text-slate-400 dark:text-gray-400">Track and manage purchase orders</p>
         </div>
         <Button onClick={() => router.push('/procurement/purchase-orders/new')}>
           <Plus className="w-4 h-4 mr-2" />
@@ -94,24 +94,24 @@ export default function PurchaseOrdersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Total POs</p>
+        <div className="glass-dark rounded-lg shadow p-4">
+          <p className="text-sm text-slate-400">Total POs</p>
           <p className="text-2xl font-bold">{orders.length}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Pending</p>
+        <div className="glass-dark rounded-lg shadow p-4">
+          <p className="text-sm text-slate-400">Pending</p>
           <p className="text-2xl font-bold text-yellow-600">
             {orders.filter(o => o.status === 'PENDING').length}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Approved</p>
+        <div className="glass-dark rounded-lg shadow p-4">
+          <p className="text-sm text-slate-400">Approved</p>
           <p className="text-2xl font-bold text-blue-600">
             {orders.filter(o => o.status === 'APPROVED').length}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Total Value</p>
+        <div className="glass-dark rounded-lg shadow p-4">
+          <p className="text-sm text-slate-400">Total Value</p>
           <p className="text-2xl font-bold text-green-600">
             {formatCurrency(orders.reduce((sum, o) => sum + o.totalAmount, 0))}
           </p>
@@ -119,7 +119,7 @@ export default function PurchaseOrdersPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="glass-dark rounded-lg shadow p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
@@ -133,10 +133,10 @@ export default function PurchaseOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="glass-dark rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/5">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PO Number</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
@@ -147,16 +147,16 @@ export default function PurchaseOrdersPage() {
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="glass-dark divide-y divide-gray-200">
               {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={order.id} className="hover:bg-white/5">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                     {order.poNumber}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {order.supplier}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatCurrency(order.totalAmount)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -165,10 +165,10 @@ export default function PurchaseOrdersPage() {
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatDate(order.expectedDelivery)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatDate(order.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

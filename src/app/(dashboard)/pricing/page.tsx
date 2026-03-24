@@ -112,7 +112,7 @@ export default function PricingOptimizationPage() {
 
             {recommendations.length === 0 && !loading && (
                 <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                    <div className="p-4 bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
+                    <div className="p-4 glass-dark rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
                         <DollarSign className="w-8 h-8 text-slate-400" />
                     </div>
                     <h2 className="text-xl font-semibold text-slate-700">Ready for Optimization?</h2>

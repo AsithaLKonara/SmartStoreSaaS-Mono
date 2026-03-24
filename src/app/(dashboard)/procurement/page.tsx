@@ -11,13 +11,13 @@ export default function ProcurementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="procurement-title">Procurement</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage suppliers and purchase orders</p>
+          <h1 className="text-3xl font-bold text-white dark:text-white" data-testid="procurement-title">Procurement</h1>
+          <p className="text-slate-400 dark:text-gray-400">Manage suppliers and purchase orders</p>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-white/5">
         <nav className="-mb-px flex space-x-8">
           {[
             { id: 'overview', name: 'Overview' },
@@ -40,7 +40,7 @@ export default function ProcurementPage() {
       </div>
 
       {/* Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="glass-dark rounded-lg shadow p-6">
         {activeTab === 'overview' && (
           <div>
             <h2 className="text-xl font-semibold mb-4">Procurement Overview</h2>
@@ -67,7 +67,7 @@ export default function ProcurementPage() {
               <h2 className="text-xl font-semibold">Suppliers</h2>
               <Button>Add Supplier</Button>
             </div>
-            <p className="text-gray-600 dark:text-gray-400">Manage your supplier relationships</p>
+            <p className="text-slate-400 dark:text-gray-400">Manage your supplier relationships</p>
           </div>
         )}
 
@@ -77,7 +77,7 @@ export default function ProcurementPage() {
               <h2 className="text-xl font-semibold">Purchase Orders</h2>
               <Button>Create Order</Button>
             </div>
-            <p className="text-gray-600 dark:text-gray-400">Track and manage purchase orders</p>
+            <p className="text-slate-400 dark:text-gray-400">Track and manage purchase orders</p>
           </div>
         )}
       </div>

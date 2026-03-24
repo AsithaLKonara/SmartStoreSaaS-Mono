@@ -41,7 +41,7 @@ export default function OmnichannelDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Omnichannel Management</h1>
-        <p className="text-gray-600 mt-2">Manage all your sales channels</p>
+        <p className="text-slate-400 mt-2">Manage all your sales channels</p>
       </div>
 
       {/* Module Cards */}
@@ -74,25 +74,25 @@ export default function OmnichannelDashboard() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-gray-600">Active Channels</p>
+            <p className="text-xs text-slate-400">Active Channels</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">$0</div>
-            <p className="text-xs text-gray-600">Multi-channel Revenue</p>
+            <p className="text-xs text-slate-400">Multi-channel Revenue</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-gray-600">Synced Products</p>
+            <p className="text-xs text-slate-400">Synced Products</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-gray-600">Pending Orders</p>
+            <p className="text-xs text-slate-400">Pending Orders</p>
           </CardContent>
         </Card>
       </div>

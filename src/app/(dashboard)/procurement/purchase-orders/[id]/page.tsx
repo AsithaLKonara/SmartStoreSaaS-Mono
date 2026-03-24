@@ -164,10 +164,10 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-white dark:text-white">
               PO #{po.orderNumber}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-slate-400 dark:text-gray-400">
               Created {formatDate(po.orderDate)}
             </p>
           </div>
@@ -210,43 +210,43 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Supplier Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Building className="w-5 h-5 mr-2" />
             Supplier
           </h2>
           <dl className="space-y-2">
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Name</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">{po.supplier.name}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Name</dt>
+              <dd className="font-medium text-white dark:text-white">{po.supplier.name}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Code</dt>
-              <dd className="font-mono text-gray-900 dark:text-white">{po.supplier.code}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Code</dt>
+              <dd className="font-mono text-white dark:text-white">{po.supplier.code}</dd>
             </div>
           </dl>
         </div>
 
         {/* Dates */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2" />
             Timeline
           </h2>
           <dl className="space-y-2">
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Order Date</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">{formatDate(po.orderDate)}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Order Date</dt>
+              <dd className="font-medium text-white dark:text-white">{formatDate(po.orderDate)}</dd>
             </div>
             {po.expectedDate && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Expected</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{formatDate(po.expectedDate)}</dd>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Expected</dt>
+                <dd className="font-medium text-white dark:text-white">{formatDate(po.expectedDate)}</dd>
               </div>
             )}
             {po.receivedDate && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Received</dt>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Received</dt>
                 <dd className="font-medium text-green-600">{formatDate(po.receivedDate)}</dd>
               </div>
             )}
@@ -254,15 +254,15 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
         </div>
 
         {/* Total */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <DollarSign className="w-5 h-5 mr-2" />
             Total
           </h2>
-          <div className="text-3xl font-bold text-gray-900 dark:text-white">
+          <div className="text-3xl font-bold text-white dark:text-white">
             {formatCurrency(po.total)}
           </div>
-          <div className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-2 space-y-1 text-sm text-slate-400 dark:text-gray-400">
             <div className="flex justify-between">
               <span>Subtotal:</span>
               <span>{formatCurrency(po.subtotal)}</span>
@@ -280,8 +280,8 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
       </div>
 
       {/* Items */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="glass-dark rounded-lg shadow">
+        <div className="p-6 border-b border-white/5">
           <h2 className="text-lg font-semibold flex items-center">
             <Package className="w-5 h-5 mr-2" />
             Items ({po.items?.length || 0})
@@ -289,7 +289,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50 dark:bg-gray-900">
+            <thead className="bg-white/5 dark:bg-gray-900">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
@@ -304,13 +304,13 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {po.items?.map((item) => (
                 <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-white dark:text-white">
                     {item.product?.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-400 font-mono">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400 dark:text-gray-400 font-mono">
                     {item.product?.sku}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-white dark:text-white">
                     {item.quantity}
                   </td>
                   {po.status !== 'DRAFT' && (
@@ -320,10 +320,10 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
                       </span>
                     </td>
                   )}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-white dark:text-white">
                     {formatCurrency(item.unitPrice)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-white dark:text-white">
                     {formatCurrency(item.quantity * item.unitPrice)}
                   </td>
                 </tr>
@@ -335,9 +335,9 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
 
       {/* Notes */}
       {po.notes && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">Notes</h2>
-          <p className="text-gray-600 dark:text-gray-400">{po.notes}</p>
+          <p className="text-slate-400 dark:text-gray-400">{po.notes}</p>
         </div>
       )}
     </div>

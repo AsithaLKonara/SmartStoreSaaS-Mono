@@ -243,15 +243,15 @@ export default function NewOrderPage() {
           Back
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New Order</h1>
-          <p className="text-gray-600">Order #{orderData.orderNumber}</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Create New Order</h1>
+          <p className="text-slate-400">Order #{orderData.orderNumber}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Customer Selection */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="glass-dark rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center">
               <User className="w-5 h-5 mr-2" />
               Customer
@@ -278,12 +278,12 @@ export default function NewOrderPage() {
                     key={customer.id}
                     className={`p-3 border rounded-lg cursor-pointer transition-colors ${selectedCustomer?.id === customer.id
                         ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                        : 'border-white/5 hover:border-gray-300'
                       }`}
                     onClick={() => setSelectedCustomer(customer)}
                   >
                     <div className="font-medium">{customer.name}</div>
-                    <div className="text-sm text-gray-600">{customer.email}</div>
+                    <div className="text-sm text-slate-400">{customer.email}</div>
                     <div className="text-sm text-gray-500">{customer.phone}</div>
                   </div>
                 ))}
@@ -303,7 +303,7 @@ export default function NewOrderPage() {
 
         {/* Product Selection */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="glass-dark rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center">
               <Package className="w-5 h-5 mr-2" />
               Products
@@ -323,12 +323,12 @@ export default function NewOrderPage() {
               {Array.isArray(filteredProducts) && filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 transition-colors"
+                  className="p-4 border border-white/5 rounded-lg hover:border-gray-300 transition-colors"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <div className="font-medium">{product.name}</div>
-                      <div className="text-sm text-gray-600">SKU: {product.sku}</div>
+                      <div className="text-sm text-slate-400">SKU: {product.sku}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-green-600">
@@ -357,7 +357,7 @@ export default function NewOrderPage() {
 
       {/* Order Items */}
       {orderItems.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <ShoppingCart className="w-5 h-5 mr-2" />
             Order Items
@@ -365,10 +365,10 @@ export default function NewOrderPage() {
 
           <div className="space-y-4">
             {orderItems.map((item) => (
-              <div key={item.productId} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <div key={item.productId} className="flex items-center justify-between p-4 border border-white/5 rounded-lg">
                 <div className="flex-1">
                   <div className="font-medium">{item.product.name}</div>
-                  <div className="text-sm text-gray-600">SKU: {item.product.sku}</div>
+                  <div className="text-sm text-slate-400">SKU: {item.product.sku}</div>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -407,7 +407,7 @@ export default function NewOrderPage() {
             ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-6 pt-4 border-t border-white/5">
             <div className="flex justify-between items-center">
               <div className="text-lg font-semibold">Total Amount:</div>
               <div className="text-2xl font-bold text-green-600">
@@ -419,7 +419,7 @@ export default function NewOrderPage() {
       )}
 
       {/* Order Details */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="glass-dark rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold mb-4">Order Details</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

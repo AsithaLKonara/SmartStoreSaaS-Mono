@@ -78,7 +78,7 @@ export default function POSDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Point of Sale</h1>
-          <p className="text-gray-600 mt-2">Manage in-store sales and terminals</p>
+          <p className="text-slate-400 mt-2">Manage in-store sales and terminals</p>
         </div>
         <Button asChild>
           <Link href="/pos/terminal">
@@ -100,7 +100,7 @@ export default function POSDashboard() {
                     <Icon className={`w-6 h-6 ${module.color}`} />
                   </div>
                   <CardTitle>{module.title}</CardTitle>
-                  <p className="text-sm text-gray-600">{module.description}</p>
+                  <p className="text-sm text-slate-400">{module.description}</p>
                 </CardHeader>
               </Card>
             </Link>
@@ -113,25 +113,25 @@ export default function POSDashboard() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{terminals.length}</div>
-            <p className="text-xs text-gray-600">Active Terminals</p>
+            <p className="text-xs text-slate-400">Active Terminals</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">$0</div>
-            <p className="text-xs text-gray-600">Today&apos;s Sales</p>
+            <p className="text-xs text-slate-400">Today&apos;s Sales</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-gray-600">Transactions Today</p>
+            <p className="text-xs text-slate-400">Transactions Today</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">$0</div>
-            <p className="text-xs text-gray-600">Open Cash Drawers</p>
+            <p className="text-xs text-slate-400">Open Cash Drawers</p>
           </CardContent>
         </Card>
       </div>
@@ -145,12 +145,12 @@ export default function POSDashboard() {
           <CardContent>
             <div className="space-y-2">
               {terminals.map((terminal: any) => (
-                <div key={terminal.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div key={terminal.id} className="flex items-center justify-between p-3 bg-white/5 rounded">
                   <div className="flex items-center gap-3">
                     <Monitor className="w-5 h-5 text-gray-500" />
                     <div>
                       <div className="font-medium">{terminal.terminalName}</div>
-                      <div className="text-sm text-gray-600">{terminal.terminalCode}</div>
+                      <div className="text-sm text-slate-400">{terminal.terminalCode}</div>
                     </div>
                   </div>
                   <span className={`px-2 py-1 text-xs rounded ${terminal.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>

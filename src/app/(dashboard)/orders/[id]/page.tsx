@@ -132,8 +132,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     return (
       <div className="p-6">
         <div className="text-center max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Order Not Found</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <h1 className="text-2xl font-bold text-white dark:text-white mb-4">Order Not Found</h1>
+          <p className="text-slate-400 dark:text-gray-400 mb-6">
             The order you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
           </p>
           <Button onClick={() => router.push('/dashboard/orders')}>
@@ -155,10 +155,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-white dark:text-white">
               Order #{order.orderNumber}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-slate-400 dark:text-gray-400">
               Created {formatDate(order.createdAt)}
             </p>
           </div>
@@ -196,53 +196,53 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Customer Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
             <Mail className="w-5 h-5 mr-2" />
             Customer
           </h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
-              <p className="font-medium text-gray-900 dark:text-white">{order.customer?.name}</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">Name</p>
+              <p className="font-medium text-white dark:text-white">{order.customer?.name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-              <p className="font-medium text-gray-900 dark:text-white">{order.customer?.email}</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">Email</p>
+              <p className="font-medium text-white dark:text-white">{order.customer?.email}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
-              <p className="font-medium text-gray-900 dark:text-white">
+              <p className="text-sm text-slate-400 dark:text-gray-400">Phone</p>
+              <p className="font-medium text-white dark:text-white">
                 {order.customer?.phone ? formatPhoneNumber(order.customer.phone) : 'N/A'}
               </p>
             </div>
             {order.shippingAddress && (
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                <p className="text-sm text-slate-400 dark:text-gray-400 flex items-center">
                   <MapPin className="w-4 h-4 mr-1" />
                   Shipping Address
                 </p>
-                <p className="font-medium text-gray-900 dark:text-white">{order.shippingAddress}</p>
+                <p className="font-medium text-white dark:text-white">{order.shippingAddress}</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Order Status */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
             <Clock className="w-5 h-5 mr-2" />
             Status
           </h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Order Status</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">Order Status</p>
               <p className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status]}`}>
                 {order.status.replace('_', ' ')}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Payment Status</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">Payment Status</p>
               <p className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
                 order.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
                 order.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
@@ -252,35 +252,35 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Payment Method</p>
-              <p className="font-medium text-gray-900 dark:text-white">{order.paymentMethod}</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">Payment Method</p>
+              <p className="font-medium text-white dark:text-white">{order.paymentMethod}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Last Updated</p>
-              <p className="font-medium text-gray-900 dark:text-white">{formatDate(order.updatedAt)}</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">Last Updated</p>
+              <p className="font-medium text-white dark:text-white">{formatDate(order.updatedAt)}</p>
             </div>
           </div>
         </div>
 
         {/* Order Total */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Summary</h2>
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-4">Summary</h2>
           <div className="space-y-2">
             {order.subtotal && (
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                <span className="text-slate-400 dark:text-gray-400">Subtotal</span>
                 <span className="font-medium">{formatCurrency(order.subtotal)}</span>
               </div>
             )}
             {order.tax !== undefined && (
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Tax</span>
+                <span className="text-slate-400 dark:text-gray-400">Tax</span>
                 <span className="font-medium">{formatCurrency(order.tax)}</span>
               </div>
             )}
             {order.shipping !== undefined && (
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Shipping</span>
+                <span className="text-slate-400 dark:text-gray-400">Shipping</span>
                 <span className="font-medium">{formatCurrency(order.shipping)}</span>
               </div>
             )}
@@ -290,10 +290,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 <span className="font-medium">-{formatCurrency(order.discount)}</span>
               </div>
             )}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+            <div className="border-t border-white/5 pt-2 mt-2">
               <div className="flex justify-between">
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                <span className="text-lg font-semibold text-white dark:text-white">Total</span>
+                <span className="text-2xl font-bold text-white dark:text-white">
                   {formatCurrency(order.totalAmount)}
                 </span>
               </div>
@@ -303,16 +303,16 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
       </div>
 
       {/* Order Items */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+      <div className="glass-dark rounded-lg shadow">
+        <div className="p-6 border-b border-white/5">
+          <h2 className="text-lg font-semibold text-white dark:text-white flex items-center">
             <Package className="w-5 h-5 mr-2" />
             Items ({order.items?.length || 0})
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
+            <thead className="bg-white/5 dark:bg-gray-900">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Product
@@ -331,24 +331,24 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="glass-dark divide-y divide-gray-200 dark:divide-gray-700">
               {order.items?.map((item) => (
                 <tr key={item.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900 dark:text-white">
+                    <div className="font-medium text-white dark:text-white">
                       {item.product?.name}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600 dark:text-gray-400">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400 dark:text-gray-400">
                     {item.product?.sku}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-white dark:text-white">
                     {item.quantity}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-white dark:text-white">
                     {formatCurrency(item.price)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-white dark:text-white">
                     {formatCurrency(item.quantity * item.price)}
                   </td>
                 </tr>
@@ -360,9 +360,9 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
       {/* Notes */}
       {order.notes && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Notes</h2>
-          <p className="text-gray-600 dark:text-gray-400">{order.notes}</p>
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-2">Notes</h2>
+          <p className="text-slate-400 dark:text-gray-400">{order.notes}</p>
         </div>
       )}
     </div>
