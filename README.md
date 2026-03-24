@@ -1,435 +1,128 @@
-# 🚀 SmartStore SaaS - AI-Powered E-commerce Platform
+# 🚀 SmartStore: The Multi-Tenant Commerce Operating System
+*(Marketplace + SaaS Storefront + ERP + POS)*
 
-**Status**: 🔵 **ENHANCED CAPABILITIES - PHASE 10 COMPLETE**  
-**Version**: 2.5.0  
-**Last Updated**: February 20, 2026
+**Status**: 🔵 **PHASE 11 COMPLETE - ARCHITECTURE UPGRADE TO GLOBAL MARKETPLACE**  
+**Version**: 3.0.0  
+**Last Updated**: March 24, 2026
 
-A comprehensive, AI-powered multi-channel commerce automation platform built with Next.js 14, PostgreSQL, Redis, and Docker. Features a complete settings management system, AI-powered recommendations, and comprehensive business intelligence.
-
-## 🏢 **Architecture & Feature Deep Dive**
-
-SmartStore SaaS is a multi-tenant ERP orchestrator. Below are the key technical highlights:
-
-### 🏢 Multi-Tenancy & Isolation
-- **Workspace Scoping**: Every record is strictly linked to an `organizationId`.
-- **RBAC**: Sophisticated Role-Based Access Control (Admin, Manager, Staff).
-
-### 🤖 AI Engine
-- **Text-to-Order NLP**: Parses natural language (e.g., from WhatsApp) into structured orders.
-- **Smart Segmentation**: Automatically flags "High-Value" and "Frequent" buyers.
-
-### 📡 IoT & Financials
-- **Smart Monitoring**: Real-time telemetry ingestion with threshold-based alerting.
-- **Dynamic Invoicing**: Automated PDF generation with integrated QR payments.
-- **Currency Engine**: Real-time exchange rate management with robust fallback.
-
-## ✨ **Recent Enhancements (v2.5.0)**
-
-### 🤖 Advanced AI & Analytics
-- **Financial AI Controller**: Real-time financial health monitoring and automated reporting.
-- **AI Assistant 2.0**: Context-aware AI assistant with deep integration into business workflows.
-- **AI Benchmarking**: Automated performance benchmarking against industry standards.
-- **Social Commerce AI**: Intelligent product placement and engagement tracking for social platforms.
-
-### 🌐 IoT Intelligence & Automation
-- **Predictive Maintenance**: IoT-driven alerts for hardware and infrastructure.
-- **Smart Insights**: Real-time operational intelligence from connected devices.
-- **Inventory Autopilot**: AI-driven stock management with automated reordering.
-
-### 💸 Multi-Gateway Payments & Pricing
-- **Payment Diversification**: Integrated PayPal, PayHere, and Sri Lanka QR (LankaQR).
-- **Dynamic Pricing Engine**: Real-time price optimization based on demand, competition, and stock levels.
-- **Subscription & Billing**: Enhanced recurring billing and subscription management.
-
-### 🛡️ Core Infrastructure & Security
-- **Real-time Sync**: Enhanced data synchronization across multiple workspaces.
-- **Security Monitoring**: Proactive threat detection and automated security audits.
-- **Audit Logging**: Granular activity tracking for compliance and security.
-- **Omnichannel Orchestration**: Unified management of WhatsApp, Email, and SMS communications.
-
-## 🚀 **Quick Start**
-
-### Prerequisites
-- Node.js 18+
-- Docker & Docker Compose
-- PostgreSQL 14+
-- Redis 6+
-
-### Quick Setup
-```bash
-# Clone and install
-git clone <your-repo-url>
-cd SmartStoreSaaS
-npm install
-
-# Environment setup
-cp env.example .env.local
-# Edit .env.local with your configuration
-
-# Database setup
-npm run db:generate
-npm run db:push
-npm run db:seed
-
-# Development
-npm run dev
-# App runs on http://localhost:3000
-```
-
-### Docker Setup
-```bash
-# Start all services
-docker-compose up -d
-
-# Production deployment
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 🏗️ Architecture Overview
-
-### Monolithic Services
-
-- **App**: Next.js application (port 3000)
-- **PostgreSQL**: Primary database (port 5432)
-- **Redis**: Caching and sessions (port 6379)
-- **Ollama**: Local AI models (port 11434)
-- **Nginx**: Reverse proxy with SSL (ports 80, 443)
-- **Redis Commander**: Redis management (port 8082)
-
-### Key Features
-
-- **Multi-tenant SaaS**: Organization-based isolation
-- **AI-Powered**: OpenAI integration + local Ollama models
-- **Real-time**: WebSocket support for live updates
-- **Multi-channel**: WhatsApp, email, SMS integration
-- **Payment Processing**: Stripe, PayPal, PayHere
-- **Inventory Management**: Advanced warehouse operations
-- **Analytics**: Real-time business intelligence
-- **Security**: MFA, rate limiting, audit logging
-- **Comprehensive Settings**: Organization, user, AI, security, and notification management
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Key environment variables in `.env`:
-
-```bash
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/smartstore?schema=public
-REDIS_URL=redis://redis:6379
-
-# Authentication
-NEXTAUTH_SECRET=your-secret-key
-JWT_SECRET=your-jwt-secret
-
-# AI Services
-OPENAI_API_KEY=your-openai-key
-OLLAMA_BASE_URL=http://ollama:11434
-
-# Payment Gateways
-STRIPE_SECRET_KEY=your-stripe-key
-PAYPAL_CLIENT_ID=your-paypal-id
-
-# External Services
-TWILIO_ACCOUNT_SID=your-twilio-sid
-FACEBOOK_APP_ID=your-facebook-id
-```
-
-### SSL Configuration
-
-For production, replace the self-signed certificates in `ssl/` with your domain certificates.
-
-## 📊 Database Schema
-
-The application uses PostgreSQL with Prisma ORM and the following main models:
-
-- **Users**: Authentication and user management with role-based access
-- **Organizations**: Multi-tenant isolation with comprehensive settings
-- **Products**: Product catalog management with AI-powered recommendations
-- **Orders**: Order processing and tracking with delivery management
-- **Customers**: Customer relationship management with loyalty programs
-- **Inventory**: Stock and warehouse management with real-time tracking
-- **Analytics**: Business intelligence data with predictive analytics
-- **Chat**: AI-powered customer support with context awareness
-- **Integrations**: WooCommerce, WhatsApp, and courier service integrations
-
-## 🚀 Deployment
-
-### Development
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-### Production
-
-1. **Update environment variables**
-2. **Replace SSL certificates**
-3. **Configure domain names**
-4. **Set up monitoring and logging**
-5. **Configure backups**
-
-### Scaling
-
-```bash
-# Scale the main application
-docker-compose up -d --scale app=3
-
-# Scale with load balancer
-docker-compose up -d --scale app=5
-```
-
-## 🔍 Monitoring & Management
-
-### Health Checks
-
-- **Application**: `http://localhost:3000/api/health`
-- **PostgreSQL**: `docker-compose exec postgres psql -U username -d smartstore -c "SELECT 1"`
-- **Redis**: `docker-compose exec redis redis-cli ping`
-
-### Logs
-
-```bash
-# View all logs
-docker-compose logs -f
-
-# View specific service logs
-docker-compose logs -f app
-docker-compose logs -f postgres
-docker-compose logs -f redis
-```
-
-### Database Management
-
-- **PostgreSQL**: Direct connection via psql or pgAdmin
-- **Redis Commander**: http://localhost:8082
-
-## 🛠️ Development
-
-### Local Development
-
-```bash
-# Install dependencies
-npm install
-
-# Generate Prisma client
-npx prisma generate
-
-# Run database migrations
-npx prisma db push
-
-# Start development server
-npm run dev
-```
-
-### Testing
-
-```bash
-# Run tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run security tests
-npm run test:security
-```
-
-### Code Quality
-
-```bash
-# Lint code
-npm run lint
-
-# Type check
-npm run type-check
-
-# Security audit
-npm run security:audit
-```
-
-## 🔒 Security Features
-
-- **Authentication**: NextAuth.js with MFA support
-- **Authorization**: Role-based access control (ADMIN, STAFF, USER)
-- **Rate Limiting**: API endpoint protection
-- **Input Validation**: Zod schema validation
-- **SQL Injection Protection**: Prisma ORM
-- **XSS Protection**: Security headers
-- **CSRF Protection**: Built-in Next.js protection
-- **Audit Logging**: Comprehensive activity tracking
-- **Session Management**: Configurable timeout and concurrent session limits
-
-## 📱 PWA Features
-
-- **Offline Support**: Service worker implementation
-- **Push Notifications**: Web Push API
-- **Install Prompt**: Add to home screen
-- **Background Sync**: Offline data synchronization
-
-## 🔄 API Endpoints
-
-### Authentication
-- `POST /api/auth/signin` - User sign in
-- `POST /api/auth/signup` - User registration
-- `GET /api/auth/[...nextauth]` - NextAuth.js routes
-
-### Core Operations
-- `GET /api/products` - Product management
-- `GET /api/orders` - Order processing
-- `GET /api/customers` - Customer management
-- `GET /api/analytics` - Business intelligence
-- `GET /api/chat` - AI-powered chat
-
-### Settings Management
-- `GET /api/settings/organization` - Organization settings
-- `PUT /api/settings/organization` - Update organization settings
-- `GET /api/settings/users` - User management
-- `POST /api/settings/users` - Create new user
-- `PUT /api/settings/users` - Update user
-- `DELETE /api/settings/users` - Deactivate user
-- `GET /api/settings/ai` - AI configuration
-- `PUT /api/settings/ai` - Update AI settings
-- `GET /api/settings/security` - Security settings
-- `PUT /api/settings/security` - Update security settings
-- `GET /api/settings/notifications` - Notification preferences
-- `PUT /api/settings/notifications` - Update notification settings
-- `GET /api/settings/billing` - Billing information
-- `PUT /api/settings/billing` - Update billing settings
-- `GET /api/settings/integrations` - Integration management
-- `PUT /api/settings/integrations` - Update integrations
-
-### AI & Analytics
-- `GET /api/ai/recommendations` - AI-powered product recommendations
-- `GET /api/analytics/dashboard` - Business intelligence dashboard
-- `GET /api/analytics/enhanced` - Enhanced analytics with AI insights
-
-### Integrations
-- `GET /api/integrations` - Third-party services
-- `GET /api/webhooks` - Webhook management
-- `GET /api/sync` - Data synchronization
-- `GET /api/integrations/setup` - Integration setup status
-
-### Health & Monitoring
-- `GET /api/health` - Application health status
-- `GET /api/readyz` - Readiness probe
-- `GET /api/ready` - Liveness probe
-
-## 🎛️ Settings System
-
-### Organization Settings
-- **Basic Information**: Name, domain, description
-- **Plan Management**: Current plan, features, limits
-- **Branding**: Logo, colors, custom CSS
-
-### User Management
-- **User Accounts**: Create, edit, deactivate users
-- **Role Management**: ADMIN, STAFF, USER roles
-- **Permissions**: Granular access control
-- **Activity Tracking**: User login history and actions
-
-### AI Configuration
-- **Recommendation Engine**: Collaborative filtering, content-based filtering
-- **Predictive Analytics**: Demand forecasting, churn prediction
-- **Marketing Automation**: Abandoned cart recovery, birthday campaigns
-
-### Security Settings
-- **Password Policy**: Length, complexity, expiry requirements
-- **Multi-Factor Authentication**: TOTP, backup codes
-- **Session Management**: Timeout, concurrent session limits
-- **Access Control**: IP restrictions, device management
-
-### Notification Preferences
-- **Email Notifications**: Order updates, inventory alerts, reports
-- **SMS Notifications**: Order confirmations, delivery updates
-- **Push Notifications**: Real-time alerts, AI insights
-
-### Billing & Subscription
-- **Plan Management**: Upgrade, downgrade, cancellation
-- **Payment Methods**: Credit cards, digital wallets
-- **Billing History**: Invoice management, payment tracking
-- **Usage Analytics**: Resource consumption, cost optimization
-
-### Integration Management
-- **WooCommerce**: Store synchronization, product sync
-- **WhatsApp Business**: Customer messaging, automation
-- **Courier Services**: Delivery tracking, logistics optimization
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-1. **Port conflicts**: Check if required ports are available
-2. **Memory issues**: Ensure sufficient RAM (4GB+)
-3. **SSL errors**: Verify certificate configuration
-4. **Database connection**: Check PostgreSQL container status
-5. **Prisma client issues**: Run `npx prisma generate` after schema changes
-
-### Debug Commands
-
-```bash
-# Check container status
-docker-compose ps
-
-# View container logs
-docker-compose logs <service-name>
-
-# Access container shell
-docker-compose exec <service-name> sh
-
-# Restart specific service
-docker-compose restart <service-name>
-
-# Regenerate Prisma client
-npx prisma generate
-
-# Reset database
-npx prisma db push --force-reset
-```
-
-### Performance Optimization
-
-- **Database indexing**: Optimize PostgreSQL queries
-- **Redis caching**: Implement strategic caching
-- **Image optimization**: Use Next.js image optimization
-- **CDN**: Configure content delivery network
-- **Prisma optimization**: Use select and include for efficient queries
-
-## 📚 Additional Resources
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs)
-- [Docker Documentation](https://docs.docker.com)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the troubleshooting section
-- Review the documentation
+SmartStore has evolved from a single-tenant SaaS ERP into a **Unified Multi-Tenant Commerce Operating System**. It seamlessly bridges the gap between offline Brick-and-Mortar retail and global digital commerce by marrying a Square-style POS, a Shopify-style SaaS Storefront, and a Daraz/AliExpress-style Global Marketplace into one underlying database.
 
 ---
 
-**Built with ❤️ using modern web technologies**
+## 🏢 **The Four Pillars of SmartStore**
+
+### 1. 🌍 The Global Marketplace (The AliExpress Model)
+A centralized storefront (`www.yourdomain.com`) where products from thousands of independent verified tenants are aggregated globally.
+*   **Global Catalog**: Customers can search and discover millions of products across all opted-in tenants.
+*   **Unified Cart**: Shoppers can add products from Tenant A, Tenant B, and Tenant C into one single checkout cart.
+*   **Split-Order Engine**: Upon checkout, the system generates one Master Order, executing Stripe Connect Destination Charges to instantly distribute funds to respective merchants while taking a centralized platform commission. Sub-orders are automatically injected into the individual merchants' native ERPs.
+
+### 2. 🏪 SaaS E-Commerce Storefronts (The Shopify Model)
+Independent storefronts (`tenant.yourdomain.com` or custom domains) generated for each merchant.
+*   **Brand Isolation**: Customers checking out here only interact with the isolated Tenant's ecosystem.
+*   **Shared Inventory**: Products sold here instantly deduct from the same database row that powers the POS and the Global Marketplace, preventing overselling.
+
+### 3. 📊 Backend Management ERP
+The nerve center for merchant operations located at `app.yourdomain.com/dashboard`.
+*   **Omnichannel Order Triage**: Merchants process orders originating from their physical POS, their private website, or the Global Marketplace side-by-side (complete with visual origin badging).
+*   **AI Financial Auto-Pilot**: AI-driven insights into cash flow, top-performing marketplace products, and cost-of-goods forecasting.
+*   **Fulfillment Management**: Out-of-the-box integrations with global couriers mapped to localized tenant rules.
+
+### 4. 💳 Customer & Sales Management POS
+A completely browser-based, touch-optimized Point of Sale terminal (`/pos/terminal`).
+*   **Hardware Connectivity**: Connects to digital cash drawers, receipt printers, and barcode scanners.
+*   **Offline Mode**: Local Storage caching allows the terminal to process cash transactions during network outages and synchronize them back to the ERP automatically when reconnected.
+
+---
+
+## ✨ **Core Architecture & Financials**
+
+### 💸 Multi-Gateway & Commission Routing (Stripe Connect)
+The platform utilizes **Stripe Connect** to ensure legal compliance for global payouts. 
+1.  **Merchant Onboarding**: Tenants authenticate their business entities via Stripe inside their ERP dashboard.
+2.  **Platform Fee**: The root platform extracts an automated percentage (e.g., 5%) from every Global Marketplace transaction.
+3.  **Destination Charges**: The `transfer_group` API handles the legal payload of paying merchants their exact cuts immediately without the funds touching your native bank account (skipping money-transmitter liability).
+
+### 🏢 Database Tenancy Isolation
+Data privacy is tightly guaranteed by `organizationId` schemas. The `Order`, `Product`, `Customer`, and `Inventory` tables utilize row-level scoping so the ERP heavily restricts data access exclusively to the tenant, while the Marketplace layer specifically queries `where: { isMarketplacePublished: true }`.
+
+---
+
+## 🚀 **Quick Start & Deployment**
+
+### Prerequisites
+*   Node.js 18+
+*   PostgreSQL 14+
+*   Redis 6+
+*   Stripe Account (with Connect enabled)
+
+### Local Setup
+```bash
+# 1. Clone the repository
+git clone <your-repo-url>
+cd SmartStoreSaaS
+
+# 2. Install Dependencies
+npm install
+
+# 3. Environment Variables
+cp env.example .env.local
+# You must configure STRIPE_SECRET_KEY to test the marketplace checkout splits!
+
+# 4. Database Initialization
+npx prisma generate
+npx prisma db push
+
+# 5. Start Development Server
+npm run dev
+# The Global Marketplace runs at http://localhost:3000/marketplace
+# The ERP Dashboard runs at http://localhost:3000/dashboard
+# The POS Terminal runs at http://localhost:3000/pos/terminal
+```
+
+---
+
+## 🔧 **Configuration & Environment Variables**
+
+Key environment variables required in `.env` for the Commerce OS features:
+
+```bash
+# Database & Caching
+DATABASE_URL=postgresql://username:password@localhost:5432/smartstore?schema=public
+REDIS_URL=redis://localhost:6379
+
+# Authentication & Security
+NEXTAUTH_SECRET=your-nextauth-secret
+NEXTAUTH_URL=http://localhost:3000
+
+# Stripe Connect & Split Payments
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# AI Models (Optional for standard commerce)
+OPENAI_API_KEY=sk-...
+```
+
+---
+
+## 📊 **Database Schema Overview**
+
+The Prisma schema powers the multi-channel synchronization:
+*   **`Product`**: Contains `isMarketplacePublished` flags and stock trackers. Ties directly into both the local POS and global web catalogs.
+*   **`Order`**: Utilizes `parentOrderId` to group multiple merchant transactions under a single global marketplace checkout flow.
+*   **`Organization`**: Functions as the core "Tenant". Stores `stripeConnectAccountId` and `platformCommissionRate`.
+*   **`PosTransaction`**: Specialized ledger exclusively for tracking offline-synced terminal actions before they mature into global Orders.
+*   **`InventoryMovement`**: An append-only ledger providing strict stock accounting for returns, damages, sales, and procurements.
+
+---
+
+## 📚 **Troubleshooting & Development**
+
+*   **Next.js 500 Errors on the POS**: The POS terminal utilizes a specialized `(pos-app)` route group. Ensure webpack is cleanly compiled by restarting your dev server if you make modifications to the root Context providers.
+*   **Failed Split Checkouts**: A marketplace checkout will `Throw 500` if the merchants added to the cart have not authenticated their `stripeConnectAccountId` in the database. Ensure dummy tenants have a Stripe ID connected before testing cross-tenant global carts.
+*   **Prisma Client Out of Sync**: Run `npx prisma generate` after modifying `schema.prisma` to prevent silent TS resolution errors across API routes.
+
+---
+
+**Built to scale merchants globally with Next.js & Prisma.**
