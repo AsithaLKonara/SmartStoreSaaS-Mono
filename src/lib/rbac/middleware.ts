@@ -90,6 +90,23 @@ export async function requireStaff(request: NextRequest) {
   return checkRole(request, [UserRole.SUPER_ADMIN, UserRole.TENANT_ADMIN, UserRole.STAFF]);
 }
 
+// POS specific checks
+export async function requirePosTerminal(request: NextRequest) {
+  return checkPermission(request, 'pos.use_terminal');
+}
+
+export async function requirePosPayment(request: NextRequest) {
+  return checkPermission(request, 'pos.process_payment');
+}
+
+export async function requirePosRefund(request: NextRequest) {
+  return checkPermission(request, 'pos.refund');
+}
+
+export async function requirePosManageShift(request: NextRequest) {
+  return checkPermission(request, 'pos.manage_shift');
+}
+
 /**
  * Legacy Support Functions
  */
