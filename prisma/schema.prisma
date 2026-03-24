@@ -31,6 +31,7 @@ model User {
   returnsApproved       Return[]
   giftCardsIssued       GiftCard[]
   posTransactions       PosTransaction[]
+  posShifts             PosShift[]
   procurementInvoices   ProcurementInvoice[]
   rfqs                  RFQ[]
 
@@ -52,6 +53,11 @@ enum UserRole {
   TENANT_ADMIN
   STAFF
   CUSTOMER
+  OWNER
+  MANAGER
+  CASHIER
+  WAREHOUSE
+  ACCOUNTANT
 }
 
 enum ActionOrigin {
@@ -207,6 +213,8 @@ model Organization {
   logo                    String?
   status                  OrganizationStatus       @default(ACTIVE)
   plan                    PlanType                 @default(FREE)
+  stripeConnectAccountId  String?
+  platformCommissionRate  Float?
   settings                Json?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
@@ -262,6 +270,8 @@ model Organization {
   workflows               Workflow[]
   personalizationExperiments PersonalizationExperiment[]
   webhookSubscriptions      WebhookSubscription[]
+  inventoryMovements        InventoryMovement[]
+  shippingProfiles          ShippingProfile[]
   @@map("organizations")
 }
 
@@ -271,12 +281,12 @@ model Customer {
   email                      String
   phone                      String?
   address                    Json?
-  organizationId             String
+  organizationId             String?
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
   loyalty                    CustomerLoyalty[]
   segmentCustomers           CustomerSegmentCustomer[]
-  organization               Organization                 @relation(fields: [organizationId], references: [id])
+  organization               Organization?                @relation(fields: [organizationId], references: [id])
   orders                     Order[]
   whatsappMessages           WhatsAppMessage[]
   wishlists                  Wishlist[]
@@ -289,6 +299,7 @@ model Customer {
   subscriptions              Subscription[]
   conversations              Conversation[]
   paymentIntents             PaymentIntent[]
+  orderGroups                OrderGroup[]
  
   createdByOrigin            ActionOrigin                 @default(human)
   updatedByOrigin            ActionOrigin                 @default(human)
@@ -320,6 +331,10 @@ model Product {
   rating             Float                @default(0)
   reviewCount        Int                  @default(0)
   slug               String?              @unique
+  isMarketplacePublished Boolean          @default(false)
+  marketplaceCategory String?
+  marketplaceCommissionOverride Float?
+  marketplaceApproved Boolean             @default(false)
   createdById        String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
@@ -365,6 +380,7 @@ model Category {
   id               String     @id @default(cuid())
   name             String
   description      String?
+  marketplaceCommissionRate Float?
   parentId         String?
   isActive         Boolean    @default(true)
   createdAt        DateTime   @default(now())
@@ -379,6 +395,22 @@ model Category {
   @@index([organizationId])
 }
 
+model OrderGroup {
+  id             String   @id @default(cuid())
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  totalAmount    Decimal
+  currency       String   @default("USD")
+  status         String   @default("PENDING")
+  stripeSessionId String?  @unique
+  transferGroup  String?  @unique
+  orders         Order[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("order_groups")
+}
+
 model Order {
   id                   String                @id @default(cuid())
   orderNumber          String                @unique
@@ -391,6 +423,9 @@ model Order {
   shipping             Decimal               @default(0)
   discount             Decimal               @default(0)
   notes                String?
+  parentOrderId        String?
+  orderGroupId         String?
+  orderGroup           OrderGroup?           @relation(fields: [orderGroupId], references: [id])
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   deliveries           Delivery[]
@@ -488,6 +523,15 @@ model Courier {
   @@map("couriers")
 }
 
+enum InventoryMovementType {
+  SALE
+  RETURN
+  ADJUSTMENT
+  PURCHASE
+  DAMAGE
+  POS_OFFLINE_SYNC
+}
+
 model ProductVariant {
   id                  String              @id @default(cuid())
   name                String
@@ -510,16 +554,19 @@ model ProductVariant {
 }
 
 model InventoryMovement {
-  id               String          @id @default(cuid())
+  id               String                @id @default(cuid())
+  organizationId   String
   productId        String
   variantId        String?
-  type             String
+  type             InventoryMovementType
   quantity         Int
   reason           String?
-  reference        String?
-  createdAt        DateTime        @default(now())
-  product_variants ProductVariant? @relation(fields: [variantId], references: [id])
-  product          Product         @relation(fields: [productId], references: [id])
+  referenceId      String?
+  referenceType    String?
+  createdAt        DateTime              @default(now())
+  product_variants ProductVariant?       @relation(fields: [variantId], references: [id])
+  product          Product               @relation(fields: [productId], references: [id])
+  organization     Organization          @relation(fields: [organizationId], references: [id])
 
   @@map("inventory_movements")
 }
@@ -575,6 +622,25 @@ model Report {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   @@map("reports")
+}
+
+model ShippingProfile {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  region         String
+  carrier        String?
+  basePrice      Decimal
+  pricePerItem   Decimal?
+  pricePerKg     Decimal?
+  minDays        Int?
+  maxDays        Int?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("shipping_profiles")
 }
 
 model Warehouse {
@@ -635,6 +701,20 @@ model AiAnalytics {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   @@map("ai_analytics")
+}
+
+model DailySalesSnapshot {
+  id             String   @id @default(cuid())
+  organizationId String?  // Optional: null means platform-wide
+  date           DateTime
+  totalSales     Decimal
+  orderCount     Int
+  commissionEarned Decimal?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, date])
+  @@map("daily_sales_snapshots")
 }
 
 // AiConversation unified into Conversation
@@ -788,23 +868,45 @@ model IotDevice {
 
 model PosTerminal {
   id             String           @id @default(cuid())
+  storeId        String?
   name           String
   location       String?
   type           String           @default("STANDARD")
+  status         String           @default("OFFLINE")
+  lastActive     DateTime?
   isActive       Boolean          @default(true)
   organizationId String
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   organization   Organization     @relation(fields: [organizationId], references: [id])
   transactions   PosTransaction[]
+  shifts         PosShift[]
 
   @@map("pos_terminals")
+}
+
+model PosShift {
+  id             String       @id @default(cuid())
+  terminalId     String
+  userId         String
+  openingCash    Decimal      @default(0)
+  closingCash    Decimal?
+  startTime      DateTime     @default(now())
+  endTime        DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  terminal       PosTerminal  @relation(fields: [terminalId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@map("pos_shifts")
 }
 
 model PosTransaction {
   id             String      @id @default(cuid())
   organizationId String
   terminalId     String
+  orderId        String?
   itemsJson      Json?       @map("items") // Kept for transition
   total          Decimal
   paymentMethod  String      @default("CASH")
