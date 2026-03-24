@@ -139,7 +139,7 @@ export default function EnhancedAnalyticsPage() {
       case 'error': return <AlertTriangle className="w-4 h-4 text-red-600" />;
       case 'info': return <CheckCircle className="w-4 h-4 text-blue-600" />;
       case 'success': return <CheckCircle className="w-4 h-4 text-green-600" />;
-      default: return <CheckCircle className="w-4 h-4 text-gray-600" />;
+      default: return <CheckCircle className="w-4 h-4 text-slate-400" />;
     }
   };
 
@@ -149,7 +149,7 @@ export default function EnhancedAnalyticsPage() {
       case 'error': return 'bg-red-50 border-red-200 text-red-800';
       case 'info': return 'bg-blue-50 border-blue-200 text-blue-800';
       case 'success': return 'bg-green-50 border-green-200 text-green-800';
-      default: return 'bg-gray-50 border-gray-200 text-gray-800';
+      default: return 'bg-white/5 border-white/10 text-gray-800';
     }
   };
 
@@ -171,8 +171,8 @@ export default function EnhancedAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Enhanced Analytics</h1>
-          <p className="text-gray-600 dark:text-gray-400">Comprehensive business intelligence and insights</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Enhanced Analytics</h1>
+          <p className="text-slate-400 dark:text-gray-400">Comprehensive business intelligence and insights</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -200,7 +200,7 @@ export default function EnhancedAnalyticsPage() {
       </div>
 
       {/* Time Range Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+      <div className="glass-dark rounded-lg p-4 border border-white/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-gray-500" />
@@ -231,11 +231,11 @@ export default function EnhancedAnalyticsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {kpiData ? formatCurrency(kpiData.totalSales) : 'රු0'}
                     </p>
                   </div>
@@ -251,11 +251,11 @@ export default function EnhancedAnalyticsPage() {
                     </div>
                   </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Orders</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {kpiData ? kpiData.totalOrders.toLocaleString() : '0'}
               </p>
                 </div>
@@ -271,11 +271,11 @@ export default function EnhancedAnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Customers</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {kpiData ? kpiData.totalCustomers.toLocaleString() : '0'}
               </p>
                         </div>
@@ -291,11 +291,11 @@ export default function EnhancedAnalyticsPage() {
             </div>
           </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Order Value</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Avg Order Value</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {kpiData ? formatCurrency(kpiData.averageOrderValue) : 'රු0'}
               </p>
             </div>
@@ -313,8 +313,8 @@ export default function EnhancedAnalyticsPage() {
 
       {/* Alerts and Notifications */}
       {alerts.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <div className="glass-dark rounded-lg p-6 border border-white/5">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
             <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600" />
             Alerts & Notifications
           </h2>
@@ -345,8 +345,8 @@ export default function EnhancedAnalyticsPage() {
       {/* Charts and Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Trend Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <div className="glass-dark rounded-lg p-6 border border-white/5">
+          <h3 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
             <LineChart className="w-5 h-5 mr-2 text-blue-600" />
             Revenue Trend
           </h3>
@@ -359,8 +359,8 @@ export default function EnhancedAnalyticsPage() {
         </div>
 
         {/* Geographic Performance */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <div className="glass-dark rounded-lg p-6 border border-white/5">
+          <h3 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
             <MapPin className="w-5 h-5 mr-2 text-green-600" />
             Geographic Performance
           </h3>
@@ -368,8 +368,8 @@ export default function EnhancedAnalyticsPage() {
             {geographicData.slice(0, 5).map((region, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{region.region}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="font-medium text-white dark:text-white">{region.region}</p>
+                  <p className="text-sm text-slate-400 dark:text-gray-400">
                     {region.orders} orders • {formatCurrency(region.sales)}
                   </p>
                 </div>
@@ -385,8 +385,8 @@ export default function EnhancedAnalyticsPage() {
       </div>
 
       {/* Device Analytics */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+      <div className="glass-dark rounded-lg p-6 border border-white/5">
+        <h3 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
           <Smartphone className="w-5 h-5 mr-2 text-purple-600" />
           Device Analytics
         </h3>
@@ -395,22 +395,22 @@ export default function EnhancedAnalyticsPage() {
             const IconComponent = device.device === 'Mobile' ? Smartphone : 
                                  device.device === 'Tablet' ? Tablet : Monitor;
             return (
-              <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div key={index} className="p-4 bg-white/5 dark:bg-gray-700 rounded-lg">
                 <div className="flex items-center mb-2">
-                  <IconComponent className="w-5 h-5 mr-2 text-gray-600" />
-                  <span className="font-medium text-gray-900 dark:text-white">{device.device}</span>
+                  <IconComponent className="w-5 h-5 mr-2 text-slate-400" />
+                  <span className="font-medium text-white dark:text-white">{device.device}</span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Visits:</span>
+                    <span className="text-slate-400 dark:text-gray-400">Visits:</span>
                     <span className="font-medium">{device.visits.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Orders:</span>
+                    <span className="text-slate-400 dark:text-gray-400">Orders:</span>
                     <span className="font-medium">{device.orders.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Conversion:</span>
+                    <span className="text-slate-400 dark:text-gray-400">Conversion:</span>
                     <span className="font-medium">{device.conversion}%</span>
                   </div>
                 </div>
@@ -421,14 +421,14 @@ export default function EnhancedAnalyticsPage() {
             </div>
 
       {/* Product Performance */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+      <div className="glass-dark rounded-lg p-6 border border-white/5">
+        <h3 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
           <Package className="w-5 h-5 mr-2 text-orange-600" />
           Top Performing Products
         </h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+            <thead className="bg-white/5 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Product
@@ -447,19 +447,19 @@ export default function EnhancedAnalyticsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="glass-dark divide-y divide-gray-200 dark:divide-gray-700">
               {productPerformance.slice(0, 10).map((product, index) => (
-                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr key={index} className="hover:bg-white/5 dark:hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{product.name}</div>
+                    <div className="text-sm font-medium text-white dark:text-white">{product.name}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white dark:text-white">
                     {product.sales.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white dark:text-white">
                     {product.orders.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white dark:text-white">
                     {formatCurrency(product.revenue)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -475,30 +475,30 @@ export default function EnhancedAnalyticsPage() {
       </div>
 
       {/* Customer Segments */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+      <div className="glass-dark rounded-lg p-6 border border-white/5">
+        <h3 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
           <Users className="w-5 h-5 mr-2 text-indigo-600" />
           Customer Segments
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {customerSegments.map((segment, index) => (
-            <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-2">{segment.segment}</h4>
+            <div key={index} className="p-4 bg-white/5 dark:bg-gray-700 rounded-lg">
+              <h4 className="font-medium text-white dark:text-white mb-2">{segment.segment}</h4>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Customers:</span>
+                  <span className="text-slate-400 dark:text-gray-400">Customers:</span>
                   <span className="font-medium">{segment.count.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Revenue:</span>
+                  <span className="text-slate-400 dark:text-gray-400">Revenue:</span>
                   <span className="font-medium">{formatCurrency(segment.revenue)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">AOV:</span>
+                  <span className="text-slate-400 dark:text-gray-400">AOV:</span>
                   <span className="font-medium">{formatCurrency(segment.averageOrderValue)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Retention:</span>
+                  <span className="text-slate-400 dark:text-gray-400">Retention:</span>
                   <span className="font-medium">{segment.retentionRate}%</span>
                 </div>
               </div>

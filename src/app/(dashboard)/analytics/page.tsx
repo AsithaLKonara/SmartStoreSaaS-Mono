@@ -127,8 +127,8 @@ export default function AnalyticsPage() {
       <div className="p-6">
         <div className="text-center py-12">
           <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No analytics data available</h3>
-          <p className="text-gray-600">Start creating orders and customers to see analytics</p>
+          <h3 className="text-lg font-medium text-white dark:text-white mb-2">No analytics data available</h3>
+          <p className="text-slate-400">Start creating orders and customers to see analytics</p>
         </div>
       </div>
     );
@@ -139,8 +139,8 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-          <p className="text-gray-600">Business insights and performance metrics</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Analytics</h1>
+          <p className="text-slate-400">Business insights and performance metrics</p>
         </div>
         <div className="flex gap-2">
           <select
@@ -165,11 +165,11 @@ export default function AnalyticsPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {formatCurrency(analytics.revenue.total)}
               </p>
             </div>
@@ -186,11 +186,11 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400">Total Orders</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {analytics.orders.total}
               </p>
             </div>
@@ -207,11 +207,11 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400">Total Customers</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {analytics.customers.total}
               </p>
             </div>
@@ -228,11 +228,11 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Products</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400">Active Products</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {analytics.products.total}
               </p>
             </div>
@@ -253,9 +253,9 @@ export default function AnalyticsPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Trend */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sales Trend</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-white">Sales Trend</h3>
             <Button variant="outline" size="sm">
               <TrendingUp className="w-4 h-4 mr-2" />
               View Details
@@ -284,9 +284,9 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Payment Methods */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Payment Methods</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-white">Payment Methods</h3>
             <Button variant="outline" size="sm">
               <PieChart className="w-4 h-4 mr-2" />
               View Details
@@ -300,12 +300,12 @@ export default function AnalyticsPage() {
                     className="w-3 h-3 rounded-full mr-3"
                     style={{ backgroundColor: `hsl(${index * 60}, 70%, 50%)` }}
                   ></div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  <span className="text-sm font-medium text-white dark:text-white">
                     {method.method}
                   </span>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className="text-sm font-medium text-white dark:text-white">
                     {formatCurrency(method.amount)}
                   </div>
                   <div className="text-xs text-gray-500">
@@ -321,9 +321,9 @@ export default function AnalyticsPage() {
       {/* Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Products */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Products</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-white">Top Products</h3>
             <Button variant="outline" size="sm">
               <Target className="w-4 h-4 mr-2" />
               View All
@@ -333,11 +333,11 @@ export default function AnalyticsPage() {
             {analytics.topProducts.map((product, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-gray-600 mr-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-400 mr-3">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-white dark:text-white">
                       {product.name}
                     </div>
                     <div className="text-xs text-gray-500">
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className="text-sm font-medium text-white dark:text-white">
                     {formatCurrency(product.revenue)}
                   </div>
                 </div>
@@ -356,9 +356,9 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Top Customers */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Customers</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-white">Top Customers</h3>
             <Button variant="outline" size="sm">
               <Users className="w-4 h-4 mr-2" />
               View All
@@ -368,11 +368,11 @@ export default function AnalyticsPage() {
             {analytics.topCustomers.map((customer, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-gray-600 mr-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-400 mr-3">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-white dark:text-white">
                       {customer.name}
                     </div>
                     <div className="text-xs text-gray-500">
@@ -381,7 +381,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  <div className="text-sm font-medium text-white dark:text-white">
                     {formatCurrency(customer.revenue)}
                   </div>
                 </div>
@@ -392,8 +392,8 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+      <div className="glass-dark rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-white dark:text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             variant="outline"
