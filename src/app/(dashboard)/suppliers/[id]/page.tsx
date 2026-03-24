@@ -111,8 +111,8 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{supplier.name}</h1>
-            <p className="text-gray-600 dark:text-gray-400">Code: {supplier.code}</p>
+            <h1 className="text-3xl font-bold text-white dark:text-white">{supplier.name}</h1>
+            <p className="text-slate-400 dark:text-gray-400">Code: {supplier.code}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -137,40 +137,40 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contact Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
           <dl className="space-y-3">
             {supplier.contactName && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Contact Person</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{supplier.contactName}</dd>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Contact Person</dt>
+                <dd className="font-medium text-white dark:text-white">{supplier.contactName}</dd>
               </div>
             )}
             {supplier.email && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                <dt className="text-sm text-slate-400 dark:text-gray-400 flex items-center">
                   <Mail className="w-4 h-4 mr-1" />
                   Email
                 </dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{supplier.email}</dd>
+                <dd className="font-medium text-white dark:text-white">{supplier.email}</dd>
               </div>
             )}
             {supplier.phone && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                <dt className="text-sm text-slate-400 dark:text-gray-400 flex items-center">
                   <Phone className="w-4 h-4 mr-1" />
                   Phone
                 </dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{supplier.phone}</dd>
+                <dd className="font-medium text-white dark:text-white">{supplier.phone}</dd>
               </div>
             )}
             {supplier.address && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                <dt className="text-sm text-slate-400 dark:text-gray-400 flex items-center">
                   <MapPin className="w-4 h-4 mr-1" />
                   Address
                 </dt>
-                <dd className="font-medium text-gray-900 dark:text-white">
+                <dd className="font-medium text-white dark:text-white">
                   {typeof supplier.address === 'string' ? supplier.address : JSON.stringify(supplier.address)}
                 </dd>
               </div>
@@ -179,22 +179,22 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
         </div>
 
         {/* Business Details */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Business Details</h2>
           <dl className="space-y-3">
             {supplier.paymentTerms && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Payment Terms</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{supplier.paymentTerms}</dd>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Payment Terms</dt>
+                <dd className="font-medium text-white dark:text-white">{supplier.paymentTerms}</dd>
               </div>
             )}
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Currency</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">{supplier.currency}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Currency</dt>
+              <dd className="font-medium text-white dark:text-white">{supplier.currency}</dd>
             </div>
             {supplier.rating !== undefined && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                <dt className="text-sm text-slate-400 dark:text-gray-400 flex items-center">
                   <Star className="w-4 h-4 mr-1" />
                   Rating
                 </dt>
@@ -207,13 +207,13 @@ export default function SupplierDetailPage({ params }: { params: { id: string } 
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Purchase Orders</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{supplier.totalOrders}</p>
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h3 className="text-sm text-slate-400 dark:text-gray-400 mb-2">Total Purchase Orders</h3>
+          <p className="text-3xl font-bold text-white dark:text-white">{supplier.totalOrders}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Amount Spent</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{formatCurrency(supplier.totalSpent)}</p>
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h3 className="text-sm text-slate-400 dark:text-gray-400 mb-2">Total Amount Spent</h3>
+          <p className="text-3xl font-bold text-white dark:text-white">{formatCurrency(supplier.totalSpent)}</p>
         </div>
       </div>
     </div>

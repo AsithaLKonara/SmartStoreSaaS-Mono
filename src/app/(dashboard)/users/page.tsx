@@ -64,7 +64,7 @@ export default function UsersPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="glass-dark p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4">Create User</h2>
           <div className="grid grid-cols-2 gap-4">
             <input placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="px-4 py-2 border rounded" />
@@ -95,9 +95,9 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="glass-dark rounded-lg shadow overflow-hidden">
         <table className="min-w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/5">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>

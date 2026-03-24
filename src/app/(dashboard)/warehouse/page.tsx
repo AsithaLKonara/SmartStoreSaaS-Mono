@@ -122,7 +122,7 @@ export default function WarehousePage() {
       case 'low_stock': return 'text-yellow-600 bg-yellow-50';
       case 'out_of_stock': return 'text-red-600 bg-red-50';
       case 'reserved': return 'text-blue-600 bg-blue-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-slate-400 bg-white/5';
     }
   };
 
@@ -168,11 +168,11 @@ export default function WarehousePage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Warehouse className="w-8 h-8 text-blue-600" />
             Warehouse Management
           </h1>
-          <p className="text-gray-600 mt-2">Manage inventory, locations, and warehouse operations</p>
+          <p className="text-slate-400 mt-2">Manage inventory, locations, and warehouse operations</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -194,37 +194,37 @@ export default function WarehousePage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Items</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
+              <p className="text-sm font-medium text-slate-400">Total Items</p>
+              <p className="text-2xl font-bold text-white">{stats.totalItems}</p>
             </div>
             <Package className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">In Stock</p>
+              <p className="text-sm font-medium text-slate-400">In Stock</p>
               <p className="text-2xl font-bold text-green-600">{stats.inStock}</p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Low Stock</p>
+              <p className="text-sm font-medium text-slate-400">Low Stock</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.lowStock}</p>
             </div>
             <AlertTriangle className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Out of Stock</p>
+              <p className="text-sm font-medium text-slate-400">Out of Stock</p>
               <p className="text-2xl font-bold text-red-600">{stats.outOfStock}</p>
             </div>
             <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -233,8 +233,8 @@ export default function WarehousePage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+      <div className="glass-dark rounded-lg shadow mb-6">
+        <div className="border-b border-white/10">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -261,33 +261,33 @@ export default function WarehousePage() {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-white/5 rounded-lg p-6">
                   <h3 className="text-lg font-semibold mb-4">Recent Movements</h3>
                   <div className="space-y-3">
                     {movements.slice(0, 5).map((movement) => (
-                      <div key={movement.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div key={movement.id} className="flex items-center justify-between p-3 glass-dark rounded border">
                         <div>
                           <p className="font-medium">{movement.productName}</p>
-                          <p className="text-sm text-gray-600">{movement.reason}</p>
+                          <p className="text-sm text-slate-400">{movement.reason}</p>
                         </div>
                         <div className="text-right">
                           <p className={`font-medium ${movement.type === 'in' ? 'text-green-600' : 'text-red-600'}`}>
                             {movement.type === 'in' ? '+' : '-'}{movement.quantity}
                           </p>
-                          <p className="text-sm text-gray-600">{formatRelativeTime(movement.date)}</p>
+                          <p className="text-sm text-slate-400">{formatRelativeTime(movement.date)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-white/5 rounded-lg p-6">
                   <h3 className="text-lg font-semibold mb-4">Warehouse Status</h3>
                   <div className="space-y-3">
                     {warehouses.map((warehouse) => (
-                      <div key={warehouse.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div key={warehouse.id} className="flex items-center justify-between p-3 glass-dark rounded border">
                         <div>
                           <p className="font-medium">{warehouse.name}</p>
-                          <p className="text-sm text-gray-600">{formatAddress(warehouse.address)}</p>
+                          <p className="text-sm text-slate-400">{formatAddress(warehouse.address)}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full ${warehouse.isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -339,10 +339,10 @@ export default function WarehousePage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="glass-dark rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/5">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Product
@@ -367,22 +367,22 @@ export default function WarehousePage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="glass-dark divide-y divide-gray-200">
                       {filteredInventory.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
+                        <tr key={item.id} className="hover:bg-white/5">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{item.productName}</div>
+                              <div className="text-sm font-medium text-white">{item.productName}</div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.sku}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{item.sku}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{item.availableQuantity}</div>
+                            <div className="text-sm text-white">{item.availableQuantity}</div>
                             <div className="text-xs text-gray-500">
                               Reserved: {item.reservedQuantity}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.location}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{item.location}</td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
                               {getStatusIcon(item.status)}
@@ -427,10 +427,10 @@ export default function WarehousePage() {
                 </Button>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="glass-dark rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/5">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Product
@@ -455,10 +455,10 @@ export default function WarehousePage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="glass-dark divide-y divide-gray-200">
                       {movements.map((movement) => (
-                        <tr key={movement.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <tr key={movement.id} className="hover:bg-white/5">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                             {movement.productName}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -467,15 +467,15 @@ export default function WarehousePage() {
                               {movement.type.toUpperCase()}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{movement.quantity}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{movement.quantity}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                             {movement.fromLocation} → {movement.toLocation}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{movement.reason}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{movement.reason}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {formatDate(movement.date)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{movement.user}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{movement.user}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -500,20 +500,20 @@ export default function WarehousePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {warehouses.map((warehouse) => (
-                  <div key={warehouse.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
+                  <div key={warehouse.id} className="glass-dark rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900">{warehouse.name}</h4>
+                      <h4 className="text-lg font-semibold text-white">{warehouse.name}</h4>
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${warehouse.isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
                         <span className="text-sm">{warehouse.isActive ? 'Active' : 'Inactive'}</span>
                       </div>
                     </div>
                     <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
                         <MapPin className="w-4 h-4" />
                         {formatAddress(warehouse.address)}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-slate-400">
                         Created: {formatDate(warehouse.createdAt)}
                       </div>
                     </div>

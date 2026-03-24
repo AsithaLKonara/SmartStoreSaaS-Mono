@@ -110,7 +110,7 @@ export default function ReportsPage() {
       case 'GENERATING': return 'text-yellow-600 bg-yellow-50';
       case 'READY': return 'text-green-600 bg-green-50';
       case 'FAILED': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-slate-400 bg-white/5';
     }
   };
 
@@ -208,11 +208,11 @@ export default function ReportsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-white dark:text-white flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-blue-600" />
             Advanced Reporting
           </h1>
-          <p className="text-gray-600 mt-2">Generate comprehensive business reports and analytics</p>
+          <p className="text-slate-400 mt-2">Generate comprehensive business reports and analytics</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -234,37 +234,37 @@ export default function ReportsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Reports</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalReports}</p>
+              <p className="text-sm font-medium text-slate-400">Total Reports</p>
+              <p className="text-2xl font-bold text-white dark:text-white">{stats.totalReports}</p>
             </div>
             <BarChart3 className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Ready Reports</p>
+              <p className="text-sm font-medium text-slate-400">Ready Reports</p>
               <p className="text-2xl font-bold text-green-600">{stats.readyReports}</p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Generating</p>
+              <p className="text-sm font-medium text-slate-400">Generating</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.generatingReports}</p>
             </div>
             <Clock className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Failed</p>
+              <p className="text-sm font-medium text-slate-400">Failed</p>
               <p className="text-2xl font-bold text-red-600">{stats.failedReports}</p>
             </div>
             <XCircle className="w-8 h-8 text-red-600" />
@@ -273,7 +273,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Quick Report Generation */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+      <div className="glass-dark rounded-lg shadow p-6 mb-8">
         <h3 className="text-lg font-semibold mb-4">Quick Report Generation</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button
@@ -308,8 +308,8 @@ export default function ReportsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="glass-dark rounded-lg shadow mb-6">
+        <div className="border-b border-white/5">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'reports', label: 'Generated Reports', icon: FileText },
@@ -358,10 +358,10 @@ export default function ReportsPage() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
+              <div className="glass-dark rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/5">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Report
@@ -383,12 +383,12 @@ export default function ReportsPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                    <tbody className="glass-dark divide-y divide-gray-200">
                       {filteredReports.map((report) => (
-                        <tr key={report.id} className="hover:bg-gray-50">
+                        <tr key={report.id} className="hover:bg-white/5">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">{report.name}</div>
+                              <div className="text-sm font-medium text-white dark:text-white">{report.name}</div>
                               {report.size && (
                                 <div className="text-sm text-gray-500">Size: {report.size}</div>
                               )}
@@ -406,7 +406,7 @@ export default function ReportsPage() {
                               <span className="ml-1">{report.status}</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white dark:text-white">
                             {report.format}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -457,16 +457,16 @@ export default function ReportsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.map((template) => (
-                  <div key={template.id} className="bg-white dark:bg-gray-800 rounded-lg border p-6 hover:shadow-md transition-shadow">
+                  <div key={template.id} className="glass-dark rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{template.name}</h4>
+                      <h4 className="text-lg font-semibold text-white dark:text-white">{template.name}</h4>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getReportTypeColor(template.type)}`}>
                         {getReportTypeIcon(template.type)}
                         <span className="ml-1">{template.type}</span>
                       </span>
                     </div>
                     <div className="space-y-2 mb-4">
-                      <p className="text-sm text-gray-600">{template.description}</p>
+                      <p className="text-sm text-slate-400">{template.description}</p>
                       <div className="text-xs text-gray-500">
                         Category: {template.category}
                       </div>
@@ -505,10 +505,10 @@ export default function ReportsPage() {
                 </Button>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="bg-white/5 rounded-lg p-6 text-center">
                 <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Scheduled Reports</h4>
-                <p className="text-gray-600 mb-4">
+                <h4 className="text-lg font-medium text-white dark:text-white mb-2">No Scheduled Reports</h4>
+                <p className="text-slate-400 mb-4">
                   Schedule reports to be generated automatically at regular intervals.
                 </p>
                 <Button

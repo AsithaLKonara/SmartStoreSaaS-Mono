@@ -129,7 +129,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     return (
       <div className="p-6">
         <div className="text-center max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Product Not Found</h1>
+          <h1 className="text-2xl font-bold text-white dark:text-white mb-4">Product Not Found</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             The product you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
           </p>
@@ -153,13 +153,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-bold text-white dark:text-white">
                   Edit Product
                 </h1>
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="glass-dark rounded-lg shadow p-6">
             <ProductForm
               product={product}
               onSave={handleSave}
@@ -182,7 +182,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{product.name}</h1>
+            <h1 className="text-3xl font-bold text-white dark:text-white">{product.name}</h1>
             <p className="text-gray-600 dark:text-gray-400">SKU: {product.sku}</p>
           </div>
         </div>
@@ -216,23 +216,23 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Product Details */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
             <Package className="w-5 h-5 mr-2" />
             Product Details
           </h2>
           <dl className="space-y-4">
             <div>
               <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Product Name</dt>
-              <dd className="mt-1 text-base text-gray-900 dark:text-white">{product.name}</dd>
+              <dd className="mt-1 text-base text-white dark:text-white">{product.name}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">SKU</dt>
-              <dd className="mt-1 text-base font-mono text-gray-900 dark:text-white">{product.sku}</dd>
+              <dd className="mt-1 text-base font-mono text-white dark:text-white">{product.sku}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Description</dt>
-              <dd className="mt-1 text-base text-gray-900 dark:text-white">
+              <dd className="mt-1 text-base text-white dark:text-white">
                 {product.description || 'No description available'}
               </dd>
             </div>
@@ -242,7 +242,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   <Tag className="w-4 h-4 mr-1" />
                   Tags
                 </dt>
-                <dd className="mt-1 text-base text-gray-900 dark:text-white">{product.tags}</dd>
+                <dd className="mt-1 text-base text-white dark:text-white">{product.tags}</dd>
               </div>
             )}
           </dl>
@@ -251,28 +251,28 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         {/* Pricing & Inventory */}
         <div className="space-y-6">
           {/* Pricing */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="glass-dark rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
               <DollarSign className="w-5 h-5 mr-2" />
               Pricing
             </h2>
             <dl className="space-y-3">
               <div className="flex justify-between items-center">
                 <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Selling Price</dt>
-                <dd className="text-2xl font-bold text-gray-900 dark:text-white">
+                <dd className="text-2xl font-bold text-white dark:text-white">
                   LKR {product.price?.toFixed(2)}
                 </dd>
               </div>
               {product.cost !== undefined && (
                 <div className="flex justify-between items-center">
                   <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Cost Price</dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
+                  <dd className="text-lg font-medium text-white dark:text-white">
                     LKR {product.cost.toFixed(2)}
                   </dd>
                 </div>
               )}
               {product.cost !== undefined && product.price && (
-                <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-center pt-2 border-t border-white/5">
                   <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Profit Margin</dt>
                   <dd className="text-lg font-semibold text-green-600">
                     {((product.price - product.cost) / product.price * 100).toFixed(1)}%
@@ -283,8 +283,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
 
           {/* Inventory */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="glass-dark rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-white dark:text-white mb-4 flex items-center">
               <Package className="w-5 h-5 mr-2" />
               Inventory
             </h2>
@@ -304,11 +304,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               {product.minStock !== undefined && (
                 <div className="flex justify-between items-center">
                   <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Minimum Stock</dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-white">{product.minStock}</dd>
+                  <dd className="text-lg font-medium text-white dark:text-white">{product.minStock}</dd>
                 </div>
               )}
               {product.stock !== undefined && product.minStock !== undefined && (
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div className="pt-2 border-t border-white/5">
                   {product.stock === 0 ? (
                     <p className="text-sm text-red-600 font-semibold">⚠️ Out of Stock</p>
                   ) : product.stock < product.minStock ? (
@@ -325,19 +325,19 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
       {/* Shipping Info */}
       {(product.weight || product.dimensions) && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Shipping Information</h2>
+        <div className="glass-dark rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-white dark:text-white mb-4">Shipping Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {product.weight && (
               <div>
                 <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Weight</dt>
-                <dd className="mt-1 text-base text-gray-900 dark:text-white">{product.weight} kg</dd>
+                <dd className="mt-1 text-base text-white dark:text-white">{product.weight} kg</dd>
               </div>
             )}
             {product.dimensions && (
               <div>
                 <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Dimensions</dt>
-                <dd className="mt-1 text-base text-gray-900 dark:text-white">{product.dimensions}</dd>
+                <dd className="mt-1 text-base text-white dark:text-white">{product.dimensions}</dd>
               </div>
             )}
           </div>
@@ -345,18 +345,18 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       )}
 
       {/* Metadata */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Metadata</h2>
+      <div className="glass-dark rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-white dark:text-white mb-4">Metadata</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Created</dt>
-            <dd className="mt-1 text-base text-gray-900 dark:text-white">
+            <dd className="mt-1 text-base text-white dark:text-white">
               {new Date(product.createdAt).toLocaleString()}
             </dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-gray-600 dark:text-gray-400">Last Updated</dt>
-            <dd className="mt-1 text-base text-gray-900 dark:text-white">
+            <dd className="mt-1 text-base text-white dark:text-white">
               {new Date(product.updatedAt).toLocaleString()}
             </dd>
           </div>

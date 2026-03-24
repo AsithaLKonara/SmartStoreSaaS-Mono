@@ -193,7 +193,7 @@ export default function ProductsPage() {
       <div className="container mx-auto px-4 py-8" data-testid="products-page">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-white">
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </h1>
             <p className="text-gray-600 mt-2">
@@ -201,7 +201,7 @@ export default function ProductsPage() {
             </p>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="glass-dark rounded-lg shadow p-6">
             <ProductForm
               product={editingProduct || undefined}
               onSave={handleSaveProduct}
@@ -217,7 +217,7 @@ export default function ProductsPage() {
   return (
     <div className="container mx-auto px-4 py-8" data-testid="products-page">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900" data-testid="products-title">Products</h1>
+        <h1 className="text-3xl font-bold text-white" data-testid="products-title">Products</h1>
         <div className="flex gap-3">
           <Button 
             variant="outline"
@@ -249,8 +249,8 @@ export default function ProductsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white shadow rounded-lg mb-6">
-        <div className="px-4 lg:px-6 py-4 border-b border-gray-200">
+      <div className="glass-dark shadow rounded-lg mb-6">
+        <div className="px-4 lg:px-6 py-4 border-b border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="search">Search</Label>
@@ -285,7 +285,7 @@ export default function ProductsPage() {
             label: 'Product',
             render: (value, item) => (
               <div>
-                <div className="font-medium text-gray-900">{value}</div>
+                <div className="font-medium text-white">{value}</div>
                 {item.description && (
                   <div className="text-sm text-gray-500">{item.description}</div>
                 )}

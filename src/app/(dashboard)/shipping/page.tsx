@@ -62,25 +62,25 @@ export default function ShippingPage() {
             <Truck className="w-8 h-8" />
             Shipping Management
           </h1>
-          <p className="text-gray-600">Track shipments and deliveries</p>
+          <p className="text-slate-400">Track shipments and deliveries</p>
         </div>
         <Button>Create Shipment</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Shipments</p>
+              <p className="text-sm text-slate-400">Total Shipments</p>
               <p className="text-2xl font-bold">{shipments.length}</p>
             </div>
             <Package className="w-8 h-8 text-blue-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">In Transit</p>
+              <p className="text-sm text-slate-400">In Transit</p>
               <p className="text-2xl font-bold text-blue-600">
                 {shipments.filter(s => s.status === 'IN_TRANSIT').length}
               </p>
@@ -88,10 +88,10 @@ export default function ShippingPage() {
             <Truck className="w-8 h-8 text-blue-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Delivered</p>
+              <p className="text-sm text-slate-400">Delivered</p>
               <p className="text-2xl font-bold text-green-600">
                 {shipments.filter(s => s.status === 'DELIVERED').length}
               </p>
@@ -99,10 +99,10 @@ export default function ShippingPage() {
             <Package className="w-8 h-8 text-green-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-sm text-slate-400">Pending</p>
               <p className="text-2xl font-bold text-yellow-600">
                 {shipments.filter(s => s.status === 'PENDING').length}
               </p>
@@ -112,9 +112,9 @@ export default function ShippingPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="glass-dark rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/5">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tracking</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
@@ -125,9 +125,9 @@ export default function ShippingPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ETA</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="glass-dark divide-y divide-gray-200">
             {shipments.map((shipment) => (
-              <tr key={shipment.id} className="hover:bg-gray-50">
+              <tr key={shipment.id} className="hover:bg-white/5">
                 <td className="px-6 py-4 text-sm font-medium">{shipment.tracking}</td>
                 <td className="px-6 py-4 text-sm">{shipment.orderId}</td>
                 <td className="px-6 py-4 text-sm">{shipment.carrier}</td>

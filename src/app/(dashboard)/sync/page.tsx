@@ -175,7 +175,7 @@ export default function SyncPage() {
     <div className="container mx-auto py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Real-Time Sync</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-400 mt-2">
           Monitor and manage real-time synchronization across all platforms
         </p>
       </div>
@@ -301,7 +301,7 @@ export default function SyncPage() {
                     </h4>
                     <Badge variant="outline">Unresolved</Badge>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-slate-400 mb-2">
                     Created: {new Date(conflict.createdAt).toLocaleString()}
                   </p>
                   <div className="flex gap-2">

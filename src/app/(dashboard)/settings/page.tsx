@@ -24,8 +24,11 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import MfaSetup from '@/components/MfaSetup';
+import { useSession } from 'next-auth/react';
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('organization');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -293,14 +296,22 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Multi-Factor Authentication</h3>
-                <div className="flex items-center space-x-2">
-                  <Switch id="mfaEnabled" defaultChecked />
-                  <Label htmlFor="mfaEnabled">Enable MFA for all users</Label>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Multi-Factor Authentication</h3>
+                  {session?.user?.mfaEnabled ? (
+                    <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Verified & Active</Badge>
+                  ) : (
+                    <Badge variant="secondary">Not Configured</Badge>
+                  )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Switch id="mfaRequired" defaultChecked />
-                  <Label htmlFor="mfaRequired">MFA required for admin accounts</Label>
+                
+                <div className="p-4 border rounded-lg bg-muted/50">
+                  <MfaSetup />
+                </div>
+
+                <div className="flex items-center space-x-2 mt-4">
+                  <Switch id="mfaRequired" />
+                  <Label htmlFor="mfaRequired">Require MFA for all administrative actions (Enterprise)</Label>
                 </div>
               </div>
 
