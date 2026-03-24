@@ -58,7 +58,7 @@ function BillingDashboardContent() {
             <CreditCard className="w-8 h-8" />
             Billing & Subscriptions
           </h1>
-          <p className="text-gray-600">Super Admin billing dashboard</p>
+          <p className="text-slate-400">Super Admin billing dashboard</p>
         </div>
         <Button>
           <Download className="w-4 h-4 mr-2" />
@@ -67,40 +67,40 @@ function BillingDashboardContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Revenue</p>
+              <p className="text-sm text-slate-400">Total Revenue</p>
               <p className="text-2xl font-bold">{formatCurrency(data?.totalRevenue || 0)}</p>
             </div>
             <DollarSign className="w-8 h-8 text-green-500" />
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Subscriptions</p>
+              <p className="text-sm text-slate-400">Active Subscriptions</p>
               <p className="text-2xl font-bold">{data?.activeSubscriptions || 0}</p>
             </div>
             <Users className="w-8 h-8 text-blue-500" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">MRR</p>
+              <p className="text-sm text-slate-400">MRR</p>
               <p className="text-2xl font-bold">{formatCurrency(data?.mrr || 0)}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-purple-500" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Growth</p>
+              <p className="text-sm text-slate-400">Growth</p>
               <p className="text-2xl font-bold text-green-600">+12%</p>
             </div>
             <TrendingUp className="w-8 h-8 text-green-500" />
@@ -108,13 +108,13 @@ function BillingDashboardContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="glass-dark rounded-lg shadow overflow-hidden">
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold">All Subscriptions</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/5">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Organization</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
@@ -124,9 +124,9 @@ function BillingDashboardContent() {
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="glass-dark divide-y divide-gray-200">
               {data?.subscriptions?.map((sub) => (
-                <tr key={sub.id} className="hover:bg-gray-50">
+                <tr key={sub.id} className="hover:bg-white/5">
                   <td className="px-6 py-4 text-sm font-medium">{sub.organization}</td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">

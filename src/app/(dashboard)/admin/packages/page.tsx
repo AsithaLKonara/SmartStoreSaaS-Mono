@@ -202,7 +202,7 @@ function AdminPackagesPageContent() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading packages...</p>
+          <p className="text-slate-400">Loading packages...</p>
         </div>
       </div>
     );
@@ -213,8 +213,8 @@ function AdminPackagesPageContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Package Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage subscription packages and pricing</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Package Management</h1>
+          <p className="text-slate-400 dark:text-gray-400">Manage subscription packages and pricing</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowAddPackage(true)} className="bg-blue-600 hover:bg-blue-700">
@@ -237,8 +237,8 @@ function AdminPackagesPageContent() {
                 <Package className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Packages</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalPackages}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Packages</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.totalPackages}</p>
               </div>
             </div>
           </CardContent>
@@ -251,8 +251,8 @@ function AdminPackagesPageContent() {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Packages</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activePackages}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Active Packages</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.activePackages}</p>
               </div>
             </div>
           </CardContent>
@@ -265,8 +265,8 @@ function AdminPackagesPageContent() {
                 <Users className="w-6 h-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Subscribers</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalSubscribers}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Subscribers</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.totalSubscribers}</p>
               </div>
             </div>
           </CardContent>
@@ -279,8 +279,8 @@ function AdminPackagesPageContent() {
                 <DollarSign className="w-6 h-6 text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Monthly Revenue</p>
+                <p className="text-2xl font-bold text-white dark:text-white">
                   {formatCurrency(stats.totalRevenue, 'USD')}
                 </p>
               </div>
@@ -323,39 +323,39 @@ function AdminPackagesPageContent() {
             {/* Packages List */}
             <div className="space-y-3">
               {filteredPackages.map((pkg) => (
-                <div key={pkg.id} className="border rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div key={pkg.id} className="border rounded-lg p-6 hover:bg-white/5 dark:hover:bg-gray-800">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{pkg.name}</h3>
+                        <h3 className="text-lg font-semibold text-white dark:text-white">{pkg.name}</h3>
                         <Badge className={`${getStatusColor(pkg.status)} flex items-center space-x-1`}>
                           {getStatusIcon(pkg.status)}
                           <span>{pkg.status}</span>
                         </Badge>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">{pkg.description}</p>
+                      <p className="text-slate-400 dark:text-gray-400 mb-4">{pkg.description}</p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Price</p>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Price</p>
+                          <p className="text-lg font-semibold text-white dark:text-white">
                             {formatCurrency(pkg.price, pkg.currency)}/{pkg.duration}d
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Subscribers</p>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">{pkg.subscribers}</p>
+                          <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Subscribers</p>
+                          <p className="text-lg font-semibold text-white dark:text-white">{pkg.subscribers}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Monthly Revenue</p>
+                          <p className="text-lg font-semibold text-white dark:text-white">
                             {formatCurrency(pkg.price * pkg.subscribers, pkg.currency)}
                           </p>
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Features</p>
+                        <p className="text-sm font-medium text-slate-400 dark:text-gray-400 mb-2">Features</p>
                         <div className="flex flex-wrap gap-2">
                           {pkg.features.map((feature, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
@@ -401,7 +401,7 @@ function AdminPackagesPageContent() {
             {filteredPackages.length === 0 && (
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">No packages found</p>
+                <p className="text-slate-400 dark:text-gray-400">No packages found</p>
               </div>
             )}
           </div>
@@ -411,8 +411,8 @@ function AdminPackagesPageContent() {
       {/* Add/Edit Package Modal */}
       {showAddPackage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+          <div className="glass-dark rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-white dark:text-white">
               {editingPackage ? 'Edit Package' : 'Add New Package'}
             </h2>
             <div className="space-y-4">
