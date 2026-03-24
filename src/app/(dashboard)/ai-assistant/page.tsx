@@ -138,7 +138,7 @@ export default function AIAssistantPage() {
                     <Sparkles className="w-6 h-6 text-indigo-600" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">AI Store Manager</h1>
+                    <h1 className="text-2xl font-bold text-white">AI Store Manager</h1>
                     <p className="text-sm text-gray-500">Autonomous Retail Operations Assistant</p>
                 </div>
             </div>
@@ -156,7 +156,7 @@ export default function AIAssistantPage() {
                         >
                             <div className={cn(
                                 "w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm",
-                                msg.role === 'user' ? "bg-indigo-600 text-white" : "bg-white text-indigo-600 border border-indigo-100"
+                                msg.role === 'user' ? "bg-indigo-600 text-white" : "glass-dark text-indigo-600 border border-indigo-100"
                             )}>
                                 {msg.role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-6 h-6" />}
                             </div>
@@ -166,23 +166,23 @@ export default function AIAssistantPage() {
                                     "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
                                     msg.role === 'user'
                                         ? "bg-indigo-600 text-white rounded-tr-none"
-                                        : "bg-white text-gray-800 border border-indigo-50 rounded-tl-none"
+                                        : "glass-dark text-gray-800 border border-indigo-50 rounded-tl-none"
                                 )}>
                                     {msg.content}
                                 </div>
 
                                 {/* AI Action Card */}
                                 {msg.action && (
-                                    <div className="mt-2 text-sm bg-white p-4 rounded-xl border border-indigo-100 shadow-sm animate-in fade-in slide-in-from-top-2">
+                                    <div className="mt-2 text-sm glass-dark p-4 rounded-xl border border-indigo-100 shadow-sm animate-in fade-in slide-in-from-top-2">
                                         <div className="flex items-start gap-3">
                                             <div className="p-2 bg-yellow-50 text-yellow-600 rounded-lg">
                                                 <AlertTriangle className="w-4 h-4" />
                                             </div>
                                             <div className="flex-1">
-                                                <h4 className="font-semibold text-gray-900">Suggested Action</h4>
-                                                <p className="text-gray-600 mt-1">{msg.action.reason}</p>
+                                                <h4 className="font-semibold text-white">Suggested Action</h4>
+                                                <p className="text-slate-400 mt-1">{msg.action.reason}</p>
 
-                                                <div className="mt-3 bg-gray-50 p-2 rounded text-xs font-mono text-gray-600">
+                                                <div className="mt-3 bg-white/5 p-2 rounded text-xs font-mono text-slate-400">
                                                     {msg.action.action}
                                                 </div>
 
@@ -195,7 +195,7 @@ export default function AIAssistantPage() {
                                                         >
                                                             Approve & Execute <ArrowRight className="w-3 h-3" />
                                                         </Button>
-                                                        <Button size="sm" variant="outline" className="text-gray-600">
+                                                        <Button size="sm" variant="outline" className="text-slate-400">
                                                             Dismiss
                                                         </Button>
                                                     </div>
@@ -224,7 +224,7 @@ export default function AIAssistantPage() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 bg-white border-t border-indigo-50">
+                <div className="p-4 glass-dark border-t border-indigo-50">
                     <div className="flex gap-2">
                         <textarea
                             value={input}
@@ -236,7 +236,7 @@ export default function AIAssistantPage() {
                                 }
                             }}
                             placeholder="Ask AI to analyze sales, check stock, or suggest prices..."
-                            className="flex-1 min-h-[50px] max-h-[150px] p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm resize-none"
+                            className="flex-1 min-h-[50px] max-h-[150px] p-3 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm resize-none"
                         />
                         <Button
                             onClick={handleSend}

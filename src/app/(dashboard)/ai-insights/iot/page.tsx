@@ -96,7 +96,7 @@ export default function IoTDashboard() {
                     <CardContent>
                         <div className="space-y-3">
                             {data.alerts.map((alert: any) => (
-                                <div key={alert.id} className="flex justify-between items-center p-3 bg-white rounded shadow-sm border border-red-100">
+                                <div key={alert.id} className="flex justify-between items-center p-3 glass-dark rounded shadow-sm border border-red-100">
                                     <div>
                                         <h4 className="font-semibold text-red-800">{alert.type} Alert</h4>
                                         <p className="text-sm text-gray-700">{alert.message}</p>
@@ -128,7 +128,7 @@ export default function IoTDashboard() {
                             )}
                         </CardHeader>
                         <CardContent>
-                            <div className="mt-2 text-sm text-gray-600">
+                            <div className="mt-2 text-sm text-slate-400">
                                 <div className="flex justify-between py-1">
                                     <span>Location:</span>
                                     <span className="font-medium">{device.location}</span>

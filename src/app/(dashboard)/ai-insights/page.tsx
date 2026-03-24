@@ -142,7 +142,7 @@ export default function AIInsightsPage() {
       case 'LOW': return 'text-green-600 bg-green-50';
       case 'MEDIUM': return 'text-yellow-600 bg-yellow-50';
       case 'HIGH': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-gray-600 bg-white/5';
     }
   };
 
@@ -172,7 +172,7 @@ export default function AIInsightsPage() {
             <Brain className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Insights</h1>
+            <h1 className="text-3xl font-bold text-white dark:text-white">AI Insights</h1>
             <p className="text-gray-600 dark:text-gray-400">Powered by machine learning and predictive analytics</p>
           </div>
         </div>
@@ -198,8 +198,8 @@ export default function AIInsightsPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                ? 'glass-dark dark:bg-gray-700 text-white dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white'
               }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -213,11 +213,11 @@ export default function AIInsightsPage() {
         <div className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Demand Predictions</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-white dark:text-white">
                     {insights?.demandForecasts?.length || 0}
                   </p>
                 </div>
@@ -227,11 +227,11 @@ export default function AIInsightsPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Churn Risk</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-white dark:text-white">
                     {insights?.churnPredictions?.filter(p => p.riskLevel === 'HIGH').length || 0}
                   </p>
                 </div>
@@ -241,11 +241,11 @@ export default function AIInsightsPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue Forecast</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-white dark:text-white">
                     {insights?.revenueForecasts?.length || 0}
                   </p>
                 </div>
@@ -255,11 +255,11 @@ export default function AIInsightsPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">AI Recommendations</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-white dark:text-white">
                     {insights?.customerRecommendations?.length || 0}
                   </p>
                 </div>
@@ -271,8 +271,8 @@ export default function AIInsightsPage() {
           </div>
 
           {/* AI Engine Status */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">AI Engine Status</h3>
+          <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
+            <h3 className="text-lg font-semibold text-white dark:text-white mb-4">AI Engine Status</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center space-x-3">
                 <CheckCircle className="w-5 h-5 text-green-600" />
@@ -295,18 +295,18 @@ export default function AIInsightsPage() {
       {activeTab === 'predictions' && (
         <div className="space-y-6">
           {/* Demand Forecasts */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Demand Predictions</h3>
+          <div className="glass-dark rounded-lg shadow-sm border border-white/5">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-lg font-semibold text-white dark:text-white">Demand Predictions</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered demand forecasting for top products</p>
             </div>
             <div className="p-6">
               {insights?.demandForecasts?.length ? (
                 <div className="space-y-4">
                   {insights.demandForecasts.slice(0, 5).map((forecast, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-4 bg-white/5 dark:bg-gray-700 rounded-lg">
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white">{forecast.productName}</h4>
+                        <h4 className="font-medium text-white dark:text-white">{forecast.productName}</h4>
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
                           <span>Current: {forecast.currentDemand}</span>
                           <span>Predicted: {forecast.predictedDemand}</span>
@@ -339,9 +339,9 @@ export default function AIInsightsPage() {
           </div>
 
           {/* Churn Predictions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Customer Churn Risk</h3>
+          <div className="glass-dark rounded-lg shadow-sm border border-white/5">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-lg font-semibold text-white dark:text-white">Customer Churn Risk</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">High-risk customers identified by AI</p>
             </div>
             <div className="p-6">
@@ -350,10 +350,10 @@ export default function AIInsightsPage() {
                   {insights.churnPredictions.slice(0, 5).map((prediction, index) => {
                     const RiskIcon = getRiskIcon(prediction.riskLevel);
                     return (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-4 bg-white/5 dark:bg-gray-700 rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3">
-                            <h4 className="font-medium text-gray-900 dark:text-white">{prediction.customerName}</h4>
+                            <h4 className="font-medium text-white dark:text-white">{prediction.customerName}</h4>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(prediction.riskLevel)}`}>
                               {prediction.riskLevel}
                             </span>
@@ -379,18 +379,18 @@ export default function AIInsightsPage() {
           </div>
 
           {/* Revenue Forecasts */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Revenue Forecasts</h3>
+          <div className="glass-dark rounded-lg shadow-sm border border-white/5">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-lg font-semibold text-white dark:text-white">Revenue Forecasts</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered revenue predictions</p>
             </div>
             <div className="p-6">
               {insights?.revenueForecasts?.length ? (
                 <div className="space-y-4">
                   {insights.revenueForecasts.map((forecast, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-4 bg-white/5 dark:bg-gray-700 rounded-lg">
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white">{forecast.period}</h4>
+                        <h4 className="font-medium text-white dark:text-white">{forecast.period}</h4>
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
                           <span>Predicted: {formatCurrency(forecast.predictedRevenue)}</span>
                           <span>Confidence: {forecast.confidence}%</span>
@@ -427,22 +427,22 @@ export default function AIInsightsPage() {
       {/* Recommendations Tab */}
       {activeTab === 'recommendations' && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI Product Recommendations</h3>
+          <div className="glass-dark rounded-lg shadow-sm border border-white/5">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-lg font-semibold text-white dark:text-white">AI Product Recommendations</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">Personalized product suggestions for top customers</p>
             </div>
             <div className="p-6">
               {insights?.customerRecommendations?.length ? (
                 <div className="space-y-6">
                   {insights.customerRecommendations.map((customer, index) => (
-                    <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-3">{customer.customerName}</h4>
+                    <div key={index} className="border border-white/10 dark:border-gray-600 rounded-lg p-4">
+                      <h4 className="font-medium text-white dark:text-white mb-3">{customer.customerName}</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {customer.recommendations.map((rec, recIndex) => (
-                          <div key={recIndex} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                          <div key={recIndex} className="bg-white/5 dark:bg-gray-700 rounded-lg p-3">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-medium text-gray-900 dark:text-white text-sm">{rec.productName}</h5>
+                              <h5 className="font-medium text-white dark:text-white text-sm">{rec.productName}</h5>
                               <span className="text-xs text-gray-500 dark:text-gray-400">Score: {rec.score.toFixed(2)}</span>
                             </div>
                             <p className="text-xs text-gray-600 dark:text-gray-400">{rec.reason}</p>
@@ -468,9 +468,9 @@ export default function AIInsightsPage() {
         <div className="space-y-6">
           {/* Automation Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Abandoned Cart</h3>
+                <h3 className="text-lg font-semibold text-white dark:text-white">Abandoned Cart</h3>
                 <ShoppingCart className="w-6 h-6 text-blue-600" />
               </div>
               {automationStats?.abandonedCartRecovery ? (
@@ -493,9 +493,9 @@ export default function AIInsightsPage() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Birthday Campaigns</h3>
+                <h3 className="text-lg font-semibold text-white dark:text-white">Birthday Campaigns</h3>
                 <Star className="w-6 h-6 text-yellow-600" />
               </div>
               {automationStats?.birthdayCampaigns ? (
@@ -518,9 +518,9 @@ export default function AIInsightsPage() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Re-engagement</h3>
+                <h3 className="text-lg font-semibold text-white dark:text-white">Re-engagement</h3>
                 <Zap className="w-6 h-6 text-purple-600" />
               </div>
               {automationStats?.reEngagement ? (
@@ -545,17 +545,17 @@ export default function AIInsightsPage() {
           </div>
 
           {/* Customer Segments */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI Customer Segments</h3>
+          <div className="glass-dark rounded-lg shadow-sm border border-white/5">
+            <div className="p-6 border-b border-white/5">
+              <h3 className="text-lg font-semibold text-white dark:text-white">AI Customer Segments</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">Automatically generated customer segments</p>
             </div>
             <div className="p-6">
               {automationStats?.customerSegments?.length ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {automationStats.customerSegments.map((segment, index) => (
-                    <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">{segment.name}</h4>
+                    <div key={index} className="bg-white/5 dark:bg-gray-700 rounded-lg p-4">
+                      <h4 className="font-medium text-white dark:text-white mb-2">{segment.name}</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Customers</span>

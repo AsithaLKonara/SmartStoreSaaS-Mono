@@ -149,7 +149,7 @@ export default function FinancialDashboard() {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-semibold text-sm">{insight.type} Insight</h4>
-                                                    <p className="text-sm text-gray-600 mt-1">{insight.message}</p>
+                                                    <p className="text-sm text-slate-400 mt-1">{insight.message}</p>
                                                 </div>
                                             </div>
                                         ))
@@ -164,15 +164,15 @@ export default function FinancialDashboard() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <div className="flex justify-between items-center p-3 bg-white/5 rounded">
                                         <span className="text-sm font-medium">Supplier Negotiations</span>
                                         <Button size="sm" variant="ghost">View</Button>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <div className="flex justify-between items-center p-3 bg-white/5 rounded">
                                         <span className="text-sm font-medium">Unused SaaS Subscriptions</span>
                                         <Button size="sm" variant="ghost">Audit</Button>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <div className="flex justify-between items-center p-3 bg-white/5 rounded">
                                         <span className="text-sm font-medium">Ad Spend Efficiency</span>
                                         <Button size="sm" variant="ghost">Optimize</Button>
                                     </div>
