@@ -58,6 +58,12 @@ export const Navbar = () => {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center space-x-4">
           <Link
+            href="/marketplace"
+            className="text-sm font-bold text-white bg-indigo-500/20 border border-indigo-500/30 hover:bg-indigo-500/40 transition-colors px-4 py-2 rounded-full"
+          >
+            Explore Marketplace
+          </Link>
+          <Link
             href="/login"
             className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2"
           >
