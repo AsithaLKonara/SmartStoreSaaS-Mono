@@ -518,6 +518,9 @@
     ],
     "/portal/orders": [
       "orders.create"
+    ],
+    "/pos/terminal": [
+      "pos.use_terminal"
     ]
   }
 }
