@@ -128,11 +128,11 @@ function BackupPageContent() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-white dark:text-white flex items-center gap-2">
             <Database className="w-8 h-8" />
             Backup & Recovery
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-slate-400 dark:text-gray-400 mt-1">
             Create and manage database backups
           </p>
         </div>
@@ -153,19 +153,19 @@ function BackupPageContent() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Backups</p>
+              <p className="text-sm text-slate-400">Total Backups</p>
               <p className="text-2xl font-bold">{backups.length}</p>
             </div>
             <HardDrive className="w-8 h-8 text-blue-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Size</p>
+              <p className="text-sm text-slate-400">Total Size</p>
               <p className="text-2xl font-bold">
                 {formatSize(backups.reduce((sum, b) => sum + b.size, 0))}
               </p>
@@ -173,10 +173,10 @@ function BackupPageContent() {
             <Database className="w-8 h-8 text-green-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Latest Backup</p>
+              <p className="text-sm text-slate-400">Latest Backup</p>
               <p className="text-sm font-semibold">
                 {backups.length > 0 && backups[0] ? formatDate(backups[0].createdAt) : 'None'}
               </p>
@@ -184,10 +184,10 @@ function BackupPageContent() {
             <Clock className="w-8 h-8 text-purple-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Status</p>
+              <p className="text-sm text-slate-400">Status</p>
               <p className="text-sm font-semibold text-green-600">All Systems OK</p>
             </div>
             <CheckCircle2 className="w-8 h-8 text-green-500" />
@@ -205,13 +205,13 @@ function BackupPageContent() {
       </div>
 
       {/* Backups List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
+      <div className="glass-dark rounded-lg shadow overflow-hidden">
+        <div className="p-4 border-b border-white/10">
           <h2 className="text-lg font-semibold">Available Backups</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/5">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Filename</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
@@ -221,21 +221,21 @@ function BackupPageContent() {
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="glass-dark divide-y divide-gray-200">
               {backups.map((backup) => (
-                <tr key={backup.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={backup.id} className="hover:bg-white/5">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                     {backup.filename}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatSize(backup.size)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                       {backup.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatDateTime(backup.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

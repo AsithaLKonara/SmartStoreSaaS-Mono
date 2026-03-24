@@ -126,7 +126,7 @@ export default function BillingPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading billing dashboard...</p>
+          <p className="text-slate-400">Loading billing dashboard...</p>
         </div>
       </div>
     );
@@ -158,7 +158,7 @@ export default function BillingPage() {
       <div className="p-6">
         <div className="text-center">
           <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No billing data available</p>
+          <p className="text-slate-400">No billing data available</p>
         </div>
       </div>
     );
@@ -169,8 +169,8 @@ export default function BillingPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Billing Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">Monitor your revenue and subscription metrics</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Billing Dashboard</h1>
+          <p className="text-slate-400 dark:text-gray-400">Monitor your revenue and subscription metrics</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh}>
@@ -193,8 +193,8 @@ export default function BillingPage() {
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Revenue</p>
+                <p className="text-2xl font-bold text-white dark:text-white">
                   {formatCurrency(dashboard.totalRevenue)}
                 </p>
               </div>
@@ -209,8 +209,8 @@ export default function BillingPage() {
                 <TrendingUp className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Monthly Revenue</p>
+                <p className="text-2xl font-bold text-white dark:text-white">
                   {formatCurrency(dashboard.monthlyRevenue)}
                 </p>
               </div>
@@ -225,8 +225,8 @@ export default function BillingPage() {
                 <Users className="w-6 h-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Subscriptions</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Active Subscriptions</p>
+                <p className="text-2xl font-bold text-white dark:text-white">
                   {dashboard.activeSubscriptions}
                 </p>
               </div>
@@ -241,8 +241,8 @@ export default function BillingPage() {
                 <Clock className="w-6 h-6 text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Payments</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Pending Payments</p>
+                <p className="text-2xl font-bold text-white dark:text-white">
                   {dashboard.pendingPayments}
                 </p>
               </div>
@@ -261,25 +261,25 @@ export default function BillingPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Subscriptions</span>
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Subscriptions</span>
+                <span className="text-lg font-semibold text-white dark:text-white">
                   {dashboard.subscriptionMetrics.totalSubscriptions}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</span>
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Active</span>
                 <span className="text-lg font-semibold text-green-600">
                   {dashboard.subscriptionMetrics.activeSubscriptions}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled</span>
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Cancelled</span>
                 <span className="text-lg font-semibold text-red-600">
                   {dashboard.subscriptionMetrics.cancelledSubscriptions}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Trial</span>
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Trial</span>
                 <span className="text-lg font-semibold text-yellow-600">
                   {dashboard.subscriptionMetrics.trialSubscriptions}
                 </span>
@@ -296,19 +296,19 @@ export default function BillingPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Yearly Revenue</span>
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Yearly Revenue</span>
+                <span className="text-lg font-semibold text-white dark:text-white">
                   {formatCurrency(dashboard.revenueMetrics.yearlyRevenue)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Order Value</span>
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Average Order Value</span>
                 <span className="text-lg font-semibold text-blue-600">
                   {formatCurrency(dashboard.revenueMetrics.averageOrderValue)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Growth</span>
+                <span className="text-sm font-medium text-slate-400 dark:text-gray-400">Monthly Growth</span>
                 <div className="flex items-center">
                   <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
                   <span className="text-lg font-semibold text-green-600">+12.5%</span>
@@ -330,20 +330,20 @@ export default function BillingPage() {
             {dashboard.recentTransactions.length === 0 ? (
               <div className="text-center py-8">
                 <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">No recent transactions</p>
+                <p className="text-slate-400 dark:text-gray-400">No recent transactions</p>
               </div>
             ) : (
               dashboard.recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-white/5 dark:hover:bg-gray-800">
                   <div className="flex items-center space-x-4">
                     <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                      <CreditCard className="w-5 h-5 text-gray-600" />
+                      <CreditCard className="w-5 h-5 text-slate-400" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-white dark:text-white">
                         {formatCurrency(transaction.amount)}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-slate-400 dark:text-gray-400">
                         {new Date(transaction.createdAt).toLocaleDateString()}
                       </p>
                     </div>

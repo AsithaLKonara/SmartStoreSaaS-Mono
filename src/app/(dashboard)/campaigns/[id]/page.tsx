@@ -148,8 +148,8 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{campaign.name}</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold text-white dark:text-white">{campaign.name}</h1>
+            <p className="text-slate-400 dark:text-gray-400">
               {campaign.type} Campaign · Created {formatDate(campaign.createdAt)}
             </p>
           </div>
@@ -186,46 +186,46 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
       {/* Campaign Statistics */}
       {stats && campaign.status !== 'DRAFT' && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="glass-dark rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <Users className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.sent}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Sent</p>
+            <p className="text-2xl font-bold text-white dark:text-white">{stats.sent}</p>
+            <p className="text-sm text-slate-400 dark:text-gray-400">Sent</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="glass-dark rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <Mail className="w-5 h-5 text-green-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.delivered}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-2xl font-bold text-white dark:text-white">{stats.delivered}</p>
+            <p className="text-sm text-slate-400 dark:text-gray-400">
               Delivered ({stats.sent > 0 ? ((stats.delivered / stats.sent) * 100).toFixed(1) : 0}%)
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="glass-dark rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <Eye className="w-5 h-5 text-purple-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.opened}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-2xl font-bold text-white dark:text-white">{stats.opened}</p>
+            <p className="text-sm text-slate-400 dark:text-gray-400">
               Opened ({stats.delivered > 0 ? ((stats.opened / stats.delivered) * 100).toFixed(1) : 0}%)
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="glass-dark rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <MousePointerClick className="w-5 h-5 text-orange-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.clicked}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-2xl font-bold text-white dark:text-white">{stats.clicked}</p>
+            <p className="text-sm text-slate-400 dark:text-gray-400">
               Clicked ({stats.opened > 0 ? ((stats.clicked / stats.opened) * 100).toFixed(1) : 0}%)
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="glass-dark rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <BarChart3 className="w-5 h-5 text-indigo-600" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.converted}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-2xl font-bold text-white dark:text-white">{stats.converted}</p>
+            <p className="text-sm text-slate-400 dark:text-gray-400">
               Converted ({stats.clicked > 0 ? ((stats.converted / stats.clicked) * 100).toFixed(1) : 0}%)
             </p>
           </div>
@@ -234,49 +234,49 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
 
       {/* Campaign Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Campaign Information</h2>
           <dl className="space-y-3">
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Name</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">{campaign.name}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Name</dt>
+              <dd className="font-medium text-white dark:text-white">{campaign.name}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Type</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">{campaign.type}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Type</dt>
+              <dd className="font-medium text-white dark:text-white">{campaign.type}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Status</dt>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Status</dt>
               <dd className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${statusColors[campaign.status]}`}>
                 {campaign.status}
               </dd>
             </div>
             {campaign.targetAudience && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Target Audience</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{campaign.targetAudience}</dd>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Target Audience</dt>
+                <dd className="font-medium text-white dark:text-white">{campaign.targetAudience}</dd>
               </div>
             )}
           </dl>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Timeline</h2>
           <dl className="space-y-3">
             <div>
-              <dt className="text-sm text-gray-600 dark:text-gray-400">Created</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">{formatDate(campaign.createdAt)}</dd>
+              <dt className="text-sm text-slate-400 dark:text-gray-400">Created</dt>
+              <dd className="font-medium text-white dark:text-white">{formatDate(campaign.createdAt)}</dd>
             </div>
             {campaign.scheduledFor && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Scheduled For</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{formatDate(campaign.scheduledFor)}</dd>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Scheduled For</dt>
+                <dd className="font-medium text-white dark:text-white">{formatDate(campaign.scheduledFor)}</dd>
               </div>
             )}
             {campaign.sentAt && (
               <div>
-                <dt className="text-sm text-gray-600 dark:text-gray-400">Sent At</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{formatDate(campaign.sentAt)}</dd>
+                <dt className="text-sm text-slate-400 dark:text-gray-400">Sent At</dt>
+                <dd className="font-medium text-white dark:text-white">{formatDate(campaign.sentAt)}</dd>
               </div>
             )}
           </dl>
@@ -285,14 +285,14 @@ export default function CampaignDetailPage({ params }: { params: { id: string } 
 
       {/* Campaign Content */}
       {campaign.subject && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Subject</h2>
-          <p className="text-gray-900 dark:text-white font-medium">{campaign.subject}</p>
+          <p className="text-white dark:text-white font-medium">{campaign.subject}</p>
         </div>
       )}
 
       {campaign.content && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Content</h2>
           <div className="prose max-w-none dark:prose-invert">
             <div dangerouslySetInnerHTML={{ __html: campaign.content }} />

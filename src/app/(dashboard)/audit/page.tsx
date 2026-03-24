@@ -104,11 +104,11 @@ function AuditPageContent() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-white dark:text-white flex items-center gap-2">
             <Shield className="w-8 h-8" />
             Audit Logs
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-slate-400 dark:text-gray-400 mt-1">
             Track all system activities and user actions
           </p>
         </div>
@@ -120,19 +120,19 @@ function AuditPageContent() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Actions</p>
+              <p className="text-sm text-slate-400">Total Actions</p>
               <p className="text-2xl font-bold">{logs.length}</p>
             </div>
             <FileText className="w-8 h-8 text-blue-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Today</p>
+              <p className="text-sm text-slate-400">Today</p>
               <p className="text-2xl font-bold">
                 {logs.filter(l => new Date(l.createdAt).toDateString() === new Date().toDateString()).length}
               </p>
@@ -140,10 +140,10 @@ function AuditPageContent() {
             <Clock className="w-8 h-8 text-green-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Users</p>
+              <p className="text-sm text-slate-400">Active Users</p>
               <p className="text-2xl font-bold">
                 {new Set(logs.map(l => l.userId)).size}
               </p>
@@ -151,10 +151,10 @@ function AuditPageContent() {
             <User className="w-8 h-8 text-purple-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Critical Actions</p>
+              <p className="text-sm text-slate-400">Critical Actions</p>
               <p className="text-2xl font-bold">
                 {logs.filter(l => l.action === 'DELETE').length}
               </p>
@@ -165,7 +165,7 @@ function AuditPageContent() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="glass-dark rounded-lg shadow p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -196,10 +196,10 @@ function AuditPageContent() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="glass-dark rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/5">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
@@ -209,15 +209,15 @@ function AuditPageContent() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="glass-dark divide-y divide-gray-200">
               {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr key={log.id} className="hover:bg-white/5">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {formatDateTime(log.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div>
-                      <div className="font-medium text-gray-900">{log.user?.name || 'System'}</div>
+                      <div className="font-medium text-white">{log.user?.name || 'System'}</div>
                       <div className="text-gray-500">{log.user?.email}</div>
                     </div>
                   </td>
@@ -226,7 +226,7 @@ function AuditPageContent() {
                       {log.action}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {log.entityType}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">

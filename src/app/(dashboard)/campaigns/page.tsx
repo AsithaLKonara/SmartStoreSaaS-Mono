@@ -199,11 +199,11 @@ export default function CampaignsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-blue-600" />
             Campaign Management
           </h1>
-          <p className="text-gray-600 mt-2">Create and manage marketing campaigns across multiple channels</p>
+          <p className="text-slate-400 mt-2">Create and manage marketing campaigns across multiple channels</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -225,37 +225,37 @@ export default function CampaignsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Campaigns</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCampaigns}</p>
+              <p className="text-sm font-medium text-slate-400">Total Campaigns</p>
+              <p className="text-2xl font-bold text-white">{stats.totalCampaigns}</p>
             </div>
             <BarChart3 className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Campaigns</p>
+              <p className="text-sm font-medium text-slate-400">Active Campaigns</p>
               <p className="text-2xl font-bold text-blue-600">{stats.activeCampaigns}</p>
             </div>
             <Send className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Sent Campaigns</p>
+              <p className="text-sm font-medium text-slate-400">Sent Campaigns</p>
               <p className="text-2xl font-bold text-green-600">{stats.sentCampaigns}</p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Sent</p>
+              <p className="text-sm font-medium text-slate-400">Total Sent</p>
               <p className="text-2xl font-bold text-purple-600">{stats.totalSent.toLocaleString()}</p>
             </div>
             <Users className="w-8 h-8 text-purple-600" />
@@ -264,8 +264,8 @@ export default function CampaignsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
+      <div className="glass-dark rounded-lg shadow mb-6">
+        <div className="border-b border-white/10">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'campaigns', label: 'Campaigns', icon: BarChart3 },
@@ -335,10 +335,10 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="glass-dark rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/5">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Campaign
@@ -360,12 +360,12 @@ export default function CampaignsPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="glass-dark divide-y divide-gray-200">
                       {filteredCampaigns.map((campaign) => (
-                        <tr key={campaign.id} className="hover:bg-gray-50">
+                        <tr key={campaign.id} className="hover:bg-white/5">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+                              <div className="text-sm font-medium text-white">{campaign.name}</div>
                               <div className="text-sm text-gray-500">{campaign.content.substring(0, 50)}...</div>
                             </div>
                           </td>
@@ -381,7 +381,7 @@ export default function CampaignsPage() {
                               <span className="ml-1">{campaign.status}</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                             {campaign.stats ? (
                               <div>
                                 <div>Sent: {campaign.stats.sent}</div>
@@ -453,16 +453,16 @@ export default function CampaignsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {templates.map((template) => (
-                  <div key={template.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
+                  <div key={template.id} className="glass-dark rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900">{template.name}</h4>
+                      <h4 className="text-lg font-semibold text-white">{template.name}</h4>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(template.type)}`}>
                         {getTypeIcon(template.type)}
                         <span className="ml-1">{template.type.replace('_', ' ')}</span>
                       </span>
                     </div>
                     <div className="space-y-2 mb-4">
-                      <p className="text-sm text-gray-600 line-clamp-3">{template.content}</p>
+                      <p className="text-sm text-slate-400 line-clamp-3">{template.content}</p>
                       <div className="text-xs text-gray-500">
                         Variables: {template.variables.join(', ')}
                       </div>
@@ -491,18 +491,18 @@ export default function CampaignsPage() {
               <h3 className="text-lg font-semibold">Campaign Analytics</h3>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-white/5 rounded-lg p-6">
                   <h4 className="text-lg font-semibold mb-4">Campaign Performance</h4>
                   <div className="space-y-4">
                     {campaigns.slice(0, 5).map((campaign) => (
-                      <div key={campaign.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div key={campaign.id} className="flex items-center justify-between p-3 glass-dark rounded border">
                         <div>
                           <p className="font-medium">{campaign.name}</p>
-                          <p className="text-sm text-gray-600">{campaign.type}</p>
+                          <p className="text-sm text-slate-400">{campaign.type}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-medium">{campaign.stats?.sent || 0} sent</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-slate-400">
                             {campaign.stats?.opened ? Math.round((campaign.stats.opened / campaign.stats.sent) * 100) : 0}% open rate
                           </p>
                         </div>
@@ -511,7 +511,7 @@ export default function CampaignsPage() {
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-white/5 rounded-lg p-6">
                   <h4 className="text-lg font-semibold mb-4">Channel Performance</h4>
                   <div className="space-y-4">
                     {['EMAIL', 'SMS', 'WHATSAPP', 'PUSH_NOTIFICATION'].map((type) => {
@@ -520,14 +520,14 @@ export default function CampaignsPage() {
                       const totalOpened = typeCampaigns.reduce((sum, c) => sum + (c.stats?.opened || 0), 0);
                       
                       return (
-                        <div key={type} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <div key={type} className="flex items-center justify-between p-3 glass-dark rounded border">
                           <div className="flex items-center gap-2">
                             {getTypeIcon(type)}
                             <span className="font-medium">{type.replace('_', ' ')}</span>
                           </div>
                           <div className="text-right">
                             <p className="font-medium">{totalSent.toLocaleString()}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-slate-400">
                               {totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0}% engagement
                             </p>
                           </div>
