@@ -146,15 +146,15 @@ export default function CategoriesPage() {
   const renderCategory = (category: any) => (
     <div key={category.id} className="mb-2">
       <div
-        className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+        className="flex items-center justify-between p-4 glass-dark rounded-lg shadow-sm hover:shadow-md transition-shadow"
         style={{ marginLeft: `${category.level * 24}px` }}
       >
         <div className="flex items-center space-x-3 flex-1">
           <FolderTree className="w-5 h-5 text-gray-400" />
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">{category.name}</h3>
+            <h3 className="font-semibold text-white dark:text-white">{category.name}</h3>
             {category.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">{category.description}</p>
+              <p className="text-sm text-slate-400 dark:text-gray-400">{category.description}</p>
             )}
             {category.productCount !== undefined && (
               <p className="text-xs text-gray-500">{category.productCount} products</p>
@@ -204,8 +204,8 @@ export default function CategoriesPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Categories</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <h1 className="text-3xl font-bold text-white dark:text-white">Categories</h1>
+          <p className="text-slate-400 dark:text-gray-400 mt-2">
             Organize your products into categories
           </p>
         </div>
@@ -231,8 +231,8 @@ export default function CategoriesPage() {
 
       {/* Create/Edit Form */}
       {showCreateForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="glass-dark rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-xl font-semibold text-white dark:text-white mb-4">
             {editingCategory ? 'Edit Category' : 'Create New Category'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -305,12 +305,12 @@ export default function CategoriesPage() {
 
       {/* Categories Tree */}
       {filteredCategories.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="text-center py-12 glass-dark rounded-lg shadow-sm">
           <FolderTree className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-medium text-white dark:text-white mb-2">
             {searchTerm ? 'No categories found' : 'No categories yet'}
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-slate-400 dark:text-gray-400 mb-4">
             {searchTerm ? 'Try adjusting your search' : 'Create your first category to organize products'}
           </p>
           {!searchTerm && (

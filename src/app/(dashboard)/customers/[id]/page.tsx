@@ -159,8 +159,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
       <div className="p-6">
         <div className="text-center py-12">
           <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Customer not found</h3>
-          <p className="text-gray-600 mb-4">The customer you&apos;re looking for doesn&apos;t exist.</p>
+          <h3 className="text-lg font-medium text-white dark:text-white mb-2">Customer not found</h3>
+          <p className="text-slate-400 mb-4">The customer you&apos;re looking for doesn&apos;t exist.</p>
           <Button onClick={() => router.push('/customers')}>
             Back to Customers
           </Button>
@@ -182,8 +182,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{customer.name}</h1>
-            <p className="text-gray-600">Customer Details</p>
+            <h1 className="text-2xl font-bold text-white dark:text-white">{customer.name}</h1>
+            <p className="text-slate-400">Customer Details</p>
           </div>
         </div>
 
@@ -206,50 +206,50 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
 
       {/* Customer Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{customer.totalOrders}</p>
+              <p className="text-sm font-medium text-slate-400">Total Orders</p>
+              <p className="text-2xl font-bold text-white dark:text-white">{customer.totalOrders}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <Banknote className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Spent</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(customer.totalSpent)}</p>
+              <p className="text-sm font-medium text-slate-400">Total Spent</p>
+              <p className="text-2xl font-bold text-white dark:text-white">{formatCurrency(customer.totalSpent)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
               <TrendingUp className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Average Order</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(customer.averageOrderValue)}</p>
+              <p className="text-sm font-medium text-slate-400">Average Order</p>
+              <p className="text-2xl font-bold text-white dark:text-white">{formatCurrency(customer.averageOrderValue)}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
               <Calendar className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Last Order</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-slate-400">Last Order</p>
+              <p className="text-2xl font-bold text-white dark:text-white">
                 {customer.lastOrderDate ? formatDate(customer.lastOrderDate) : 'Never'}
               </p>
             </div>
@@ -258,8 +258,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="glass-dark rounded-lg shadow">
+        <div className="border-b border-white/5">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'overview', label: 'Overview', icon: User },
@@ -290,22 +290,22 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 text-gray-400 mr-3" />
-                    <span className="text-gray-900 dark:text-white">{customer.email}</span>
+                    <span className="text-white dark:text-white">{customer.email}</span>
                   </div>
                   <div className="flex items-center">
                     <Phone className="w-4 h-4 text-gray-400 mr-3" />
-                    <span className="text-gray-900 dark:text-white">{formatPhoneNumber(customer.phone)}</span>
+                    <span className="text-white dark:text-white">{formatPhoneNumber(customer.phone)}</span>
                   </div>
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 text-gray-400 mr-3" />
-                    <span className="text-gray-900 dark:text-white">
+                    <span className="text-white dark:text-white">
                       {formatAddress(customer.address)}
                     </span>
                   </div>
                   {customer.dateOfBirth && (
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 text-gray-400 mr-3" />
-                      <span className="text-gray-900 dark:text-white">Born: {formatDate(customer.dateOfBirth)}</span>
+                      <span className="text-white dark:text-white">Born: {formatDate(customer.dateOfBirth)}</span>
                     </div>
                   )}
                 </div>
@@ -316,27 +316,27 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                 <h3 className="text-lg font-semibold mb-4">Preferences</h3>
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Currency:</span>
-                    <span className="ml-2 text-gray-900 dark:text-white">{customer.preferences.currency}</span>
+                    <span className="text-sm font-medium text-slate-400">Currency:</span>
+                    <span className="ml-2 text-white dark:text-white">{customer.preferences.currency}</span>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Language:</span>
-                    <span className="ml-2 text-gray-900 dark:text-white">
+                    <span className="text-sm font-medium text-slate-400">Language:</span>
+                    <span className="ml-2 text-white dark:text-white">
                       {customer.preferences.language === 'en' ? 'English' :
                         customer.preferences.language === 'si' ? 'Sinhala' : 'Tamil'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Notifications:</span>
+                    <span className="text-sm font-medium text-slate-400">Notifications:</span>
                     <div className="ml-2 space-y-1">
                       {customer.preferences.notifications.email && (
-                        <div className="text-sm text-gray-900 dark:text-white">✓ Email</div>
+                        <div className="text-sm text-white dark:text-white">✓ Email</div>
                       )}
                       {customer.preferences.notifications.sms && (
-                        <div className="text-sm text-gray-900 dark:text-white">✓ SMS</div>
+                        <div className="text-sm text-white dark:text-white">✓ SMS</div>
                       )}
                       {customer.preferences.notifications.whatsapp && (
-                        <div className="text-sm text-gray-900 dark:text-white">✓ WhatsApp</div>
+                        <div className="text-sm text-white dark:text-white">✓ WhatsApp</div>
                       )}
                     </div>
                   </div>
@@ -365,8 +365,8 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
               {customer.notes && (
                 <div className="lg:col-span-2">
                   <h3 className="text-lg font-semibold mb-4">Notes</h3>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-900 dark:text-white">{customer.notes}</p>
+                  <div className="p-4 bg-white/5 rounded-lg">
+                    <p className="text-white dark:text-white">{customer.notes}</p>
                   </div>
                 </div>
               )}
@@ -384,14 +384,14 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
               ) : (
                 <div className="space-y-4">
                   {orders.map((order) => (
-                    <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div key={order.id} className="border border-white/5 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">#{order.orderNumber}</h4>
-                          <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
+                          <h4 className="font-medium text-white dark:text-white">#{order.orderNumber}</h4>
+                          <p className="text-sm text-slate-400">{formatDate(order.createdAt)}</p>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold text-gray-900 dark:text-white">
+                          <div className="font-semibold text-white dark:text-white">
                             {formatCurrency(order.totalAmount)}
                           </div>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
@@ -406,17 +406,17 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
                           <div key={index} className="flex items-center justify-between text-sm">
                             <div className="flex items-center">
                               <Package className="w-4 h-4 text-gray-400 mr-2" />
-                              <span className="text-gray-900 dark:text-white">{item.product.name}</span>
+                              <span className="text-white dark:text-white">{item.product.name}</span>
                               <span className="text-gray-500 ml-2">({item.product.sku})</span>
                             </div>
-                            <div className="text-gray-600">
+                            <div className="text-slate-400">
                               {item.quantity} × {formatCurrency(item.price)} = {formatCurrency(item.quantity * item.price)}
                             </div>
                           </div>
                         ))}
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <div className="mt-3 pt-3 border-t border-white/5">
                         <Button
                           variant="outline"
                           size="sm"

@@ -144,14 +144,14 @@ export default function NewCustomerPage() {
           Back
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Customer</h1>
-          <p className="text-gray-600">Create a new customer profile</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Add New Customer</h1>
+          <p className="text-slate-400">Create a new customer profile</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Basic Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <User className="w-5 h-5 mr-2" />
             Basic Information
@@ -212,7 +212,7 @@ export default function NewCustomerPage() {
         </div>
 
         {/* Address Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <MapPin className="w-5 h-5 mr-2" />
             Address Information
@@ -280,7 +280,7 @@ export default function NewCustomerPage() {
         </div>
 
         {/* Tags and Preferences */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Tag className="w-5 h-5 mr-2" />
             Tags & Preferences
@@ -361,7 +361,7 @@ export default function NewCustomerPage() {
         </div>
 
         {/* Notification Preferences */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Mail className="w-5 h-5 mr-2" />
             Notification Preferences
@@ -371,7 +371,7 @@ export default function NewCustomerPage() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">Email Notifications</div>
-                <div className="text-sm text-gray-600">Receive updates via email</div>
+                <div className="text-sm text-slate-400">Receive updates via email</div>
               </div>
               <input
                 type="checkbox"
@@ -393,7 +393,7 @@ export default function NewCustomerPage() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">SMS Notifications</div>
-                <div className="text-sm text-gray-600">Receive updates via SMS</div>
+                <div className="text-sm text-slate-400">Receive updates via SMS</div>
               </div>
               <input
                 type="checkbox"
@@ -415,7 +415,7 @@ export default function NewCustomerPage() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">WhatsApp Notifications</div>
-                <div className="text-sm text-gray-600">Receive updates via WhatsApp</div>
+                <div className="text-sm text-slate-400">Receive updates via WhatsApp</div>
               </div>
               <input
                 type="checkbox"
@@ -438,7 +438,7 @@ export default function NewCustomerPage() {
       </div>
 
       {/* Notes */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="glass-dark rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold mb-4">Additional Notes</h2>
         <textarea
           value={customerData.notes}

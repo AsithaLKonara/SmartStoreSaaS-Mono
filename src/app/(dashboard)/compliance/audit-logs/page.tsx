@@ -142,7 +142,7 @@ export default function AuditLogsPage() {
         </div>
 
         <div className="md:col-span-3">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="glass-dark rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             {loading && logs.length === 0 ? (
               <div className="p-12 text-center">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto text-indigo-400 mb-4" />

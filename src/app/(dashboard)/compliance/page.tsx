@@ -56,7 +56,7 @@ function CompliancePageContent() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Compliance Dashboard</h1>
-        <p className="text-gray-600 mt-2">GDPR, Data Protection & Audit Trail</p>
+        <p className="text-slate-400 mt-2">GDPR, Data Protection & Audit Trail</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -101,7 +101,7 @@ function CompliancePageContent() {
             <CardDescription>Delete customer data (GDPR)</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-slate-400 mb-4">
               Permanently delete customer data per GDPR requirements
             </p>
             <Button variant="destructive" className="w-full" disabled>
@@ -120,7 +120,7 @@ function CompliancePageContent() {
             <CardDescription>View all system activities</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-slate-400 mb-4">
               Comprehensive logging of all actions
             </p>
             <Button variant="outline" className="w-full" asChild>

@@ -198,7 +198,7 @@ export default function ChatPage() {
       case 'instagram':
         return <MessageSquare className="w-4 h-4 text-pink-600" />;
       case 'website':
-        return <MessageSquare className="w-4 h-4 text-gray-600" />;
+        return <MessageSquare className="w-4 h-4 text-slate-400" />;
       default:
         return <MessageSquare className="w-4 h-4" />;
     }
@@ -211,7 +211,7 @@ export default function ChatPage() {
       case 'pending':
         return <Clock className="w-4 h-4 text-yellow-600" />;
       case 'resolved':
-        return <Archive className="w-4 h-4 text-gray-600" />;
+        return <Archive className="w-4 h-4 text-slate-400" />;
       default:
         return <AlertTriangle className="w-4 h-4" />;
     }
@@ -226,13 +226,13 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-white/5">
       {/* Sidebar - Conversations */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-80 glass-dark border-r border-white/10 flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-white/10">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-semibold text-gray-900">Chat Center</h1>
+            <h1 className="text-lg font-semibold text-white">Chat Center</h1>
             <Button variant="outline" size="sm">
               <MoreVertical className="w-4 h-4" />
             </Button>
@@ -285,7 +285,7 @@ export default function ChatPage() {
                 setSelectedConversation(conversation);
                 fetchMessages(conversation.id);
               }}
-              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-white/5 transition-colors ${
                 selectedConversation?.id === conversation.id ? 'bg-blue-50 border-blue-200' : ''
               }`}
             >
@@ -296,7 +296,7 @@ export default function ChatPage() {
                   </div>
                   <div className="ml-3 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-gray-900 text-sm">
+                      <h3 className="font-medium text-white text-sm">
                         {conversation.customer.name}
                       </h3>
                       {getStatusIcon(conversation.status)}
@@ -314,7 +314,7 @@ export default function ChatPage() {
                 )}
               </div>
               
-              <p className="text-sm text-gray-600 line-clamp-2">
+              <p className="text-sm text-slate-400 line-clamp-2">
                 {conversation.lastMessage}
               </p>
               
@@ -346,14 +346,14 @@ export default function ChatPage() {
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="bg-white border-b border-gray-200 p-4">
+            <div className="glass-dark border-b border-white/10 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold">
                     {selectedConversation.customer.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="ml-3">
-                    <h2 className="font-semibold text-gray-900">
+                    <h2 className="font-semibold text-white">
                       {selectedConversation.customer.name}
                     </h2>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -395,7 +395,7 @@ export default function ChatPage() {
                         ? 'bg-primary text-white'
                         : message.sender === 'bot'
                         ? 'bg-gray-100 text-gray-800'
-                        : 'bg-white border border-gray-200 text-gray-800'
+                        : 'glass-dark border border-white/10 text-gray-800'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -415,7 +415,7 @@ export default function ChatPage() {
             </div>
 
             {/* Message Input */}
-            <div className="bg-white border-t border-gray-200 p-4">
+            <div className="glass-dark border-t border-white/10 p-4">
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <textarea
@@ -445,8 +445,8 @@ export default function ChatPage() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
-              <p className="text-gray-600">Choose a conversation from the sidebar to start messaging</p>
+              <h3 className="text-lg font-medium text-white mb-2">Select a conversation</h3>
+              <p className="text-slate-400">Choose a conversation from the sidebar to start messaging</p>
             </div>
           </div>
         )}

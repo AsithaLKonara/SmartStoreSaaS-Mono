@@ -89,7 +89,7 @@ export default function CategoryDetailPage({ params }: { params: { id: string } 
       </div>
 
       {isEditing ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl">
+        <div className="glass-dark rounded-lg p-6 max-w-2xl">
           <div className="space-y-4">
             <div>
               <Label>Category Name *</Label>
@@ -116,18 +116,18 @@ export default function CategoryDetailPage({ params }: { params: { id: string } 
           </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl">
+        <div className="glass-dark rounded-lg p-6 max-w-2xl">
           <dl className="space-y-4">
             <div>
-              <dt className="text-sm text-gray-600">Name</dt>
+              <dt className="text-sm text-slate-400">Name</dt>
               <dd className="font-semibold text-lg">{category.name}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-600">Description</dt>
+              <dt className="text-sm text-slate-400">Description</dt>
               <dd>{category.description || 'No description'}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-600">Status</dt>
+              <dt className="text-sm text-slate-400">Status</dt>
               <dd>
                 <span className={`px-3 py-1 rounded-full text-sm ${category.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {category.isActive ? 'Active' : 'Inactive'}

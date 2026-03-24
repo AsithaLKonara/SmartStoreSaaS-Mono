@@ -300,8 +300,8 @@ export default function CouriersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Courier Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage couriers and track deliveries</p>
+          <h1 className="text-2xl font-bold text-white dark:text-white">Courier Management</h1>
+          <p className="text-slate-400 dark:text-gray-400">Manage couriers and track deliveries</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowAddCourier(true)} className="bg-blue-600 hover:bg-blue-700">
@@ -324,8 +324,8 @@ export default function CouriersPage() {
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Couriers</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalCouriers}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Couriers</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.totalCouriers}</p>
               </div>
             </div>
           </CardContent>
@@ -338,8 +338,8 @@ export default function CouriersPage() {
                 <UserCheck className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Couriers</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeCouriers}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Active Couriers</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.activeCouriers}</p>
               </div>
             </div>
           </CardContent>
@@ -352,8 +352,8 @@ export default function CouriersPage() {
                 <MapPin className="w-6 h-6 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Online Couriers</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.onlineCouriers}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Online Couriers</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.onlineCouriers}</p>
               </div>
             </div>
           </CardContent>
@@ -366,8 +366,8 @@ export default function CouriersPage() {
                 <Package className="w-6 h-6 text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Deliveries</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalDeliveries}</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-gray-400">Total Deliveries</p>
+                <p className="text-2xl font-bold text-white dark:text-white">{stats.totalDeliveries}</p>
               </div>
             </div>
           </CardContent>
@@ -407,20 +407,20 @@ export default function CouriersPage() {
             {/* Couriers List */}
             <div className="space-y-3">
               {filteredCouriers.map((courier) => (
-                <div key={courier.id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div key={courier.id} className="border rounded-lg p-4 hover:bg-white/5 dark:hover:bg-gray-800">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="relative">
                         <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                          <User className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                          <User className="w-6 h-6 text-slate-400 dark:text-gray-400" />
                         </div>
                         {courier.isOnline && (
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
                         )}
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">{courier.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{courier.phone}</p>
+                        <h3 className="font-medium text-white dark:text-white">{courier.name}</h3>
+                        <p className="text-sm text-slate-400 dark:text-gray-400">{courier.phone}</p>
                         <div className="flex items-center space-x-2 mt-1">
                           <Badge variant={courier.status === 'ACTIVE' ? 'default' : 'secondary'}>
                             {courier.status}
@@ -468,7 +468,7 @@ export default function CouriersPage() {
             {filteredCouriers.length === 0 && (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">No couriers found</p>
+                <p className="text-slate-400 dark:text-gray-400">No couriers found</p>
               </div>
             )}
           </div>
@@ -478,8 +478,8 @@ export default function CouriersPage() {
       {/* Add/Edit Courier Modal */}
       {showAddCourier && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+          <div className="glass-dark rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold mb-4 text-white dark:text-white">
               {editingCourier ? 'Edit Courier' : 'Add New Courier'}
             </h2>
             <form onSubmit={handleSubmitCourier}>
@@ -545,22 +545,22 @@ export default function CouriersPage() {
       {/* View Courier Modal */}
       {selectedCourier && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Courier Details</h2>
+          <div className="glass-dark rounded-lg p-6 w-full max-w-lg mx-4">
+            <h2 className="text-xl font-bold mb-4 text-white dark:text-white">Courier Details</h2>
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+                    <User className="w-8 h-8 text-slate-400 dark:text-gray-400" />
                   </div>
                   {selectedCourier.isOnline && (
                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{selectedCourier.name}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{selectedCourier.phone}</p>
-                  <p className="text-gray-600 dark:text-gray-400">{selectedCourier.email}</p>
+                  <h3 className="text-lg font-semibold text-white dark:text-white">{selectedCourier.name}</h3>
+                  <p className="text-slate-400 dark:text-gray-400">{selectedCourier.phone}</p>
+                  <p className="text-slate-400 dark:text-gray-400">{selectedCourier.email}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

@@ -186,8 +186,8 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="customers-title">Customers</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your customer relationships and insights</p>
+          <h1 className="text-3xl font-bold text-white dark:text-white" data-testid="customers-title">Customers</h1>
+          <p className="text-slate-400 dark:text-gray-400">Manage your customer relationships and insights</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -208,58 +208,58 @@ export default function CustomersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm font-medium text-slate-400">Total Customers</p>
+              <p className="text-2xl font-bold text-white">{stats.total}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <Banknote className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalSpent)}</p>
+              <p className="text-sm font-medium text-slate-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-white">{formatCurrency(stats.totalSpent)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
               <TrendingUp className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Avg. Spent</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.avgSpent)}</p>
+              <p className="text-sm font-medium text-slate-400">Avg. Spent</p>
+              <p className="text-2xl font-bold text-white">{formatCurrency(stats.avgSpent)}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
               <Star className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Repeat Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.repeatCustomers}</p>
+              <p className="text-sm font-medium text-slate-400">Repeat Customers</p>
+              <p className="text-2xl font-bold text-white">{stats.repeatCustomers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="glass-dark rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="p-2 bg-indigo-100 rounded-lg">
               <User className="w-6 h-6 text-indigo-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">New This Month</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.newThisMonth}</p>
+              <p className="text-sm font-medium text-slate-400">New This Month</p>
+              <p className="text-2xl font-bold text-white">{stats.newThisMonth}</p>
             </div>
           </div>
         </div>
@@ -274,8 +274,8 @@ export default function CustomersPage() {
                 <AlertTriangle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">AI Customer Risk Alert</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">High churn risk customers identified by AI</p>
+                <h2 className="text-xl font-bold text-white dark:text-white">AI Customer Risk Alert</h2>
+                <p className="text-sm text-slate-400 dark:text-gray-400">High churn risk customers identified by AI</p>
               </div>
             </div>
             <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
@@ -288,20 +288,20 @@ export default function CustomersPage() {
               .filter((p: any) => p.riskLevel === 'HIGH')
               .slice(0, 6)
               .map((prediction: any, index: number) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-red-200 dark:border-red-700">
+                <div key={index} className="glass-dark rounded-lg p-4 border border-red-200 dark:border-red-700">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-gray-900 dark:text-white">{prediction.customerName}</h3>
+                    <h3 className="font-medium text-white dark:text-white">{prediction.customerName}</h3>
                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       {prediction.churnProbability}% Risk
                     </span>
                   </div>
-                  <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="space-y-1 text-sm text-slate-400 dark:text-gray-400">
                     <p>Last Order: {formatDate(prediction.lastOrderDate)}</p>
                     <p>Total Spent: {formatCurrency(prediction.totalSpent)}</p>
                   </div>
                   <div className="mt-3">
                     <p className="text-xs text-red-600 font-medium">Prevention Actions:</p>
-                    <ul className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
+                    <ul className="text-xs text-slate-400 dark:text-gray-400 mt-1 space-y-1">
                       {prediction.preventionActions?.slice(0, 2).map((action: string, actionIndex: number) => (
                         <li key={actionIndex} className="flex items-center">
                           <span className="w-1 h-1 bg-red-400 rounded-full mr-2"></span>
@@ -317,7 +317,7 @@ export default function CustomersPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="glass-dark rounded-lg shadow p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -368,7 +368,7 @@ export default function CustomersPage() {
         {filteredCustomers.map((customer) => (
           <div
             key={customer.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+            className="glass-dark rounded-lg shadow-sm border border-white/5 p-6 hover:shadow-md transition-shadow"
           >
             {/* Customer Header */}
             <div className="flex items-start justify-between mb-4">
@@ -377,7 +377,7 @@ export default function CustomersPage() {
                   {customer.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="ml-3">
-                  <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                  <h3 className="font-semibold text-white">{customer.name}</h3>
                   <p className="text-sm text-gray-500">Customer since {formatDate(customer.createdAt)}</p>
                 </div>
               </div>
@@ -401,11 +401,11 @@ export default function CustomersPage() {
 
             {/* Contact Info */}
             <div className="space-y-2 mb-4">
-              <div className="flex items-center text-sm text-gray-600">
+              <div className="flex items-center text-sm text-slate-400">
                 <Mail className="w-4 h-4 mr-2" />
                 {customer.email}
               </div>
-              <div className="flex items-center text-sm text-gray-600">
+              <div className="flex items-center text-sm text-slate-400">
                 <Phone className="w-4 h-4 mr-2" />
                 {formatPhoneNumber(customer.phone)}
               </div>
@@ -430,14 +430,14 @@ export default function CustomersPage() {
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-semibold text-gray-900">
+              <div className="text-center p-3 bg-white/5 rounded-lg">
+                <div className="text-lg font-semibold text-white">
                   {formatCurrency(customer.totalSpent)}
                 </div>
                 <div className="text-xs text-gray-500">Total Spent</div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-semibold text-gray-900">
+              <div className="text-center p-3 bg-white/5 rounded-lg">
+                <div className="text-lg font-semibold text-white">
                   {customer.orderCount}
                 </div>
                 <div className="text-xs text-gray-500">Orders</div>
@@ -446,7 +446,7 @@ export default function CustomersPage() {
 
             {/* Last Order */}
             {customer.lastOrderDate && (
-              <div className="text-sm text-gray-600 mb-4">
+              <div className="text-sm text-slate-400 mb-4">
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-2" />
                   Last order: {formatDate(customer.lastOrderDate)}
@@ -482,8 +482,8 @@ export default function CustomersPage() {
       {filteredCustomers.length === 0 && !loading && (
         <div className="text-center py-12">
           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="text-lg font-medium text-white mb-2">No customers found</h3>
+          <p className="text-slate-400 mb-4">
             {searchTerm || tagFilter || spendingFilter 
               ? 'Try adjusting your filters or search terms'
               : 'Get started by adding your first customer'
