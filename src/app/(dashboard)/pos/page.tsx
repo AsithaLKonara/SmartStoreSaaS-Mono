@@ -80,11 +80,9 @@ export default function POSDashboard() {
           <h1 className="text-3xl font-bold">Point of Sale</h1>
           <p className="text-slate-400 mt-2">Manage in-store sales and terminals</p>
         </div>
-        <Button asChild>
-          <Link href="/pos/terminal">
-            <CreditCard className="w-4 h-4 mr-2" />
-            Start Sale
-          </Link>
+        <Button onClick={() => window.open('/pos/terminal', '_blank')}>
+          <CreditCard className="w-4 h-4 mr-2" />
+          Start Sale
         </Button>
       </div>
 
