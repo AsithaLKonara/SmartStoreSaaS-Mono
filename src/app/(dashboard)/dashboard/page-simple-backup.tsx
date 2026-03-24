@@ -63,11 +63,11 @@ export default function DashboardPage() {
       </Head>
       <div data-testid="dashboard-page">
       <div className="px-4 py-6 sm:px-0">
-        <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+        <div className="border-4 border-dashed border-white/10 rounded-lg p-8">
+          <h1 className="text-3xl font-bold text-white mb-8">Dashboard</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="glass-dark overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -80,7 +80,7 @@ export default function DashboardPage() {
                       <dt className="text-sm font-medium text-gray-500 truncate">
                         Total Products
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-lg font-medium text-white">
                         {stats.products}
                       </dd>
                     </dl>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="glass-dark overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -102,7 +102,7 @@ export default function DashboardPage() {
                       <dt className="text-sm font-medium text-gray-500 truncate">
                         Total Orders
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-lg font-medium text-white">
                         {stats.orders}
                       </dd>
                     </dl>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="glass-dark overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                       <dt className="text-sm font-medium text-gray-500 truncate">
                         Total Customers
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-lg font-medium text-white">
                         {stats.customers}
                       </dd>
                     </dl>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="glass-dark overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                       <dt className="text-sm font-medium text-gray-500 truncate">
                         Total Revenue
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-lg font-medium text-white">
                         ${stats.revenue.toLocaleString()}
                       </dd>
                     </dl>
@@ -156,51 +156,51 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+          <div className="glass-dark shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <a
                 href="/products"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
               >
-                <h3 className="font-medium text-gray-900">Manage Products</h3>
+                <h3 className="font-medium text-white">Manage Products</h3>
                 <p className="text-sm text-gray-500 mt-1">Add, edit, and manage your products</p>
               </a>
               <a
                 href="/orders"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
               >
-                <h3 className="font-medium text-gray-900">View Orders</h3>
+                <h3 className="font-medium text-white">View Orders</h3>
                 <p className="text-sm text-gray-500 mt-1">Track and manage customer orders</p>
               </a>
               <a
                 href="/customers"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
               >
-                <h3 className="font-medium text-gray-900">Manage Customers</h3>
+                <h3 className="font-medium text-white">Manage Customers</h3>
                 <p className="text-sm text-gray-500 mt-1">View and manage customer information</p>
               </a>
             </div>
           </div>
 
-          <div className="mt-8 bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">System Status</h2>
+          <div className="mt-8 glass-dark shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-white mb-4">System Status</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
-                <span className="text-sm text-gray-600">Database: Connected</span>
+                <span className="text-sm text-slate-400">Database: Connected</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
-                <span className="text-sm text-gray-600">API: Operational</span>
+                <span className="text-sm text-slate-400">API: Operational</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
-                <span className="text-sm text-gray-600">Authentication: Active</span>
+                <span className="text-sm text-slate-400">Authentication: Active</span>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
-                <span className="text-sm text-gray-600">Performance: Optimal</span>
+                <span className="text-sm text-slate-400">Performance: Optimal</span>
               </div>
             </div>
           </div>

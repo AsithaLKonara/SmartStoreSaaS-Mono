@@ -58,7 +58,7 @@ export default function WhatsAppIntegrationPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">WhatsApp Integration</h1>
-          <p className="text-gray-600">Connect your WhatsApp Business account to send messages and receive notifications</p>
+          <p className="text-slate-400">Connect your WhatsApp Business account to send messages and receive notifications</p>
         </div>
         <Badge variant={isConnected ? "default" : "secondary"} className="flex items-center gap-2">
           {isConnected ? (
@@ -99,11 +99,11 @@ export default function WhatsAppIntegrationPage() {
               <>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Phone Number</span>
-                  <span className="text-sm text-gray-600">{phoneNumber}</span>
+                  <span className="text-sm text-slate-400">{phoneNumber}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Webhook URL</span>
-                  <span className="text-sm text-gray-600 truncate max-w-[200px]">{webhookUrl}</span>
+                  <span className="text-sm text-slate-400 truncate max-w-[200px]">{webhookUrl}</span>
                 </div>
               </>
             )}

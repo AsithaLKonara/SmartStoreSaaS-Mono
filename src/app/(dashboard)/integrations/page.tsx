@@ -14,7 +14,7 @@ export default async function IntegrationsPage() {
     <div className="container mx-auto py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Integrations</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-400 mt-2">
           Connect your SmartStore platform with external services and platforms
         </p>
       </div>

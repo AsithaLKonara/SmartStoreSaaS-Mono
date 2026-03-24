@@ -188,7 +188,7 @@ export default function FulfillmentPage() {
 
   const getPriorityBadge = (priority: string) => {
     const colors = {
-      LOW: 'bg-gray-500/20 text-gray-300',
+      LOW: 'bg-white/50/20 text-gray-300',
       MEDIUM: 'bg-yellow-500/20 text-yellow-300',
       HIGH: 'bg-orange-500/20 text-orange-300',
       URGENT: 'bg-red-500/20 text-red-300',
@@ -202,7 +202,7 @@ export default function FulfillmentPage() {
 
   const getStatusBadge = (status: string) => {
     const config = {
-      PENDING: { color: 'bg-gray-500/20 text-gray-300', icon: Clock },
+      PENDING: { color: 'bg-white/50/20 text-gray-300', icon: Clock },
       PICKING: { color: 'bg-blue-500/20 text-blue-300', icon: Package },
       PACKING: { color: 'bg-purple-500/20 text-purple-300', icon: PackageCheck },
       READY: { color: 'bg-green-500/20 text-green-300', icon: CheckCircle },

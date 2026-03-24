@@ -76,7 +76,7 @@ export default function ExpensesPage() {
       case 'APPROVED': return 'text-green-600 bg-green-50';
       case 'REJECTED': return 'text-red-600 bg-red-50';
       case 'PAID': return 'text-blue-600 bg-blue-50';
-      default: return 'text-gray-600 bg-gray-50';
+      default: return 'text-slate-400 bg-white/5';
     }
   };
 
@@ -154,11 +154,11 @@ export default function ExpensesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-white dark:text-white flex items-center gap-3">
             <Banknote className="w-8 h-8 text-blue-600" />
             Expense Management
           </h1>
-          <p className="text-gray-600 mt-2">Track, categorize, and manage business expenses</p>
+          <p className="text-slate-400 mt-2">Track, categorize, and manage business expenses</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -180,37 +180,37 @@ export default function ExpensesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalExpenses}</p>
+              <p className="text-sm font-medium text-slate-400">Total Expenses</p>
+              <p className="text-2xl font-bold text-white dark:text-white">{stats.totalExpenses}</p>
             </div>
             <Banknote className="w-8 h-8 text-blue-600" />
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Amount</p>
+              <p className="text-sm font-medium text-slate-400">Total Amount</p>
               <p className="text-2xl font-bold text-red-600">{formatCurrency(stats.totalAmount)}</p>
             </div>
             <Receipt className="w-8 h-8 text-red-600" />
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Amount</p>
+              <p className="text-sm font-medium text-slate-400">Pending Amount</p>
               <p className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.pendingAmount)}</p>
             </div>
             <Clock className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="glass-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Paid Amount</p>
+              <p className="text-sm font-medium text-slate-400">Paid Amount</p>
               <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.paidAmount)}</p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
@@ -219,8 +219,8 @@ export default function ExpensesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="glass-dark rounded-lg shadow mb-6">
+        <div className="border-b border-white/5">
           <nav className="flex space-x-8 px-6">
             {[
               { id: 'expenses', label: 'Expenses', icon: Receipt },
@@ -278,10 +278,10 @@ export default function ExpensesPage() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
+              <div className="glass-dark rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/5">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Expense
@@ -303,12 +303,12 @@ export default function ExpensesPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                    <tbody className="glass-dark divide-y divide-gray-200">
                       {filteredExpenses.map((expense) => (
-                        <tr key={expense.id} className="hover:bg-gray-50">
+                        <tr key={expense.id} className="hover:bg-white/5">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">{expense.title}</div>
+                              <div className="text-sm font-medium text-white dark:text-white">{expense.title}</div>
                               <div className="text-sm text-gray-500">{expense.description}</div>
                               {expense.vendor && (
                                 <div className="text-xs text-gray-400">Vendor: {expense.vendor}</div>
@@ -321,7 +321,7 @@ export default function ExpensesPage() {
                               <span className="ml-1">{expense.category}</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white dark:text-white">
                             {formatCurrency(expense.amount)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -378,7 +378,7 @@ export default function ExpensesPage() {
             <div className="space-y-6">
               <h3 className="text-lg font-semibold">Financial Reports</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-white/5 rounded-lg p-6">
                   <h4 className="text-lg font-semibold mb-4">Expense by Category</h4>
                   <div className="space-y-4">
                     {['OPERATIONAL', 'MARKETING', 'LOGISTICS', 'TECHNOLOGY', 'ADMINISTRATIVE', 'OTHER'].map((category) => {
@@ -387,14 +387,14 @@ export default function ExpensesPage() {
                       const percentage = stats.totalAmount > 0 ? (totalAmount / stats.totalAmount) * 100 : 0;
                       
                       return (
-                        <div key={category} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                        <div key={category} className="flex items-center justify-between p-3 glass-dark rounded border">
                           <div className="flex items-center gap-2">
                             {getCategoryIcon(category)}
                             <span className="font-medium">{category}</span>
                           </div>
                           <div className="text-right">
                             <p className="font-medium">{formatCurrency(totalAmount)}</p>
-                            <p className="text-sm text-gray-600">{percentage.toFixed(1)}%</p>
+                            <p className="text-sm text-slate-400">{percentage.toFixed(1)}%</p>
                           </div>
                         </div>
                       );
@@ -402,7 +402,7 @@ export default function ExpensesPage() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-6">
+                <div className="bg-white/5 rounded-lg p-6">
                   <h4 className="text-lg font-semibold mb-4">Quick Actions</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -440,10 +440,10 @@ export default function ExpensesPage() {
                 </Button>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg border overflow-hidden">
+              <div className="glass-dark rounded-lg border overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/5">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <input type="checkbox" className="rounded border-gray-300" />
@@ -465,21 +465,21 @@ export default function ExpensesPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200">
+                    <tbody className="glass-dark divide-y divide-gray-200">
                       {expenses
                         .filter(expense => expense.status === 'PENDING')
                         .map((expense) => (
-                          <tr key={expense.id} className="hover:bg-gray-50">
+                          <tr key={expense.id} className="hover:bg-white/5">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <input type="checkbox" className="rounded border-gray-300" />
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-gray-900 dark:text-white">{expense.title}</div>
+                                <div className="text-sm font-medium text-white dark:text-white">{expense.title}</div>
                                 <div className="text-sm text-gray-500">{expense.description}</div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white dark:text-white">
                               {formatCurrency(expense.amount)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

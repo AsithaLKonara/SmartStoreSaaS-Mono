@@ -102,7 +102,7 @@ export default function InventoryPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-testid="inventory-stats">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div className="glass-dark p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
             <Package className="w-6 h-6" />
           </div>
@@ -111,7 +111,7 @@ export default function InventoryPage() {
             <p className="text-2xl font-bold">{items.length}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div className="glass-dark p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="p-3 bg-red-50 text-red-600 rounded-xl">
             <AlertTriangle className="w-6 h-6" />
           </div>
@@ -120,7 +120,7 @@ export default function InventoryPage() {
             <p className="text-2xl font-bold">{lowStock.length}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div className="glass-dark p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
             <TrendingUp className="w-6 h-6" />
           </div>
@@ -131,7 +131,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="glass-dark rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-50 flex gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />

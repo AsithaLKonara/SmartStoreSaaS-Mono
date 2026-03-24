@@ -475,7 +475,7 @@ export default function StripeIntegrationPage() {
               {/* Google Pay */}
               <div className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 glass-dark rounded-lg flex items-center justify-center">
                     <span className="text-blue-600 text-xs font-bold">G</span>
                   </div>
                   <div>
