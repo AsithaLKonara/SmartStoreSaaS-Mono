@@ -57,7 +57,7 @@ export default function LoginForm() {
       return;
     }
 
-    if (!turnstileToken) {
+    if (!turnstileToken && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
       toast.error('Please complete the security check');
       return;
     }
@@ -74,8 +74,6 @@ export default function LoginForm() {
         password,
         redirect: true,
         callbackUrl: callbackUrl,
-        // We could pass the turnstile token here if our backend handles it,
-        // but for now we just verify it on the frontend before allowing sign-in.
       });
 
       if (result?.error) {
@@ -144,7 +142,7 @@ export default function LoginForm() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-white py-6 rounded-xl font-bold text-lg glow"
-              disabled={isLoading || !turnstileToken}
+              disabled={isLoading}
               data-testid="submit-button"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
