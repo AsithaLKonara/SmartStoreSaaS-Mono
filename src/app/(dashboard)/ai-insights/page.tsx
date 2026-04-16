@@ -127,6 +127,32 @@ export default function AIInsightsPage() {
     }
   }, []);
 
+  const handleRunOptimization = async () => {
+    setLoading(true);
+    const toastId = toast.loading('Triggering AI Optimization...');
+    try {
+      const response = await fetch('/api/ai/workflows/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          workflowId: 'auto-optimize-store',
+          triggerData: { source: 'dashboard_manual' }
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Optimization workflow started successfully', { id: toastId });
+      } else {
+        const error = await response.json();
+        toast.error(error.message || 'Failed to start optimization', { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Network error while triggering optimization', { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) {
@@ -466,6 +492,22 @@ export default function AIInsightsPage() {
       {/* Automation Tab */}
       {activeTab === 'automation' && (
         <div className="space-y-6">
+          {/* Action Header */}
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h3 className="text-xl font-bold text-white">Workflow Automation</h3>
+              <p className="text-gray-400">Manage autonomous store operations</p>
+            </div>
+            <Button 
+              onClick={() => handleRunOptimization()} 
+              disabled={loading}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Execute Auto-Optimization
+            </Button>
+          </div>
+
           {/* Automation Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5">

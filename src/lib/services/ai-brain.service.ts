@@ -105,7 +105,7 @@ export class AIBrainService {
     /**
      * Specialized dynamic pricing optimization
      */
-    static async optimizePricing(context: AIContext): Promise<{ recommendations: any[] }> {
+    static async optimizePricing(context: AIContext): Promise<{ recommendations: Array<{ productId: string; productName: string; sku: string; currentPrice: number; recommendedPrice: number; reason: string; impact: string }> }> {
         if (!this.API_KEY) {
             return {
                 recommendations: (context.inventory || []).slice(0, 4).map(p => ({
@@ -135,7 +135,7 @@ export class AIBrainService {
     /**
      * Specialized structured insights for the AI Insights Dashboard
      */
-    static async generateDashboardInsights(context: AIContext): Promise<any> {
+    static async generateDashboardInsights(context: AIContext): Promise<{ demandForecasts: any[]; churnPredictions: any[]; revenueForecasts: any[]; customerRecommendations: any[] }> {
         if (!this.API_KEY) {
             return {
                 demandForecasts: [

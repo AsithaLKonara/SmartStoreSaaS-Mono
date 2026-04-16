@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
-import { AggregatedAnalyticsService } from '@/lib/services/aggregated-analytics.service';
+import { AnalyticsService } from '@/lib/services/analytics.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ export const GET = requirePermission(Permission.ANALYTICS_READ)(
                 throw new ValidationError('Organization scope required');
             }
 
-            const benchmark = await AggregatedAnalyticsService.getBenchmark(organizationId);
+            const benchmark = await AnalyticsService.getBenchmark(organizationId);
 
             return NextResponse.json(successResponse(benchmark));
         } catch (error: any) {

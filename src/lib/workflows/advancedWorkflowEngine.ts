@@ -1,12 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { WorkflowNodeType, WorkflowExecutionStatus } from '@/types/enums';
+import { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 export interface WorkflowNode {
   id: string;
-  type: 'TRIGGER' | 'ACTION' | 'CONDITION' | 'DELAY' | 'WEBHOOK' | 'EMAIL' | 'SMS';
+  type: WorkflowNodeType;
   name: string;
   description: string;
-  config: unknown;
+  config: Prisma.InputJsonValue;
   position: { x: number; y: number };
   connections: string[];
 }
@@ -37,7 +40,7 @@ export interface WorkflowDefinition {
 export interface WorkflowExecution {
   id: string;
   workflowId: string;
-  status: string; // Changed from enum to string to match Prisma schema
+  status: WorkflowExecutionStatus;
   currentNodeId?: string | null;
   data?: unknown;
   input?: unknown;
@@ -84,13 +87,13 @@ export class AdvancedWorkflowEngine {
         data: {
           name: definition.name,
           description: definition.description,
-          type: 'custom', // Add required type field
+          type: 'custom',
           version: definition.version,
-          trigger: (definition.triggers && definition.triggers[0]) || 'manual', // Add required trigger
-          actions: definition.nodes as any, // Add required actions (using nodes as proxy)
-          nodes: definition.nodes as any,
-          connections: definition.connections as any,
-          triggers: definition.triggers as any,
+          trigger: (definition.triggers && definition.triggers[0]) || 'manual',
+          actions: definition.nodes as Prisma.InputJsonValue,
+          nodes: definition.nodes as Prisma.InputJsonValue,
+          connections: definition.connections as Prisma.InputJsonValue,
+          triggers: definition.triggers as Prisma.InputJsonValue,
           isActive: definition.isActive,
           organizationId: definition.organizationId,
         },
@@ -182,8 +185,8 @@ export class AdvancedWorkflowEngine {
       await prisma.workflowExecution.update({
         where: { id: executionId },
         data: {
-          status: 'running', // Changed from 'RUNNING' to 'running' to match Prisma schema
-          data: data,
+          status: WorkflowExecutionStatus.RUNNING,
+          data: data as Prisma.InputJsonValue,
         },
       });
 

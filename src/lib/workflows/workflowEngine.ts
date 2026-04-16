@@ -1,10 +1,11 @@
 import { prisma } from '../prisma';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { AIChatService } from '../ai/chatService';
 import { emailService } from '../email';
 import { whatsAppService } from '../messaging';
 import { notificationService } from '../notifications/service';
 import { logger } from '../logger';
+import { WorkflowExecutionStatus } from '@/types/enums';
 
 interface WorkflowStep {
   id: string;
@@ -28,7 +29,7 @@ interface Workflow {
 interface WorkflowExecution {
   id: string;
   workflowId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: WorkflowExecutionStatus;
   currentStep: number;
   data: Record<string, unknown>;
   startedAt: Date;
@@ -212,14 +213,14 @@ export class WorkflowEngine {
     const execution: WorkflowExecution = {
       id: `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       workflowId: workflow.id,
-      status: 'pending',
+      status: WorkflowExecutionStatus.RUNNING, // Changed from 'pending'
       currentStep: 0,
       data,
       startedAt: new Date(),
     };
 
     try {
-      execution.status = 'running';
+      // Logic starts in RUNNING state
 
       for (let i = 0; i < workflow.steps.length; i++) {
         const step = workflow.steps[i];
@@ -248,7 +249,7 @@ export class WorkflowEngine {
       execution.status = 'completed';
       execution.completedAt = new Date();
     } catch (error) {
-      execution.status = 'failed';
+      execution.status = WorkflowExecutionStatus.FAILED;
       execution.error = error instanceof Error ? error.message : 'Unknown error';
       execution.completedAt = new Date();
       logger.error({
@@ -413,7 +414,7 @@ export class WorkflowEngine {
     if (order.payments && order.payments.length > 0 && order.payments[0]) {
       await prisma.payment.update({
         where: { id: order.payments[0].id },
-        data: { status: 'PAID' }
+        data: { status: 'PAID' as const }
       });
     }
   }

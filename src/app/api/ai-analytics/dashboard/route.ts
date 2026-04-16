@@ -12,12 +12,8 @@ import { successResponse, ValidationError } from '@/lib/middleware/withErrorHand
 import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
-export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/prisma';
 
-/**
- * GET /api/ai-analytics/dashboard
- * Get AI analytics dashboard (VIEW_AI_INSIGHTS permission)
- */
 export const GET = requirePermission(Permission.AI_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
@@ -26,21 +22,73 @@ export const GET = requirePermission(Permission.AI_READ)(
         throw new ValidationError('User must belong to an organization');
       }
 
+      // 1. Fetch Key Performance Data
+      const [orderStats, snapshots, topProducts] = await Promise.all([
+        prisma.order.aggregate({
+          where: { organizationId },
+          _sum: { total: true },
+          _count: { id: true }
+        }),
+        prisma.dailySalesSnapshot.findMany({
+          where: { organizationId },
+          orderBy: { date: 'desc' },
+          take: 30
+        }),
+        prisma.orderItem.groupBy({
+          by: ['productId'],
+          where: { order: { organizationId } },
+          _sum: { quantity: true },
+          orderBy: { _sum: { quantity: 'desc' } },
+          take: 5
+        })
+      ]);
+
+      // 2. Generate Intelligent Insights
+      const insights = [];
+      const totalSales = Number(orderStats._sum.total || 0);
+      const orderCount = orderStats._count.id;
+      
+      if (orderCount > 0) {
+        insights.push({
+          type: 'INFO',
+          message: `Your platform has processed ${orderCount} orders totaling ${totalSales.toFixed(2)} to date.`,
+          priority: 'LOW'
+        });
+      }
+
+      // Low stock check
+      const lowStockProducts = await prisma.product.count({
+        where: { organizationId, stock: { lte: 10 } }
+      });
+      if (lowStockProducts > 0) {
+        insights.push({
+          type: 'CRITICAL',
+          message: `${lowStockProducts} products are currently below reorder levels. Immediate procurement suggested.`,
+          priority: 'HIGH'
+        });
+      }
+
       logger.info({
-        message: 'AI analytics dashboard fetched',
-        context: {
-          userId: user.id,
-          organizationId
-        },
-        correlation: req.correlationId
+        message: 'AI analytics dashboard generated successfully',
+        context: { userId: user.id, organizationId }
       });
 
-      // TODO: Generate AI analytics dashboard
       return NextResponse.json(successResponse({
-        insights: [],
-        predictions: [],
-        trends: [],
-        message: 'AI analytics dashboard - implementation pending'
+        stats: {
+          totalSales,
+          orderCount,
+          averageOrderValue: orderCount > 0 ? totalSales / orderCount : 0
+        },
+        insights,
+        history: snapshots.map(s => ({
+          date: s.date,
+          sales: Number(s.totalSales),
+          count: s.orderCount
+        })),
+        topProducts: topProducts.map(p => ({
+          id: p.productId,
+          sales: p._sum.quantity
+        }))
       }));
     } catch (error: any) {
       logger.error({
