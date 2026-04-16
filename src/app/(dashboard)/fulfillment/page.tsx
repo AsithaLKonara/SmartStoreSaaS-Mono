@@ -58,46 +58,9 @@ export default function FulfillmentPage() {
       
       if (response.ok) {
         const data = await response.json();
-        setOrders(data.orders || []);
+        setOrders(data.data?.orders || data.data || []);
       } else {
-        // Mock data for demonstration
-        setOrders([
-          {
-            id: 'ful_001',
-            orderNumber: 'ORD-2024-001',
-            customer: {
-              name: 'John Doe',
-              email: 'john.doe@smartstore.test',
-              phone: '+94771234567'
-            },
-            items: [
-              { productName: 'Product A', quantity: 2, location: 'A-01-03' },
-              { productName: 'Product B', quantity: 1, location: 'B-05-12' }
-            ],
-            priority: 'HIGH',
-            status: 'PENDING',
-            assignedTo: null,
-            totalAmount: 5000,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: 'ful_002',
-            orderNumber: 'ORD-2024-002',
-            customer: {
-              name: 'Jane Smith',
-              email: 'jane.smith@smartstore.test',
-              phone: '+94771234568'
-            },
-            items: [
-              { productName: 'Product C', quantity: 1, location: 'C-02-05' }
-            ],
-            priority: 'MEDIUM',
-            status: 'PICKING',
-            assignedTo: 'Staff User',
-            totalAmount: 3000,
-            createdAt: new Date().toISOString()
-          }
-        ]);
+        setOrders([]);
       }
     } catch (error) {
       // Error handled silently - user sees UI feedback

@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email/emailService';
 import { smsService } from '@/lib/sms/smsService';
 import { logger } from '@/lib/logger';
+import { realTimeSyncService } from '@/lib/sync/realTimeSyncService';
 
 export interface IoTDevice {
   id: string;
@@ -96,6 +97,18 @@ export class ProductionIoTService {
 
     // Check for anomalies and create alerts if needed
     await this.checkReadingAnomalies(reading);
+
+    // Broadcast real-time update
+    await realTimeSyncService.broadcastEvent({
+      id: `sync-iot-${Date.now()}`,
+      type: 'inventory', // Reusing inventory type for dashboard charts
+      action: 'update',
+      entityId: readingData.deviceId,
+      organizationId: (await prisma.iotDevice.findUnique({ where: { id: readingData.deviceId } }))?.organizationId || '',
+      data: reading,
+      timestamp: new Date(),
+      source: 'iot-service'
+    });
 
     return reading as SensorReading;
   }

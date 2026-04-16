@@ -1,8 +1,8 @@
 import React from 'react';
 
 export const metadata = {
-  title: 'POS Terminal',
-  description: 'Point of Sale Terminal',
+  title: 'Point of Sale Terminal | SmartStore',
+  description: 'High-performance checkout terminal for modern retail operations.',
 };
 
 export default function POSLayout({ children }: { children: React.ReactNode }) {

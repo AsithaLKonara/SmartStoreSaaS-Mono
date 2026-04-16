@@ -79,7 +79,7 @@ export default function WarehousePage() {
 
   useEffect(() => {
     if (!session?.user?.organizationId) {
-      router.push('/signin');
+      router.push('/login');
       return;
     }
     fetchWarehouseData();
@@ -96,17 +96,17 @@ export default function WarehousePage() {
 
       if (warehousesRes.ok) {
         const warehousesData = await warehousesRes.json();
-        setWarehouses(warehousesData);
+        setWarehouses(warehousesData.data?.warehouses || warehousesData.data || []);
       }
 
       if (inventoryRes.ok) {
         const inventoryData = await inventoryRes.json();
-        setInventory(inventoryData);
+        setInventory(inventoryData.data || []);
       }
 
       if (movementsRes.ok) {
         const movementsData = await movementsRes.json();
-        setMovements(movementsData);
+        setMovements(movementsData.data || []);
       }
     } catch (error) {
       // Error fetching warehouse data - could implement proper error handling
@@ -149,7 +149,7 @@ export default function WarehousePage() {
     const inStock = safeInventory.filter(item => item.status === 'in_stock').length;
     const lowStock = safeInventory.filter(item => item.status === 'low_stock').length;
     const outOfStock = safeInventory.filter(item => item.status === 'out_of_stock').length;
-    const totalValue = safeInventory.reduce((sum, item) => sum + (item.quantity * 0), 0); // Add price calculation
+    const totalValue = safeInventory.reduce((sum, item) => sum + (item.quantity * 0), 0); // Need to join with product price in API to do this properly
 
     return { totalItems, inStock, lowStock, outOfStock, totalValue };
   };

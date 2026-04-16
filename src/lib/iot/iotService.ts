@@ -329,13 +329,22 @@ export class IoTService {
       // Update customer interactions
       for (const customerDevice of beaconData.customerDevices) {
         if (customerDevice.userId) {
+          // Resolve organization from user context
+          const user = await prisma.user.findUnique({
+            where: { id: customerDevice.userId },
+            select: { organizationId: true }
+          }).catch(() => null);
+
+          const resolvedOrgId = user?.organizationId;
+          if (!resolvedOrgId) continue; // Skip if org cannot be determined
+
           await prisma.activityLog.create({
             data: {
               id: `act_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               type: 'BEACON_INTERACTION',
               description: `Customer detected at beacon ${beaconData.beaconId}`,
               userId: customerDevice.userId,
-              organizationId: 'org_pending_lookup', // TODO: Resolve org properly in production
+              organizationId: resolvedOrgId,
               metadata: {
                 beaconId: beaconData.beaconId,
                 rssi: beaconData.rssi,

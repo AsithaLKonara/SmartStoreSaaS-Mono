@@ -10,7 +10,8 @@ import {
   Zap,
   RefreshCw,
   Truck,
-  ArrowRight
+  ArrowRight,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
@@ -41,7 +42,7 @@ export default function InventoryPage() {
       const response = await fetch('/api/inventory');
       if (response.ok) {
         const data = await response.json();
-        setItems(data.data || []); // Success response wraps in .data
+        setItems(data.data || []); 
       }
     } catch (error) {
       logger.error({
@@ -73,6 +74,29 @@ export default function InventoryPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ['SKU', 'Name', 'Stock', 'Min Stock', 'Price'];
+    const csvData = filteredItems.map(item => [
+      item.sku,
+      item.name,
+      item.stock,
+      item.minStock,
+      item.price
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventory-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const lowStock = items.filter(i => i.stock <= i.minStock);
   const filteredItems = items.filter(i =>
     i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,6 +122,14 @@ export default function InventoryPage() {
         >
           {autopilotRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-current" />}
           Run AI Autopilot
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleExportCSV}
+          className="flex items-center gap-2 border-slate-200 hover:bg-slate-50 transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Export
         </Button>
       </div>
 

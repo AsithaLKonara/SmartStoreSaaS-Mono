@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { ProductGrid } from '../../components/ProductGrid';
-import { CartPanel } from '../../components/CartPanel';
-import { PaymentPanel } from '../../components/PaymentPanel';
-import { BarcodeScanner } from '../../components/BarcodeScanner';
-import { POSProvider } from '../../hooks/usePOS';
-import { CartProvider } from '../../hooks/useCart';
-import { CustomerSelector } from '../../components/CustomerSelector';
+import { ProductGrid } from './components/ProductGrid';
+import { CartPanel } from './components/CartPanel';
+import { PaymentPanel } from './components/PaymentPanel';
+import { BarcodeScanner } from './components/BarcodeScanner';
+import { POSProvider } from './hooks/usePOS';
+import { CartProvider } from './hooks/useCart';
+import { CustomerSelector } from './components/CustomerSelector';
 
 export default function POSTerminalPage() {
   return (

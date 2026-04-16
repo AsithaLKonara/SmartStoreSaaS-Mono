@@ -12,12 +12,8 @@ import { successResponse, ValidationError } from '@/lib/middleware/withErrorHand
 import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 
-export const dynamic = 'force-dynamic';
+import { prisma } from '@/lib/prisma';
 
-/**
- * GET /api/shipping/statistics
- * Get shipping statistics (VIEW_INVENTORY permission)
- */
 export const GET = requirePermission(Permission.INVENTORY_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
@@ -26,22 +22,35 @@ export const GET = requirePermission(Permission.INVENTORY_READ)(
         throw new ValidationError('User must belong to an organization');
       }
 
+      // Aggregate delivery statistics
+      const [totalCount, statusGroups] = await Promise.all([
+        prisma.delivery.count({
+          where: { organizationId }
+        }),
+        prisma.delivery.groupBy({
+          by: ['status'],
+          where: { organizationId },
+          _count: { id: true }
+        })
+      ]);
+
+      const statsMap = statusGroups.reduce((acc, group) => {
+        acc[group.status] = group._count.id;
+        return acc;
+      }, {} as Record<string, number>);
+
       logger.info({
-        message: 'Shipping statistics fetched',
-        context: {
-          userId: user.id,
-          organizationId
-        },
-        correlation: req.correlationId
+        message: 'Shipping statistics generated successfully',
+        context: { userId: user.id, organizationId, totalCount }
       });
 
-      // TODO: Calculate actual shipping statistics
       return NextResponse.json(successResponse({
-        totalShipments: 0,
-        inTransit: 0,
-        delivered: 0,
-        avgDeliveryTime: 0,
-        message: 'Shipping statistics - implementation pending'
+        totalShipments: totalCount,
+        inTransit: statsMap['SHIPPED'] || 0,
+        delivered: statsMap['DELIVERED'] || 0,
+        pending: statsMap['PENDING'] || 0,
+        cancelled: statsMap['CANCELLED'] || 0,
+        avgDeliveryTime: 0 // Logic for this depends on tracking actualDelivery vs createdAt
       }));
     } catch (error: any) {
       logger.error({

@@ -19,6 +19,15 @@ import { formatCurrency, formatDate, formatPhoneNumber } from '@/lib/utils';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface OrderDetails {
   id: string;
@@ -68,6 +77,12 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Tracking Modal State
+  const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [carrier, setCarrier] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const fetchOrder = useCallback(async () => {
     try {
       setLoading(true);
@@ -96,13 +111,40 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   }, [fetchOrder]);
 
   const handlePrintInvoice = () => {
-    toast.success('Print functionality coming soon');
-    // TODO: Implement PDF generation
+    window.print();
   };
 
   const handleTrack = () => {
-    toast.success('Tracking functionality coming soon');
-    // TODO: Implement tracking modal
+    setIsTrackingModalOpen(true);
+  };
+
+  const submitTrackingInfo = async () => {
+    if (!trackingNumber || !carrier) {
+      toast.error('Please enter both Tracking Number and Carrier');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/orders/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          trackingNumber, 
+          carrier, 
+          status: 'OUT_FOR_DELIVERY' 
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update tracking info');
+      
+      toast.success('Tracking information updated');
+      setIsTrackingModalOpen(false);
+      await fetchOrder();
+    } catch (error) {
+      handleError(error, 'Update tracking');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = async () => {
@@ -365,6 +407,45 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           <p className="text-slate-400 dark:text-gray-400">{order.notes}</p>
         </div>
       )}
+
+      {/* Tracking Modal */}
+      <Dialog open={isTrackingModalOpen} onOpenChange={setIsTrackingModalOpen}>
+        <DialogContent className="glass-dark border border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white dark:text-white">Add Tracking Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-white dark:text-white" htmlFor="carrier">Carrier</Label>
+              <Input
+                id="carrier"
+                placeholder="e.g. FedEx, UPS, USPS"
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                className="bg-white/5 border-white/10 text-white dark:text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-white dark:text-white" htmlFor="trackingNumber">Tracking Number</Label>
+              <Input
+                id="trackingNumber"
+                placeholder="Enter tracking number"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+                className="bg-white/5 border-white/10 text-white dark:text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTrackingModalOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={submitTrackingInfo} disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save Tracking'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
