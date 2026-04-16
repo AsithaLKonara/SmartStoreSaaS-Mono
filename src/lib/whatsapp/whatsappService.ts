@@ -387,11 +387,34 @@ We'll process your order and send you tracking details soon! 🚚`;
     message: string,
     type: string
   ): Promise<void> {
-    // TODO: Create message log table and log the message
-    logger.debug({
-      message: 'WhatsApp message logged',
-      context: { service: 'WhatsAppService', operation: 'logMessage', organizationId, from, to, type }
-    });
+    try {
+      const integration = await this.getIntegration(organizationId);
+      const direction = from === integration.phoneNumber ? 'OUTBOUND' : 'INBOUND';
+
+      await prisma.whatsAppMessage.create({
+        data: {
+          id: `wa_msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          organizationId,
+          phoneNumber: direction === 'INBOUND' ? from : to,
+          message,
+          type,
+          direction,
+          status: 'DELIVERED',
+          updatedAt: new Date()
+        }
+      });
+
+      logger.debug({
+        message: 'WhatsApp message logged to database',
+        context: { service: 'WhatsAppService', operation: 'logMessage', organizationId, direction, from, to }
+      });
+    } catch (error) {
+      logger.error({
+        message: 'Failed to log WhatsApp message',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { service: 'WhatsAppService', operation: 'logMessage', organizationId, from, to }
+      });
+    }
   }
 
   /**

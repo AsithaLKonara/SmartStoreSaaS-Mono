@@ -357,7 +357,7 @@ export class SMSService {
           id: `sms_log_${Date.now()}`,
           phone: from,
           message: body,
-          status: 'PENDING', // SmsLogStatus does not have RECEIVED
+          status: 'DELIVERED' as const, // Inbound message — mark as delivered from customer's perspective
           provider: 'twilio',
           messageId,
           organization: {

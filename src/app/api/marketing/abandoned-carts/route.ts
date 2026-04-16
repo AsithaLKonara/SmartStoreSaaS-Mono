@@ -138,23 +138,18 @@ export const POST = requirePermission(Permission.MARKETING_MANAGE)(
         throw new ValidationError('No cart IDs provided');
       }
 
-      // TODO: Implement actual abandoned cart campaign logic
-      // This would typically involve:
-      // 1. Validating cart IDs
-      // 2. Creating campaign records
-      // 3. Scheduling emails/SMS based on delay
-      // 4. Tracking campaign performance
-
-      const campaign = {
-        id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: campaignType,
-        cartIds,
-        templateId,
-        delay,
-        status: 'scheduled',
-        organizationId,
-        createdAt: new Date().toISOString()
-      };
+      // Create an EmailCampaign record for the abandoned carts
+      const campaign = await prisma.emailCampaign.create({
+        data: {
+          name: `Abandoned Cart Recovery ${new Date().toLocaleDateString()}`,
+          subject: 'You left something in your cart!',
+          content: templateId ? `Using template: ${templateId}` : 'Don\'t forget your items!',
+          status: delay > 0 ? 'SCHEDULED' : 'SENDING',
+          organizationId,
+          scheduledAt: delay > 0 ? new Date(Date.now() + delay * 60000) : null,
+          recipientCount: cartIds.length,
+        }
+      });
 
       logger.info({
         message: 'Abandoned cart campaign initiated',

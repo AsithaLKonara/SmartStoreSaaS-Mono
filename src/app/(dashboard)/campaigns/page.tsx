@@ -83,12 +83,12 @@ export default function CampaignsPage() {
 
       if (campaignsRes.ok) {
         const campaignsData = await campaignsRes.json();
-        setCampaigns(campaignsData);
+        setCampaigns(campaignsData.data || campaignsData || []);
       }
 
       if (templatesRes.ok) {
         const templatesData = await templatesRes.json();
-        setTemplates(templatesData);
+        setTemplates(templatesData.data || templatesData || []);
       }
     } catch (error) {
       toast.error('Failed to load campaign data');
@@ -99,7 +99,7 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     if (!session?.user?.organizationId) {
-      router.push('/signin');
+      router.push('/login');
       return;
     }
     fetchCampaignData();

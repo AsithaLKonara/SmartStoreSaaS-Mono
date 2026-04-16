@@ -99,32 +99,38 @@ export const POST = requirePermission(Permission.MARKETING_MANAGE)(
         });
       }
 
-      // TODO: Fix template creation - temporarily disabled for deployment
-      // Get or create default template for this message
-      const template = {
-        id: `temp_${Date.now()}`,
-        name: `Campaign: ${name}`,
-        content: message,
-        organizationId,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // Create template and campaign in a transaction
+      const campaign = await prisma.$transaction(async (tx) => {
+        const templateId = `template_${Date.now()}`;
+        
+        // 1. Create the template first
+        await tx.smsTemplate.create({
+          data: {
+            id: templateId,
+            name: `Template for ${name}`,
+            content: message,
+            organizationId,
+            isActive: true,
+            updatedAt: new Date()
+          }
+        });
 
-      const campaign = await prisma.smsCampaign.create({
-        data: {
-          id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          organizationId,
-          name,
-          templateId: template.id,
-          status: 'DRAFT',
-          scheduledAt: scheduledFor ? new Date(scheduledFor) : null,
-          updatedAt: new Date()
-        }
+        // 2. Create the campaign
+        return tx.smsCampaign.create({
+          data: {
+            id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            organizationId,
+            name,
+            templateId: templateId,
+            status: 'DRAFT',
+            scheduledAt: scheduledFor ? new Date(scheduledFor) : null,
+            updatedAt: new Date()
+          }
+        });
       });
 
       logger.info({
-        message: 'Campaign created',
+        message: 'Campaign created with template',
         context: {
           userId: user.id,
           campaignId: campaign.id,

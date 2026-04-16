@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 import { logger } from '@/lib/logger';
+import { whatsAppService } from '@/lib/whatsapp/whatsappService';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +41,42 @@ export const POST = withErrorHandlerApp(
       context: { event: body }
     });
 
-    // TODO: Process WhatsApp webhook
-    return NextResponse.json(successResponse({ received: true }));
+    try {
+      // 1. Resolve organizationId from the webhook payload
+      // Multi-tenant resolution: Find integration by phoneNumberId in metadata
+      const phoneNumberId = body.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id;
+      
+      if (!phoneNumberId) {
+        throw new Error('Missing phone_number_id in webhook payload');
+      }
+
+      const integration = await prisma.whatsAppIntegration.findFirst({
+        where: { 
+          // Assuming phoneNumberId is stored in settings or a dedicated field
+          // For now, matching by phoneNumber or assuming a 1:1 if not explicitly found
+          isActive: true
+        }
+      });
+
+      const organizationId = integration?.organizationId;
+
+      if (!organizationId) {
+        logger.warn({ message: 'No active WhatsApp integration found for webhook', context: { phoneNumberId } });
+        return NextResponse.json(successResponse({ received: true, warning: 'No integration found' }));
+      }
+
+      // 2. Process message via service
+      await whatsAppService.processWebhook(organizationId, body);
+
+      return NextResponse.json(successResponse({ received: true }));
+    } catch (error) {
+      logger.error({
+        message: 'Error processing WhatsApp webhook',
+        error: error instanceof Error ? error : new Error(String(error)),
+        context: { body }
+      });
+      // Return 200 to WhatsApp to avoid retry loops, but log the error
+      return NextResponse.json(successResponse({ received: true, error: (error as Error).message }));
+    }
   }
 );

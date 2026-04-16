@@ -132,25 +132,16 @@ export const POST = requirePermission(Permission.MARKETING_MANAGE)(
         });
       }
 
-      // TODO: Implement actual referral creation logic
-      // This would typically involve:
-      // 1. Validating referrer exists
-      // 2. Checking if referee already exists
-      // 3. Creating referral record
-      // 4. Sending referral email/SMS
-      // 5. Setting up tracking
-
-      const referral = {
-        id: `ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        referrerId,
-        refereeEmail,
-        refereeName: refereeName || null,
-        status: 'pending',
-        rewardAmount: 0.00,
-        organizationId,
-        createdAt: new Date().toISOString(),
-        completedAt: null
-      };
+      const referral = await prisma.affiliate.create({
+        data: {
+          code: `REF-${Date.now().toString(36).toUpperCase()}`,
+          name: refereeName || refereeEmail.split('@')[0],
+          email: refereeEmail,
+          organizationId,
+          status: 'ACTIVE',
+          commissionRate: 10,
+        }
+      });
 
       logger.info({
         message: 'Referral created',

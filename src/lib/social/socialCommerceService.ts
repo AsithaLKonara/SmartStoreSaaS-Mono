@@ -104,7 +104,7 @@ export class SocialCommerceService {
           id: crypto.randomUUID(),
           organizationId,
           platform: platform as SocialPlatformType,
-          settings: config,
+          settings: config as Prisma.InputJsonValue,
           isActive: true,
           lastSync: new Date(),
           updatedAt: new Date()
@@ -315,7 +315,7 @@ export class SocialCommerceService {
 
       const posts = await prisma.socialPost.findMany({
         where: {
-          socialCommerce: { organizationId },
+          organizationId, // Direct organizationId filter instead of nested socialCommerce
           createdAt: { gte: startDate, lte: endDate }
         }
       });

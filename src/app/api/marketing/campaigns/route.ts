@@ -132,26 +132,17 @@ export const POST = requirePermission(Permission.MARKETING_MANAGE)(
         });
       }
 
-      // TODO: Implement actual campaign creation logic
-      // This would typically involve:
-      // 1. Validating campaign data
-      // 2. Creating campaign record in database
-      // 3. Scheduling campaign if scheduledAt is provided
-      // 4. Setting up tracking and analytics
-
-      const campaign = {
-        id: `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        name,
-        type,
-        subject,
-        content,
-        recipientList: recipientList || [],
-        scheduledAt: scheduledAt || null,
-        templateId: templateId || null,
-        status: scheduledAt ? 'scheduled' : 'draft',
-        organizationId,
-        createdAt: new Date().toISOString()
-      };
+      const campaign = await prisma.emailCampaign.create({
+        data: {
+          name,
+          subject,
+          content,
+          status: scheduledAt ? 'SCHEDULED' : 'DRAFT',
+          organizationId,
+          scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+          recipientCount: recipientList ? recipientList.length : 0,
+        }
+      });
 
       logger.info({
         message: 'Marketing campaign created',
