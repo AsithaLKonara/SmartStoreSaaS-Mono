@@ -40,25 +40,32 @@ export const GET = requireAuth(async (req: AuthenticatedRequest, user) => {
     }, { status: 400 });
   }
 
-  // TODO: Fix expense model - temporarily disabled for deployment
-  // const expenses = await prisma.expense.findMany({
-  //   where: { organizationId },
-  //   orderBy: { date: 'desc' },
-  //   take: 100
-  // });
-  const expenses: any[] = []; // Temporary empty array
+  try {
+    const expenses = await prisma.expense.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
 
-  logger.info({
-    message: 'Expenses fetched',
-    context: { 
-      count: expenses.length,
-      organizationId,
-      userId: user.id
-    },
-    correlation: req.correlationId
-  });
+    logger.info({
+      message: 'Expenses fetched',
+      context: { 
+        count: expenses.length,
+        organizationId,
+        userId: user.id
+      },
+      correlation: req.correlationId
+    });
 
-  return NextResponse.json(successResponse(expenses));
+    return NextResponse.json(successResponse(expenses));
+  } catch (error) {
+    logger.error({
+      message: 'Failed to fetch expenses',
+      error: error instanceof Error ? error : new Error(String(error)),
+      correlation: req.correlationId
+    });
+    return NextResponse.json({ success: false, message: 'Failed to fetch expenses' }, { status: 500 });
+  }
 });
 
 export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
@@ -78,12 +85,12 @@ export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
   }
 
   const body = await req.json();
-  const { amount, category, description, date } = body;
+  const { title, amount, category, description, date, type } = body;
 
-  if (!amount || !category) {
+  if (!title || !amount || !category) {
     return NextResponse.json({ 
       success: false, 
-      message: 'Amount and category are required' 
+      message: 'Title, amount and category are required' 
     }, { status: 400 });
   }
 
@@ -95,29 +102,39 @@ export const POST = requireAuth(async (req: AuthenticatedRequest, user) => {
     }, { status: 400 });
   }
 
-  // TODO: Fix expense model - temporarily disabled for deployment
-  // const expense = await prisma.expense.create({
-  //   data: {
-  //     organizationId,
-  //     amount,
-  //     category,
-  //     description,
-  //     date: date ? new Date(date) : new Date(),
-  //     createdBy: user.id
-  //   }
-  // });
-  const expense = { id: 'temp_' + Date.now(), message: 'Expense creation disabled for deployment' };
+  try {
+    const expense = await prisma.expense.create({
+      data: {
+        id: `exp_${Date.now()}`,
+        organizationId,
+        title,
+        amount: parseFloat(amount),
+        category,
+        type: type || 'OTHER',
+        description,
+        createdAt: date ? new Date(date) : new Date(),
+        updatedAt: new Date()
+      }
+    });
 
-  logger.info({
-    message: 'Expense created',
-    context: { 
-      expenseId: expense.id, 
-      amount,
-      organizationId,
-      userId: user.id
-    },
-    correlation: req.correlationId
-  });
+    logger.info({
+      message: 'Expense created',
+      context: { 
+        expenseId: expense.id, 
+        amount,
+        organizationId,
+        userId: user.id
+      },
+      correlation: req.correlationId
+    });
 
-  return NextResponse.json(successResponse(expense), { status: 201 });
+    return NextResponse.json(successResponse(expense), { status: 201 });
+  } catch (error) {
+    logger.error({
+      message: 'Failed to create expense',
+      error: error instanceof Error ? error : new Error(String(error)),
+      correlation: req.correlationId
+    });
+    return NextResponse.json({ success: false, message: 'Failed to create expense' }, { status: 500 });
+  }
 });

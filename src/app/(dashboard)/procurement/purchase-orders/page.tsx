@@ -71,6 +71,30 @@ export default function PurchaseOrdersPage() {
     order.supplier.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleExportCSV = () => {
+    const headers = ['PO Number', 'Supplier', 'Amount', 'Status', 'Expected', 'Created'];
+    const csvData = filteredOrders.map(order => [
+      order.poNumber,
+      order.supplier,
+      order.totalAmount,
+      order.status,
+      formatDate(order.expectedDelivery),
+      formatDate(order.createdAt)
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `purchase-orders-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -86,10 +110,19 @@ export default function PurchaseOrdersPage() {
           <h1 className="text-3xl font-bold text-white dark:text-white">Purchase Orders</h1>
           <p className="text-slate-400 dark:text-gray-400">Track and manage purchase orders</p>
         </div>
-        <Button onClick={() => router.push('/procurement/purchase-orders/new')}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Order
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+          <Button onClick={() => router.push('/procurement/purchase-orders/new')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Order
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

@@ -45,7 +45,7 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     if (!session?.user?.organizationId) {
-      router.push('/signin');
+      router.push('/login');
       return;
     }
     fetchExpenseData();
@@ -57,7 +57,7 @@ export default function ExpensesPage() {
       const response = await fetch('/api/expenses');
       if (response.ok) {
         const data = await response.json();
-        setExpenses(data);
+        setExpenses(data.data || data || []);
       }
     } catch (error) {
       logger.error({

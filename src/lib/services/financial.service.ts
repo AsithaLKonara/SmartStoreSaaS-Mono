@@ -49,9 +49,11 @@ export class FinancialService {
                 if (!productPerformance[item.productId]) {
                     productPerformance[item.productId] = { revenue: 0, cost: 0 };
                 }
-                const performance = productPerformance[item.productId]!;
-                performance.revenue += Number(item.total);
-                performance.cost += cost;
+                const performance = productPerformance[item.productId];
+                if (performance) {
+                    performance.revenue += Number(item.total);
+                    performance.cost += cost;
+                }
             }
         }
 

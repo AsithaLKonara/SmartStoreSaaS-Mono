@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,23 +27,30 @@ export const GET = requirePermission(Permission.BILLING_READ)(
         throw new ValidationError('User must belong to an organization');
       }
 
-      // TODO: Fetch actual billing data
+      const [invoices, outstanding] = await Promise.all([
+        prisma.invoice.findMany({
+          where: { organizationId },
+          orderBy: { createdAt: 'desc' },
+          take: 5
+        }),
+        prisma.invoice.aggregate({
+          where: { organizationId, status: { in: ['DRAFT', 'PENDING'] } },
+          _sum: { total: true }
+        })
+      ]);
+
       logger.info({
         message: 'Billing dashboard requested',
-        context: {
-          userId: user.id,
-          organizationId
-        },
+        context: { userId: user.id, organizationId },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        currentPlan: 'PRO',
+        currentPlan: 'PRO', // In real system, query subscriptions table
         billingCycle: 'monthly',
         nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        outstandingBalance: 0,
-        recentInvoices: [],
-        message: 'Billing dashboard - implementation pending'
+        outstandingBalance: Number(outstanding._sum.total || 0),
+        recentInvoices: invoices
       }));
     } catch (error: any) {
       logger.error({

@@ -18,6 +18,15 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface PurchaseOrder {
   id: string;
@@ -65,6 +74,11 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
   const { handleError } = useErrorHandler();
   const [po, setPo] = useState<PurchaseOrder | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Receiving Modal State
+  const [isReceivingModalOpen, setIsReceivingModalOpen] = useState(false);
+  const [receivedQuantities, setReceivedQuantities] = useState<Record<string, number>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchPurchaseOrder = useCallback(async () => {
     try {
@@ -132,8 +146,36 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
   };
 
   const handleReceive = () => {
-    toast('Receiving workflow coming soon');
-    // TODO: Implement receiving modal
+    // Initialize received quantities from existing items
+    const initialQuantities: Record<string, number> = {};
+    if (po?.items) {
+      po.items.forEach(item => {
+        initialQuantities[item.id] = item.receivedQuantity || 0;
+      });
+    }
+    setReceivedQuantities(initialQuantities);
+    setIsReceivingModalOpen(true);
+  };
+
+  const submitReceiving = async () => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/procurement/purchase-orders/${params.id}/receive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receivedItems: receivedQuantities }),
+      });
+
+      if (!response.ok) throw new Error('Failed to receive items');
+      
+      toast.success('Items received successfully');
+      setIsReceivingModalOpen(false);
+      await fetchPurchaseOrder();
+    } catch (error) {
+      handleError(error, 'Receive Items');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -340,6 +382,54 @@ export default function PurchaseOrderDetailPage({ params }: { params: { id: stri
           <p className="text-slate-400 dark:text-gray-400">{po.notes}</p>
         </div>
       )}
+
+      {/* Receiving Modal */}
+      <Dialog open={isReceivingModalOpen} onOpenChange={setIsReceivingModalOpen}>
+        <DialogContent className="glass-dark border border-white/10 max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white dark:text-white">Receive Items</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-white/5">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Ordered</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prev. Received</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Receive Now</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {po?.items.map((item) => (
+                  <tr key={item.id}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white font-medium">{item.product.name}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white text-right">{item.quantity}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white text-right">{item.receivedQuantity || 0}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
+                      <Input
+                        type="number"
+                        min="0"
+                        max={item.quantity}
+                        value={receivedQuantities[item.id] || ''}
+                        onChange={(e) => setReceivedQuantities({ ...receivedQuantities, [item.id]: parseInt(e.target.value) || 0 })}
+                        className="w-24 ml-auto bg-white/5 border-white/10 text-white"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <DialogFooter className="sticky bottom-0 bg-[#0e0918] pt-4">
+            <Button variant="outline" onClick={() => setIsReceivingModalOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={submitReceiving} disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save Receiving'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
