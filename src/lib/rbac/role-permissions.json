@@ -1,386 +1,90 @@
 {
   "rbac": {
-    "version": "2.0.0",
-    "lastUpdated": "2026-03-15"
+    "version": "3.0",
+    "model": "resource:action:scope"
   },
-  "permissionScopes": [
-    "all",
-    "tenant",
-    "own",
-    "assigned"
-  ],
-  "permissions": [
-    {
-      "id": "system.read",
-      "resource": "system",
-      "action": "read",
-      "scope": "all"
-    },
-    {
-      "id": "system.manage",
-      "resource": "system",
-      "action": "manage",
-      "scope": "all"
-    },
-    {
-      "id": "tenants.read",
-      "resource": "tenants",
-      "action": "read",
-      "scope": "all"
-    },
-    {
-      "id": "tenants.create",
-      "resource": "tenants",
-      "action": "create",
-      "scope": "all"
-    },
-    {
-      "id": "tenants.update",
-      "resource": "tenants",
-      "action": "update",
-      "scope": "all"
-    },
-    {
-      "id": "tenants.delete",
-      "resource": "tenants",
-      "action": "delete",
-      "scope": "all"
-    },
-    {
-      "id": "tenants.impersonate",
-      "resource": "tenants",
-      "action": "impersonate",
-      "scope": "tenant"
-    },
-    {
-      "id": "users.read",
-      "resource": "users",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "users.create",
-      "resource": "users",
-      "action": "create",
-      "scope": "tenant"
-    },
-    {
-      "id": "users.update",
-      "resource": "users",
-      "action": "update",
-      "scope": "tenant"
-    },
-    {
-      "id": "users.delete",
-      "resource": "users",
-      "action": "delete",
-      "scope": "tenant"
-    },
-    {
-      "id": "roles.read",
-      "resource": "roles",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "roles.manage",
-      "resource": "roles",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "products.read",
-      "resource": "products",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "products.create",
-      "resource": "products",
-      "action": "create",
-      "scope": "tenant"
-    },
-    {
-      "id": "products.update",
-      "resource": "products",
-      "action": "update",
-      "scope": "tenant"
-    },
-    {
-      "id": "products.delete",
-      "resource": "products",
-      "action": "delete",
-      "scope": "tenant"
-    },
-    {
-      "id": "orders.read",
-      "resource": "orders",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "orders.create",
-      "resource": "orders",
-      "action": "create",
-      "scope": "tenant"
-    },
-    {
-      "id": "orders.update",
-      "resource": "orders",
-      "action": "update",
-      "scope": "tenant"
-    },
-    {
-      "id": "customers.read",
-      "resource": "customers",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "customers.update",
-      "resource": "customers",
-      "action": "update",
-      "scope": "tenant"
-    },
-    {
-      "id": "inventory.read",
-      "resource": "inventory",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "inventory.manage",
-      "resource": "inventory",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "warehouse.manage",
-      "resource": "warehouse",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "returns.manage",
-      "resource": "returns",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "shipping.manage",
-      "resource": "shipping",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "procurement.manage",
-      "resource": "procurement",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "accounting.manage",
-      "resource": "accounting",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "marketing.manage",
-      "resource": "marketing",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "analytics.read",
-      "resource": "analytics",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "reports.read",
-      "resource": "reports",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "ai.read",
-      "resource": "ai",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "integrations.manage",
-      "resource": "integrations",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "settings.manage",
-      "resource": "settings",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "billing.read",
-      "resource": "billing",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "logs.read",
-      "resource": "logs",
-      "action": "read",
-      "scope": "all"
-    },
-    {
-      "id": "monitoring.read",
-      "resource": "monitoring",
-      "action": "read",
-      "scope": "all"
-    },
-    {
-      "id": "backup.manage",
-      "resource": "backup",
-      "action": "manage",
-      "scope": "all"
-    },
-    {
-      "id": "webhooks.read",
-      "resource": "webhooks",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "webhooks.manage",
-      "resource": "webhooks",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "support.read",
-      "resource": "support",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "support.create",
-      "resource": "support",
-      "action": "create",
-      "scope": "tenant"
-    },
-    {
-      "id": "support.manage",
-      "resource": "support",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "reviews.read",
-      "resource": "reviews",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "reviews.manage",
-      "resource": "reviews",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "compliance.read",
-      "resource": "compliance",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "compliance.manage",
-      "resource": "compliance",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "audit.read",
-      "resource": "audit",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "audit.manage",
-      "resource": "audit",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "iot.read",
-      "resource": "iot",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "iot.manage",
-      "resource": "iot",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "subscriptions.read",
-      "resource": "subscriptions",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "subscriptions.manage",
-      "resource": "subscriptions",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "pos.read",
-      "resource": "pos",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "pos.manage",
-      "resource": "pos",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "ai.manage",
-      "resource": "ai",
-      "action": "manage",
-      "scope": "tenant"
-    },
-    {
-      "id": "notifications.read",
-      "resource": "notifications",
-      "action": "read",
-      "scope": "tenant"
-    },
-    {
-      "id": "notifications.manage",
-      "resource": "notifications",
-      "action": "manage",
-      "scope": "tenant"
-    }
-  ],
+  "scopes": ["all", "tenant", "own", "assigned"],
+  "permissions": {
+    "products": [
+      { "id": "products:read", "action": "read", "scope": "tenant" },
+      { "id": "products:create", "action": "create", "scope": "tenant" },
+      { "id": "products:update", "action": "update", "scope": "tenant" },
+      { "id": "products:delete", "action": "delete", "scope": "tenant" }
+    ],
+    "orders": [
+      { "id": "orders:read", "action": "read", "scope": "tenant" },
+      { "id": "orders:create", "action": "create", "scope": "tenant" },
+      { "id": "orders:update", "action": "update", "scope": "tenant" },
+      { "id": "orders:delete", "action": "delete", "scope": "tenant" },
+      { "id": "orders:fulfill", "action": "fulfill", "scope": "tenant" }
+    ],
+    "inventory": [
+      { "id": "inventory:read", "action": "read", "scope": "tenant" },
+      { "id": "inventory:update", "action": "update", "scope": "tenant" },
+      { "id": "inventory:transfer", "action": "transfer", "scope": "tenant" }
+    ],
+    "customers": [
+      { "id": "customers:read", "action": "read", "scope": "tenant" },
+      { "id": "customers:create", "action": "create", "scope": "tenant" },
+      { "id": "customers:update", "action": "update", "scope": "tenant" },
+      { "id": "customers:delete", "action": "delete", "scope": "tenant" }
+    ],
+    "finance": [
+      { "id": "finance:read", "action": "read", "scope": "tenant" },
+      { "id": "finance:manage", "action": "manage", "scope": "tenant" },
+      { "id": "payment:process", "action": "process", "scope": "tenant" }
+    ],
+    "pos": [
+      { "id": "pos:terminal", "action": "terminal", "scope": "tenant" },
+      { "id": "pos:payment", "action": "payment", "scope": "tenant" },
+      { "id": "pos:refund", "action": "refund", "scope": "tenant" },
+      { "id": "pos:discount", "action": "discount", "scope": "tenant" },
+      { "id": "pos:shift", "action": "shift", "scope": "tenant" }
+    ],
+    "system": [
+      { "id": "system:read", "action": "read", "scope": "all" },
+      { "id": "system:manage", "action": "manage", "scope": "all" }
+    ],
+    "tenants": [
+      { "id": "tenants:read", "action": "read", "scope": "all" },
+      { "id": "tenants:create", "action": "create", "scope": "all" },
+      { "id": "tenants:update", "action": "update", "scope": "all" },
+      { "id": "tenants:delete", "action": "delete", "scope": "all" },
+      { "id": "tenants:impersonate", "action": "impersonate", "scope": "all" }
+    ],
+    "users": [
+      { "id": "user:view", "action": "read", "scope": "tenant" },
+      { "id": "user:create", "action": "create", "scope": "tenant" },
+      { "id": "user:update", "action": "update", "scope": "tenant" },
+      { "id": "user:delete", "action": "delete", "scope": "tenant" }
+    ],
+    "roles": [
+      { "id": "roles:read", "action": "read", "scope": "tenant" },
+      { "id": "roles:manage", "action": "manage", "scope": "tenant" }
+    ],
+    "analytics": [
+      { "id": "analytics:read", "action": "read", "scope": "tenant" }
+    ],
+    "settings": [
+      { "id": "admin:settings", "action": "manage", "scope": "tenant" },
+      { "id": "admin:integrations", "action": "manage", "scope": "tenant" },
+      { "id": "admin:reports", "action": "manage", "scope": "tenant" }
+    ],
+    "support": [
+      { "id": "support:read", "action": "read", "scope": "tenant" },
+      { "id": "support:create", "action": "create", "scope": "tenant" },
+      { "id": "support:manage", "action": "manage", "scope": "tenant" }
+    ]
+  },
   "roles": [
     {
       "id": "SUPER_ADMIN",
       "level": "platform",
       "description": "Platform administrator with full system control",
       "permissions": [
-        "system.read",
-        "system.manage",
-        "tenants.read",
-        "tenants.create",
-        "tenants.update",
-        "tenants.delete",
-        "tenants.impersonate",
-        "logs.read",
-        "monitoring.read",
-        "backup.manage"
+        "system:read", "system:manage",
+        "tenants:read", "tenants:create", "tenants:update", "tenants:delete", "tenants:impersonate",
+        "roles:read", "roles:manage"
       ]
     },
     {
@@ -388,139 +92,109 @@
       "level": "tenant",
       "description": "Full organization administrator",
       "permissions": [
-        "users.read",
-        "users.create",
-        "users.update",
-        "users.delete",
-        "roles.read",
-        "roles.manage",
-        "products.create",
-        "products.update",
-        "products.delete",
-        "orders.update",
-        "customers.update",
-        "inventory.manage",
-        "warehouse.manage",
-        "returns.manage",
-        "shipping.manage",
-        "procurement.manage",
-        "accounting.manage",
-        "marketing.manage",
-        "analytics.read",
-        "reports.read",
-        "ai.read",
-        "ai.manage",
-        "webhooks.read",
-        "webhooks.manage",
-        "support.read",
-        "support.create",
-        "support.manage",
-        "reviews.read",
-        "reviews.manage",
-        "compliance.read",
-        "compliance.manage",
-        "audit.read",
-        "audit.manage",
-        "iot.read",
-        "iot.manage",
-        "subscriptions.read",
-        "subscriptions.manage",
-        "pos.read",
-        "pos.manage",
-        "notifications.read",
-        "notifications.manage",
-        "integrations.manage",
-        "settings.manage",
-        "billing.read"
+        "user:view", "user:create", "user:update", "user:delete",
+        "roles:read", "roles:manage",
+        "products:read", "products:create", "products:update", "products:delete",
+        "orders:read", "orders:create", "orders:update", "orders:delete", "orders:fulfill",
+        "customers:read", "customers:create", "customers:update", "customers:delete",
+        "inventory:read", "inventory:update", "inventory:transfer",
+        "finance:read", "finance:manage", "payment:process",
+        "pos:terminal", "pos:payment", "pos:refund", "pos:discount", "pos:shift",
+        "analytics:read",
+        "admin:settings", "admin:integrations", "admin:reports"
       ]
     },
     {
       "id": "SALES_STAFF",
       "level": "tenant",
       "permissions": [
-        "products.read",
-        "orders.read",
-        "orders.create",
-        "customers.read",
-        "analytics.read"
+        "products:read",
+        "orders:read", "orders:create", "orders:update",
+        "customers:read", "customers:create", "customers:update",
+        "payment:process",
+        "pos:terminal", "pos:payment", "pos:discount",
+        "analytics:read"
       ]
     },
     {
       "id": "INVENTORY_MANAGER",
       "level": "tenant",
       "permissions": [
-        "products.read",
-        "products.update",
-        "inventory.manage",
-        "warehouse.manage"
+        "products:read", "products:create", "products:update",
+        "inventory:read", "inventory:update", "inventory:transfer",
+        "orders:read"
+      ]
+    },
+    {
+      "id": "ACCOUNTANT",
+      "level": "tenant",
+      "permissions": [
+        "orders:read", "customers:read",
+        "finance:read", "finance:manage", "payment:process",
+        "admin:reports"
       ]
     },
     {
       "id": "CUSTOMER_SUPPORT",
       "level": "tenant",
       "permissions": [
-        "customers.read",
-        "customers.update",
-        "orders.read",
-        "orders.update",
-        "returns.manage",
-        "support.read",
-        "support.create",
-        "support.manage"
+        "customers:read", "customers:update",
+        "orders:read", "orders:update",
+        "support:read", "support:create", "support:manage"
       ]
     },
     {
       "id": "CUSTOMER",
       "level": "portal",
       "permissions": [
-        "products.read",
-        "orders.create",
-        "support.create"
+        "products:read",
+        "orders:create"
       ]
     }
   ],
-  "routePermissions": {
-    "/dashboard/products": [
-      "products.read"
-    ],
-    "/dashboard/products/create": [
-      "products.create"
-    ],
-    "/dashboard/orders": [
-      "orders.read"
-    ],
-    "/dashboard/orders/edit": [
-      "orders.update"
-    ],
-    "/dashboard/inventory": [
-      "inventory.read"
-    ],
-    "/dashboard/warehouse": [
-      "warehouse.manage"
-    ],
-    "/dashboard/returns": [
-      "returns.manage"
-    ],
-    "/dashboard/shipping": [
-      "shipping.manage"
-    ],
-    "/dashboard/accounting": [
-      "accounting.manage"
-    ],
-    "/dashboard/marketing": [
-      "marketing.manage"
-    ],
-    "/dashboard/settings": [
-      "settings.manage"
-    ],
-    "/dashboard/analytics": [
-      "analytics.read"
-    ],
-    "/portal/orders": [
-      "orders.create"
-    ],
-    "/pos/terminal": [
-      "pos.use_terminal"
-    ]
-  }
+  "routePermissions": [
+    {
+      "route": "/dashboard/products",
+      "permission": "products:read"
+    },
+    {
+      "route": "/dashboard/products/create",
+      "permission": "products:create"
+    },
+    {
+      "route": "/dashboard/products/:id",
+      "permission": "products:read"
+    },
+    {
+      "route": "/dashboard/orders",
+      "permission": "orders:read"
+    },
+    {
+      "route": "/dashboard/orders/:id",
+      "permission": "orders:read"
+    },
+    {
+      "route": "/dashboard/inventory",
+      "permission": "inventory:read"
+    },
+    {
+      "route": "/dashboard/accounting",
+      "permission": "finance:manage"
+    },
+    {
+      "route": "/dashboard/settings",
+      "permission": "admin:settings"
+    },
+    {
+      "route": "/dashboard/analytics",
+      "permission": "analytics:read"
+    },
+    {
+      "route": "/pos/terminal",
+      "permission": "pos:terminal"
+    }
+  ],
+  "featureFlags": [
+    "ai", "iot", "pos", "multi_tenant", "advanced_analytics"
+  ]
 }

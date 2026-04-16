@@ -92,19 +92,19 @@ export async function requireStaff(request: NextRequest) {
 
 // POS specific checks
 export async function requirePosTerminal(request: NextRequest) {
-  return checkPermission(request, 'pos.use_terminal');
+  return checkPermission(request, 'pos:terminal');
 }
 
 export async function requirePosPayment(request: NextRequest) {
-  return checkPermission(request, 'pos.process_payment');
+  return checkPermission(request, 'pos:payment');
 }
 
 export async function requirePosRefund(request: NextRequest) {
-  return checkPermission(request, 'pos.refund');
+  return checkPermission(request, 'pos:refund');
 }
 
 export async function requirePosManageShift(request: NextRequest) {
-  return checkPermission(request, 'pos.manage_shift');
+  return checkPermission(request, 'pos:shift');
 }
 
 /**

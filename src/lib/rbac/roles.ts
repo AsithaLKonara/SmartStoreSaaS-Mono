@@ -7,9 +7,14 @@ export enum UserRole {
   CUSTOMER = 'CUSTOMER',
 
   // New roles
+  // New roles
   SALES_STAFF = 'SALES_STAFF',
   INVENTORY_MANAGER = 'INVENTORY_MANAGER',
-  CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT'
+  CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT',
+  ACCOUNTANT = 'ACCOUNTANT',
+  MARKETING_MANAGER = 'MARKETING_MANAGER',
+  WAREHOUSE_MANAGER = 'WAREHOUSE_MANAGER',
+  POS_OPERATOR = 'POS_OPERATOR'
 }
 
 export enum StaffRoleTag {
@@ -185,11 +190,11 @@ export function hasAllPermissions(role: UserRole | string, permissions: (Permiss
 export function hasImplicitPermission(schemaPermissions: string[], reqPerm: string): boolean {
   if (schemaPermissions.includes(reqPerm)) return true;
 
-  if (reqPerm.endsWith('.read')) {
-    const resource = reqPerm.split('.')[0];
-    if (schemaPermissions.includes(`${resource}.manage`) ||
-      schemaPermissions.includes(`${resource}.update`) ||
-      schemaPermissions.includes(`${resource}.create`)) {
+  if (reqPerm.endsWith(':read')) {
+    const resource = reqPerm.split(':')[0];
+    if (schemaPermissions.includes(`${resource}:manage`) ||
+      schemaPermissions.includes(`${resource}:update`) ||
+      schemaPermissions.includes(`${resource}:create`)) {
       return true;
     }
   }
@@ -212,41 +217,24 @@ export function canAccessRoute(role: UserRole | string, route: string, roleTag?:
     }
   }
 
-  const routePermissionsMap = (rolePermissionsData as any).routePermissions || {};
+  const routePermissionsArray: {route: string, permission: string}[] = (rolePermissionsData as any).routePermissions || [];
 
-  // Exact match first
-  if (routePermissionsMap[route]) {
-    const requiredPerms: string[] = routePermissionsMap[route];
-    return requiredPerms.some(reqPerm => hasImplicitPermission(schemaPermissions, reqPerm));
-  }
-
-  // If not exactly defined, try to find a parent route rule by traversing upwards
-  const parts = route.split('/');
-  parts.pop(); // Remove current specific path
-  while (parts.length > 0) {
-    const parentRoute = parts.join('/');
-    if (routePermissionsMap[parentRoute]) {
-      const requiredPerms: string[] = routePermissionsMap[parentRoute];
-      return requiredPerms.some(reqPerm => hasImplicitPermission(schemaPermissions, reqPerm));
+  // Match routes including basic dynamic params like :id
+  for (const routeRule of routePermissionsArray) {
+    // Escape string and turn dynamic sections like :id into greedy captures for paths
+    const pattern = '^' + routeRule.route.replace(/:[^\s/]+/g, '[^/]+') + '$';
+    const regex = new RegExp(pattern);
+    if (regex.test(route)) {
+      return hasImplicitPermission(schemaPermissions, routeRule.permission);
     }
-    parts.pop();
   }
 
-  // Fallback for previous route paths before redesign (no '/dashboard' prefix, just '/')
+  // Fallback for generic uncaught routes
   const legacyRoutePermissions: Record<string, string[]> = {
-    '/products': ['products.read'],
-    '/products/new': ['products.create'],
-    '/orders': ['orders.read'],
-    '/orders/new': ['orders.create'],
-    '/customers': ['customers.read'],
-    '/customers/new': ['customers.create'],
-    '/inventory': ['inventory.read'],
-    '/accounting': ['accounting.read', 'accounting.manage'],
-    '/reports': ['reports.read'],
-    '/settings': ['settings.read', 'settings.manage'],
-    '/tenants': ['tenants.read'],
-    '/admin': ['tenants.read', 'billing.read'],
-    '/procurement': ['products.read', 'inventory.read']
+    '/products': ['products:read'],
+    '/products/new': ['products:create'],
+    '/orders': ['orders:read'],
+    '/admin': ['tenants:read', 'billing:read']
   };
 
   const reqPerms = legacyRoutePermissions[route];
@@ -258,7 +246,8 @@ export function canAccessRoute(role: UserRole | string, route: string, roleTag?:
 }
 
 export function getAccessibleRoutes(role: UserRole | string, roleTag?: string): string[] {
-  const allRoutes = Object.keys((rolePermissionsData as any).routePermissions || {});
+  const routePermissionsArray: {route: string, permission: string}[] = (rolePermissionsData as any).routePermissions || [];
+  const allRoutes = routePermissionsArray.map(rp => rp.route);
 
   // Also include baseline older pages which might not be fully migrated
   const baselineRoutes = [
