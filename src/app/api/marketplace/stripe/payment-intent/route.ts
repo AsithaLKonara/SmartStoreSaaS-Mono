@@ -5,12 +5,13 @@ import { logger } from '@/lib/logger';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16' as any,
-});
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+      apiVersion: '2023-10-16' as any,
+    });
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ success: false, message: 'Auth required' }, { status: 401 });

@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       },
       include: {
         organization: {
-          select: { id: true, name: true, logo: true, rating: true, status: true }
+          select: { id: true, name: true, logo: true, status: true }
         }
       },
       orderBy: { rating: 'desc' },
