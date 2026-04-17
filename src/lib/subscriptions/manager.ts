@@ -278,7 +278,7 @@ export async function processSubscriptionBilling(subscriptionId: string): Promis
         organizationId: subscription.organizationId!,
         amount: Number(subscription.subscriptionPlan.price), // Use plan price
         total: Number(subscription.subscriptionPlan.price),
-        status: 'SENT',
+        status: 'SENT' as const,
         dueDate: new Date(),
       },
     });
