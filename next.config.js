@@ -9,6 +9,14 @@ const nextConfig = {
       'jose'
     ]
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+    ],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
