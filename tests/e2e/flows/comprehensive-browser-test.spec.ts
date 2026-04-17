@@ -113,6 +113,8 @@ const PAGES = {
     '/webhooks',
     '/settings',
     '/settings/features',
+    '/ai-assistant',
+    '/ai-insights/iot',
     '/sync',
     '/testing',
     '/documentation',

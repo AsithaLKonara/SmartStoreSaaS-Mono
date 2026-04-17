@@ -25,56 +25,18 @@ import { faker } from '@faker-js/faker';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🧹 Cleaning up database...');
-  await prisma.auditLog.deleteMany();
-  await prisma.analytics.deleteMany();
-  await prisma.supportReply.deleteMany();
-  await prisma.supportTicket.deleteMany();
-  await prisma.conversation.deleteMany();
-  await prisma.iotAlert.deleteMany();
-  await prisma.sensorReading.deleteMany();
-  await prisma.iotDevice.deleteMany();
-  await prisma.warehouseInventory.deleteMany();
-  await prisma.warehouse.deleteMany();
-  await prisma.deliveryStatusHistory.deleteMany();
-  await prisma.delivery.deleteMany();
-  await prisma.courier.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.orderStatusHistory.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.loyaltyTransaction.deleteMany();
-  await prisma.customerLoyalty.deleteMany();
-  await prisma.customerSegmentCustomer.deleteMany();
-  await prisma.customerSegment.deleteMany();
-  await prisma.referral.deleteMany();
-  await prisma.customer.deleteMany();
-  await prisma.productActivity.deleteMany();
-  await prisma.productVariant.deleteMany();
-  await prisma.socialProduct.deleteMany();
-  await prisma.socialPost.deleteMany();
-  await prisma.socialCommerce.deleteMany();
-  await prisma.supplierProduct.deleteMany();
-  await prisma.purchaseOrderItem.deleteMany();
-  await prisma.procurementInvoice.deleteMany();
-  await prisma.purchaseOrder.deleteMany();
-  await prisma.supplier.deleteMany();
-  await prisma.rFQItem.deleteMany();
-  await prisma.rFQ.deleteMany();
-  await prisma.returnItem.deleteMany();
-  await prisma.return.deleteMany();
-  await prisma.giftCardTransaction.deleteMany();
-  await prisma.giftCard.deleteMany();
-  await prisma.affiliateCommission.deleteMany();
-  await prisma.affiliate.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.journalEntryLine.deleteMany();
-  await prisma.journalEntry.deleteMany();
-  await prisma.ledger.deleteMany();
-  await prisma.chartOfAccount.deleteMany();
-  await prisma.taxRate.deleteMany();
-  await prisma.user.deleteMany({ where: { role: { not: 'SUPER_ADMIN' } } });
+  const isDev = process.env.NODE_ENV === 'development' || process.env.SEED_CLEAN === 'true';
+
+  if (isDev) {
+    console.log('🧹 Cleaning up database (DEV MODE)...');
+    await prisma.auditLog.deleteMany();
+    await prisma.analytics.deleteMany();
+    // ... only clearing logs and volatile data if explicitly asked or in dev
+  } else {
+    console.log('🛡️  Production-safe seeding mode: Destructive clean-up skipped.');
+  }
+
+  console.log('🌱 Starting MASSIVE relational database seeding...');
 
   console.log('🌱 Starting MASSIVE relational database seeding...');
 
@@ -116,8 +78,10 @@ async function main() {
 
   for (const org of organizations) {
     const adminEmail = org.id === 'org-1' ? 'admin@smartstore.com' : `admin@${org.domain}`;
-    const admin = await prisma.user.create({
-      data: {
+    const admin = await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { organizationId: org.id },
+      create: {
         email: adminEmail,
         name: `${org.name} Admin`,
         password: demoHash,
@@ -129,9 +93,12 @@ async function main() {
 
     const tags = ['inventory_manager', 'sales_executive'];
     for (const tag of tags) {
-      await prisma.user.create({
-        data: {
-          email: `${tag}@${org.domain}`,
+      const staffEmail = `${tag}@${org.domain}`;
+      await prisma.user.upsert({
+        where: { email: staffEmail },
+        update: { organizationId: org.id, roleTag: tag },
+        create: {
+          email: staffEmail,
           name: faker.person.fullName(),
           password: demoHash,
           role: 'STAFF',
