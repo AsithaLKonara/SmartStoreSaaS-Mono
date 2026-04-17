@@ -309,7 +309,17 @@ export class OmnichannelService {
     }));
   }
 
-  async createConversation(customerId: string, channel: string, _initialMessage: string): Promise<CustomerConversation> {
+  async createConversation(customerId: string, channel: string, _initialMessage: string, organizationId?: string): Promise<CustomerConversation> {
+    // Resolve organizationId from customer if not provided
+    let resolvedOrgId = organizationId;
+    if (!resolvedOrgId) {
+      const customer = await prisma.customer.findUnique({
+        where: { id: customerId },
+        select: { organizationId: true }
+      }).catch(() => null);
+      resolvedOrgId = customer?.organizationId ?? 'unknown';
+    }
+
     const conversation = await prisma.conversation.create({
       data: {
         customerId,
@@ -319,7 +329,7 @@ export class OmnichannelService {
           priority: 'MEDIUM',
           tags: []
         },
-        organizationId: 'default-org' // TODO: Implement proper org resolution
+        organizationId: resolvedOrgId
       },
       include: {
         messages: true,
