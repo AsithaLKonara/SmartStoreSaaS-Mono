@@ -240,7 +240,7 @@ export async function processRefund(
         // customerId removed - not in Refund schema
         amount: new Prisma.Decimal(Number(returnRequest.refundAmount ?? 0)), // Fix null safety
         // method removed - not in Refund schema
-        status: 'COMPLETED',
+        status: 'COMPLETED' as const,
         organizationId: returnRequest.organizationId,
       },
     });

@@ -105,6 +105,7 @@ export class PayHereService {
                 address: params.address,
                 city: params.city,
                 country: params.country,
+                custom_1: organizationId,
                 hash,
                 action_url: this.baseUrl
             };
@@ -156,9 +157,13 @@ export class PayHereService {
 
         await prisma.$transaction([
             prisma.payment.updateMany({
-                where: { orderId: order_id, method: 'PAYHERE' },
+                where: { 
+                    orderId: order_id, 
+                    method: 'PAYHERE',
+                    organizationId: data.custom_1 
+                },
                 data: {
-                    status, // PaymentStatus enum
+                    status,
                     transactionId: payment_id,
                     metadata: {
                         payhere_status: status_code,
@@ -167,10 +172,9 @@ export class PayHereService {
                 }
             }),
             prisma.order.update({
-                where: { id: order_id },
+                where: { id: order_id, organizationId: data.custom_1 },
                 data: {
-                    status: orderStatus, // OrderStatus enum
-                    // paymentStatus: status === 'COMPLETED' ? 'PAID' : 'FAILED' // Removed invalid field
+                    status: orderStatus,
                 }
             })
         ]);

@@ -182,27 +182,22 @@ export class SubscriptionService {
         }
       });
 
-      // Broadcast real-time sync event
+      // 2. Automatically initialize the shop for the tenant
       try {
-        await realTimeSyncService.broadcastEvent({
-          id: crypto.randomUUID(),
-          type: 'customer',
-          action: 'create',
-          entityId: customerId,
-          organizationId: process.env.DEFAULT_ORGANIZATION_ID || 'default',
-          timestamp: new Date(),
-          source: 'subscription-service',
-          data: {
-            subscriptionId: subscription.id,
-            customerId: subscription.customerId,
-            status: subscription.status
-          }
+        const customer = await prisma.customer.findUnique({
+          where: { id: customerId },
+          select: { organizationId: true }
         });
-      } catch (syncError) {
-        logger.warn({
-          message: 'Failed to broadcast subscription event',
-          error: syncError instanceof Error ? syncError : new Error(String(syncError)),
-          context: { service: 'SubscriptionService', operation: 'createSubscription', subscriptionId: subscription.id }
+
+        if (customer?.organizationId) {
+          const { shopInitializationService } = await import('@/lib/services/shop-initialization.service');
+          await shopInitializationService.initializeShop(customer.organizationId);
+        }
+      } catch (shopError) {
+        logger.error({
+          message: 'Soft failure: Failed to initialize shop during subscription',
+          error: shopError,
+          context: { customerId }
         });
       }
 
