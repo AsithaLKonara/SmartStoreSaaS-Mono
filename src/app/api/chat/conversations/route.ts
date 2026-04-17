@@ -108,11 +108,40 @@ export const POST = requireAuth(
         correlation: req.correlationId
       });
 
-      // TODO: Create actual conversation
+      // Create actual conversation and initial message in a transaction
+      const conversation = await prisma.$transaction(async (tx) => {
+        const conv = await tx.conversation.create({
+          data: {
+            organizationId: organizationId || user.organizationId || '',
+            userId: user.role !== 'CUSTOMER' ? user.id : null,
+            customerId: user.role === 'CUSTOMER' ? (await tx.customer.findFirst({ where: { email: user.email } }))?.id : null,
+            type: 'SUPPORT',
+            status: 'OPEN',
+            metadata: { subject }
+          }
+        });
+
+        await tx.conversationMessage.create({
+          data: {
+            conversationId: conv.id,
+            content: message,
+            senderId: user.id,
+            senderRole: user.role === 'CUSTOMER' ? 'HUMAN' : 'HUMAN' // or agent role
+          }
+        });
+
+        return conv;
+      });
+
+      logger.info({
+        message: 'Conversation created successfully',
+        context: { userId: user.id, conversationId: conversation.id }
+      });
+
       return NextResponse.json(successResponse({
-        conversationId: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        conversationId: conversation.id,
         subject,
-        createdAt: new Date().toISOString()
+        createdAt: conversation.createdAt
       }), { status: 201 });
     } catch (error: any) {
       logger.error({

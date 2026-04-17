@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,21 +31,34 @@ export const GET = requirePermission(Permission.WEBHOOKS_READ)(
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '10');
 
-      // TODO: Implement webhook event tracking
+      const skip = (page - 1) * limit;
+      const eventType = new URL(req.url).searchParams.get('type') || undefined;
+
+      const [items, total] = await Promise.all([
+        prisma.activityLog.findMany({
+          where: {
+            organizationId,
+            type: { startsWith: 'WEBHOOK_' },
+            ...(eventType ? { description: { contains: eventType } } : {}),
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        prisma.activityLog.count({
+          where: { organizationId, type: { startsWith: 'WEBHOOK_' } },
+        }),
+      ]);
+
       logger.info({
         message: 'Webhook events fetched',
-        context: {
-          userId: user.id,
-          organizationId,
-          page,
-          limit
-        },
+        context: { userId: user.id, organizationId, total },
         correlation: req.correlationId
       });
 
       return NextResponse.json(
-        successResponse([], {
-          pagination: { page, limit, total: 0, pages: 0 }
+        successResponse(items, {
+          pagination: { page, limit, total, pages: Math.ceil(total / limit) },
         })
       );
     } catch (error: any) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,49 +22,54 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         correlation: req.correlationId
       });
 
-      // TODO: Implement actual system health checks
-      // This would typically involve:
-      // 1. Checking database connectivity
-      // 2. Verifying external service availability
-      // 3. Monitoring resource usage
-      // 4. Running automated health checks
+      // 1. Check DB connectivity with a raw ping
+      const dbStart = Date.now();
+      let dbStatus = 'healthy';
+      let dbResponseTime = 0;
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        dbResponseTime = Date.now() - dbStart;
+      } catch {
+        dbStatus = 'unhealthy';
+      }
+
+      // 2. Check memory pressure
+      const mem = process.memoryUsage();
+      const heapUsedMB = Math.round(mem.heapUsed / 1024 / 1024);
+      const heapTotalMB = Math.round(mem.heapTotal / 1024 / 1024);
+      const memUsagePct = Math.round((heapUsedMB / heapTotalMB) * 100);
 
       const healthChecks = {
         database: {
-          status: 'healthy',
-          responseTime: Math.random() * 50 + 10, // 10-60ms
+          status: dbStatus,
+          responseTime: dbResponseTime,
           lastChecked: new Date().toISOString()
         },
-        redis: {
-          status: 'healthy',
-          responseTime: Math.random() * 10 + 1, // 1-11ms
+        memory: {
+          status: memUsagePct < 90 ? 'healthy' : 'warning',
+          heapUsedMB,
+          heapTotalMB,
+          usagePercent: memUsagePct,
           lastChecked: new Date().toISOString()
         },
-        externalApis: {
+        process: {
           status: 'healthy',
-          services: [
-            { name: 'Payment Gateway', status: 'healthy', responseTime: 45 },
-            { name: 'Email Service', status: 'healthy', responseTime: 120 },
-            { name: 'SMS Service', status: 'healthy', responseTime: 200 }
-          ],
-          lastChecked: new Date().toISOString()
-        },
-        storage: {
-          status: 'healthy',
-          diskUsage: Math.random() * 20 + 40, // 40-60%
+          uptime: Math.floor(process.uptime()),
+          pid: process.pid,
+          nodeVersion: process.version,
           lastChecked: new Date().toISOString()
         }
       };
 
       const overallStatus = Object.values(healthChecks).every(check =>
         check.status === 'healthy'
-      ) ? 'healthy' : 'unhealthy';
+      ) ? 'healthy' : 'degraded';
 
       const systemStatus = {
         status: overallStatus,
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        version: '1.2.1',
+        version: process.env.npm_package_version || '1.0.0',
         environment: process.env.NODE_ENV || 'development',
         checks: healthChecks
       };

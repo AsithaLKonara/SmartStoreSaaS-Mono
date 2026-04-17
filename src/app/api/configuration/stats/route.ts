@@ -18,24 +18,34 @@ export const dynamic = 'force-dynamic';
  * GET /api/configuration/stats
  * Get configuration statistics
  */
+import { prisma } from '@/lib/prisma';
+
 export const GET = requirePermission(Permission.SETTINGS_MANAGE)(
   async (req: AuthenticatedRequest, user) => {
     try {
-      // TODO: Calculate configuration statistics
+      const organizationId = user.organizationId;
+      if (!organizationId) {
+        throw new ValidationError('User must belong to an organization');
+      }
+
+      const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { settings: true, updatedAt: true }
+      });
+
+      const settings = (org?.settings as any) || {};
+      const totalConfigs = Object.keys(settings).length;
+
       logger.info({
-        message: 'Configuration statistics fetched',
-        context: {
-          userId: user.id,
-          organizationId: user.organizationId
-        },
-        correlation: req.correlationId
+        message: 'Configuration statistics generated',
+        context: { userId: user.id, organizationId, totalConfigs }
       });
 
       return NextResponse.json(successResponse({
-        totalConfigs: 0,
-        activeConfigs: 0,
-        lastModified: new Date().toISOString(),
-        message: 'Configuration statistics - implementation pending'
+        totalConfigs,
+        activeConfigs: totalConfigs, // Assume all in JSON are active
+        lastModified: org?.updatedAt || new Date().toISOString(),
+        message: 'Configuration stats generated from Organization settings'
       }));
     } catch (error: any) {
       logger.error({

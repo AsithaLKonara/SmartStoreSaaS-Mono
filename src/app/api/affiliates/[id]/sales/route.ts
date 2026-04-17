@@ -49,12 +49,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           context: { affiliateId, userId: user.id }
         });
 
-        // TODO: Fetch actual affiliate sales
+        // Return tracked stats from Affiliate model
         return NextResponse.json(successResponse({
-          totalSales: 0,
-          totalRevenue: 0,
+          totalSales: affiliate.totalSales || 0,
+          totalRevenue: affiliate.totalCommission || 0,
           sales: [],
-          message: 'Affiliate sales - implementation pending'
+          message: 'Sales tracked via affiliate metrics summary'
         }));
       } catch (error: any) {
         logger.error({

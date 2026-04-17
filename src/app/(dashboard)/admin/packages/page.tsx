@@ -57,54 +57,17 @@ function AdminPackagesPageContent() {
   const loadPackages = async () => {
     try {
       setLoading(true);
-      // Mock data - replace with actual API call
-      const mockPackages: Package[] = [
-        {
-          id: '1',
-          name: 'Basic Plan',
-          description: 'Perfect for small businesses getting started',
-          price: 29.99,
-          currency: 'USD',
-          duration: 30,
-          features: ['Up to 100 products', 'Basic analytics', 'Email support'],
-          status: 'ACTIVE',
-          subscribers: 150,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'Professional Plan',
-          description: 'Advanced features for growing businesses',
-          price: 79.99,
-          currency: 'USD',
-          duration: 30,
-          features: ['Up to 1000 products', 'Advanced analytics', 'Priority support', 'API access'],
-          status: 'ACTIVE',
-          subscribers: 75,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '3',
-          name: 'Enterprise Plan',
-          description: 'Complete solution for large enterprises',
-          price: 199.99,
-          currency: 'USD',
-          duration: 30,
-          features: ['Unlimited products', 'Custom analytics', '24/7 support', 'Custom integrations'],
-          status: 'ACTIVE',
-          subscribers: 25,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      setPackages(mockPackages);
+      const response = await fetch('/api/admin/packages');
+      if (!response.ok) throw new Error('Failed to fetch packages');
+      
+      const data = await response.json();
+      setPackages(data.data || []);
     } catch (error) {
       logger.error({
         message: 'Error loading packages',
         error: error instanceof Error ? error : new Error(String(error))
       });
+      setPackages([]);
     } finally {
       setLoading(false);
     }

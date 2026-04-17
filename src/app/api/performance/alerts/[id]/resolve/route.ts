@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,12 +36,20 @@ export const POST = requireRole('SUPER_ADMIN')(
         correlation: req.correlationId
       });
 
-      // TODO: Mark actual alert as resolved
+      const resolved = await prisma.productionAlert.update({
+        where: { id: alertId },
+        data: {
+          status: 'RESOLVED' as any,
+          resolvedAt: new Date(),
+          resolvedBy: user.id,
+        },
+      });
+
       return NextResponse.json(successResponse({
-        alertId,
-        status: 'resolved',
-        resolvedBy: user.id,
-        resolvedAt: new Date().toISOString()
+        alertId: resolved.id,
+        status: resolved.status,
+        resolvedBy: resolved.resolvedBy,
+        resolvedAt: resolved.resolvedAt,
       }));
     } catch (error: any) {
       logger.error({

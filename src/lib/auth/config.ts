@@ -157,15 +157,12 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       // Handle redirect after sign in
-      // If redirecting to a relative URL, use baseUrl
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
       }
-      // If redirecting to the same origin, allow it
       if (new URL(url).origin === baseUrl) {
         return url;
       }
-      // Default to dashboard
       return `${baseUrl}/dashboard`;
     },
   },

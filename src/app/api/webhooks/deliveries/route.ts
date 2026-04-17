@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,22 +31,30 @@ export const GET = requirePermission(Permission.WEBHOOKS_READ)(
       const page = parseInt(searchParams.get('page') || '1');
       const limit = parseInt(searchParams.get('limit') || '10');
 
-      // TODO: Implement webhook delivery tracking
+      const skip = (page - 1) * limit;
+
+      // Use ActivityLog to track webhook delivery events
+      const [items, total] = await Promise.all([
+        prisma.activityLog.findMany({
+          where: { organizationId, type: 'WEBHOOK_DELIVERY' },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        prisma.activityLog.count({
+          where: { organizationId, type: 'WEBHOOK_DELIVERY' },
+        }),
+      ]);
+
       logger.info({
         message: 'Webhook deliveries fetched',
-        context: {
-          userId: user.id,
-          organizationId,
-          page,
-          limit
-        },
+        context: { userId: user.id, organizationId, page, limit, total },
         correlation: req.correlationId
       });
 
       return NextResponse.json(
-        successResponse([], {
-          pagination: { page, limit, total: 0, pages: 0 },
-          message: 'Webhook deliveries - implementation pending'
+        successResponse(items, {
+          pagination: { page, limit, total, pages: Math.ceil(total / limit) },
         })
       );
     } catch (error: any) {

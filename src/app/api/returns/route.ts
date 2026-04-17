@@ -136,31 +136,54 @@ export const POST = requirePermission(Permission.ORDER_CREATE)(
         });
       }
 
-      // TODO: Implement actual return request creation
-      // This would typically involve:
-      // 1. Validating order and items
-      // 2. Creating return request in database
-      // 3. Sending notifications
-      // 4. Returning return request details
+      // 1. Validate order and items
+      const order = await prisma.order.findUnique({
+        where: { id: orderId, organizationId },
+        select: { id: true, customerId: true, orderNumber: true }
+      });
 
-      const returnRequest = {
-        id: `return_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        orderId,
-        customerId: user.id,
-        reason,
-        items,
-        customerNotes: customerNotes || '',
-        status: 'pending',
-        organizationId,
-        requestedAt: new Date().toISOString()
-      };
+      if (!order) {
+        throw new ValidationError('Order not found or access denied');
+      }
+
+      // 2. Create return request in database
+      const returnRequest = await prisma.$transaction(async (tx) => {
+        const ret = await tx.return.create({
+          data: {
+            organizationId,
+            orderId,
+            customerId: order.customerId,
+            reason,
+            status: 'PENDING',
+            notes: customerNotes || '',
+            returnNumber: `RET-${Date.now()}`
+          }
+        });
+
+        // Create return items
+        const returnItemsData = items.map((item: any) => ({
+          returnId: ret.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          reason: item.reason || reason
+        }));
+
+        await tx.returnItem.createMany({
+          data: returnItemsData
+        });
+
+        return tx.return.findUnique({
+          where: { id: ret.id },
+          include: { items: true }
+        });
+      });
 
       logger.info({
-        message: 'Return request created',
+        message: 'Return request created successfully',
         context: {
           userId: user.id,
           orderId,
-          itemCount: items.length,
+          returnId: returnRequest?.id,
           organizationId
         },
         correlation: req.correlationId

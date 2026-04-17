@@ -122,6 +122,13 @@ export default function LoginForm() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-gray-300">Password</Label>
+                <button 
+                  type="button"
+                  onClick={() => router.push('/reset-password')}
+                  className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Forgot Password?
+                </button>
               </div>
               <Input
                 id="password"

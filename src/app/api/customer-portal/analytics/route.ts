@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { requireAuth, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,14 +22,27 @@ export const GET = requireAuth(
         correlation: req.correlationId
       });
 
-      // TODO: Implement customer analytics
-      // This would typically involve querying analytics data from database
+      // Implement customer analytics from database
+      const customer = await prisma.customer.findUnique({
+        where: { id: user.id },
+        include: { orders: { orderBy: { createdAt: 'desc' } } }
+      });
+
+      if (!customer) {
+        return NextResponse.json({ success: false, code: 'ERR_NOT_FOUND', message: 'Customer not found' }, { status: 404 });
+      }
+
+      const totalOrders = customer.orders.length;
+      const totalSpent = Number(customer.totalSpent || 0);
+      const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+      const lastOrderDate = customer.orders[0]?.createdAt || null;
+
       const analytics = {
-        totalOrders: 0,
-        totalSpent: 0,
-        averageOrderValue: 0,
-        lastOrderDate: null,
-        favoriteCategories: []
+        totalOrders,
+        totalSpent,
+        averageOrderValue: Number(averageOrderValue.toFixed(2)),
+        lastOrderDate,
+        favoriteCategories: [] // Would require deeper order items schema traversal
       };
 
       return NextResponse.json(successResponse(analytics));

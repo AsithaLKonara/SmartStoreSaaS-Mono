@@ -116,37 +116,14 @@ export default function CouriersPage() {
 
   const loadDeliveries = async () => {
     try {
-      // Mock data - replace with actual API call
-      const mockDeliveries: Delivery[] = [
-        {
-          id: '1',
-          orderNumber: 'ORD-001',
-          customerName: 'Alice Johnson',
-          customerPhone: '+94771234569',
-          address: '123 Main St, Colombo 03',
-          status: 'PENDING',
-          estimatedDeliveryTime: new Date(Date.now() + 3600000),
-          trackingNumber: 'TRK-001',
-          notes: 'Fragile items',
-          createdAt: new Date()
-        },
-        {
-          id: '2',
-          orderNumber: 'ORD-002',
-          customerName: 'Bob Smith',
-          customerPhone: '+94771234570',
-          address: '456 Oak Ave, Kandy',
-          status: 'PROCESSING',
-          estimatedDeliveryTime: new Date(Date.now() + 7200000),
-          trackingNumber: 'TRK-002',
-          courierId: '1',
-          courierName: 'John Silva',
-          createdAt: new Date()
-        }
-      ];
-      setDeliveries(mockDeliveries);
+      const response = await fetch('/api/deliveries');
+      if (!response.ok) throw new Error('Failed to fetch deliveries');
+      
+      const data = await response.json();
+      setDeliveries(data.data || []);
     } catch (error) {
       toast.error('Failed to load deliveries');
+      setDeliveries([]);
     }
   };
 

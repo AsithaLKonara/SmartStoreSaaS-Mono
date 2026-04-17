@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AnalyticsSnapshotService } from '@/lib/services/analytics-snapshot.service';
+import { AnalyticsService } from '@/lib/services/analytics.service';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/config';
 
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const { date } = await req.json();
     const syncDate = date ? new Date(date) : new Date();
 
-    await AnalyticsSnapshotService.syncAllActiveTenants(syncDate);
+    await AnalyticsService.syncAllActiveTenants(syncDate);
 
     return NextResponse.json({ 
       success: true, 

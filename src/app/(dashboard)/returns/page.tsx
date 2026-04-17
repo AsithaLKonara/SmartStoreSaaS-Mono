@@ -100,7 +100,7 @@ export default function ReturnsPage() {
 
     try {
       const response = await fetch(`/api/returns/${returnId}/approve`, {
-        method: 'PUT',
+        method: 'POST',
       });
 
       if (response.ok) {
@@ -120,7 +120,7 @@ export default function ReturnsPage() {
 
     try {
       const response = await fetch(`/api/returns/${returnId}/reject`, {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason })
       });

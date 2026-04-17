@@ -45,10 +45,25 @@ export default function ProductsPage() {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const { handleError } = useErrorHandler();
 
+  const [categories, setCategories] = useState<any[]>([]);
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      if (data.success) {
+        setCategories(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories');
+    }
+  };
 
   const fetchProducts = async (query: SearchQuery = {
     query: '',
@@ -126,7 +141,7 @@ export default function ProductsPage() {
 
   const handleEditProduct = (product: Product) => {
     // Navigate to product detail page
-    window.location.href = `/dashboard/products/${product.id}`;
+    window.location.href = `/products/${product.id}`;
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -265,11 +280,17 @@ export default function ProductsPage() {
             <div>
               <Label htmlFor="category">Category</Label>
               <select
-                id="category"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 data-testid="category-filter"
+                value={searchQuery.filters?.categoryId || ''}
+                onChange={(e) => handleSearch({
+                   ...searchQuery,
+                   filters: { ...searchQuery.filters, categoryId: e.target.value || undefined }
+                })}
               >
                 <option value="">All Categories</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
               </select>
             </div>
           </div>

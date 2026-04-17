@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireRole, getOrganizationScope } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,16 +21,17 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
     try {
       const orgId = getOrganizationScope(user);
 
+      const endpoints = await prisma.webhookSubscription.findMany({
+        where: { organizationId: orgId },
+        orderBy: { createdAt: 'desc' },
+      });
+
       logger.info({
         message: 'Webhook endpoints fetched',
         context: { userId: user.id, organizationId: orgId }
       });
 
-      // TODO: Fetch from webhook endpoints table when implemented
-      return NextResponse.json(successResponse({
-        endpoints: [],
-        message: 'Webhook endpoints - implementation pending'
-      }));
+      return NextResponse.json(successResponse({ endpoints }));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch webhook endpoints',
@@ -58,18 +60,24 @@ export const POST = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
 
       logger.info({
         message: 'Webhook endpoint created',
-        context: {
-          userId: user.id,
+        context: { userId: user.id, organizationId, url, events }
+      });
+
+      const endpoint = await prisma.webhookSubscription.create({
+        data: {
           organizationId,
+          name: `Webhook ${url}`,
           url,
-          events
+          events,
+          secret: secret || null,
         }
       });
 
       return NextResponse.json(successResponse({
         message: 'Webhook created',
-        url,
-        events
+        id: endpoint.id,
+        url: endpoint.url,
+        events: endpoint.events
       }), { status: 201 });
     } catch (error: any) {
       logger.error({

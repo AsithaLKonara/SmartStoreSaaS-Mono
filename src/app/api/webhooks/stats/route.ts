@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,21 +27,23 @@ export const GET = requirePermission(Permission.WEBHOOKS_READ)(
         throw new ValidationError('User must belong to an organization');
       }
 
-      // TODO: Implement webhook statistics
+      const [total, successful, failed] = await Promise.all([
+        prisma.activityLog.count({ where: { organizationId, type: 'WEBHOOK_DELIVERY' } }),
+        prisma.activityLog.count({ where: { organizationId, type: 'WEBHOOK_DELIVERY', description: { contains: 'success', mode: 'insensitive' } } }),
+        prisma.activityLog.count({ where: { organizationId, type: 'WEBHOOK_DELIVERY', description: { contains: 'fail', mode: 'insensitive' } } }),
+      ]);
+
       logger.info({
         message: 'Webhook statistics fetched',
-        context: {
-          userId: user.id,
-          organizationId
-        },
+        context: { userId: user.id, organizationId },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        total: 0,
-        successful: 0,
-        failed: 0,
-        pending: 0
+        total,
+        successful,
+        failed,
+        pending: 0 // Without an explicit job queue, we assume no pending
       }));
     } catch (error: any) {
       logger.error({

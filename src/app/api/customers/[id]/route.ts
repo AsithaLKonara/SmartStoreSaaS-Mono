@@ -40,7 +40,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         const customer = await prisma.customer.findUnique({
-          where: { id: customerId }
+          where: { 
+            id: customerId,
+            organizationId: user.organizationId
+          }
         });
 
         if (!customer) {
@@ -114,7 +117,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const body = await req.json();
 
         const customer = await prisma.customer.findUnique({
-          where: { id: customerId }
+          where: { 
+            id: customerId,
+            organizationId: user.organizationId
+          }
         });
 
         if (!customer) {
@@ -132,7 +138,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         const updated = await prisma.customer.update({
-          where: { id: customerId },
+          where: { 
+            id: customerId,
+            organizationId: user.organizationId
+          },
           data: body
         });
 
@@ -191,7 +200,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     async (req: AuthenticatedRequest, user) => {
       try {
         const customer = await prisma.customer.findUnique({
-          where: { id: customerId }
+          where: { 
+            id: customerId,
+            organizationId: user.organizationId
+          }
         });
 
         if (!customer) {
@@ -209,7 +221,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }
 
         await prisma.customer.delete({
-          where: { id: customerId }
+          where: { 
+            id: customerId,
+            organizationId: user.organizationId
+          }
         });
 
         logger.info({

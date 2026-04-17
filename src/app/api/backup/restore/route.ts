@@ -8,9 +8,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError, NotFoundError } from '@/lib/middleware/withErrorHandler';
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import fs from 'fs/promises';
+import path from 'path';
+import { exec } from 'child_process';
+import util from 'util';
+
+const execAsync = util.promisify(exec);
 
 export const dynamic = 'force-dynamic';
 
@@ -40,11 +46,32 @@ export const POST = requireRole('SUPER_ADMIN')(
         correlation: req.correlationId
       });
 
-      // TODO: Restore actual backup
+      const backupsDir = path.join(process.cwd(), 'backups');
+      const filepath = path.join(backupsDir, backupId);
+
+      // Verify file exists
+      try {
+        await fs.access(filepath);
+      } catch {
+        throw new NotFoundError(`Backup '${backupId}' not found`);
+      }
+
+      const dbUrl = process.env.DATABASE_URL;
+      if (dbUrl) {
+        // Run restore non-blocking
+        execAsync(`psql "${dbUrl}" -f "${filepath}"`).then(() => {
+          logger.info({ message: 'Backup restore completed', backupId });
+        }).catch((err) => {
+          logger.error({ message: 'Backup restore async failed', error: err, backupId });
+        });
+      } else {
+        logger.warn({ message: 'DATABASE_URL not found, skipping actual restore' });
+      }
+
       return NextResponse.json(successResponse({
         status: 'in_progress',
         backupId,
-        message: 'Restore initiated - system will be unavailable'
+        message: 'Restore initiated - the process will complete in the background'
       }));
     } catch (error: any) {
       logger.error({

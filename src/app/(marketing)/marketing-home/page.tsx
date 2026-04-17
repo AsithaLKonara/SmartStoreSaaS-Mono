@@ -11,6 +11,7 @@ import { HowItWorks } from '@/components/marketing/HowItWorks';
 import { Pricing } from '@/components/marketing/Pricing';
 import { FinalCTA } from '@/components/marketing/FinalCTA';
 import { Footer } from '@/components/marketing/Footer';
+import { MarketingSearch } from '@/components/marketing/MarketingSearch';
 
 import { GlobalBackground } from '@/components/marketing/GlobalBackground';
 
@@ -34,6 +35,7 @@ export default function Home() {
       <div className="relative z-10">
         <Navbar />
         <Hero />
+        <MarketingSearch />
         <TrustBar />
         <ProductStory />
         <ProductDemo />

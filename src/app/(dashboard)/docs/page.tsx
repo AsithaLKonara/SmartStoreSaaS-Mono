@@ -1,295 +1,83 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  BookOpen, 
-  Users, 
-  ShoppingCart, 
-  BarChart3, 
-  Calculator, 
-  Package, 
-  Settings,
-  Download,
-  ExternalLink,
-  HelpCircle
-} from 'lucide-react';
+import dynamic from 'next/dynamic';
+import 'swagger-ui-react/swagger-ui.css';
+import { Book, Terminal, Shield, Code } from 'lucide-react';
 
-export default function DocumentationPage() {
-  const sections = [
-    {
-      title: 'Getting Started',
-      description: 'Quick start guide for new users',
-      icon: <BookOpen className="h-5 w-5" />,
-      items: [
-        { title: 'First Login', description: 'How to access your account', status: 'ready' },
-        { title: 'Dashboard Overview', description: 'Understanding the main dashboard', status: 'ready' },
-        { title: 'User Roles', description: 'Admin, Manager, and User permissions', status: 'ready' },
-        { title: 'Basic Setup', description: 'Initial configuration steps', status: 'ready' }
-      ]
-    },
-    {
-      title: 'E-commerce Management',
-      description: 'Managing your online store',
-      icon: <ShoppingCart className="h-5 w-5" />,
-      items: [
-        { title: 'Product Management', description: 'Adding and managing products', status: 'ready' },
-        { title: 'Order Processing', description: 'Handling customer orders', status: 'ready' },
-        { title: 'Customer Management', description: 'Managing customer relationships', status: 'ready' },
-        { title: 'Inventory Tracking', description: 'Stock management and alerts', status: 'ready' }
-      ]
-    },
-    {
-      title: 'Accounting System',
-      description: 'Financial management and reporting',
-      icon: <Calculator className="h-5 w-5" />,
-      items: [
-        { title: 'Chart of Accounts', description: 'Setting up your accounting structure', status: 'ready' },
-        { title: 'Journal Entries', description: 'Recording financial transactions', status: 'ready' },
-        { title: 'Financial Reports', description: 'P&L, Balance Sheet, Cash Flow', status: 'ready' },
-        { title: 'Tax Management', description: 'Handling taxes and compliance', status: 'ready' }
-      ]
-    },
-    {
-      title: 'Procurement System',
-      description: 'Supplier and purchase management',
-      icon: <Package className="h-5 w-5" />,
-      items: [
-        { title: 'Supplier Management', description: 'Managing vendor relationships', status: 'ready' },
-        { title: 'Purchase Orders', description: 'Creating and tracking orders', status: 'ready' },
-        { title: 'Procurement Analytics', description: 'Data-driven purchasing insights', status: 'ready' },
-        { title: 'Cost Tracking', description: 'Monitoring procurement costs', status: 'ready' }
-      ]
-    },
-    {
-      title: 'Analytics & Reporting',
-      description: 'Business intelligence and insights',
-      icon: <BarChart3 className="h-5 w-5" />,
-      items: [
-        { title: 'Sales Analytics', description: 'Understanding sales performance', status: 'ready' },
-        { title: 'Customer Insights', description: 'Customer behavior analysis', status: 'ready' },
-        { title: 'Inventory Reports', description: 'Stock and turnover analysis', status: 'ready' },
-        { title: 'Financial Reports', description: 'Comprehensive financial analysis', status: 'ready' }
-      ]
-    },
-    {
-      title: 'System Administration',
-      description: 'System settings and maintenance',
-      icon: <Settings className="h-5 w-5" />,
-      items: [
-        { title: 'User Management', description: 'Managing team members', status: 'ready' },
-        { title: 'System Settings', description: 'Configuring application settings', status: 'ready' },
-        { title: 'Backup & Recovery', description: 'Data protection and restoration', status: 'ready' },
-        { title: 'Monitoring', description: 'System health and performance', status: 'ready' }
-      ]
-    }
-  ];
+// Dynamically import SwaggerUI to avoid SSR issues
+const SwaggerUI = dynamic(() => import('swagger-ui-react'), { 
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center min-h-[500px] text-white">Loading API documentation...</div>
+});
 
-  const quickLinks = [
-    {
-      title: 'API Documentation',
-      description: 'Complete API reference',
-      href: '/api/health',
-      icon: <ExternalLink className="h-4 w-4" />
-    },
-    {
-      title: 'System Status',
-      description: 'Current system health',
-      href: '/monitoring',
-      icon: <HelpCircle className="h-4 w-4" />
-    },
-    {
-      title: 'Data Export',
-      description: 'Download your data',
-      href: '/api/backup/export',
-      icon: <Download className="h-4 w-4" />
-    }
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ready':
-        return <Badge className="bg-green-100 text-green-800">Ready</Badge>;
-      case 'coming-soon':
-        return <Badge className="bg-yellow-100 text-yellow-800">Coming Soon</Badge>;
-      case 'beta':
-        return <Badge className="bg-blue-100 text-blue-800">Beta</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
-    }
-  };
-
+export default function ApiDocsPage() {
   return (
-    <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">SmartStore SaaS Documentation</h1>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Complete guide to using your SmartStore SaaS platform. 
-          Everything you need to know to manage your business effectively.
-        </p>
-        <div className="flex justify-center space-x-4">
-          <Badge className="bg-blue-100 text-blue-800">Version 1.2.0</Badge>
-          <Badge className="bg-green-100 text-green-800">100% Functional</Badge>
-          <Badge className="bg-purple-100 text-purple-800">Production Ready</Badge>
+    <div className="min-h-screen bg-[#0e0918] text-white p-6 space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <Book className="w-10 h-10 text-primary" />
+            Developer Sandbox
+          </h1>
+          <p className="text-slate-400">
+            Interactive OpenAPI documentation and live API playground.
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <div className="glass-dark px-4 py-2 rounded-lg border border-white/10 flex items-center gap-2 text-xs font-mono text-primary">
+            <Terminal className="w-4 h-4" />
+            v1.2.2-stable
+          </div>
         </div>
       </div>
 
-      {/* Quick Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <HelpCircle className="h-5 w-5" />
-            <span>Quick Links</span>
-          </CardTitle>
-          <CardDescription>
-            Essential resources and tools
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {quickLinks.map((link, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className="h-auto p-4 flex flex-col items-start space-y-2"
-                onClick={() => window.open(link.href, '_blank')}
-              >
-                <div className="flex items-center space-x-2">
-                  {link.icon}
-                  <span className="font-medium">{link.title}</span>
-                </div>
-                <p className="text-sm text-muted-foreground text-left">
-                  {link.description}
-                </p>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar Info */}
+        <div className="space-y-6">
+           <div className="glass-dark rounded-xl border border-white/10 p-6 space-y-4">
+              <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-widest text-primary">
+                <Shield className="w-4 h-4" /> Authentication
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Most endpoints require a Bearer Token. You can obtain your token from the Security settings or by inspecting the session headers.
+              </p>
+           </div>
+           
+           <div className="glass-dark rounded-xl border border-white/10 p-6 space-y-4">
+              <h3 className="font-bold flex items-center gap-2 text-sm uppercase tracking-widest text-primary">
+                <Code className="w-4 h-4" /> Multi-Tenancy
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Include `x-tenant-id` header to scope searches to a specific organization. Super Admins can access all tenant data.
+              </p>
+           </div>
+        </div>
 
-      {/* Documentation Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {sections.map((section, sectionIndex) => (
-          <Card key={sectionIndex}>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                {section.icon}
-                <span>{section.title}</span>
-              </CardTitle>
-              <CardDescription>{section.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {section.items.map((item, itemIndex) => (
-                  <div key={itemIndex} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{item.title}</h4>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </div>
-                    <div className="ml-4">
-                      {getStatusBadge(item.status)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {/* Swagger UI Main */}
+        <div className="lg:col-span-3">
+          <div className="glass-dark rounded-2xl border border-white/10 overflow-hidden shadow-2xl bg-white shadow-primary/5">
+            <style jsx global>{`
+              .swagger-ui {
+                background-color: white !important;
+                padding: 20px;
+              }
+              .swagger-ui .info .title {
+                color: #0e0918 !important;
+              }
+              .swagger-ui .scheme-container {
+                background-color: #f8fafc !important;
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0;
+                margin: 20px;
+                border-radius: 8px;
+              }
+              /* Customize Swagger colors to match SmartStore primary if needed */
+            `}</style>
+            <SwaggerUI url="/api/docs" />
+          </div>
+        </div>
       </div>
-
-      {/* Getting Started Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Getting Started Guide</CardTitle>
-          <CardDescription>
-            Step-by-step instructions for new users
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
-                1
-              </div>
-              <div>
-                <h3 className="font-medium">Login to Your Account</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Use your credentials to access the dashboard. Demo credentials are available for testing.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
-                2
-              </div>
-              <div>
-                <h3 className="font-medium">Explore the Dashboard</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Familiarize yourself with the main dashboard and navigation menu.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
-                3
-              </div>
-              <div>
-                <h3 className="font-medium">Set Up Your Business</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Add products, configure settings, and customize your store.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
-                4
-              </div>
-              <div>
-                <h3 className="font-medium">Start Managing Operations</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Begin processing orders, managing customers, and tracking analytics.
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Support Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Need Help?</CardTitle>
-          <CardDescription>
-            Get support and assistance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h4 className="font-medium">System Status</h4>
-              <p className="text-sm text-muted-foreground">
-                Check current system health and performance
-              </p>
-              <Button variant="outline" size="sm" onClick={() => window.open('/monitoring', '_blank')}>
-                View Status
-              </Button>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">Data Export</h4>
-              <p className="text-sm text-muted-foreground">
-                Download your data for backup or migration
-              </p>
-              <Button variant="outline" size="sm" onClick={() => window.open('/api/backup/export', '_blank')}>
-                Export Data
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

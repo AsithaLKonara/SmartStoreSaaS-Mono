@@ -7,8 +7,27 @@ import { successResponse, NotFoundError, AuthorizationError } from '@/lib/middle
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/products/[id]
- * Get single product (VIEW_PRODUCTS permission)
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Get single product
+ *     description: Retrieve detailed information about a specific product, scoped to the user's organization.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The product ID
+ *     responses:
+ *       200:
+ *         description: Product retrieved successfully
+ *       404:
+ *         description: Product not found
+ *       403:
+ *         description: Insufficient permissions
  */
 export const GET = requirePermission(Permission.PRODUCT_READ)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
@@ -25,9 +44,12 @@ export const GET = requirePermission(Permission.PRODUCT_READ)(
         }));
       }
 
-      // Get product with related data
+      // Get product with related data - enforcing organization isolation in the query
       const product = await prisma.product.findUnique({
-        where: { id: productId },
+        where: { 
+          id: productId,
+          organizationId: user.organizationId
+        },
         include: {
           category: true
         }
@@ -79,8 +101,35 @@ export const GET = requirePermission(Permission.PRODUCT_READ)(
 );
 
 /**
- * PUT /api/products/[id]
- * Update product (MANAGE_PRODUCTS permission)
+ * @swagger
+ * /api/products/{id}:
+ *   put:
+ *     summary: Update product
+ *     description: Update specific attributes of an existing product within the organization.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               stockQuantity:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
  */
 export const PUT = requirePermission(Permission.PRODUCT_UPDATE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
@@ -89,9 +138,12 @@ export const PUT = requirePermission(Permission.PRODUCT_UPDATE)(
       const body = await req.json();
       const { name, description, price, cost, sku, barcode, categoryId, stockQuantity, minStockLevel, maxStockLevel, isActive } = body;
 
-      // Check if product exists
+      // Check if product exists and belongs to the user's organization
       const existingProduct = await prisma.product.findUnique({
-        where: { id: productId }
+        where: { 
+          id: productId,
+          organizationId: user.organizationId
+        }
       });
 
       if (!existingProduct) {
@@ -101,9 +153,12 @@ export const PUT = requirePermission(Permission.PRODUCT_UPDATE)(
       // Validate organization access
       await validateOrganizationAccess(user, existingProduct.organizationId);
 
-      // Update product
+      // Update product - scoping to organization for extra security
       const updatedProduct = await prisma.product.update({
-        where: { id: productId },
+        where: { 
+          id: productId,
+          organizationId: user.organizationId
+        },
         data: {
           ...(name && { name }),
           ...(description !== undefined && { description }),
@@ -166,17 +221,34 @@ export const PUT = requirePermission(Permission.PRODUCT_UPDATE)(
 );
 
 /**
- * DELETE /api/products/[id]
- * Delete product (MANAGE_PRODUCTS permission)
+ * @swagger
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Delete product
+ *     description: Permanently remove a product from the catalog.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
  */
 export const DELETE = requirePermission(Permission.PRODUCT_UPDATE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const productId = params.id;
 
-      // Check if product exists
+      // Check if product exists within the user's organization
       const product = await prisma.product.findUnique({
-        where: { id: productId }
+        where: { 
+          id: productId,
+          organizationId: user.organizationId
+        }
       });
 
       if (!product) {
@@ -186,9 +258,12 @@ export const DELETE = requirePermission(Permission.PRODUCT_UPDATE)(
       // Validate organization access
       await validateOrganizationAccess(user, product.organizationId);
 
-      // Delete product
+      // Delete product - strictly scoped
       await prisma.product.delete({
-        where: { id: productId }
+        where: { 
+          id: productId,
+          organizationId: user.organizationId
+        }
       });
 
       logger.info({

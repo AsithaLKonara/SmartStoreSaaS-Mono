@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,63 +28,67 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'])(
         correlation: req.correlationId
       });
 
-      // TODO: Implement actual performance dashboard data collection
-      // This would typically involve:
-      // 1. Querying performance metrics from monitoring service
-      // 2. Calculating key performance indicators
-      // 3. Formatting data for dashboard display
-      // 4. Caching frequently accessed data
+      const orgId = user.organizationId;
+      const since = new Date();
+      if (timeRange === '7d') since.setDate(since.getDate() - 7);
+      else if (timeRange === '30d') since.setDate(since.getDate() - 30);
+      else since.setHours(since.getHours() - 24);
 
-      const mockDashboardData = {
+      const [totalUsers, totalOrders, revenue, activeAlerts] = await Promise.all([
+        prisma.user.count({ where: { organizationId: orgId } }),
+        prisma.order.count({ where: { organizationId: orgId, createdAt: { gte: since } } }),
+        prisma.order.aggregate({
+          where: { organizationId: orgId, createdAt: { gte: since } },
+          _sum: { total: true },
+          _avg: { total: true },
+        }),
+        prisma.productionAlert.findMany({
+          where: { status: 'ACTIVE' as any },
+          orderBy: { timestamp: 'desc' },
+          take: 10,
+          select: { id: true, type: true, title: true, severity: true, timestamp: true, status: true },
+        }),
+      ]);
+
+      // Build 30-day revenue trend
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const orderTrend = await prisma.order.findMany({
+        where: { organizationId: orgId, createdAt: { gte: thirtyDaysAgo } },
+        select: { total: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      // Group by date
+      const trendMap: Record<string, { orders: number; revenue: number }> = {};
+      for (const o of orderTrend) {
+        const day = o.createdAt.toISOString().split('T')[0];
+        if (!trendMap[day]) trendMap[day] = { orders: 0, revenue: 0 };
+        trendMap[day].orders += 1;
+        trendMap[day].revenue += Number(o.total ?? 0);
+      }
+      const trends = Object.entries(trendMap).map(([date, v]) => ({ date, ...v }));
+
+      // Real process/memory for performance section
+      const mem = process.memoryUsage();
+
+      const dashboardData = {
         overview: {
-          totalUsers: Math.floor(Math.random() * 10000) + 5000,
-          activeUsers: Math.floor(Math.random() * 1000) + 500,
-          totalOrders: Math.floor(Math.random() * 5000) + 1000,
-          totalRevenue: Math.random() * 100000 + 50000,
-          conversionRate: Math.random() * 5 + 2,
-          averageOrderValue: Math.random() * 100 + 50
+          totalUsers,
+          totalOrders,
+          totalRevenue: Number(revenue._sum.total ?? 0),
+          averageOrderValue: Number(revenue._avg.total ?? 0),
         },
         performance: {
-          pageLoadTime: Math.random() * 2000 + 500,
-          apiResponseTime: Math.random() * 500 + 100,
-          databaseQueryTime: Math.random() * 100 + 50,
-          cacheHitRate: Math.random() * 20 + 80,
-          errorRate: Math.random() * 2,
-          uptime: 99.9
+          heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+          heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+          uptime: Math.floor(process.uptime()),
         },
-        trends: {
-          userGrowth: Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
-            users: Math.floor(Math.random() * 100) + 50
-          })),
-          revenueGrowth: Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
-            revenue: Math.random() * 5000 + 1000
-          })),
-          orderGrowth: Array.from({ length: 30 }, (_, i) => ({
-            date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
-            orders: Math.floor(Math.random() * 50) + 10
-          }))
-        },
-        alerts: [
-          {
-            id: 'alert_1',
-            type: 'warning',
-            message: 'High memory usage detected',
-            timestamp: new Date().toISOString(),
-            resolved: false
-          },
-          {
-            id: 'alert_2',
-            type: 'info',
-            message: 'Scheduled maintenance in 2 hours',
-            timestamp: new Date().toISOString(),
-            resolved: false
-          }
-        ]
+        trends,
+        alerts: activeAlerts,
       };
 
-      return NextResponse.json(successResponse(mockDashboardData));
+      return NextResponse.json(successResponse(dashboardData));
     } catch (error: any) {
       logger.error({
         message: 'Failed to fetch performance dashboard data',

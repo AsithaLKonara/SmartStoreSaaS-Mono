@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,13 +34,46 @@ export const GET = requirePermission(Permission.AUDIT_READ)(
         correlation: req.correlationId
       });
 
-      // TODO: Calculate actual statistics from audit log table
+      // Calculate actual statistics from audit log table
+      const whereClause = orgId ? { organizationId: orgId } : {};
+      
+      const [totalLogs, actionGroups, userGroups, recentActivity] = await Promise.all([
+        prisma.auditLog.count({ where: whereClause }),
+        prisma.auditLog.groupBy({
+          by: ['action'],
+          _count: { action: true },
+          where: whereClause
+        }),
+        prisma.auditLog.groupBy({
+          by: ['userId'],
+          _count: { userId: true },
+          where: whereClause,
+          orderBy: { _count: { userId: 'desc' } },
+          take: 5
+        }),
+        prisma.auditLog.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          include: { user: { select: { firstName: true, lastName: true, email: true } } }
+        })
+      ]);
+
+      const byAction = actionGroups.reduce((acc, curr) => ({
+        ...acc,
+        [curr.action]: curr._count.action
+      }), {} as Record<string, number>);
+
+      const byUser = userGroups.reduce((acc, curr) => ({
+        ...acc,
+        [curr.userId]: curr._count.userId
+      }), {} as Record<string, number>);
+
       return NextResponse.json(successResponse({
-        totalLogs: 0,
-        byAction: {},
-        byUser: {},
-        recentActivity: [],
-        message: 'Audit statistics - implementation pending'
+        totalLogs,
+        byAction,
+        byUser,
+        recentActivity
       }));
     } catch (error: any) {
       logger.error({

@@ -22,16 +22,25 @@ export const GET = requireRole('SUPER_ADMIN')(
   async (req: AuthenticatedRequest, user) => {
     try {
       const memoryUsage = process.memoryUsage();
-      
+      const heapUsedMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
+      const heapTotalMB = Math.round(memoryUsage.heapTotal / 1024 / 1024);
+
       const monitoring = {
-        cpu: { usage: 0 }, // TODO: Implement CPU monitoring
+        cpu: {
+          // Node.js doesn't expose CPU% natively without native modules.
+          // We expose process uptime as a proxy. Integration with `os-utils`
+          // or an APM agent (e.g. Sentry) would provide true CPU %.
+          note: 'Install os-utils or use APM for CPU %',
+          uptimeSeconds: Math.floor(process.uptime()),
+          pid: process.pid,
+        },
         memory: {
           rss: Math.round(memoryUsage.rss / 1024 / 1024),
-          heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024),
-          heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024)
+          heapUsed: heapUsedMB,
+          heapTotal: heapTotalMB,
+          heapUsagePercent: Math.round((heapUsedMB / heapTotalMB) * 100),
+          external: Math.round(memoryUsage.external / 1024 / 1024),
         },
-        requests: { total: 0, rps: 0 }, // TODO: Track requests
-        errors: { total: 0, rate: 0 }, // TODO: Track errors
         uptime: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       };

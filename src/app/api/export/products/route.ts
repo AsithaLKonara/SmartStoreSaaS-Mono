@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,12 +40,28 @@ export const POST = requirePermission(Permission.PRODUCT_READ)(
         correlation: req.correlationId
       });
 
-      // TODO: Generate actual product export
+      const products = await prisma.product.findMany({
+        where: { organizationId },
+        include: { _count: { select: { orderItems: true } } }
+      });
+
+      let exportData = '';
+      if (format === 'csv') {
+        const header = ['ID', 'Name', 'SKU', 'Price', 'Inventory Count', 'Orders Count'].join(',');
+        const rows = products.map(p => [
+          p.id, p.name, p.sku || '', p.price, p.inventoryCount, p._count.orderItems
+        ].map(col => `"${String(col).replace(/"/g, '""')}"`).join(','));
+        exportData = [header, ...rows].join('\n');
+      } else {
+        exportData = JSON.stringify(products, null, 2);
+      }
+
       return NextResponse.json(successResponse({
-        exportUrl: `/exports/products_${Date.now()}.${format}`,
+        exportUrl: null,
+        data: exportData,
         format,
-        recordCount: 0,
-        message: 'Product export initiated'
+        recordCount: products.length,
+        message: 'Product export completed'
       }));
     } catch (error: any) {
       logger.error({

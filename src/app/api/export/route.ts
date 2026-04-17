@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { requireAuth, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,16 +34,44 @@ export const POST = requireAuth(
         correlation: req.correlationId
       });
 
-      // TODO: Implement actual data export
-      // This would typically involve:
-      // 1. Querying data based on type (with organization scoping)
-      // 2. Formatting data based on format
-      // 3. Generating export file
-      // 4. Returning download link
+      let data: any[] = [];
+      let header: string[] = [];
+      let rows: string[] = [];
+
+      if (type === 'customers') {
+        const customers = await prisma.customer.findMany({
+          where: { organizationId: organizationId! }
+        });
+        header = ['ID', 'Name', 'Email', 'Phone', 'Created At'];
+        rows = customers.map(c => [
+          c.id, `${c.firstName} ${c.lastName}`, c.email || '', c.phone || '', c.createdAt.toISOString()
+        ].map(col => `"${String(col).replace(/"/g, '""')}"`).join(','));
+        data = customers;
+      } else if (type === 'orders') {
+        const orders = await prisma.order.findMany({
+          where: { organizationId: organizationId! }
+        });
+        header = ['ID', 'Customer ID', 'Total', 'Status', 'Created At'];
+        rows = orders.map(o => [
+          o.id, o.customerId, o.total, o.status, o.createdAt.toISOString()
+        ].map(col => `"${String(col).replace(/"/g, '""')}"`).join(','));
+        data = orders;
+      } else {
+        throw new ValidationError(`Unsupported export type: ${type}`);
+      }
+
+      let exportData = '';
+      if (format === 'csv') {
+        exportData = [header.join(','), ...rows].join('\n');
+      } else {
+        exportData = JSON.stringify(data, null, 2);
+      }
 
       return NextResponse.json(successResponse({
-        message: 'Export initiated',
-        exportId: `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        message: 'Export completed',
+        data: exportData,
+        format,
+        recordCount: data.length
       }));
     } catch (error: any) {
       logger.error({

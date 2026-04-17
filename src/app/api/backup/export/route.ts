@@ -8,9 +8,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { successResponse, ValidationError, NotFoundError } from '@/lib/middleware/withErrorHandler';
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,12 +43,27 @@ export const POST = requireRole('SUPER_ADMIN')(
         correlation: req.correlationId
       });
 
-      // TODO: Export actual backup
-      return NextResponse.json(successResponse({
-        exportUrl: `/backups/export_${backupId}.${format}`,
-        backupId,
-        format
-      }));
+      const backupsDir = path.join(process.cwd(), 'backups');
+      const filepath = path.join(backupsDir, backupId);
+
+      let fileBuffer: Buffer;
+      try {
+        fileBuffer = await fs.readFile(filepath);
+      } catch {
+        throw new NotFoundError(`Backup '${backupId}' not found`);
+      }
+
+      const mimeType = format === 'sql' ? 'application/sql' : 'application/octet-stream';
+      const exportName = `export_${backupId}.${format}`;
+
+      return new NextResponse(fileBuffer, {
+        status: 200,
+        headers: {
+          'Content-Type': mimeType,
+          'Content-Disposition': `attachment; filename="${exportName}"`,
+          'Content-Length': String(fileBuffer.length),
+        },
+      });
     } catch (error: any) {
       logger.error({
         message: 'Backup export failed',

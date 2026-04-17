@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { ErrorBoundary } from '@/lib/monitoring/error-tracking';
 import { RealtimeToastNotifications } from '@/components/RealtimeNotifications';
 import { ModernSidebar } from '@/components/layout/ModernSidebar';
-import { Menu, X, Bell, Search, User } from 'lucide-react';
+import { Menu, X, Bell, User } from 'lucide-react';
+import { AdvancedSearch } from '@/components/search/AdvancedSearch';
 
 import { GlobalBackground } from '@/components/marketing/GlobalBackground';
 
@@ -89,14 +90,14 @@ export default function DashboardLayout({
 
               {/* Search Bar */}
               <div className="hidden md:flex flex-1 max-w-lg mx-4">
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search anything... (Ctrl+K)"
-                    className="w-full pl-10 pr-4 py-2 glass-dark/5 border border-white/10 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary/50 focus:glass-dark/10 transition-all"
-                  />
-                </div>
+                <AdvancedSearch 
+                  placeholder="Search products, orders, customers... (Ctrl+K)"
+                  onResultSelect={(result) => {
+                    router.push(`/${result.type}s/${result.id}`);
+                  }}
+                  showFilters={false}
+                  className="w-full"
+                />
               </div>
 
               {/* Right Side */}
@@ -140,6 +141,9 @@ export default function DashboardLayout({
       
       {/* Toast notifications */}
       <RealtimeToastNotifications />
+      
+      {/* Global Command Palette */}
+      <CommandPalette />
     </ErrorBoundary>
   );
 }

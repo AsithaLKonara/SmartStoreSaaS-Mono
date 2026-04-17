@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,15 +22,85 @@ import {
   Plus,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  Loader2
 } from 'lucide-react';
 import MfaSetup from '@/components/MfaSetup';
 import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('organization');
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [orgData, setOrgData] = useState({
+    name: '',
+    domain: '',
+    description: '',
+    logo: '',
+    email: '',
+    phone: '',
+    address: '',
+    subscriptionPlan: '',
+    status: ''
+  });
+
+  useEffect(() => {
+    fetchOrganization();
+  }, []);
+
+  const fetchOrganization = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/organization');
+      const data = await res.json();
+      if (data.success) {
+        setOrgData(data.data);
+      }
+    } catch (error) {
+      toast.error('Failed to load organization settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveOrganization = async () => {
+    try {
+      setSaving(true);
+      const res = await fetch('/api/organization', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: orgData.name,
+          description: orgData.description,
+          logo: orgData.logo,
+          email: orgData.email,
+          phone: orgData.phone,
+          address: orgData.address
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Settings updated successfully');
+        setOrgData(data.data);
+      } else {
+        toast.error(data.message || 'Failed to update settings');
+      }
+    } catch (error) {
+      toast.error('An error occurred while saving');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -43,7 +113,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Tabs className="space-y-6">
+      <Tabs defaultValue="organization" className="space-y-6" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="organization" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
@@ -88,33 +158,48 @@ export default function SettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="orgName">Organization Name</Label>
-                  <Input id="orgName" defaultValue="SmartStore Inc." />
+                  <Input 
+                    id="orgName" 
+                    value={orgData.name} 
+                    onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="domain">Domain</Label>
-                  <Input id="domain" defaultValue="smartstore.com" />
+                  <Input 
+                    id="domain" 
+                    value={orgData.domain || ''} 
+                    disabled 
+                    className="bg-muted py-2" 
+                  />
+                  <p className="text-[10px] text-muted-foreground">Domain changes require SUPER_ADMIN approval</p>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <Input id="description" defaultValue="Leading e-commerce platform for modern businesses" />
+                <Input 
+                  id="description" 
+                  value={orgData.description || ''} 
+                  onChange={(e) => setOrgData({ ...orgData, description: e.target.value })}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="plan">Current Plan</Label>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">PRO</Badge>
-                    <span className="text-sm text-muted-foreground">$29/month</span>
+                    <Badge variant="secondary">{orgData.subscriptionPlan || 'FREE'}</Badge>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <Badge variant="default">Active</Badge>
+                  <Badge variant={orgData.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                    {orgData.status || 'INACTIVE'}
+                  </Badge>
                 </div>
               </div>
-              <Button className="w-full">
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
+              <Button className="w-full" onClick={handleSaveOrganization} disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </CardContent>
           </Card>

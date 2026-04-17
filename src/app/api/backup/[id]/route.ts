@@ -13,6 +13,8 @@ import { successResponse, NotFoundError } from '@/lib/middleware/withErrorHandle
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,14 +39,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           correlation: req.correlationId
         });
 
-        // TODO: Fetch actual backup details
-        return NextResponse.json(successResponse({
-          backupId,
-          status: 'completed',
-          size: 0,
-          createdAt: new Date().toISOString(),
-          message: 'Backup details - implementation pending'
-        }));
+        const backupsDir = path.join(process.cwd(), 'backups');
+        const filepath = path.join(backupsDir, backupId);
+
+        try {
+          const stats = await fs.stat(filepath);
+          return NextResponse.json(successResponse({
+            id: backupId,
+            name: backupId,
+            status: 'completed',
+            sizeBytes: stats.size,
+            createdAt: stats.birthtime.toISOString(),
+            updatedAt: stats.mtime.toISOString(),
+          }));
+        } catch {
+          throw new NotFoundError(`Backup '${backupId}' not found`);
+        }
       } catch (error: any) {
         logger.error({
           message: 'Failed to fetch backup details',
@@ -93,7 +103,19 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           correlation: req.correlationId
         });
 
-        // TODO: Delete actual backup
+        const backupsDir = path.join(process.cwd(), 'backups');
+        const filepath = path.join(backupsDir, backupId);
+
+        try {
+          await fs.access(filepath);
+          await fs.unlink(filepath);
+        } catch (e: any) {
+          if (e.code === 'ENOENT') {
+            throw new NotFoundError(`Backup '${backupId}' not found`);
+          }
+          throw e;
+        }
+
         return NextResponse.json(successResponse({
           message: 'Backup deleted successfully',
           backupId

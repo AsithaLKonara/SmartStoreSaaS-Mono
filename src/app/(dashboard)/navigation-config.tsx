@@ -41,7 +41,10 @@ import {
   Brain,
   Sparkles,
   PieChart,
-  Settings
+  Settings,
+  Tags,
+  Ticket,
+  HeadphonesIcon
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -66,9 +69,13 @@ export const navigationConfig: NavigationItem[] = [
   // CORE OPERATIONS
   {
     label: 'Products',
-    href: '/products',
     icon: Package,
-    roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF']
+    roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF'],
+    children: [
+      { label: 'Catalog List', href: '/products', icon: Package },
+      { label: 'Bulk Edit', href: '/products/bulk-edit', icon: Zap, badge: 'Turbo', badgeColor: 'orange' },
+      { label: 'Import CSV', href: '/products/import', icon: FolderTree }
+    ]
   },
   {
     label: 'Orders',
@@ -80,6 +87,14 @@ export const navigationConfig: NavigationItem[] = [
     label: 'Customers',
     href: '/customers',
     icon: Users,
+    roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF']
+  },
+
+  // SERVICE & SUPPORT
+  {
+    label: 'Helpdesk',
+    href: '/support',
+    icon: HeadphonesIcon,
     roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'STAFF']
   },
 
@@ -204,13 +219,20 @@ export const navigationConfig: NavigationItem[] = [
     children: [
       {
         label: 'Accounting',
-        href: '/accounting',
-        icon: Calculator
+        icon: Calculator,
+        children: [
+           { label: 'Ledger Overview', href: '/accounting', icon: Calculator },
+           { label: 'Generate Report', href: '/accounting/generate-report', icon: FileText, badge: 'Certified', badgeColor: 'blue' },
+           { label: 'Reconciliation', href: '/accounting/reconciliation', icon: CheckSquare }
+        ]
       },
       {
         label: 'Payments',
-        href: '/payments',
-        icon: CreditCard
+        icon: CreditCard,
+        children: [
+           { label: 'Transaction List', href: '/payments', icon: CreditCard },
+           { label: 'Refund Manager', href: '/payments/refunds', icon: RotateCcw, badge: 'Security', badgeColor: 'red' }
+        ]
       },
       {
         label: 'Expenses',
@@ -271,10 +293,13 @@ export const navigationConfig: NavigationItem[] = [
       },
       {
         label: 'AI Analytics',
-        href: '/ai-analytics',
         icon: Brain,
         badge: 'Legacy',
-        badgeColor: 'gray'
+        badgeColor: 'gray',
+        children: [
+           { label: 'Dashboard', href: '/ai-analytics', icon: Brain },
+           { label: 'ML Configuration', href: '/ai-analytics/predictions/configure', icon: Settings, badge: 'Neural', badgeColor: 'purple' }
+        ]
       },
       {
         label: 'IoT Grid',
@@ -374,6 +399,13 @@ export const navigationConfig: NavigationItem[] = [
         icon: UserCog
       },
       {
+        label: 'Roles & Permissions',
+        href: '/roles',
+        icon: Shield,
+        badge: 'v3',
+        badgeColor: 'purple'
+      },
+      {
         label: 'Subscriptions',
         href: '/subscriptions',
         icon: CreditCard
@@ -424,7 +456,7 @@ export const navigationConfig: NavigationItem[] = [
       },
       {
         label: 'Audit Logs',
-        href: '/audit',
+        href: '/compliance/audit-logs',
         icon: FileSearch
       },
       {

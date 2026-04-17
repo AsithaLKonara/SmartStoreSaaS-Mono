@@ -6,7 +6,14 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
   
   // Public paths that don't require authentication
   const publicPaths = ['/login', '/register', '/demo', '/unauthorized', '/api/auth', '/api/health', '/api/db-check', '/videos', '/images'];
-  const isPublicPath = pathname === '/' || publicPaths.some(path => pathname.startsWith(path));
+
+  const isPublicPath = pathname === '/' || 
+    publicPaths.some(path => pathname.startsWith(path)) ||
+    (request.method === 'GET' && (
+      pathname.startsWith('/shop') || 
+      pathname.startsWith('/product') || 
+      pathname.startsWith('/marketplace')
+    ));
   
   if (isPublicPath) {
     return NextResponse.next();

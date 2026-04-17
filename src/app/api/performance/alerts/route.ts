@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requireRole, AuthenticatedRequest } from '@/lib/rbac/middleware';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,19 +23,25 @@ export const dynamic = 'force-dynamic';
 export const GET = requireRole('SUPER_ADMIN')(
   async (req: AuthenticatedRequest, user) => {
     try {
-      // TODO: Fetch actual performance alerts
+      const { searchParams } = new URL(req.url);
+      const status = searchParams.get('status') || 'ACTIVE';
+      const limit = parseInt(searchParams.get('limit') || '50');
+
+      const alerts = await prisma.productionAlert.findMany({
+        where: { status: status as any },
+        orderBy: { timestamp: 'desc' },
+        take: limit,
+      });
+
       logger.info({
         message: 'Performance alerts fetched',
-        context: {
-          userId: user.id
-        },
+        context: { userId: user.id, count: alerts.length },
         correlation: req.correlationId
       });
 
       return NextResponse.json(successResponse({
-        alerts: [],
-        count: 0,
-        message: 'Performance alerts - implementation pending'
+        alerts,
+        count: alerts.length,
       }));
     } catch (error: any) {
       logger.error({

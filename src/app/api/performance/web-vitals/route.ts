@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandlerApp, successResponse } from '@/lib/middleware/withErrorHandlerApp';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,17 @@ export const POST = withErrorHandlerApp(
         }
       });
 
-      // TODO: Store web vitals
+      // Persist the web vital to MonitoringMetric
+      await prisma.monitoringMetric.create({
+        data: {
+          type: 'web_vital',
+          name: metric || 'unknown',
+          value: typeof value === 'number' ? value : parseFloat(String(value)) || 0,
+          unit: 'ms',
+          tags: { id, path },
+        },
+      });
+
       return NextResponse.json(successResponse({
         recorded: true,
         metric

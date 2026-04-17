@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,12 +40,31 @@ export const POST = requirePermission(Permission.AUDIT_READ)(
         correlation: req.correlationId
       });
 
-      // TODO: Generate actual export from audit log table
+      const logs = await prisma.auditLog.findMany({
+        where: {
+          ...(orgId && { organizationId: orgId }),
+          ...(startDate && { createdAt: { gte: new Date(startDate) } }),
+          ...(endDate && { createdAt: { lte: new Date(endDate) } }),
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      let exportData = '';
+      if (format === 'csv') {
+        const header = ['ID', 'User ID', 'Action', 'Resource', 'Resource ID', 'Date'].join(',');
+        const rows = logs.map(l => [
+            l.id, l.userId, l.action, l.resource, l.resourceId || '', l.createdAt.toISOString()
+        ].map(col => `"${String(col).replace(/"/g, '""')}"`).join(','));
+        exportData = [header, ...rows].join('\n');
+      } else {
+        exportData = JSON.stringify(logs, null, 2);
+      }
+
       return NextResponse.json(successResponse({
-        exportUrl: '/exports/audit-logs.csv',
         format,
-        recordCount: 0,
-        message: 'Export initiated'
+        data: exportData,
+        recordCount: logs.length,
+        message: 'Export completed'
       }));
     } catch (error: any) {
       logger.error({

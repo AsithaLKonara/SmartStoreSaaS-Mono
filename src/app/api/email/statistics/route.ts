@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic';
  * GET /api/email/statistics
  * Email statistics (SUPER_ADMIN or TENANT_ADMIN)
  */
+import { prisma } from '@/lib/prisma';
+
 export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
   async (req: AuthenticatedRequest, user) => {
     try {
@@ -17,27 +19,33 @@ export const GET = requireRole(['SUPER_ADMIN', 'TENANT_ADMIN'])(
         throw new ValidationError('User must belong to an organization');
       }
 
-      logger.info({
-        message: 'Email statistics fetched',
-        context: {
-          userId: user.id,
-          organizationId
-        },
-        correlation: req.correlationId
+      // Aggregate campaign stats
+      const stats = await prisma.emailCampaign.aggregate({
+        where: { organizationId },
+        _sum: {
+          recipientCount: true,
+          openCount: true,
+          clickCount: true
+        }
       });
 
-      // TODO: Implement email statistics fetching
-      // This would typically involve querying email statistics from database
+      const totalSent = stats._sum.recipientCount || 0;
+      const totalOpened = stats._sum.openCount || 0;
+      const totalClicked = stats._sum.clickCount || 0;
+
       const statistics = {
-        totalSent: 0,
-        totalDelivered: 0,
-        totalOpened: 0,
-        totalClicked: 0,
-        bounceRate: 0,
-        openRate: 0,
-        clickRate: 0,
-        period: '30d'
+        totalSent,
+        totalOpened,
+        totalClicked,
+        openRate: totalSent > 0 ? (totalOpened / totalSent) * 100 : 0,
+        clickRate: totalOpened > 0 ? (totalClicked / totalOpened) * 100 : 0,
+        period: 'All Time'
       };
+
+      logger.info({
+        message: 'Email statistics generated successfully',
+        context: { userId: user.id, organizationId, totalSent }
+      });
 
       return NextResponse.json(successResponse(statistics));
     } catch (error: any) {

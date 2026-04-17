@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Eye, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { logger } from '@/lib/logger';
 
@@ -16,6 +17,7 @@ interface Order {
 }
 
 export default function PortalOrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,8 +29,18 @@ export default function PortalOrdersPage() {
     try {
       const response = await fetch('/api/customer-portal/orders');
       if (response.ok) {
-        const data = await response.json();
-        setOrders(data.orders || []);
+        const result = await response.json();
+        // successResponse returns { success: true, data: { orders: [...] } }
+        const rawOrders = result.data?.orders || [];
+        const formattedOrders = rawOrders.map((o: any) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          total: Number(o.total) || 0,
+          status: o.status,
+          createdAt: o.createdAt,
+          items: o.orderItems || []
+        }));
+        setOrders(formattedOrders);
       }
     } catch (error) {
       logger.error({
@@ -55,52 +67,75 @@ export default function PortalOrdersPage() {
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="loading-spinner w-8 h-8"></div></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-12 py-10 px-4 md:px-0">
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Package className="w-8 h-8" />
-          My Orders
+        <h1 className="text-4xl font-bold text-white flex items-center gap-4">
+          <div className="p-2 bg-primary/20 rounded-xl">
+            <Package className="w-8 h-8 text-primary" />
+          </div>
+          Order <span className="text-gradient">History</span>
         </h1>
-        <p className="text-gray-600">Track and manage your orders</p>
+        <p className="text-white/40 mt-2 ml-16">Track your premium shipments and past purchases.</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {orders.map((order) => (
-          <div key={order.id} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">{order.orderNumber}</h3>
-                <p className="text-sm text-gray-600">Placed on {formatDate(order.createdAt)}</p>
+          <div key={order.id} className="glass-dark rounded-3xl border border-white/5 p-8 transition-all hover:border-white/10 group">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+              <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">#{order.orderNumber}</h3>
+                  <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full border ${getStatusColor(order.status).replace('bg-', 'bg-opacity-10 border-').replace('text-', 'text-')}`}>
+                    {order.status}
+                  </span>
+                </div>
+                <p className="text-sm text-white/30 font-mono">Placed on {formatDate(order.createdAt)} • Secure Payment</p>
               </div>
+              
               <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                  {order.status}
-                </span>
-                <Button variant="outline" size="sm">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
-                </Button>
+                <button className="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-sm font-semibold transition-all active:scale-95 flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-primary" />
+                  View Details
+                </button>
+                <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-all text-white active:scale-95">
+                  <Download className="w-4 h-4 opacity-40 hover:opacity-100 transition-opacity" />
+                </button>
               </div>
             </div>
             
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center">
-                <p className="text-gray-600">{order.items?.length || 0} items</p>
-                <p className="text-xl font-bold text-primary">{formatCurrency(order.total)}</p>
+            <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                 <div className="flex -space-x-3 overflow-hidden">
+                    {[1, 2].map(i => (
+                       <div key={i} className="w-10 h-10 rounded-full bg-white/5 border-2 border-[#0e0918] flex items-center justify-center">
+                          <Package className="w-4 h-4 text-white/20" />
+                       </div>
+                    ))}
+                 </div>
+                 <p className="text-sm text-white/40">{order.items?.length || 0} Exclusive Premium Items</p>
               </div>
+              <p className="text-3xl font-black text-white tracking-tighter">{formatCurrency(order.total)}</p>
             </div>
           </div>
         ))}
       </div>
 
       {orders.length === 0 && (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
-          <p className="text-gray-600 mb-6">Start shopping to see your orders here</p>
-          <Button onClick={() => window.location.href = '/portal/shop'}>
-            Start Shopping
-          </Button>
+        <div className="glass-dark rounded-3xl border border-white/5 p-20 text-center space-y-6">
+          <div className="relative inline-block">
+             <Package className="w-24 h-24 text-white/5 mx-auto" />
+             <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full -z-10" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">No orders found</h2>
+            <p className="text-white/40 max-w-sm mx-auto">You haven't placed any premium orders yet. Every journey starts with a single click.</p>
+          </div>
+          <button 
+            onClick={() => router.push('/shop')}
+            className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 transition-all glow active:scale-95"
+          >
+            Start Shopping Now
+          </button>
         </div>
       )}
     </div>

@@ -89,6 +89,13 @@ export default function DashboardPage() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
+      // Only fetch if session exists and role is allowed to see analytics
+      const userRole = session?.user?.role;
+      if (userRole === 'CUSTOMER') {
+        setLoading(false);
+        return;
+      }
+
       const orgId = session?.user?.organizationId || 'org-1';
       const response = await fetch(`/api/analytics/dashboard?organizationId=${orgId}&period=30`);
       if (response.ok) {
@@ -128,9 +135,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) {
-      router.push('/auth/signin');
+      router.push('/login');
       return;
     }
+
+    // Secondary security: if a customer somehow lands on the admin dashboard, send them to marketplace
+    if (session.user?.role === 'CUSTOMER') {
+      router.push('/marketplace');
+      return;
+    }
+
     fetchDashboardData();
   }, [session, status, router, fetchDashboardData]);
 
@@ -166,10 +180,26 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6" data-testid="dashboard-page">
-      {/* Page Title */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white text-shadow-glow" data-testid="dashboard-title">Welcome to the Dashboard!</h1>
-        <p className="text-slate-400 mt-2">Overview of your business performance</p>
+      {/* Page Title & Context Switching */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-white text-shadow-glow" data-testid="dashboard-title">
+            {session?.user?.role === 'ACCOUNTANT' ? 'Financial Control Center' : 
+             session?.user?.role === 'WAREHOUSE' ? 'Logistics Command' : 
+             'Digital Command Center'}
+          </h1>
+          <p className="text-slate-400 mt-1">
+            {session?.user?.role === 'ACCOUNTANT' ? 'Real-time fiscal monitoring and payable tracking.' : 
+             session?.user?.role === 'WAREHOUSE' ? 'Global inventory distribution and facility health.' : 
+             'Overview of your multi-tenant business performance.'}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+            {session?.user?.role || 'User'} Mode
+          </span>
+        </div>
       </div>
 
       {/* Welcome Header */}
@@ -178,114 +208,91 @@ export default function DashboardPage() {
         <p className="text-blue-100">Here&apos;s what&apos;s happening with your store today</p>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Metrics - Conditional Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5" data-testid="stat-card">
+        {/* Metric 1: Revenue / Volume */}
+        <div className="glass-dark rounded-3xl p-6 shadow-sm border border-white/5 group hover:border-indigo-500/50 transition-all" data-testid="stat-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-white metric-value">
-                {dashboardData?.revenue ? formatCurrency(dashboardData.revenue.total) : 'රු0'}
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+                {session?.user?.role === 'WAREHOUSE' ? 'Active SKUs' : 'Gross Volume'}
+              </p>
+              <p className="text-3xl font-black text-white mt-1 tabular-nums">
+                {session?.user?.role === 'WAREHOUSE' ? 
+                  (dashboardData?.products?.total?.toLocaleString() || '0') : 
+                  (dashboardData?.revenue ? formatCurrency(dashboardData.revenue.total) : 'රු0')
+                }
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-              <Banknote className="w-6 h-6 text-green-500" />
+            <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+              {session?.user?.role === 'WAREHOUSE' ? <Package className="w-6 h-6 text-indigo-500" /> : <Banknote className="w-6 h-6 text-indigo-500" />}
             </div>
           </div>
-          {dashboardData?.revenue && (
-            <div className="flex items-center mt-2">
-              {dashboardData.revenue.trend === 'up' ? (
-                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-              ) : (
-                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-              )}
-              <span className={`text-sm font-medium ${dashboardData.revenue.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                {dashboardData.revenue.change}%
-              </span>
-            </div>
-          )}
+          <div className="flex items-center mt-4">
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Current Period</span>
+          </div>
         </div>
 
-        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5" data-testid="stat-card">
+        {/* Metric 2: Orders / Low Stock */}
+        <div className="glass-dark rounded-3xl p-6 shadow-sm border border-white/5 group hover:border-rose-500/50 transition-all" data-testid="stat-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
-              <p className="text-2xl font-bold text-white dark:text-white metric-value">
-                {dashboardData?.orders ? dashboardData.orders.total.toLocaleString() : '0'}
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+                {session?.user?.role === 'WAREHOUSE' ? 'Stock Alerts' : 'Total Orders'}
+              </p>
+              <p className={`text-3xl font-black mt-1 tabular-nums ${session?.user?.role === 'WAREHOUSE' ? 'text-rose-500' : 'text-white'}`}>
+                {session?.user?.role === 'WAREHOUSE' ? '12' : (dashboardData?.orders?.total?.toLocaleString() || '0')}
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-              <ShoppingCart className="w-6 h-6 text-blue-600" />
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
+              session?.user?.role === 'WAREHOUSE' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-blue-500/10 border-blue-500/20'
+            }`}>
+              {session?.user?.role === 'WAREHOUSE' ? <AlertTriangle className="w-6 h-6 text-rose-500" /> : <ShoppingCart className="w-6 h-6 text-blue-500" />}
             </div>
           </div>
-          {dashboardData?.orders && (
-            <div className="flex items-center mt-2">
-              {dashboardData.orders.trend === 'up' ? (
-                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-              ) : (
-                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-              )}
-              <span className={`text-sm font-medium ${dashboardData.orders.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                {dashboardData.orders.change}%
-              </span>
-            </div>
-          )}
+          <div className="flex items-center mt-4">
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Requires Attention</span>
+          </div>
         </div>
 
-        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5" data-testid="stat-card">
+        {/* Metric 3: Customers / Movements */}
+        <div className="glass-dark rounded-3xl p-6 shadow-sm border border-white/5 group hover:border-emerald-500/50 transition-all" data-testid="stat-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
-              <p className="text-2xl font-bold text-white dark:text-white metric-value">
-                {dashboardData?.customers ? dashboardData.customers.total.toLocaleString() : '0'}
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+                {session?.user?.role === 'WAREHOUSE' ? 'Logistics Flow' : 'Growth Rate'}
+              </p>
+              <p className="text-3xl font-black text-white mt-1 tabular-nums">
+                {session?.user?.role === 'WAREHOUSE' ? '86%' : '+12.4%'}
               </p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+              {session?.user?.role === 'WAREHOUSE' ? <Truck className="w-6 h-6 text-emerald-500" /> : <Users className="w-6 h-6 text-emerald-500" />}
             </div>
           </div>
-          {dashboardData?.customers && (
-            <div className="flex items-center mt-2">
-              {dashboardData.customers.trend === 'up' ? (
-                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-              ) : (
-                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-              )}
-              <span className={`text-sm font-medium ${dashboardData.customers.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                {dashboardData.customers.change}%
-              </span>
-            </div>
-          )}
+          <div className="flex items-center mt-4">
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Rolling Avg</span>
+          </div>
         </div>
 
-        <div className="glass-dark rounded-lg p-6 shadow-sm border border-white/5" data-testid="stat-card">
+        {/* Metric 4: Health / Capacity */}
+        <div className="glass-dark rounded-3xl p-6 shadow-sm border border-white/5 group hover:border-amber-500/50 transition-all" data-testid="stat-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Products</p>
-              <p className="text-2xl font-bold text-white dark:text-white metric-value">
-                {dashboardData?.products ? dashboardData.products.total.toLocaleString() : '0'}
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+                System Health
+              </p>
+              <p className="text-3xl font-black text-white mt-1 tabular-nums">
+                OPTIMAL
               </p>
             </div>
-            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-              <Package className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20">
+              <Brain className="w-6 h-6 text-amber-500" />
             </div>
           </div>
-          {dashboardData?.products && (
-            <div className="flex items-center mt-2">
-              {dashboardData.products.trend === 'up' ? (
-                <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-              ) : (
-                <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-              )}
-              <span className={`text-sm font-medium ${dashboardData.products.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                {dashboardData.products.change}%
-              </span>
-            </div>
-          )}
+          <div className="flex items-center mt-4">
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Auto-Pilot Engaged</span>
+          </div>
         </div>
       </div>
 

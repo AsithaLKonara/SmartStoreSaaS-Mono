@@ -24,93 +24,89 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/products
- * List products with organization scoping
+ * List products with organization scoping (supports public access for storefronts)
  */
-export const GET = requirePermission(Permission.PRODUCT_READ)(
-  async (req: AuthenticatedRequest, user) => {
-    try {
-      const { searchParams } = new URL(req.url);
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
-      const search = searchParams.get('search') || '';
-      const category = searchParams.get('category') || '';
-      const skip = (page - 1) * limit;
+export const GET = async (req: NextRequest) => {
+  try {
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const search = searchParams.get('search') || '';
+    const category = searchParams.get('category') || '';
+    const orgIdParam = searchParams.get('organizationId');
+    
+    // Resolve organization ID with security enforcement
+    const user = await getAuthenticatedUser(req);
+    let orgId: string | undefined | null = orgIdParam;
 
-      // Get organization scoping
-      const orgId = getOrganizationScope(user);
-
-      // Build where clause
-      const where: any = {};
-
-      // Add organization filter (CRITICAL: prevents cross-tenant data leaks)
-      where.organizationId = orgId;
-
-      // Add optional filters
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { sku: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } }
-        ];
+    if (user) {
+      // For authenticated dashboard users, strictly enforce their organization scope
+      const userOrgId = getOrganizationScope(user, orgIdParam || undefined);
+      
+      // If user is not SUPER_ADMIN, userOrgId will ALWAYS be their own org
+      // If user is SUPER_ADMIN, it can be the requested orgId
+      orgId = userOrgId;
+      
+      if (!orgId) {
+        return NextResponse.json({
+          success: false,
+          code: 'ERR_FORBIDDEN',
+          message: 'Insufficient organization access'
+        }, { status: 403 });
       }
-
-      if (category) {
-        where.categoryId = category;
+    } else if (!orgId) {
+      // FALLBACK: For public storefront access, resolve from hostname
+      const host = req.headers.get('host') || '';
+      const domain = process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000';
+      const hostname = host.replace(`.${domain}`, '').split(':')[0];
+      
+      if (hostname && hostname !== domain && hostname !== 'localhost' && hostname !== 'www') {
+        const organization = await prisma.organization.findUnique({
+          where: { domain: hostname }
+        });
+        orgId = organization?.id;
       }
+    }
 
-      // Use optimized query with caching
-      const { data, executionTime, fromCache } = await databaseOptimizer.getOptimizedProducts(
-        orgId!,
-        page,
-        limit,
-        search,
-        category
-      );
-
-      const { products, total } = data;
-
-      logger.info({
-        message: 'Products fetched',
-        context: {
-          count: products.length,
-          page,
-          limit,
-          search: search || undefined,
-          category: category || undefined,
-          organizationId: orgId
-        },
-        correlation: req.correlationId
-      });
-
-      return NextResponse.json(
-        successResponse(products, {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit)
-        })
-      );
-    } catch (error: any) {
-      logger.error({
-        message: 'Failed to fetch products',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: {
-          path: req.nextUrl.pathname,
-          userId: user.id,
-          organizationId: user.organizationId
-        },
-        correlation: req.correlationId
-      });
-
+    if (!orgId) {
       return NextResponse.json({
         success: false,
-        code: 'ERR_INTERNAL',
-        message: 'Failed to fetch products',
-        correlation: req.correlationId
-      }, { status: 500 });
+        message: 'Organization context required'
+      }, { status: 400 });
     }
+
+    // Use optimized query with caching
+    const { data } = await databaseOptimizer.getOptimizedProducts(
+      orgId,
+      page,
+      limit,
+      search,
+      category
+    );
+
+    const { products, total } = data;
+
+    return NextResponse.json(
+      successResponse(products, {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      })
+    );
+  } catch (error: any) {
+    logger.error({
+      message: 'Failed to fetch products',
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+
+    return NextResponse.json({
+      success: false,
+      code: 'ERR_INTERNAL',
+      message: 'Failed to fetch products'
+    }, { status: 500 });
   }
-);
+};
 
 /**
  * POST /api/products
