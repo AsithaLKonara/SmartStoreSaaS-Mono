@@ -21,7 +21,7 @@ export class OrderService {
         };
 
         if (status) {
-            where.status = status;
+            where.status = status as OrderStatus;
         }
 
         if (customerId) {
@@ -144,25 +144,92 @@ export class OrderService {
                 },
             });
 
-            // 2. Create order items
+            // 2. Process order items and update inventory
             if (items && items.length > 0) {
-                await tx.orderItem.createMany({
-                    data: items.map((item) => ({
-                        orderId: order.id,
-                        productId: item.productId,
-                        variantId: item.variantId,
-                        quantity: item.quantity,
-                        price: item.price,
-                        total: item.price * item.quantity,
-                    })),
-                });
+                for (const item of items) {
+                    // Create order item
+                    await tx.orderItem.create({
+                        data: {
+                            orderId: order.id,
+                            productId: item.productId,
+                            variantId: item.variantId,
+                            quantity: item.quantity,
+                            price: item.price,
+                            total: item.price * item.quantity,
+                        },
+                    });
+
+                    // Update inventory
+                    if (item.variantId) {
+                        // Update variant stock
+                        const variant = await tx.productVariant.findUnique({
+                            where: { id: item.variantId },
+                            select: { stock: true, name: true }
+                        });
+
+                        if (!variant || variant.stock < item.quantity) {
+                            throw new Error(`Insufficient stock for variant: ${variant?.name || item.variantId}`);
+                        }
+
+                        await tx.productVariant.update({
+                            where: { id: item.variantId },
+                            data: { stock: { decrement: item.quantity } }
+                        });
+
+                        // Log movement
+                        await tx.inventoryMovement.create({
+                            data: {
+                                organizationId,
+                                productId: item.productId,
+                                variantId: item.variantId,
+                                type: 'SALE',
+                                quantity: -item.quantity,
+                                reason: `Order #${orderNumber}`,
+                                referenceId: order.id,
+                                referenceType: 'ORDER'
+                            }
+                        });
+                    } else {
+                        // Update main product stock
+                        const product = await tx.product.findUnique({
+                            where: { id: item.productId },
+                            select: { stock: true, name: true }
+                        });
+
+                        if (!product || product.stock < item.quantity) {
+                            throw new Error(`Insufficient stock for product: ${product?.name || item.productId}`);
+                        }
+
+                        await tx.product.update({
+                            where: { id: item.productId },
+                            data: { stock: { decrement: item.quantity } }
+                        });
+
+                        // Log movement
+                        await tx.inventoryMovement.create({
+                            data: {
+                                organizationId,
+                                productId: item.productId,
+                                type: 'SALE',
+                                quantity: -item.quantity,
+                                reason: `Order #${orderNumber}`,
+                                referenceId: order.id,
+                                referenceType: 'ORDER'
+                            }
+                        });
+                    }
+                }
             }
 
             return tx.order.findUnique({
                 where: { id: order.id },
                 include: {
                     customer: true,
-                    orderItems: true,
+                    orderItems: {
+                        include: {
+                            product: true
+                        }
+                    },
                 },
             });
         });
