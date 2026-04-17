@@ -522,10 +522,10 @@ export class ProductionMonitoringService {
         data: {
           id: alert.id,
           type: alert.type,
-          severity: alert.severity,
+          severity: alert.severity as any,
           title: alert.title,
           description: alert.description,
-          status: alert.status,
+          status: alert.status as any,
           organizationId: alert.organizationId,
           service: alert.service,
           metric: alert.metric,
