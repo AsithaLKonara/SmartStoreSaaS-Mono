@@ -42,11 +42,32 @@ export class PricingService {
         // 3. Calculate subtotal
         const subtotal = itemDetails.reduce((sum, item) => sum + item.total, 0);
 
-        // 4. TODO: Apply coupon logic
+        // 4. Apply coupon logic
         let discount = 0;
         if (couponCode) {
-            // Placeholder for coupon validation
-            logger.info({ message: 'Coupon applied (placeholder)', context: { couponCode } });
+            const coupon = await prisma.coupon.findFirst({
+                where: {
+                    code: couponCode,
+                    organizationId,
+                    isActive: true,
+                    OR: [
+                        { expiresAt: null },
+                        { expiresAt: { gte: new Date() } }
+                    ]
+                }
+            }).catch(() => null); // Graceful fallback if coupon table doesn't exist yet
+
+            if (coupon) {
+                if (coupon.discountType === 'PERCENTAGE') {
+                    discount = subtotal * (Number(coupon.discountValue) / 100);
+                } else {
+                    // Fixed amount — never exceed subtotal
+                    discount = Math.min(Number(coupon.discountValue), subtotal);
+                }
+                logger.info({ message: 'Coupon applied', context: { couponCode, discount, discountType: coupon.discountType } });
+            } else {
+                logger.warn({ message: 'Coupon not found or expired', context: { couponCode, organizationId } });
+            }
         }
 
         // 5. Calculate Tax (Placeholder for 10% tax rate)
