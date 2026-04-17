@@ -110,10 +110,15 @@ function log(level: LogLevel, data: Omit<LogEntry, 'level' | 'timestamp'>): void
     ...(data.error && { error: formatError(data.error) })
   };
 
-  // In production, send to logging service (e.g., CloudWatch, Datadog)
+  // In production, send to logging service (e.g., CloudWatch, Sentry, Datadog)
   if (process.env.NODE_ENV === 'production') {
-    // TODO: Send to production logging service
+    // Standard structured output for log aggregators (CloudWatch/Vercel)
     console.log(JSON.stringify(entry));
+
+    // For critical errors, we would also trigger an external APM/Error Tracker
+    if (level === LogLevel.ERROR && (global as any).captureException) {
+      (global as any).captureException(data.error || data.message);
+    }
   } else {
     // Development: pretty print with colors
     const colors: Record<LogLevel, string> = {

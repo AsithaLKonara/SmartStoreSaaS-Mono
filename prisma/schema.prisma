@@ -110,6 +110,7 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+  RETURNED
   PARTIALLY_SHIPPED
 }
 
@@ -257,6 +258,7 @@ model Organization {
   affiliates              Affiliate[]
   referrals               Referral[]
   posTerminals            PosTerminal[]
+  expenses                Expense[]
   errorEvents             ErrorEvent[]
   posTransactions         PosTransaction[]
   procurementInvoices     ProcurementInvoice[]
@@ -272,6 +274,7 @@ model Organization {
   webhookSubscriptions      WebhookSubscription[]
   inventoryMovements        InventoryMovement[]
   shippingProfiles          ShippingProfile[]
+  coupons                   Coupon[]
   @@map("organizations")
 }
 
@@ -1005,6 +1008,33 @@ model Ledger {
   @@index([accountId])
   @@map("ledger")
 }
+
+model Expense {
+  id              String         @id
+  title           String
+  description     String?
+  amount          Float
+  category        String
+  type            String
+  status          String         @default("PENDING")
+  paymentMethod   String?
+  receiptUrl      String?
+  approvedBy      String?
+  approvedAt      DateTime?
+  paidAt          DateTime?
+  dueDate         DateTime?
+  vendor          String?
+  tags            String[]       @default([])
+  organizationId  String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("expenses")
+}
+
 
 model LoyaltyTransaction {
   id               String          @id
@@ -2539,4 +2569,27 @@ model WebhookSubscription {
 
   @@map("webhook_subscriptions")
   @@index([organizationId])
+}
+
+model Coupon {
+  id              String       @id @default(cuid())
+  organizationId  String
+  code            String       @unique
+  discountType    DiscountType
+  discountValue   Decimal
+  isActive        Boolean      @default(true)
+  expiresAt       DateTime?
+  usageLimit      Int?
+  usageCount      Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("coupons")
+  @@index([organizationId, code])
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
 }
