@@ -14,6 +14,7 @@ const basePrisma = new PrismaClient({
   },
 });
 
+export const globalPrisma = basePrisma;
 export const prisma = basePrisma.$extends(tenantExtension);
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma; 
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
