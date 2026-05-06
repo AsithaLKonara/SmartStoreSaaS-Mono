@@ -2,9 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedUser, AuthenticatedRequest, validateOrganizationAccess } from '@/lib/rbac/middleware';
-import { successResponse, NotFoundError, AuthorizationError } from '@/lib/middleware/withErrorHandler';
+import { successResponse, NotFoundError, AuthorizationError, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const ProductUpdateSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  price: z.union([z.string(), z.number()]).transform(v => typeof v === 'string' ? parseFloat(v) : v).optional(),
+  cost: z.union([z.string(), z.number()]).transform(v => typeof v === 'string' ? parseFloat(v) : v).optional(),
+  sku: z.string().optional(),
+  barcode: z.string().optional(),
+  categoryId: z.string().optional(),
+  stockQuantity: z.union([z.string(), z.number()]).transform(v => typeof v === 'string' ? parseInt(v) : v).optional(),
+  minStockLevel: z.union([z.string(), z.number()]).transform(v => typeof v === 'string' ? parseInt(v) : v).optional(),
+  maxStockLevel: z.union([z.string(), z.number()]).transform(v => typeof v === 'string' ? parseInt(v) : v).optional(),
+  isActive: z.boolean().optional()
+});
 
 /**
  * @swagger
@@ -31,18 +46,8 @@ export const dynamic = 'force-dynamic';
  */
 export const GET = requirePermission(Permission.PRODUCT_READ)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
-    try {
-      const productId = params.id;
-
-      if (productId === 'test-id') {
-        return NextResponse.json(successResponse({
-          id: 'test-id',
-          name: 'Test Product',
-          sku: 'TEST-SKU',
-          price: 99.99,
-          organizationId: user.organizationId
-        }));
-      }
+      try {
+        const productId = params.id;
 
       // Get product with related data - enforcing organization isolation in the query
       const product = await prisma.product.findUnique({
@@ -135,8 +140,14 @@ export const PUT = requirePermission(Permission.PRODUCT_UPDATE)(
   async (req: AuthenticatedRequest, user, { params }: { params: { id: string } }) => {
     try {
       const productId = params.id;
-      const body = await req.json();
-      const { name, description, price, cost, sku, barcode, categoryId, stockQuantity, minStockLevel, maxStockLevel, isActive } = body;
+      const jsonBody = await req.json();
+      
+      const parsed = ProductUpdateSchema.safeParse(jsonBody);
+      if (!parsed.success) {
+        throw new ValidationError('Invalid update data: ' + parsed.error.errors.map(e => e.message).join(', '));
+      }
+
+      const { name, description, price, cost, sku, barcode, categoryId, stockQuantity, minStockLevel, maxStockLevel, isActive } = parsed.data;
 
       // Check if product exists and belongs to the user's organization
       const existingProduct = await prisma.product.findUnique({
@@ -162,15 +173,15 @@ export const PUT = requirePermission(Permission.PRODUCT_UPDATE)(
         data: {
           ...(name && { name }),
           ...(description !== undefined && { description }),
-          ...(price !== undefined && { price: parseFloat(price) }),
-          ...(cost !== undefined && { cost: parseFloat(cost) }),
+          ...(price !== undefined && { price }),
+          ...(cost !== undefined && { cost }),
           ...(sku && { sku }),
           ...(barcode !== undefined && { barcode }),
           ...(categoryId && { categoryId }),
-          ...(stockQuantity !== undefined && { stockQuantity: parseInt(stockQuantity) }),
-          ...(minStockLevel !== undefined && { minStockLevel: parseInt(minStockLevel) }),
-          ...(maxStockLevel !== undefined && { maxStockLevel: parseInt(maxStockLevel) }),
-          ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+          ...(stockQuantity !== undefined && { stock: stockQuantity }),
+          ...(minStockLevel !== undefined && { minStock: minStockLevel }),
+          ...(maxStockLevel !== undefined && { maxStockLevel }),
+          ...(isActive !== undefined && { isActive }),
           updatedAt: new Date()
         },
         include: {

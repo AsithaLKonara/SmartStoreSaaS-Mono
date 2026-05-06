@@ -14,12 +14,30 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
-// Services will be lazy-loaded in the handler to prevent build-time errors
-// import { stripeService } from '@/lib/payments/stripeService';
-// import { payHereService } from '@/lib/payments/payhereService';
-// import { paypalService } from '@/lib/payments/paypalService';
+import { z } from 'zod';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
+
+const CheckoutSchema = z.object({
+  paymentMethod: z.enum(['stripe', 'payhere', 'paypal', 'cash']),
+  shippingAddress: z.object({
+    street: z.string().min(1, "Street is required"),
+    city: z.string().min(1, "City is required"),
+    state: z.string().min(1, "State is required"),
+    postalCode: z.string().min(1, "Postal code is required"),
+    country: z.string().min(1, "Country is required"),
+  }),
+  billingAddress: z.object({
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    postalCode: z.string(),
+    country: z.string(),
+  }).optional(),
+  customerNotes: z.string().optional(),
+});
+
 
 interface CheckoutRequest {
   paymentMethod: 'stripe' | 'payhere' | 'paypal' | 'cash';
@@ -43,16 +61,25 @@ interface CheckoutRequest {
 export const POST = requireAuth(
   async (request, user) => {
     try {
+      // Apply rate limiting (abuse/brute-force defense)
+      const rateLimitResult = await applyRateLimit(request, 'auth');
+      if (rateLimitResult) {
+        return rateLimitResult;
+      }
+
       // Lazy-load services to ensure environment variables are available at runtime
       const { stripeService } = await import('@/lib/payments/stripeService');
       const { payHereService } = await import('@/lib/payments/payhereService');
       const { paypalService } = await import('@/lib/payments/paypalService');
 
-      const body: CheckoutRequest = await request.json();
+      const jsonBody = await request.json();
+      const bodyParsed = CheckoutSchema.safeParse(jsonBody);
 
-      if (!body.paymentMethod || !body.shippingAddress) {
-        throw new ValidationError('Payment method and shipping address are required');
+      if (!bodyParsed.success) {
+        throw new ValidationError('Invalid checkout data: ' + bodyParsed.error.errors.map(e => e.message).join(', '));
       }
+      
+      const body = bodyParsed.data;
 
       const userId = user.id;
 
@@ -81,68 +108,73 @@ export const POST = requireAuth(
         }
       }
 
-      // Convert cart to order
-      const orderNumber = `ORD-${Date.now()}`;
-
-      const order = await prisma.order.update({
-        where: { id: cart.id },
-        data: {
-          orderNumber,
-          status: 'PENDING',
-          notes: body.customerNotes
-        }
-      });
-
       // Initiate payment based on paymentMethod
       let paymentData = {};
+      let stripePaymentIntentId: string | undefined;
 
       if (body.paymentMethod === 'stripe') {
         const paymentIntent = await stripeService.createPaymentIntent(
-          Number(order.total),
-          'usd', // Default to USD for Stripe or fetch from organization settings
-          undefined, // Customer ID if available
-          { orderId: order.id, organizationId: order.organizationId }
+          Number(cart.total),
+          'usd',
+          undefined,
+          { orderId: cart.id, organizationId: cart.organizationId }
         );
         paymentData = { clientSecret: paymentIntent.clientSecret };
+        stripePaymentIntentId = paymentIntent.id;
       }
       else if (body.paymentMethod === 'payhere') {
         const params = await payHereService.createPaymentRequest({
-          orderId: order.id,
-          amount: Number(order.total),
-          currency: 'LKR', // PayHere usually requires LKR
-          firstName: 'Customer', // Extract from user profile if available
+          orderId: cart.id,
+          amount: Number(cart.total),
+          currency: 'LKR',
+          firstName: user.name || 'Customer',
           lastName: '',
           email: user.email || 'customer@example.com',
           phone: '+94000000000',
           address: body.shippingAddress.street,
           city: body.shippingAddress.city,
           country: body.shippingAddress.country
-        }, order.organizationId);
+        }, cart.organizationId);
         paymentData = { paymentParams: params };
       }
       else if (body.paymentMethod === 'paypal') {
         const paypalOrder = await paypalService.createOrder(
-          Number(order.total),
+          Number(cart.total),
           'USD',
-          order.id,
-          `${process.env.NEXTAUTH_URL}/checkout/success?orderId=${order.id}`,
-          `${process.env.NEXTAUTH_URL}/checkout/cancel?orderId=${order.id}`
+          cart.id,
+          `${process.env.NEXTAUTH_URL}/checkout/success?orderId=${cart.id}`,
+          `${process.env.NEXTAUTH_URL}/checkout/cancel?orderId=${cart.id}`
         );
-        const approvalLink = paypalOrder.links.find(link => link.rel === 'approve')?.href;
+        const approvalLink = paypalOrder.links.find((link: any) => link.rel === 'approve')?.href;
         paymentData = { approvalUrl: approvalLink };
       }
 
-      // Update product stock
-      for (const item of cart.orderItems) {
-        await prisma.product.update({
-          where: { id: item.productId },
+      // Convert cart to order and update product stock in a transaction
+      const orderNumber = `ORD-${Date.now()}`;
+      const order = await prisma.$transaction(async (tx) => {
+        // Update product stock atomically to prevent concurrent overselling race conditions
+        for (const item of cart.orderItems) {
+          const updateResult = await tx.product.updateMany({
+            where: { id: item.productId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } }
+          });
+          
+          if (updateResult.count === 0) {
+             throw new ValidationError(`Insufficient stock for product: ${item.product.name}`);
+          }
+        }
+        
+        // Update the order
+        return await tx.order.update({
+          where: { id: cart.id },
           data: {
-            stock: {
-              decrement: item.quantity
-            }
+            orderNumber,
+            status: 'PENDING',
+            notes: body.customerNotes,
+            stripePaymentIntentId
           }
         });
-      }
+      });
 
       logger.info({
         message: 'Checkout completed',

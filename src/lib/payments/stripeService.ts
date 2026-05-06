@@ -10,12 +10,7 @@ function getStripeClient() {
 
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('STRIPE_SECRET_KEY missing');
-    }
-    // Allow build to proceed or mock in development
-    console.warn('Stripe not configured - using mock/placeholder');
-    return {} as Stripe;
+    throw new Error('STRIPE_SECRET_KEY missing. Cannot initialize payment gateway.');
   }
 
   stripeClient = new Stripe(key, {

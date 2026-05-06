@@ -98,6 +98,7 @@
         "orders:read", "orders:create", "orders:update", "orders:delete", "orders:fulfill",
         "customers:read", "customers:create", "customers:update", "customers:delete",
         "inventory:read", "inventory:update", "inventory:transfer",
+        "shipping:manage", "returns:manage",
         "finance:read", "finance:manage", "payment:process",
         "pos:terminal", "pos:payment", "pos:refund", "pos:discount", "pos:shift",
         "analytics:read",
