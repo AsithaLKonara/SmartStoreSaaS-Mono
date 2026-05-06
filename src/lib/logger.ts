@@ -15,6 +15,8 @@
  *   logger.error({ message: 'Payment failed', error: err, correlation: 'uuid' });
  */
 
+import { getRequestContext } from './request-context';
+
 export enum LogLevel {
   DEBUG = 'debug',
   INFO = 'info',
@@ -101,12 +103,20 @@ function formatError(error: any): Record<string, any> {
  * Core logging function
  */
 function log(level: LogLevel, data: Omit<LogEntry, 'level' | 'timestamp'>): void {
+  const reqContext = getRequestContext();
+  const correlation = data.correlation || reqContext?.requestId;
+  
+  const mergedContext = {
+    ...reqContext,
+    ...data.context
+  };
+
   const entry: LogEntry = {
     level,
     message: data.message,
     timestamp: new Date().toISOString(),
-    ...(data.correlation && { correlation: data.correlation }),
-    ...(data.context && { context: redactSensitiveData(data.context) }),
+    ...(correlation && { correlation }),
+    ...(Object.keys(mergedContext).length > 0 && { context: redactSensitiveData(mergedContext) }),
     ...(data.error && { error: formatError(data.error) })
   };
 

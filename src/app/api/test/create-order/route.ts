@@ -42,17 +42,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const calculatedSubtotal = subtotal !== undefined ? subtotal : items.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0);
+    const calculatedTax = tax !== undefined ? tax : 0;
+    const calculatedShipping = shipping !== undefined ? shipping : 0;
+    const calculatedDiscount = discount !== undefined ? discount : 0;
+    const calculatedTotal = total !== undefined ? total : (calculatedSubtotal + calculatedShipping + calculatedTax - calculatedDiscount);
+
     const order = await prisma.order.create({
       data: {
         orderNumber: `TEST-${Date.now()}`,
         customerId,
         organizationId,
         status: status || 'PENDING',
-        subtotal,
-        tax,
-        shipping,
-        discount: discount || 0,
-        total,
+        subtotal: calculatedSubtotal,
+        tax: calculatedTax,
+        shipping: calculatedShipping,
+        discount: calculatedDiscount,
+        total: calculatedTotal,
         orderItems: {
           create: items.map((item: any) => ({
             productId: item.productId,
