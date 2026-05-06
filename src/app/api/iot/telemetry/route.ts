@@ -20,6 +20,7 @@ const telemetrySchema = z.object({
  */
 export async function POST(req: NextRequest) {
     try {
+        return NextResponse.json({ success: false, error: '501 Not Implemented: IoT Telemetry is disabled.' }, { status: 501 });
         const body = await req.json();
         const validation = telemetrySchema.safeParse(body);
 

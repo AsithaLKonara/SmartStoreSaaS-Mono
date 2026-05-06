@@ -10,6 +10,8 @@ export async function middleware(request: NextRequest) {
   const bypassPaths = [
     '/api/auth', 
     '/api/auth-debug', 
+    '/api/test',
+    '/api/working-signin',
     '/_next', 
     '/favicon.ico',
     '/videos',

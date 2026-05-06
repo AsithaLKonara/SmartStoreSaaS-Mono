@@ -1,3 +1,4 @@
+import './config-validator';
 import { PrismaClient } from '@prisma/client';
 import { tenantExtension } from './prisma-extension';
 

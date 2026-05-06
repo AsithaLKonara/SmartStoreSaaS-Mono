@@ -188,13 +188,16 @@ export function hasAllPermissions(role: UserRole | string, permissions: (Permiss
 }
 
 export function hasImplicitPermission(schemaPermissions: string[], reqPerm: string): boolean {
-  if (schemaPermissions.includes(reqPerm)) return true;
+  const normReqPerm = reqPerm.replace(/\./g, ':');
+  const normSchemaPermissions = schemaPermissions.map(p => p.replace(/\./g, ':'));
 
-  if (reqPerm.endsWith(':read')) {
-    const resource = reqPerm.split(':')[0];
-    if (schemaPermissions.includes(`${resource}:manage`) ||
-      schemaPermissions.includes(`${resource}:update`) ||
-      schemaPermissions.includes(`${resource}:create`)) {
+  if (normSchemaPermissions.includes(normReqPerm)) return true;
+
+  if (normReqPerm.endsWith(':read') || normReqPerm.endsWith('.read')) {
+    const resource = normReqPerm.split(':')[0];
+    if (normSchemaPermissions.includes(`${resource}:manage`) ||
+      normSchemaPermissions.includes(`${resource}:update`) ||
+      normSchemaPermissions.includes(`${resource}:create`)) {
       return true;
     }
   }

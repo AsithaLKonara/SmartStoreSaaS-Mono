@@ -194,6 +194,7 @@ export class BlockchainService {
     customerWallet: string,
     organizationId: string
   ): Promise<CryptocurrencyPayment> {
+    throw new Error('501 Not Implemented: Blockchain Crypto Payments are disabled.');
     try {
       // Get current exchange rate
       const exchangeRate = await this.getCryptoExchangeRate(currency, 'USD');
