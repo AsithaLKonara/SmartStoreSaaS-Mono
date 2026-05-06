@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger';
+import { requestContextStore } from '@/lib/request-context';
 
 export interface ErrorContext {
   correlation: string;
@@ -100,15 +101,16 @@ export function withErrorHandlerApp(handler: AppApiHandler) {
       role
     };
 
-    try {
-      // Add correlation ID to response headers
-      const response = await handler(req, context);
+    return requestContextStore.run({ requestId: correlation, userId, organizationId, role }, async () => {
+      try {
+        // Add correlation ID to response headers
+        const response = await handler(req, context);
 
-      // Add correlation ID to response headers
-      response.headers.set('X-Request-Id', correlation);
+        // Add correlation ID to response headers
+        response.headers.set('X-Request-Id', correlation);
 
-      return response;
-    } catch (error: any) {
+        return response;
+      } catch (error: any) {
       // Log the error with structured format
       logger.error({
         message: error.message || 'Unhandled API error',
@@ -138,5 +140,6 @@ export function withErrorHandlerApp(handler: AppApiHandler) {
         correlation
       );
     }
-  };
+  });
+};
 }

@@ -1,7 +1,7 @@
 /**
  * AUTO-GENERATED: Comprehensive E2E Route Test for CUSTOMER
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
 
 const ROUTES = [
   "/",

@@ -65,14 +65,7 @@ export class PayPalService {
       const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
       if (!clientId || !clientSecret) {
-        if (process.env.NODE_ENV === 'production') {
-          throw new Error('PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET missing');
-        }
-        return {
-          clientId: 'mock',
-          clientSecret: 'mock',
-          environment: 'sandbox'
-        };
+        throw new Error('PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET missing');
       }
 
       this._config = {

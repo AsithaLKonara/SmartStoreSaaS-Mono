@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
 import { generateVerificationToken, resetDatabase, seedDatabase } from '../utils/test-data';
 
 test.describe('Customer Registration and First Purchase', () => {

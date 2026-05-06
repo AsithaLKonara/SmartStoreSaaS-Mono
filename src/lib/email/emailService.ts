@@ -157,13 +157,8 @@ export class EmailService {
 
   private async sendWithSendGrid(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      // Check if SendGrid is configured
       if (!process.env.SENDGRID_API_KEY) {
-        logger.warn({
-          message: 'SendGrid API key not configured, using mock processing',
-          context: { service: 'EmailService', operation: 'sendWithSendGrid', to: options.to }
-        });
-        return { success: true, messageId: `sg_mock_${Date.now()}` };
+        throw new Error('501 Not Implemented: SENDGRID_API_KEY missing. Cannot send emails.');
       }
 
       // Import SendGrid dynamically

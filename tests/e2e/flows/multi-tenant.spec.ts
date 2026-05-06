@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
 import { loginViaUI } from '../utils/auth';
 import { resetDatabase, createTestOrganization } from '../utils/test-data';
 

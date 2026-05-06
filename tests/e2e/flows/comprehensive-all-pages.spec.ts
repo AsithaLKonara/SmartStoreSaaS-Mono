@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
 
 /**
  * Comprehensive E2E Tests - ALL Dashboard Pages

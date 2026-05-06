@@ -15,8 +15,15 @@ import { successResponse, NotFoundError, AuthorizationError, ValidationError } f
 import { requirePermission, Permission, validateOrganizationAccess, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { logger } from '@/lib/logger';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const OrderUpdateSchema = z.object({
+  status: z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']).optional(),
+  notes: z.string().optional(),
+  trackingNumber: z.string().optional()
+});
 
 /**
  * GET /api/orders/[id]
@@ -30,15 +37,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const handler = requirePermission(Permission.ORDER_READ)(
     async (req: AuthenticatedRequest, user) => {
       try {
-        if (orderId === 'test-id') {
-          return NextResponse.json(successResponse({
-            id: 'test-id',
-            orderNumber: 'ORD-TEST',
-            status: 'PENDING',
-            total: 100,
-            organizationId: user.organizationId
-          }));
-        }
 
         // Get order with related data
         const order = await prisma.order.findUnique({
@@ -53,7 +51,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 }
               }
             },
-            deliveries: true
+            deliveries: true,
+            payments: true
           }
         });
 
@@ -130,14 +129,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const handler = requirePermission(Permission.ORDER_UPDATE)(
     async (req: AuthenticatedRequest, user) => {
       try {
-        const body = await req.json();
-        const { status, notes, trackingNumber } = body;
-
-        // Validate status if provided
-        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-        if (status && !validStatuses.includes(status)) {
-          throw new ValidationError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+        const jsonBody = await req.json();
+        const parsed = OrderUpdateSchema.safeParse(jsonBody);
+        
+        if (!parsed.success) {
+          throw new ValidationError('Invalid update data: ' + parsed.error.errors.map(e => e.message).join(', '));
         }
+
+        const { status, notes, trackingNumber } = parsed.data;
 
         // Fetch order to validate access
         const order = await prisma.order.findUnique({
@@ -153,23 +152,57 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           throw new AuthorizationError('Cannot update orders from other organizations');
         }
 
-        // Update order
-        const updatedOrder = await prisma.order.update({
-          where: { id: orderId },
-          data: {
-            ...(status && { status }),
-            ...(notes && { notes }),
-            ...(trackingNumber && { trackingNumber }),
-            updatedAt: new Date()
-          },
-          include: {
-            orderItems: {
+        // Process Refund and Restock if status is changing to REFUNDED or CANCELLED
+        const isRestocking = (status === 'REFUNDED' || status === 'CANCELLED') && order.status !== status;
+        
+        let updatedOrder;
+        
+        if (isRestocking) {
+            // Include order items to restore stock
+            const orderWithItems = await prisma.order.findUnique({
+              where: { id: orderId },
+              include: { orderItems: true }
+            });
+            
+            updatedOrder = await prisma.$transaction(async (tx) => {
+               for (const item of orderWithItems!.orderItems) {
+                 await tx.product.update({
+                   where: { id: item.productId },
+                   data: { stock: { increment: item.quantity } }
+                 });
+               }
+               
+               return await tx.order.update({
+                  where: { id: orderId },
+                  data: {
+                    ...(status && { status }),
+                    ...(notes && { notes }),
+                    ...(trackingNumber && { trackingNumber }),
+                    updatedAt: new Date()
+                  },
+                  include: {
+                    orderItems: { include: { product: true } }
+                  }
+               });
+            });
+        } else {
+            updatedOrder = await prisma.order.update({
+              where: { id: orderId },
+              data: {
+                ...(status && { status }),
+                ...(notes && { notes }),
+                ...(trackingNumber && { trackingNumber }),
+                updatedAt: new Date()
+              },
               include: {
-                product: true
+                orderItems: {
+                  include: {
+                    product: true
+                  }
+                }
               }
-            }
-          }
-        });
+            });
+        }
 
         logger.info({
           message: 'Order updated successfully',

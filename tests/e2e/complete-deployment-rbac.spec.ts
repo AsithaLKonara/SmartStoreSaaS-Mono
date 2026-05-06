@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from './utils/test-base';
+import { Page } from '@playwright/test';
 
 // Test credentials matching login page
 const credentials = {

@@ -28,7 +28,7 @@ export const tenantExtension = Prisma.defineExtension((client) => {
               args.where = { ...args.where, organizationId: tenantId };
             }
             if (operation === 'create') {
-              args.data = { ...args.data, organizationId: tenantId };
+              args.data = { ...(args.data as any), organizationId: tenantId };
             }
           }
 

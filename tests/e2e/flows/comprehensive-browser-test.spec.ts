@@ -4,7 +4,8 @@
  * Monitors errors, exceptions, and console statements
  */
 
-import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
+import { Page, BrowserContext } from '@playwright/test';
 
 interface TestResult {
   role: string;

@@ -8,7 +8,7 @@ import { RealtimeToastNotifications } from '@/components/RealtimeNotifications';
 import { ModernSidebar } from '@/components/layout/ModernSidebar';
 import { Menu, X, Bell, User } from 'lucide-react';
 import { AdvancedSearch } from '@/components/search/AdvancedSearch';
-
+import { CommandPalette } from '@/components/CommandPalette';
 import { GlobalBackground } from '@/components/marketing/GlobalBackground';
 
 export default function DashboardLayout({
