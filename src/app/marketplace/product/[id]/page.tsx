@@ -1,5 +1,10 @@
 import { Metadata } from 'next';
-
+import Link from 'next/link';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
+import { Star, Store, ShieldCheck, Truck } from 'lucide-react';
+import { AddToCartButton } from '@/components/marketplace/AddToCartButton';
+import prisma from '@/lib/prisma';
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const product = await prisma.product.findUnique({
     where: { id: params.id },
