@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -441,6 +442,11 @@ model Order {
   fulfillments         Fulfillment[]
   giftCardTransactions GiftCardTransaction[]
   affiliateCommissions AffiliateCommission[]
+
+  trackingNumber       String?
+  carrier              String?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
 
   stripePaymentIntentId String?               @unique
   paypalOrderId         String?               @unique
@@ -2592,4 +2598,14 @@ model Coupon {
 enum DiscountType {
   PERCENTAGE
   FIXED
+}
+
+model ProcessedWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  gateway     String
+  processedAt DateTime @default(now())
+
+  @@map("processed_webhook_events")
+  @@index([eventId])
 }

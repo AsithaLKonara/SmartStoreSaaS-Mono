@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
 import { UserRole, Permission, hasPermission, canAccessRoute } from './roles';
 export { UserRole, Permission };
 import { logger } from '@/lib/logger';
@@ -113,8 +114,31 @@ export async function requirePosManageShift(request: NextRequest) {
 
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
   try {
+    // 1. Try to verify custom JWT token from Authorization header first
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const tokenString = authHeader.substring(7);
+      try {
+        const decoded = jwt.verify(tokenString, process.env.JWT_SECRET || 'fallback-secret') as any;
+        if (decoded) {
+          return {
+            id: decoded.userId || decoded.id,
+            email: decoded.email,
+            name: decoded.name || '',
+            role: (decoded.role as UserRole) || UserRole.CUSTOMER,
+            roleTag: decoded.roleTag || '',
+            organizationId: decoded.organizationId,
+            activeOrganizationId: request.headers.get('x-tenant-id') || decoded.activeOrganizationId || decoded.organizationId || null
+          };
+        }
+      } catch (jwtError) {
+        logger.warn({ message: 'JWT verification failed in RBAC middleware', error: jwtError });
+      }
+    }
+
+    // 2. Fallback to Next-Auth cookie sessions
     const token = await getToken({
-      req: request,
+      req: request as any,
       secret: process.env.NEXTAUTH_SECRET
     });
 

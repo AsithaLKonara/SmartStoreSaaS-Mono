@@ -1,94 +1,57 @@
-/**
- * Global Health Check API Route
- * 
- * Authorization:
- * - GET: Public (monitoring-friendly)
- */
-
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getRedisClient } from '@/lib/cache/redis';
+import { NextResponse } from 'next/server';
+import { globalPrisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
-  const timestamp = new Date().toISOString();
-  
-  const health: any = {
-    status: 'ok',
-    database: 'unknown',
-    redis: 'unknown',
+export async function GET() {
+  const healthStatus: {
+    status: 'healthy' | 'unhealthy';
+    timestamp: string;
     services: {
-      inventory: 'unknown',
-      orders: 'unknown',
-      analytics: 'unknown'
+      database: { status: 'up' | 'down'; latencyMs?: number; error?: string };
+      stripe: { status: 'up' | 'down'; mode?: string; error?: string };
+    };
+  } = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: { status: 'up' },
+      stripe: { status: 'up' },
     },
-    timestamp
   };
 
+  // 1. Check database connectivity and latency
+  const dbStart = Date.now();
   try {
-    // 1. Database Check
-    const dbStart = Date.now();
-    await prisma.$queryRaw`SELECT 1`;
-    health.database = 'connected';
-    const dbLatency = Date.now() - dbStart;
-
-    // 2. Redis Check
-    try {
-      const redis = getRedisClient();
-      if (redis) {
-          // Send a ping
-          const ping = await redis.ping();
-          health.redis = ping === 'PONG' ? 'connected' : 'disconnected';
-      } else {
-          health.redis = 'not_configured';
-      }
-    } catch (e) {
-      health.redis = 'error';
-    }
-
-    // 3. Service Depth Checks (Fast counts)
-    try {
-      const [productCount, orderCount] = await Promise.all([
-        prisma.product.count(),
-        prisma.order.count()
-      ]);
-      
-      health.services.inventory = productCount > 0 ? 'ok' : 'empty';
-      health.services.orders = orderCount > 0 ? 'ok' : 'empty';
-      health.services.analytics = 'ok'; // Operational
-    } catch (e) {
-      health.services.inventory = 'error';
-      health.services.orders = 'error';
-    }
-
-    // Overall status logic
-    if (health.database !== 'connected' || health.services.inventory === 'error') {
-      health.status = 'degraded';
-    }
-
-    return NextResponse.json(health, { 
-      status: health.status === 'ok' ? 200 : 503,
-      headers: {
-          'Cache-Control': 'no-store, max-age=0',
-          'X-DB-Latency': `${dbLatency}ms`
-      }
-    });
-
-  } catch (error: any) {
-    logger.error({
-      message: 'Critical Health Check Failure',
-      error: error.message,
-      context: { service: 'HealthAPI' }
-    });
-
-    return NextResponse.json({
-      success: false,
-      status: 'error',
-      database: 'disconnected',
-      message: error.message,
-      timestamp
-    }, { status: 500 });
+    await globalPrisma.$queryRaw`SELECT 1`;
+    healthStatus.services.database.latencyMs = Date.now() - dbStart;
+  } catch (err: any) {
+    healthStatus.status = 'unhealthy';
+    healthStatus.services.database.status = 'down';
+    healthStatus.services.database.error = err.message || String(err);
+    logger.error({ message: 'Health check failed: Database connection down', error: err });
   }
+
+  // 2. Check Stripe connectivity status
+  try {
+    if (process.env.STRIPE_SECRET_KEY) {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2024-04-10' as any,
+      });
+      const balance = await stripe.balance.retrieve();
+      healthStatus.services.stripe.mode = balance.livemode ? 'live' : 'test';
+    } else {
+      throw new Error('STRIPE_SECRET_KEY is not defined');
+    }
+  } catch (err: any) {
+    // Note: Stripe service failure should not report entire app as unhealthy, but register status down
+    healthStatus.services.stripe.status = 'down';
+    healthStatus.services.stripe.error = err.message || String(err);
+    logger.warn({ message: 'Health check warning: Stripe integration degraded', error: err });
+  }
+
+  const statusCode = healthStatus.status === 'healthy' ? 200 : 500;
+  return NextResponse.json(healthStatus, { status: statusCode });
 }

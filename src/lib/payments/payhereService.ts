@@ -28,7 +28,7 @@ export class PayHereService {
 
     constructor() {
         this.config = {
-            merchantId: process.env.PAYHERE_MERCHANT_ID || '1211149', // Default mock ID
+            merchantId: process.env.PAYHERE_MERCHANT_ID!,
             merchantSecret: process.env.PAYHERE_MERCHANT_SECRET || 'secret',
             environment: (process.env.PAYHERE_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox'
         };

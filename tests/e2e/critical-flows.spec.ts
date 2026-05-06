@@ -3,7 +3,7 @@
  * Tests complete user journeys from start to finish
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './utils/test-base';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://smartstore-demo.vercel.app';
 

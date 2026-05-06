@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
 
 test.describe('Dashboard Performance & Charts Verification', () => {
   test.use({ storageState: '.auth/admin.json' });
