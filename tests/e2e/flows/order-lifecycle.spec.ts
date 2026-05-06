@@ -1,9 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/test-base';
 import { loginViaUI } from '../utils/auth';
 import { resetDatabase, seedDatabase } from '../utils/test-data';
 
 test.describe('Complete Order Lifecycle', () => {
-  test.beforeEach(async ({ request }) => {
+  test.beforeEach(async ({ page, request }) => {
     await resetDatabase(request);
     await seedDatabase(request, 'full');
   });

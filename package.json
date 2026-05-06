@@ -3,9 +3,9 @@
   "version": "1.2.2",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node api.js && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node api.js && next start",
     "lint": "next lint",
     "lint:console": "eslint --ext .ts,.tsx --no-eslintrc --parser @typescript-eslint/parser --rule 'no-console: error' src/",
     "typecheck": "bash scripts/fetch-type-errors.sh",

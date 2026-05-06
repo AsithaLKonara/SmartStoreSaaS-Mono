@@ -18,8 +18,32 @@ import { successResponse } from '@/lib/middleware/withErrorHandler';
 import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { OrderService } from '@/lib/services/order.service';
+import { ValidationError } from '@/lib/middleware/withErrorHandler';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const OrderQuerySchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  status: z.string().optional().transform(val => val || undefined),
+});
+
+const OrderCreateSchema = z.object({
+  customerId: z.string().min(1, 'Customer ID is required'),
+  items: z.array(z.object({
+    productId: z.string(),
+    variantId: z.string().optional(),
+    quantity: z.number().positive(),
+    price: z.number().nonnegative(),
+  })).min(1, 'At least one item is required'),
+  subtotal: z.number().nonnegative(),
+  tax: z.number().nonnegative().optional().default(0),
+  shipping: z.number().nonnegative().optional().default(0),
+  discount: z.number().nonnegative().optional().default(0),
+  total: z.number().nonnegative(),
+  notes: z.string().optional(),
+});
 
 /**
  * GET /api/orders
@@ -29,9 +53,18 @@ export const GET = requirePermission(Permission.ORDER_READ)(
   async (req: AuthenticatedRequest, user) => {
     try {
       const { searchParams } = new URL(req.url);
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
-      const status = searchParams.get('status') || '';
+      
+      const queryResult = OrderQuerySchema.safeParse({
+        page: searchParams.get('page'),
+        limit: searchParams.get('limit'),
+        status: searchParams.get('status'),
+      });
+
+      if (!queryResult.success) {
+        throw new ValidationError('Invalid query parameters: ' + queryResult.error.errors.map(e => e.message).join(', '));
+      }
+
+      const { page, limit, status } = queryResult.data;
       const orgId = getOrganizationScope(user);
 
       if (!orgId) {
@@ -112,16 +145,14 @@ export const GET = requirePermission(Permission.ORDER_READ)(
 export const POST = requirePermission(Permission.ORDER_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await req.json();
-      const { customerId, items, subtotal, tax, shipping, discount, total, notes } = body;
+      const jsonBody = await req.json();
+      const bodyResult = OrderCreateSchema.safeParse(jsonBody);
 
-      // Validation
-      if (!customerId || !items || items.length === 0) {
-        return NextResponse.json({
-          success: false,
-          message: 'Customer ID and items are required'
-        }, { status: 400 });
+      if (!bodyResult.success) {
+        throw new ValidationError('Invalid order data: ' + bodyResult.error.errors.map(e => e.message).join(', '));
       }
+
+      const { customerId, items, subtotal, tax, shipping, discount, total, notes } = bodyResult.data;
 
       const organizationId = getOrganizationScope(user);
       if (!organizationId) {

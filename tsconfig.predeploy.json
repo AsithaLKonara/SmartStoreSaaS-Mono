@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/lib/config-validator.ts",
+    "src/app/api/health/route.ts",
+    "src/lib/request-context.ts",
+    "src/lib/logger.ts",
+    "src/lib/middleware/withErrorHandlerApp.ts",
+    "src/app/api/checkout/route.ts",
+    "src/app/api/webhooks/stripe/route.ts"
+  ]
+}

@@ -3,8 +3,21 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { successResponse, ValidationError } from '@/lib/middleware/withErrorHandler';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const NotificationQuerySchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(10),
+  isRead: z.enum(['true', 'false']).optional().transform(v => v ? v === 'true' : undefined),
+  type: z.string().optional()
+});
+
+const NotificationUpdateSchema = z.object({
+  notificationIds: z.array(z.string()).min(1, 'No notification IDs provided'),
+  isRead: z.boolean()
+});
 
 /**
  * GET /api/notifications
@@ -19,10 +32,19 @@ export const GET = requirePermission(Permission.NOTIFICATIONS_READ)(
       }
 
       const { searchParams } = new URL(req.url);
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '10');
-      const isReadParam = searchParams.get('isRead');
-      const type = searchParams.get('type');
+      
+      const parsed = NotificationQuerySchema.safeParse({
+        page: searchParams.get('page'),
+        limit: searchParams.get('limit'),
+        isRead: searchParams.get('isRead'),
+        type: searchParams.get('type')
+      });
+
+      if (!parsed.success) {
+         throw new ValidationError('Invalid query: ' + parsed.error.errors.map(e => e.message).join(', '));
+      }
+
+      const { page, limit, isRead, type } = parsed.data;
 
       logger.info({
         message: 'Notifications fetched',
@@ -42,8 +64,8 @@ export const GET = requirePermission(Permission.NOTIFICATIONS_READ)(
         userId: user.id // User-specific notifications
       };
 
-      if (isReadParam !== null && isReadParam !== undefined) {
-        where.isRead = isReadParam === 'true';
+      if (isRead !== undefined) {
+        where.isRead = isRead;
       }
 
       if (type) {
@@ -116,16 +138,14 @@ export const PUT = requirePermission(Permission.NOTIFICATIONS_MANAGE)(
         throw new ValidationError('User must belong to an organization');
       }
 
-      const body = await req.json();
-      const { notificationIds, isRead } = body;
+      const jsonBody = await req.json();
+      const parsed = NotificationUpdateSchema.safeParse(jsonBody);
 
-      if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
-        throw new ValidationError('No notification IDs provided');
+      if (!parsed.success) {
+        throw new ValidationError('Invalid update data: ' + parsed.error.errors.map(e => e.message).join(', '));
       }
 
-      if (typeof isRead !== 'boolean') {
-        throw new ValidationError('isRead must be a boolean');
-      }
+      const { notificationIds, isRead } = parsed.data;
 
       logger.info({
         message: 'Notifications updated',

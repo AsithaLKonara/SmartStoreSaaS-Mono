@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { User, Order, Prisma, OrderStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { OrderStateService } from '@/lib/services/order-state.service';
 
 export class OrderService {
     /**
@@ -159,22 +160,16 @@ export class OrderService {
                         },
                     });
 
-                    // Update inventory
+                    // Update inventory atomically with boundary check (stock >= quantity) to prevent concurrent overselling
                     if (item.variantId) {
-                        // Update variant stock
-                        const variant = await tx.productVariant.findUnique({
-                            where: { id: item.variantId },
-                            select: { stock: true, name: true }
-                        });
-
-                        if (!variant || variant.stock < item.quantity) {
-                            throw new Error(`Insufficient stock for variant: ${variant?.name || item.variantId}`);
-                        }
-
-                        await tx.productVariant.update({
-                            where: { id: item.variantId },
+                        const updateResult = await tx.productVariant.updateMany({
+                            where: { id: item.variantId, stock: { gte: item.quantity } },
                             data: { stock: { decrement: item.quantity } }
                         });
+
+                        if (updateResult.count === 0) {
+                            throw new Error(`Insufficient stock for variant: ${item.variantId}`);
+                        }
 
                         // Log movement
                         await tx.inventoryMovement.create({
@@ -190,20 +185,14 @@ export class OrderService {
                             }
                         });
                     } else {
-                        // Update main product stock
-                        const product = await tx.product.findUnique({
-                            where: { id: item.productId },
-                            select: { stock: true, name: true }
-                        });
-
-                        if (!product || product.stock < item.quantity) {
-                            throw new Error(`Insufficient stock for product: ${product?.name || item.productId}`);
-                        }
-
-                        await tx.product.update({
-                            where: { id: item.productId },
+                        const updateResult = await tx.product.updateMany({
+                            where: { id: item.productId, stock: { gte: item.quantity } },
                             data: { stock: { decrement: item.quantity } }
                         });
+
+                        if (updateResult.count === 0) {
+                            throw new Error(`Insufficient stock for product: ${item.productId}`);
+                        }
 
                         // Log movement
                         await tx.inventoryMovement.create({
@@ -248,6 +237,29 @@ export class OrderService {
         const { orderId, organizationId, status, notes, origin = 'human' } = params;
 
         return prisma.$transaction(async (tx) => {
+            const currentOrder = await tx.order.findUnique({
+                where: { id: orderId, organizationId },
+                include: { orderItems: true }
+            });
+
+            if (!currentOrder) {
+                throw new Error('Order not found');
+            }
+
+            // Enforce centralized state machine transition validation
+            OrderStateService.validateTransition(currentOrder.status, status);
+
+            const isRestocking = (status === 'REFUNDED' || status === 'CANCELLED') && currentOrder.status !== status;
+
+            if (isRestocking) {
+                for (const item of currentOrder.orderItems) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { increment: item.quantity } }
+                    });
+                }
+            }
+
             const order = await tx.order.update({
                 where: { id: orderId, organizationId },
                 data: {
