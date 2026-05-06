@@ -19,8 +19,20 @@ import { logger } from '@/lib/logger';
 import { requirePermission, Permission, getOrganizationScope, AuthenticatedRequest } from '@/lib/rbac/middleware';
 import { ValidationError } from '@/lib/middleware/withErrorHandler';
 import { databaseOptimizer } from '@/lib/database/performance-optimizer';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const ProductCreateSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  sku: z.string().min(1, 'SKU is required'),
+  price: z.number().nonnegative('Price must be positive'),
+  cost: z.number().nonnegative().optional(),
+  stock: z.number().int().nonnegative().default(0),
+  minStock: z.number().int().nonnegative().default(0),
+  categoryId: z.string().optional()
+});
 
 /**
  * GET /api/products
@@ -115,15 +127,14 @@ export const GET = async (req: NextRequest) => {
 export const POST = requirePermission(Permission.PRODUCT_CREATE)(
   async (req: AuthenticatedRequest, user) => {
     try {
-      const body = await req.json();
-      const { name, description, sku, price, cost, stock, minStock, categoryId } = body;
+      const jsonBody = await req.json();
+      const parsed = ProductCreateSchema.safeParse(jsonBody);
 
-      // Validation
-      if (!name || !sku || price === undefined) {
-        throw new ValidationError('Name, SKU, and price are required', {
-          fields: { name: !name, sku: !sku, price: price === undefined }
-        });
+      if (!parsed.success) {
+        throw new ValidationError('Invalid product data: ' + parsed.error.errors.map(e => e.message).join(', '));
       }
+
+      const { name, description, sku, price, cost, stock, minStock, categoryId } = parsed.data;
 
       const organizationId = getOrganizationScope(user);
       if (!organizationId) {
